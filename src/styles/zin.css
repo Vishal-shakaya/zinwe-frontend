@@ -1,0 +1,411 @@
+/* ==========================================================================
+   Zin layer — the brand's "spirit": soft smoke and a warm ember.
+   Zin (jinn) = an unseen helper that watches over you. The look stays
+   friendly: warm grey haze, never dark fog; orange embers, never fire.
+   Everything here is decorative and additive to site.css / app.css.
+   ========================================================================== */
+
+:root {
+  --zin-smoke: 120, 98, 86; /* warm taupe, as "r, g, b" for rgba() */
+  --zin-ember: 255, 92, 26;
+  --zin-peak: 0.42;
+  --zin-ember-peak: 0.34;
+  --zin-rise: 620px;
+}
+
+/* ---------- Ambient smoke ---------- */
+
+.zin-host {
+  position: relative;
+  isolation: isolate;
+}
+
+.zin-host > .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.zin-smoke {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Film grain on ink only: on white it tints the whole section grey and
+   leaves a seam where the section ends. */
+.zin-smoke--dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.zin-smoke__wisp {
+  position: absolute;
+  left: var(--x);
+  bottom: -18%;
+  width: var(--s);
+  aspect-ratio: 0.8;
+  border-radius: 46% 54% 62% 38% / 58% 44% 56% 42%;
+  background: radial-gradient(
+    closest-side,
+    rgba(var(--zin-smoke), 0.55),
+    rgba(var(--zin-smoke), 0.2) 55%,
+    transparent 100%
+  );
+  filter: blur(26px);
+  opacity: 0;
+  transform: translate3d(-50%, 0, 0) scale(0.55);
+  animation: zin-rise var(--d) var(--delay) linear infinite;
+  will-change: transform, opacity;
+  --peak: var(--zin-peak);
+}
+
+.zin-smoke__wisp--ember {
+  background: radial-gradient(
+    closest-side,
+    rgba(var(--zin-ember), 0.5),
+    rgba(var(--zin-ember), 0.16) 55%,
+    transparent 100%
+  );
+  --peak: var(--zin-ember-peak);
+}
+
+.zin-smoke.is-paused .zin-smoke__wisp {
+  animation-play-state: paused;
+}
+
+@keyframes zin-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 0, 0) scale(0.55) rotate(0deg);
+  }
+  18% {
+    opacity: var(--peak);
+  }
+  55% {
+    opacity: calc(var(--peak) * 0.8);
+    transform: translate3d(calc(-50% + var(--sway)), calc(var(--zin-rise) * -0.55), 0) scale(1.05) rotate(18deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-50% - var(--sway) * 0.6), calc(var(--zin-rise) * -1), 0) scale(1.6) rotate(42deg);
+  }
+}
+
+/* On ink: pale smoke with a touch more ember. */
+.zin-smoke--dark {
+  --zin-smoke: 255, 245, 238;
+  --zin-peak: 0.16;
+  --zin-ember-peak: 0.26;
+}
+
+/* Inner pages: shorter climb, a little fainter so the form stays crisp. */
+.page-hero .zin-smoke {
+  --zin-rise: 460px;
+  --zin-peak: 0.3;
+  --zin-ember-peak: 0.24;
+}
+
+/* ---------- The Zin: translator conduit + ember orb ---------- */
+
+.xl {
+  grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1fr);
+}
+
+.xl__link::before {
+  display: none; /* replaced by the smoke stream */
+}
+
+.zin-conduit {
+  position: relative;
+  width: 96px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+}
+
+.zin-conduit__stream {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.zin-conduit__haze {
+  fill: none;
+  stroke: url(#zin-stream-grad);
+  stroke-width: 11;
+  stroke-linecap: round;
+  opacity: 0.38;
+}
+
+.zin-conduit__flow {
+  fill: none;
+  stroke: url(#zin-stream-grad);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1.5 7;
+  animation: zin-flow 1.6s linear infinite;
+}
+
+@keyframes zin-flow {
+  to {
+    stroke-dashoffset: -17;
+  }
+}
+
+/* Puffs breathed out toward the plain-English card. */
+.zin-conduit__puff {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--zin-ember), 0.55), transparent);
+  filter: blur(2px);
+  opacity: 0;
+  animation: zin-puff 2.7s ease-out infinite;
+}
+
+.zin-conduit__puff:nth-of-type(2) {
+  animation-delay: 0.9s;
+}
+
+.zin-conduit__puff:nth-of-type(3) {
+  animation-delay: 1.8s;
+}
+
+@keyframes zin-puff {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  20% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(44px, -12px) scale(2.2);
+  }
+}
+
+.zin-orb {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 38%, #2a2a2c, var(--ink) 70%);
+  box-shadow:
+    0 0 0 5px var(--white),
+    0 0 0 6px var(--line),
+    0 0 22px 6px rgba(var(--zin-ember), 0.28);
+  animation: zin-breathe 3.6s ease-in-out infinite;
+}
+
+.zin-orb__z {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--orange);
+  text-shadow: 0 0 10px rgba(var(--zin-ember), 0.8);
+  transform: translateY(-1px);
+}
+
+@keyframes zin-breathe {
+  50% {
+    box-shadow:
+      0 0 0 5px var(--white),
+      0 0 0 6px var(--line),
+      0 0 34px 12px rgba(var(--zin-ember), 0.42);
+  }
+}
+
+/* The plain-English message condenses out of smoke instead of just fading. */
+.xl__msg {
+  transition:
+    opacity 0.5s var(--ease),
+    transform 0.5s var(--ease),
+    filter 0.6s var(--ease),
+    letter-spacing 0.6s var(--ease);
+}
+
+.xl__card.is-switching .xl__msg {
+  filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 760px) {
+  .xl {
+    grid-template-columns: 1fr;
+  }
+  .xl__link {
+    height: 96px;
+  }
+  .zin-conduit {
+    transform: rotate(90deg);
+  }
+  .zin-orb__z {
+    transform: rotate(-90deg) translateX(1px);
+  }
+}
+
+/* ---------- Ember details ---------- */
+
+/* The wordmark's dot is a living ember; hovering the logo lets a wisp escape. */
+.brand__dot {
+  position: relative;
+  animation: zin-ember 3.6s ease-in-out infinite;
+}
+
+.brand__dot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 60%;
+  width: 12px;
+  height: 16px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--zin-smoke), 0.45), transparent);
+  filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand:hover .brand__dot::after {
+  animation: zin-wisp 1.2s ease-out;
+}
+
+@keyframes zin-ember {
+  50% {
+    box-shadow: 0 0 9px 1px rgba(var(--zin-ember), 0.55);
+  }
+}
+
+@keyframes zin-wisp {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(4px, -18px) scale(1.8);
+  }
+}
+
+/* Primary actions glow like an ember on hover. */
+.btn--primary {
+  transition:
+    transform 0.25s var(--ease),
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.35s var(--ease);
+}
+
+.btn--primary:hover {
+  box-shadow:
+    0 10px 28px -10px rgba(var(--zin-ember), 0.75),
+    0 0 0 4px rgba(var(--zin-ember), 0.12);
+}
+
+/* ---------- Form success: the wish, granted ---------- */
+
+.form.is-sent .form__ok .mark {
+  position: relative;
+  animation: zin-materialize 0.8s var(--ease) both;
+}
+
+.form.is-sent .form__ok .mark::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--zin-ember), 0.4), rgba(var(--zin-smoke), 0.12) 60%, transparent);
+  filter: blur(6px);
+  animation: zin-poof 1.2s ease-out both;
+  pointer-events: none;
+}
+
+.form.is-sent .form__ok .h-small,
+.form.is-sent .form__ok p {
+  animation: zin-materialize 0.8s var(--ease) both;
+}
+
+.form.is-sent .form__ok .h-small {
+  animation-delay: 0.18s;
+}
+
+.form.is-sent .form__ok p {
+  animation-delay: 0.3s;
+}
+
+@keyframes zin-materialize {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@keyframes zin-poof {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+/* ---------- Reduced motion: a still haze, no drifting ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .zin-smoke__wisp {
+    animation: none;
+    opacity: var(--peak);
+    transform: translate3d(-50%, -30%, 0) scale(1);
+  }
+  .zin-conduit__flow,
+  .zin-orb,
+  .brand__dot,
+  .brand:hover .brand__dot::after {
+    animation: none;
+  }
+  .zin-conduit__puff {
+    display: none;
+  }
+  .form.is-sent .form__ok .mark,
+  .form.is-sent .form__ok .mark::before,
+  .form.is-sent .form__ok .h-small,
+  .form.is-sent .form__ok p {
+    animation: none;
+  }
+  .form.is-sent .form__ok .mark::before {
+    display: none;
+  }
+  .xl__card.is-switching .xl__msg {
+    filter: none;
+  }
+}
