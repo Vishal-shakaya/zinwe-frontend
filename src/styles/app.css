@@ -31,3 +31,13 @@
   flex-wrap: wrap;
   margin-top: 34px;
 }
+
+/* Placeholder while a dashboard chunk downloads (dashboard.css may not be
+   loaded yet, so this lives in the global stylesheet). */
+.dash-boot {
+  min-height: 40vh;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  color: var(--mute);
+}

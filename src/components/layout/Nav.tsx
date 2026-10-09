@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../auth/authContext";
 import { cx } from "../../lib/cx";
 import { Brand } from "../ui/Brand";
 
 export function Nav(): ReactElement {
   const { pathname } = useLocation();
+  const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(() => window.scrollY > 8);
 
@@ -47,6 +49,11 @@ export function Nav(): ReactElement {
           <li>
             <Link to="/contact" aria-current={current("/contact")} onClick={close}>
               Contact
+            </Link>
+          </li>
+          <li>
+            <Link to={token ? "/app" : "/login"} onClick={close}>
+              {token ? "Dashboard" : "Log in"}
             </Link>
           </li>
           <li>

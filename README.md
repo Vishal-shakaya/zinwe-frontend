@@ -56,6 +56,10 @@ and shows the thank-you, the same as the static site. See the `TODO` in
 | `/`             | Home (`/#how` scrolls to the setup wizard) |
 | `/early-access` | Early-access form                  |
 | `/contact`      | Contact form                       |
+| `/login`        | Owner login (dashboard)            |
+| `/app`          | Dashboard: Devices (PC list, enrollment key, install command) |
+| `/app/rules`    | Dashboard: USB rule (Allow / Read-only / Block) |
+| `/app/activity` | Dashboard: activity feed (`?device=<id>` filters by PC) |
 | `*`             | 404                                |
 
 Every navigation starts at the top of the page. A URL hash scrolls to the matching
@@ -63,6 +67,23 @@ Every navigation starts at the top of the page. A URL hash scrolls to the matchi
 Each page sets its `<title>`, meta description and OG tags with `usePageMeta`.
 
 Production hosting needs an SPA fallback, so unknown paths must serve `index.html`.
+
+## Owner dashboard
+
+- **Auth:** `/login` posts `{email, password}` to `/api/auth/login/` and stores the token in
+  `localStorage["zinwe.token"]` (`src/lib/session.ts`, every access wrapped in try/catch, memory
+  fallback). Dashboard calls send `Authorization: Token <token>` with `credentials: "omit"`.
+  Any 401 clears the token, and `ProtectedRoute` sends the owner to `/login` with a
+  "You've been logged out" notice, then back to the page they were on. Logout is local only
+  (the backend has no token-revoke endpoint yet).
+- **API:** typed functions in `src/lib/api.ts` (`getMe`, `listDevices`, `getEnrollmentKey`,
+  `rotateEnrollmentKey`, `getPolicy`, `updatePolicy`, `listEvents`). They throw `ApiError`,
+  whose `message` is plain language and safe to show.
+- **Data loading:** `useResource` (`src/dashboard/useResource.ts`) keeps the last good data on
+  screen during refreshes and failed refreshes; Devices and Activity poll every 60 s while the
+  tab is visible. Every list has loading (skeleton), empty and error (with retry) states.
+- **Code splitting:** `/login` and `/app/*` are lazy chunks with their own `dashboard.css`, so
+  marketing visitors never download them.
 
 ## Folder map
 
@@ -75,6 +96,7 @@ src/
   styles/
     site.css               the static site's stylesheet, unchanged
     app.css                React-only additions (form-level error, disabled button, 404)
+    dashboard.css          owner dashboard (loaded with the dashboard chunks only)
   components/
     layout/                Layout, Nav (burger, scrolled state), Footer, StickyCta, heroCtaContext
     ui/                    Brand, Icon (inline SVGs), Reveal (.rv), Chip, StaggerTitle
@@ -82,7 +104,9 @@ src/
     forms/                 Field, ChipGroup, FormSuccess, EarlyAccessForm, ContactForm
   pages/                   HomePage, EarlyAccessPage, ContactPage, NotFoundPage
   hooks/                   useInView, useReveal, usePrefersReducedMotion, usePageMeta, useScrollOnNavigate
-  lib/                     api.ts (typed client), validation.ts, cx.ts
+  lib/                     api.ts (typed client), session.ts (token storage), validation.ts, cx.ts
+  auth/                    AuthProvider, authContext (useAuth), ProtectedRoute
+  dashboard/               AppLayout, useResource, time helpers, components/, pages/ (Login, Devices, Rules, Activity)
   content/                 translatorEvents, wizard, watchItems, forms (copy and data, kept out of the JSX)
 public/favicon.svg
 ```
