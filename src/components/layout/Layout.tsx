@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from "react";
+import { Suspense, useState, type ReactElement } from "react";
 import { Outlet } from "react-router-dom";
 import { useScrollOnNavigate } from "../../hooks/useScrollOnNavigate";
 import { Footer } from "./Footer";
@@ -15,7 +15,16 @@ export function Layout(): ReactElement {
     <HeroCtaContext.Provider value={setHeroCta}>
       <Nav />
       <main>
-        <Outlet />
+        {/* Lazy marketing pages (/plans) load under the nav, not instead of it. */}
+        <Suspense
+          fallback={
+            <div className="dash-boot" role="status" aria-live="polite">
+              Loading…
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
       {heroCta ? <StickyCta target={heroCta} /> : null}

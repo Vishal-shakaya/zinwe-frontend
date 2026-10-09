@@ -51,7 +51,7 @@ export default function DevicesPage(): ReactElement {
   const now = useNow();
   const { hash } = useLocation();
 
-  // "Add your first PC" links from other pages land on /app#add-pc.
+  // "Add your first PC" links from other pages land on /app/devices#add-pc.
   useEffect(() => {
     if (hash === "#add-pc") document.getElementById("add-pc")?.scrollIntoView();
   }, [hash]);

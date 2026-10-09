@@ -21,8 +21,8 @@ export function Hero(): ReactElement {
           you what matters in words anyone can read. No IT department needed.
         </p>
         <div className="hero__cta fade" style={{ animationDelay: ".65s" }} ref={ctaRef}>
-          <Link className="btn btn--primary btn--lg" to="/early-access">
-            Reserve early access <span className="arr">→</span>
+          <Link className="btn btn--primary btn--lg" to="/signup?plan=early-access">
+            Get 3 months free <span className="arr">→</span>
           </Link>
           <Link className="btn btn--ghost btn--lg" to="/#how">
             See how it works

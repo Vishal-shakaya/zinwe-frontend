@@ -12,7 +12,11 @@ export type DashIconName =
   | "usb"
   | "key"
   | "alert"
-  | "arrow";
+  | "arrow"
+  | "clock"
+  | "home"
+  | "card"
+  | "building";
 
 const strokeProps = {
   fill: "none",
@@ -88,6 +92,34 @@ function paths(name: DashIconName): ReactElement {
       );
     case "arrow":
       return <path d="M5 12h14M13 6l6 6-6 6" />;
+    case "clock":
+      return (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      );
+    case "home":
+      return (
+        <>
+          <path d="m3 11 9-7 9 7" />
+          <path d="M5 10v10h14V10M10 20v-6h4v6" />
+        </>
+      );
+    case "card":
+      return (
+        <>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 10h18M7 15h4" />
+        </>
+      );
+    case "building":
+      return (
+        <>
+          <path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18" />
+          <path d="M8 8h3M8 12h3M8 16h3" />
+        </>
+      );
   }
 }
 

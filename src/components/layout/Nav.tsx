@@ -36,7 +36,7 @@ export function Nav(): ReactElement {
           <span></span>
         </button>
         <ul className={cx("nav__links", open && "is-open")}>
-          <li>
+          <li className="nav__home">
             <Link to="/" aria-current={current("/")} onClick={close}>
               Home
             </Link>
@@ -44,6 +44,11 @@ export function Nav(): ReactElement {
           <li>
             <Link to="/#how" onClick={close}>
               How it works
+            </Link>
+          </li>
+          <li>
+            <Link to="/plans" aria-current={current("/plans")} onClick={close}>
+              Plans
             </Link>
           </li>
           <li>
@@ -56,13 +61,15 @@ export function Nav(): ReactElement {
               {token ? "Dashboard" : "Log in"}
             </Link>
           </li>
+          {token ? null : (
+            <li className="nav__signup">
+              <Link className="btn btn--ghost" to="/signup" onClick={close}>
+                Sign up
+              </Link>
+            </li>
+          )}
           <li>
-            <Link
-              className="btn btn--primary"
-              to="/early-access"
-              aria-current={current("/early-access")}
-              onClick={close}
-            >
+            <Link className="btn btn--primary" to="/signup?plan=early-access" onClick={close}>
               Get 3 months free <span className="arr">→</span>
             </Link>
           </li>

@@ -31,8 +31,8 @@ export function StickyCta({ target }: StickyCtaProps): ReactElement {
   return (
     <div className={cx("sticky-cta", show && "is-on")} aria-hidden={!show}>
       <span>Full plan, free for 3 months</span>
-      <Link className="btn btn--primary" to="/early-access" tabIndex={show ? undefined : -1}>
-        Reserve
+      <Link className="btn btn--primary" to="/signup?plan=early-access" tabIndex={show ? undefined : -1}>
+        Start free
       </Link>
     </div>
   );

@@ -67,6 +67,7 @@ const SUCCESS_COPY = {
 } as const;
 
 const FORM_MESSAGES = {
+  unverified: "Couldn't reach the server. Check your connection and try again.",
   rate_limited: "Too many attempts. Try again in a few minutes.",
   network: "Couldn't reach the server. Check your connection and try again.",
   server: "Couldn't reach the server. Check your connection and try again.",

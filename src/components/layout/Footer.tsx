@@ -21,6 +21,9 @@ export function Footer(): ReactElement {
             <Link to="/">Home</Link>
           </li>
           <li>
+            <Link to="/plans">Plans</Link>
+          </li>
+          <li>
             <Link to="/early-access">Early access</Link>
           </li>
           <li>

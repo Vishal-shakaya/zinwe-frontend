@@ -20,8 +20,8 @@ export function OfferBand({ title, sub, note }: OfferBandProps): ReactElement {
             <p className="offer__sub">{sub}</p>
           </div>
           <div className="offer__cta">
-            <Link className="btn btn--ink btn--lg" to="/early-access">
-              Reserve early access <span className="arr">→</span>
+            <Link className="btn btn--ink btn--lg" to="/signup?plan=early-access">
+              Get 3 months free <span className="arr">→</span>
             </Link>
             {note ? <small>{note}</small> : null}
           </div>

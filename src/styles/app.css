@@ -41,3 +41,38 @@
   font-size: 0.9rem;
   color: var(--mute);
 }
+
+/* Marketing nav: "Sign up" is a ghost button next to the orange CTA. */
+.nav__links .btn--ghost {
+  color: var(--ink);
+}
+
+@media (max-width: 1080px) and (min-width: 761px) {
+  .nav__links {
+    gap: 20px;
+  }
+  .nav__home {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 761px) {
+  .nav__signup {
+    display: none;
+  }
+}
+
+/* Route guard error (dashboard.css may not be loaded yet). */
+.boot-error {
+  max-width: 26rem;
+  padding: 0 16px;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.boot-error__actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}

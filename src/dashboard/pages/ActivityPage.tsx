@@ -165,7 +165,7 @@ function FeedEmpty({
         icon="pc"
         title="No activity yet"
         action={
-          <Link className="btn btn--primary dash-btn-sm" to="/app#add-pc">
+          <Link className="btn btn--primary dash-btn-sm" to="/app/devices#add-pc">
             Add your first PC <span className="arr">→</span>
           </Link>
         }
