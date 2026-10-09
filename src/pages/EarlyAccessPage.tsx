@@ -54,7 +54,7 @@ export default function EarlyAccessPage(): ReactElement {
         <div className="wrap">
           <p className="hero__note" style={{ textAlign: "center" }}>
             Questions first?{" "}
-            <Link to="/contact" style={{ color: "var(--orange-deep)", fontWeight: 600 }}>
+            <Link to="/contact" style={{ color: "var(--orange-text)", fontWeight: 600 }}>
               Talk to us
             </Link>
           </p>

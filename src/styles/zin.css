@@ -7,7 +7,7 @@
 
 :root {
   --zin-smoke: 120, 98, 86; /* warm taupe, as "r, g, b" for rgba() */
-  --zin-ember: 255, 92, 26;
+  --zin-ember: 253, 109, 2;
   --zin-peak: 0.42;
   --zin-ember-peak: 0.34;
   --zin-rise: 620px;

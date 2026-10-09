@@ -9,10 +9,14 @@
   --mute: #6e6e6b;
   --line: #e6e6e1;
   --line-strong: #cfcfc9;
-  --orange: #ff5c1a;
-  --orange-deep: #e04a0c;
-  --orange-tint: #fff0e8;
-  --orange-ink: #9a2f03;
+  /* Orange by job (logo orange #FD6D02; contrasts are WCAG 2.2 AA-checked):
+     fills carry INK text (6.8:1) — white on orange is only 2.9:1 and fails. */
+  --orange: #fd6d02;        /* brand fills: buttons, badges, bands, decoration */
+  --orange-deep: #e86402;   /* hover fill; ink text 5.8:1 */
+  --orange-strong: #d95d02; /* focus rings, borders, small icons, switches: 3.8:1 on white */
+  --orange-text: #b24d01;   /* orange text on white / app bg: 5.3 / 5.0:1 */
+  --orange-tint: #fff1e6;   /* soft fills */
+  --orange-ink: #8a3c00;    /* text on the tint: 7.0:1 */
 
   /* Single family, Tesla-style restraint: medium weights, tight tracking */
   --font-display: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -71,7 +75,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--orange-strong);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -148,7 +152,7 @@ textarea {
 }
 
 .accent {
-  color: var(--orange);
+  color: var(--orange-text);
 }
 
 /* ---------- Buttons ---------- */
@@ -176,7 +180,7 @@ textarea {
 
 .btn--primary {
   background: var(--orange);
-  color: var(--white);
+  color: var(--ink);
 }
 
 .btn--primary:hover {
@@ -301,7 +305,7 @@ textarea {
 .nav__links .btn {
   padding: 10px 18px;
   font-size: 0.88rem;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .nav__burger {
@@ -450,7 +454,7 @@ textarea {
 
 .hero__pill b {
   font-weight: 600;
-  color: var(--white);
+  color: var(--ink);
   background: var(--orange);
   padding: 3px 8px;
   border-radius: 4px;
@@ -684,7 +688,7 @@ textarea {
 }
 
 .xl__msg strong {
-  color: var(--orange);
+  color: var(--orange-text);
   font-weight: 700;
 }
 
@@ -701,13 +705,13 @@ textarea {
   height: 8px;
   border-radius: 50%;
   background: var(--orange);
-  box-shadow: 0 0 0 0 rgba(255, 92, 26, 0.5);
+  box-shadow: 0 0 0 0 rgba(253, 109, 2, 0.5);
   animation: pulse 1.8s ease-out infinite;
 }
 
 @keyframes pulse {
   to {
-    box-shadow: 0 0 0 10px rgba(255, 92, 26, 0);
+    box-shadow: 0 0 0 10px rgba(253, 109, 2, 0);
   }
 }
 
@@ -843,7 +847,7 @@ textarea {
   height: 44px;
   border-radius: 12px;
   background: var(--orange-tint);
-  color: var(--orange-deep);
+  color: var(--orange-text);
   display: grid;
   place-items: center;
 }
@@ -902,7 +906,7 @@ textarea {
 }
 
 .toggle[aria-checked="true"] {
-  background: var(--orange);
+  background: var(--orange-strong);
 }
 
 .toggle[aria-checked="true"]::after {
@@ -965,7 +969,7 @@ textarea {
 }
 
 .wiz__head b {
-  color: var(--orange-deep);
+  color: var(--orange-text);
   font-weight: 600;
 }
 
@@ -1165,7 +1169,7 @@ textarea {
 }
 
 .plat__item--live small {
-  color: var(--orange-deep);
+  color: var(--orange-text);
 }
 
 /* ---------- Offer / CTA band ---------- */
@@ -1324,8 +1328,8 @@ textarea {
 .field select:focus,
 .field textarea:focus {
   outline: 0;
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px rgba(255, 92, 26, 0.18);
+  border-color: var(--orange-strong);
+  box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.18);
 }
 
 .field textarea {
@@ -1376,7 +1380,7 @@ textarea {
 }
 
 .seg input:focus-visible + label {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--orange-strong);
   outline-offset: 2px;
 }
 
@@ -1418,7 +1422,7 @@ textarea {
   height: 56px;
   border-radius: 16px;
   background: var(--orange-tint);
-  color: var(--orange-deep);
+  color: var(--orange-text);
   display: grid;
   place-items: center;
   margin: 0 auto 16px;
@@ -1469,7 +1473,7 @@ textarea {
   height: 30px;
   border-radius: 9px;
   background: var(--orange);
-  color: var(--white);
+  color: var(--ink);
   display: grid;
   place-items: center;
 }
@@ -1521,7 +1525,7 @@ textarea {
 }
 
 .contact-list a:hover {
-  color: var(--orange-deep);
+  color: var(--orange-text);
 }
 
 .contact-list span {

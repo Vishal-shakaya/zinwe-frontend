@@ -326,14 +326,14 @@
   border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-sm);
   background: var(--white);
-  caret-color: var(--orange);
+  caret-color: var(--orange-strong);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .otp__box:focus {
   outline: 0;
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px rgba(255, 92, 26, 0.18);
+  border-color: var(--orange-strong);
+  box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.18);
 }
 
 .otp.is-invalid .otp__box {
@@ -370,8 +370,8 @@
 }
 
 .plan--hi {
-  border-color: var(--orange);
-  box-shadow: 0 0 0 1px var(--orange), var(--shadow);
+  border-color: var(--orange-strong);
+  box-shadow: 0 0 0 1px var(--orange-strong), var(--shadow);
 }
 
 .plan__flag {
@@ -381,7 +381,7 @@
   padding: 3px 8px;
   border-radius: 4px;
   background: var(--orange);
-  color: var(--white);
+  color: var(--ink);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -463,7 +463,7 @@
   width: 14px;
   height: 14px;
   margin-top: 4px;
-  color: var(--orange);
+  color: var(--orange-strong);
 }
 
 .plan__cta {
@@ -521,7 +521,7 @@
 }
 
 .plans-note a {
-  color: var(--orange-deep);
+  color: var(--orange-text);
   font-weight: 600;
 }
 
@@ -611,7 +611,7 @@
 .onb__step.is-on .onb__num {
   border-color: var(--orange);
   background: var(--orange);
-  color: var(--white);
+  color: var(--ink);
 }
 
 .onb__step.is-done {

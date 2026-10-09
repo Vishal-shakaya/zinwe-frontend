@@ -15,7 +15,7 @@ export function ZinOrb(): ReactElement {
           <linearGradient id="zin-stream-grad" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0" stopColor="#8c8c86" />
             <stop offset="0.5" stopColor="#c8693f" />
-            <stop offset="1" stopColor="#ff5c1a" />
+            <stop offset="1" stopColor="#fd6d02" />
           </linearGradient>
           <filter id="zin-stream-blur" x="-20%" y="-60%" width="140%" height="220%">
             <feGaussianBlur stdDeviation="2.4" />
