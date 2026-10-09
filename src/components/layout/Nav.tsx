@@ -69,7 +69,7 @@ export function Nav(): ReactElement {
             </li>
           )}
           <li>
-            <Link className="btn btn--primary" to="/signup?plan=early-access" onClick={close}>
+            <Link className="btn btn--primary" to="/signup?plan=businesses" onClick={close}>
               Get 3 months free <span className="arr">→</span>
             </Link>
           </li>

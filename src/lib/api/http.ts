@@ -197,8 +197,10 @@ export interface RequestOptions {
   form?: FormData;
   query?: Record<string, string | number | undefined>;
   signal?: AbortSignal;
-  /** Skip the token (public GETs such as the plan list). */
+  /** Skip the token (public GETs). */
   anonymous?: boolean;
+  /** Send the token when signed in, but don't require one (e.g. the plan list, v1.1). */
+  optionalAuth?: boolean;
 }
 
 function kindForStatus(status: number): ApiErrorKind {
@@ -226,9 +228,9 @@ function buildUrl(path: string, query: RequestOptions["query"]): string {
  * A 401 clears the stored token, and the route guards send the owner to /login.
  */
 export async function authedRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, form, query, signal, anonymous = false } = options;
+  const { method = "GET", body, form, query, signal, anonymous = false, optionalAuth = false } = options;
   const token = anonymous ? null : getToken();
-  if (!anonymous && !token) throw new ApiError("unauthorized", 401, ERROR_COPY.unauthorized);
+  if (!anonymous && !optionalAuth && !token) throw new ApiError("unauthorized", 401, ERROR_COPY.unauthorized);
 
   // One controller for both the 15 s timeout and the caller's own abort.
   const controller = new AbortController();

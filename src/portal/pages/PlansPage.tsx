@@ -8,6 +8,7 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, type Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { PlanCards, PlanCardsLoading } from "../components/PlanCards";
+import { planCtaLabel } from "../plan";
 import { usePlans } from "../usePlans";
 import "../../styles/dashboard.css";
 import "../../styles/portal.css";
@@ -16,7 +17,7 @@ import "../../styles/portal.css";
 export default function PlansPage(): ReactElement {
   usePageMeta({
     title: "Plans and pricing — Zinwe",
-    description: "Start free, or get the full Zinwe plan free for 3 months. Simple pricing in rupees.",
+    description: "Start free, or try the Businesses plan free for your first 3 months. Simple pricing in rupees.",
   });
   const { token, onboarding } = useAuth();
   const plans = usePlans();
@@ -27,13 +28,13 @@ export default function PlansPage(): ReactElement {
       const inApp = onboarding ? canUseApp(onboarding.step) : false;
       return (
         <Link className={className} to={inApp ? "/app/billing" : "/onboarding/plan"}>
-          {inApp ? "See your plan" : `Choose ${plan.name}`}
+          {inApp ? "See your plan" : planCtaLabel(plan)}
         </Link>
       );
     }
     return (
       <Link className={className} to={`/signup?plan=${encodeURIComponent(plan.code)}`}>
-        {plan.code === "early-access" ? "Get 3 months free" : `Start with ${plan.name}`}
+        {planCtaLabel(plan)}
         <span className="arr">→</span>
       </Link>
     );
@@ -67,7 +68,7 @@ export default function PlansPage(): ReactElement {
             <PlanCardsLoading />
           )}
           <p className="plans-note">
-            Prices in Indian rupees. Pay by UPI or bank transfer. Questions?{" "}
+            Prices in Indian rupees. Pay by UPI or bank transfer, or PayPal from outside India. Questions?{" "}
             <Link to="/contact">Talk to us</Link>
           </p>
         </div>

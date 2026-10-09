@@ -24,7 +24,7 @@ const ORDER: readonly SignupField[] = ["full_name", "email", "password"];
 export default function SignupPage(): ReactElement {
   usePageMeta({
     title: "Create your account — Zinwe",
-    description: "Create a Zinwe account to protect your team's PCs. Free plan and 3-month early access available.",
+    description: "Create a Zinwe account to protect your team's PCs. Start free, or try Businesses free for your first 3 months.",
   });
 
   const [params] = useSearchParams();

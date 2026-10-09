@@ -402,6 +402,17 @@
   color: var(--mute);
 }
 
+.plan__trial {
+  align-self: flex-start;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .plan__price {
   margin: 0;
   display: flex;
@@ -837,6 +848,47 @@
 
 .pay-row .btn {
   background: var(--white);
+}
+
+.pay-paypal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+}
+
+.pay-paypal__text {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.pay-paypal .pay-way__title {
+  margin-bottom: 6px;
+}
+
+.pay-paypal__lead {
+  margin: 0;
+  font-weight: 600;
+}
+
+.pay-paypal__fine {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+.pay-paypal__btn {
+  flex: none;
+  background: var(--white);
+}
+
+@media (max-width: 560px) {
+  .pay-paypal__btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 }
 
 .pay-file {

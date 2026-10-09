@@ -5,6 +5,7 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { listDevices, listEvents, type DeviceEvent } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { SubscriptionSummary } from "../../portal/components/SubscriptionSummary";
+import { isTrialSubscription } from "../../portal/subscription";
 import { DashIcon } from "../components/DashIcon";
 import { LoadingState, PageHeader } from "../components/States";
 import { useNow } from "../time";
@@ -51,7 +52,15 @@ export default function OverviewPage(): ReactElement {
     { label: "Add your company", detail: company?.name ?? "Done.", state: "done" },
     inReview
       ? { label: "Activate your plan", detail: "Payment received, being checked.", state: "doing", to: "/app/billing", cta: "View" }
-      : { label: "Activate your plan", detail: subscription ? `${subscription.plan.name} is active.` : "Done.", state: "done" },
+      : {
+          label: "Activate your plan",
+          detail: subscription
+            ? isTrialSubscription(subscription)
+              ? `${subscription.plan.name} free trial is on.`
+              : `${subscription.plan.name} is active.`
+            : "Done.",
+          state: "done",
+        },
     active.length > 0
       ? { label: "Add your first PC", detail: `${active.length} connected.`, state: "done" }
       : {

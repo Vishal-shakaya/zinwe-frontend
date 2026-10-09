@@ -20,7 +20,9 @@ export function PayView(): ReactElement {
       <div className="onb__head">
         <p className="sub-kicker">Step 3 of 3 · Payment</p>
         <h1 className="onb__title">Pay for your plan</h1>
-        <p className="onb__lede">Pay by UPI or bank transfer, then tell us the reference so we can match it.</p>
+        <p className="onb__lede">
+          Pay by UPI or bank transfer (or PayPal from outside India), then tell us the reference so we can match it.
+        </p>
       </div>
 
       {info.data === undefined ? (

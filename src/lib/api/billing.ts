@@ -1,5 +1,5 @@
 /** Company, plans, subscription and manual payment. */
-import { authedRequest } from "./http";
+import { ApiError, authedRequest } from "./http";
 import type {
   Company,
   CompanyPayload,
@@ -25,9 +25,20 @@ export function updateCompany(payload: Partial<CompanyPayload>): Promise<Company
   return authedRequest<Company>("/api/auth/company/", { method: "PATCH", body: payload });
 }
 
-/** GET plans/ — public, ordered by sort_order. */
-export function getPlans(signal?: AbortSignal): Promise<Plan[]> {
-  return authedRequest<Plan[]>("/api/auth/plans/", { signal, anonymous: true });
+/**
+ * GET plans/ — public, ordered by sort_order. Signed-in callers send their token
+ * so `trial_available` reflects their own account (one free trial, ever).
+ * A stale token (401) is cleared by the transport; the list is then fetched anonymously.
+ */
+export async function getPlans(signal?: AbortSignal): Promise<Plan[]> {
+  try {
+    return await authedRequest<Plan[]>("/api/auth/plans/", { signal, optionalAuth: true });
+  } catch (error) {
+    if (error instanceof ApiError && error.kind === "unauthorized") {
+      return authedRequest<Plan[]>("/api/auth/plans/", { signal, anonymous: true });
+    }
+    throw error;
+  }
 }
 
 /** GET subscription/ — the latest subscription (or null) and how to pay. */

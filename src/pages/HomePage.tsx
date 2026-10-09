@@ -39,8 +39,8 @@ export default function HomePage(): ReactElement {
       <Platforms />
       <OfferBand
         title="Get 3 months of Zinwe, free."
-        sub="Reserve early access before launch. Set up in minutes, and tell us what to build next."
-        note="No card needed. Launching 17 July 2026."
+        sub="The Businesses plan is free for your first 3 months. Set up in minutes, and tell us what to build next."
+        note="No card needed. No payment until your trial ends."
       />
     </>
   );

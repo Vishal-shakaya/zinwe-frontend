@@ -31,8 +31,8 @@ export function Platforms(): ReactElement {
           <p className="eyebrow">Pricing</p>
           <h2 className="h-section">Free to start. Priced for small teams, not enterprises.</h2>
           <p className="lede">
-            A free tier for the basics, and a monthly plan for everything else. Early-access teams get the full plan
-            free for 3 months.
+            Free forever for up to 3 PCs, and simple monthly plans as you grow. The Businesses plan is free for your
+            first 3 months.
           </p>
         </Reveal>
       </div>

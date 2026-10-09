@@ -7,6 +7,7 @@ import { errorMessage } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { readPlanIntent } from "../../lib/planIntent";
 import { PlanCards, PlanCardsLoading } from "../components/PlanCards";
+import { planCtaLabel } from "../plan";
 import { usePlans } from "../usePlans";
 
 export default function PlanStep(): ReactElement {
@@ -17,6 +18,9 @@ export default function PlanStep(): ReactElement {
   // A paid plan waiting for payment, else the plan picked before sign-up.
   const pending = account?.onboarding.step === "payment" ? (account.subscription?.plan.code ?? null) : null;
   const selected = pending ?? readPlanIntent();
+  // Back here because the free trial ran out (step `plan`, latest subscription an expired trial).
+  const latest = account?.subscription;
+  const trialEnded = latest?.is_trial === true && latest.status === "expired";
 
   return (
     <section className="onb__wide" aria-labelledby="onb-plan-title">
@@ -24,7 +28,11 @@ export default function PlanStep(): ReactElement {
         <h1 className="onb__title" id="onb-plan-title">
           Choose your plan
         </h1>
-        <p className="onb__lede">Start free. You can change your plan later.</p>
+        <p className="onb__lede">
+          {trialEnded
+            ? `Your free trial of ${latest.plan.name} has ended. Choose a plan to keep protecting your PCs.`
+            : "Start free. You can change your plan later."}
+        </p>
       </div>
 
       {plans.data ? (
@@ -39,7 +47,7 @@ export default function PlanStep(): ReactElement {
                 className={cx("btn btn--block", highlighted ? "btn--primary" : "btn--ghost")}
                 to={isPending ? "/onboarding/subscribe" : `/onboarding/subscribe?plan=${encodeURIComponent(plan.code)}`}
               >
-                {isPending ? "Continue to payment" : `Choose ${plan.name}`}
+                {isPending ? "Continue to payment" : planCtaLabel(plan)}
               </Link>
             );
           }}

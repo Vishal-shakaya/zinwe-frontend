@@ -15,6 +15,7 @@ export const industryOptions: ReadonlyArray<{ value: Industry; label: string }> 
 export const paymentMethodOptions: ChoiceOption<PaymentMethod>[] = [
   { id: "pm-upi", value: "upi", label: "UPI" },
   { id: "pm-bank", value: "bank_transfer", label: "Bank transfer" },
+  { id: "pm-paypal", value: "paypal", label: "PayPal" },
   { id: "pm-cheque", value: "cheque", label: "Cheque" },
   { id: "pm-cash", value: "cash", label: "Cash" },
 ];
@@ -22,6 +23,7 @@ export const paymentMethodOptions: ChoiceOption<PaymentMethod>[] = [
 export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
   upi: "UPI",
   bank_transfer: "Bank transfer",
+  paypal: "PayPal",
   cheque: "Cheque",
   cash: "Cash",
 };
@@ -30,6 +32,7 @@ export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
 export const REFERENCE_LABEL: Record<PaymentMethod, string> = {
   upi: "UPI transaction ID (UTR)",
   bank_transfer: "UTR or reference number",
+  paypal: "PayPal transaction ID",
   cheque: "Cheque number",
   cash: "Receipt number",
 };
@@ -47,11 +50,11 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
   rejected: "Not accepted",
 };
 
-/** Shown on /signup when the visitor came from a plan CTA (`?plan=`). */
+/** Shown on /signup when the visitor came from a plan CTA (`?plan=`; `early-access` arrives as `businesses`). */
 export const PLAN_INTENT_COPY: Record<string, string> = {
-  free: "Free plan: up to 3 PCs, free forever.",
-  "early-access": "Early access: the full plan, free for 3 months.",
-  pro: "Pro plan: everything, for growing teams.",
+  free: "Free forever: up to 3 PCs, no payment ever.",
+  startups: "Startups plan: every monitoring module for up to 10 PCs.",
+  businesses: "Businesses plan: free for your first 3 months. No payment needed to start.",
 };
 
 /** Side panel on the sign-up, login and reset pages. */

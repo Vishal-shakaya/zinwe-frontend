@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from "react";
 import { Icon } from "../../components/ui/Icon";
 import type { Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { planDevices, planPrice } from "../plan";
+import { hasTrial, planDevices, planFeatures, planPrice, trialBadge } from "../plan";
 
 interface PlanCardsProps {
   plans: Plan[];
@@ -14,7 +14,10 @@ interface PlanCardsProps {
   renderAction: (plan: Plan, highlighted: boolean) => ReactNode;
 }
 
-/** Plan cards from GET plans/, shared by /plans and /onboarding/plan. */
+/**
+ * Plan cards from GET plans/, shared by /plans and /onboarding/plan.
+ * A plan whose trial this caller can still start gets a "First 3 months free" badge.
+ */
 export function PlanCards({ plans, selected, selectedNote = "Your pick", renderAction }: PlanCardsProps): ReactElement {
   return (
     <ul className="plans">
@@ -33,12 +36,15 @@ export function PlanCards({ plans, selected, selectedNote = "Your pick", renderA
               <h3 className="plan__name">{plan.name}</h3>
               <p className="plan__tag">{plan.tagline}</p>
             </div>
+            {hasTrial(plan) ? (
+              <p className="plan__trial">{trialBadge(plan)}</p>
+            ) : null}
             <p className="plan__price">
               <b>{price.big}</b> <span>{price.small}</span>
             </p>
             <p className="plan__devices">{planDevices(plan)}</p>
             <ul className="plan__features">
-              {plan.features.map((feature) => (
+              {planFeatures(plan).map((feature) => (
                 <li key={feature}>
                   <Icon name="check" />
                   <span>{feature}</span>

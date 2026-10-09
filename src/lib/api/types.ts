@@ -68,9 +68,11 @@ export interface Plan {
   is_recommended: boolean;
   requires_payment: boolean;
   sort_order: number;
+  /** v1.1: `trial_days > 0` and the caller hasn't used a trial (always true signed out). */
+  trial_available: boolean;
 }
 
-export type PaymentMethod = "upi" | "bank_transfer" | "cheque" | "cash";
+export type PaymentMethod = "upi" | "bank_transfer" | "paypal" | "cheque" | "cash";
 export type PaymentStatus = "submitted" | "verified" | "rejected";
 
 export interface Payment {
@@ -97,14 +99,20 @@ export interface Subscription {
   ends_at: string | null;
   created_at: string;
   latest_payment: Payment | null;
+  /** v1.1: a built-in free trial (amount 0, ends at `ends_at`). */
+  is_trial: boolean;
 }
 
 export interface PaymentInstructions {
   upi_id: string;
   payee_name: string;
   bank_name: string;
+  /** e.g. "Current" (v1.1). */
+  account_type: string;
   account_number: string;
   ifsc: string;
+  /** v1.1: PayPal link for payments from outside India; "" hides the option. */
+  paypal_url: string;
   note: string;
 }
 

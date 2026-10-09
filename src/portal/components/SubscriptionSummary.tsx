@@ -4,7 +4,7 @@ import type { Subscription, SubscriptionStatus } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { formatDate, isZero } from "../../lib/format";
 import { planDevices } from "../plan";
-import { daysLeftLabel, subscriptionPrice } from "../subscription";
+import { daysLeftLabel, isTrialSubscription, priceAfterTrial, subscriptionPrice, trialLine } from "../subscription";
 
 const TONE: Record<SubscriptionStatus, string> = {
   active: "good",
@@ -26,7 +26,9 @@ interface SubscriptionSummaryProps {
 /** Plan name, price, status and dates, as one card. */
 export function SubscriptionSummary({ subscription, title = "Your plan", action }: SubscriptionSummaryProps): ReactElement {
   const daysLeft = daysLeftLabel(subscription);
-  const isTrial = subscription.plan.trial_days > 0;
+  const isTrial = isTrialSubscription(subscription);
+  const trialActive = isTrial && subscription.status === "active";
+  const after = priceAfterTrial(subscription);
   return (
     <section className="dash-card" aria-labelledby={`sub-${subscription.id}-title`}>
       <div className="dash-card__head--split">
@@ -34,10 +36,10 @@ export function SubscriptionSummary({ subscription, title = "Your plan", action 
           <p className="sub-kicker">{title}</p>
           <h2 className="dash-card__title sub-name" id={`sub-${subscription.id}-title`}>
             {subscription.plan.name}
-            {isTrial && subscription.status === "active" ? <span className="dash-pill">Trial</span> : null}
+            {trialActive ? <span className="dash-pill">Free trial</span> : null}
           </h2>
           <p className="dash-card__sub">
-            {subscriptionPrice(subscription)} · {planDevices(subscription.plan)}
+            {isTrial ? trialLine(subscription) : subscriptionPrice(subscription)} · {planDevices(subscription.plan)}
           </p>
         </div>
         <SubscriptionStatusPill status={subscription.status} />
@@ -61,6 +63,12 @@ export function SubscriptionSummary({ subscription, title = "Your plan", action 
             </div>
           ) : null}
         </dl>
+      ) : null}
+      {trialActive && subscription.ends_at ? (
+        <p className="dash-note">
+          Nothing is charged during the trial. After {formatDate(subscription.ends_at)}, keep {subscription.plan.name}
+          {after ? ` for ${after}` : ""} or choose another plan.
+        </p>
       ) : null}
       {action ?? null}
     </section>

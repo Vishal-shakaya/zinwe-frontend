@@ -21,7 +21,7 @@ export function Hero(): ReactElement {
           you what matters in words anyone can read. No IT department needed.
         </p>
         <div className="hero__cta fade" style={{ animationDelay: ".65s" }} ref={ctaRef}>
-          <Link className="btn btn--primary btn--lg" to="/signup?plan=early-access">
+          <Link className="btn btn--primary btn--lg" to="/signup?plan=businesses">
             Get 3 months free <span className="arr">→</span>
           </Link>
           <Link className="btn btn--ghost btn--lg" to="/#how">
@@ -29,7 +29,7 @@ export function Hero(): ReactElement {
           </Link>
         </div>
         <p className="hero__note fade" style={{ animationDelay: ".8s" }}>
-          Early access includes the full plan, free for 3 months.
+          The Businesses plan is free for your first 3 months.
         </p>
 
         {/* Signature: raw log → plain-language alert */}
