@@ -23,7 +23,7 @@ export function AuthShell({ footer, children }: AuthShellProps): ReactElement {
       <aside className="auth__side zin-host" aria-hidden="true">
         <Smoke className="auth__smoke" />
         <div className="auth__side-inner">
-          <Brand variant="static" />
+          <Brand variant="static" height={32} />
           <div>
             <p className="auth__kicker">Zinwe for business owners</p>
             <h2 className="auth__headline">Know what's happening to your data. In plain English.</h2>
@@ -48,7 +48,7 @@ export function AuthShell({ footer, children }: AuthShellProps): ReactElement {
       <div className="auth__main">
         <div className="auth__top">
           <span className="auth__mobile-brand">
-            <Brand ariaLabel="Zinwe home" />
+            <Brand ariaLabel="Zinwe home" height={24} />
           </span>
           <Link className="dash-link auth__back" to="/">
             ← Back to site

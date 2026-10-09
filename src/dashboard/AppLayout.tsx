@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState, type ReactElement } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { Brand } from "../components/ui/Brand";
 import { DashIcon, type DashIconName } from "./components/DashIcon";
 import "../styles/dashboard.css";
 import "../styles/portal.css";
@@ -50,9 +51,7 @@ export default function AppLayout(): ReactElement {
       </a>
       <aside className="dash__side">
         <div className="dash__top">
-          <Link className="brand dash__brand" to="/app" aria-label="Zinwe dashboard home">
-            zinwe<span className="brand__dot"></span>
-          </Link>
+          <Brand to="/app" ariaLabel="Zinwe dashboard home" className="dash__brand" height={26} />
           <button type="button" className="dash__logout dash__logout--top" onClick={onLogout} disabled={leaving}>
             <DashIcon name="logout" />
             <span>{leaving ? "Logging out…" : "Log out"}</span>

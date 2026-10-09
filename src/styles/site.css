@@ -244,24 +244,18 @@ textarea {
   height: 68px;
 }
 
+/* The wordmark is an image (components/ui/Brand.tsx); height comes from --brand-h. */
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.35rem;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  color: var(--ink);
+  align-items: center;
+  line-height: 0;
+  flex-shrink: 0;
 }
 
-.brand__dot {
-  width: 0.34em;
-  height: 0.34em;
-  margin-left: 0.08em;
-  background: var(--orange);
-  border-radius: 2px;
-  transform: translateY(-0.02em);
+.brand__logo {
+  display: block;
+  height: var(--brand-h, 28px);
+  width: auto;
 }
 
 .nav__links {
@@ -622,13 +616,6 @@ textarea {
   height: 2px;
   background: repeating-linear-gradient(90deg, var(--orange) 0 6px, transparent 6px 12px);
   opacity: 0.6;
-}
-
-.xl__link .brand {
-  position: relative;
-  background: var(--white);
-  padding: 2px 6px;
-  font-size: 1.05rem;
 }
 
 .xl__card {

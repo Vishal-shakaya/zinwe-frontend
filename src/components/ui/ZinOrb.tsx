@@ -28,7 +28,10 @@ export function ZinOrb(): ReactElement {
       <span className="zin-conduit__puff" />
       <span className="zin-conduit__puff" />
       <span className="zin-orb">
-        <span className="zin-orb__z">z</span>
+        <picture>
+          <source type="image/webp" srcSet="/brand/zinwe-mark-64.webp 1x, /brand/zinwe-mark-128.webp 2x" />
+          <img className="zin-orb__z" src="/brand/zinwe-mark-64.png" width={20} height={20} alt="" />
+        </picture>
       </span>
     </div>
   );

@@ -19,7 +19,7 @@ export default function OnboardingLayout(): ReactElement {
   return (
     <div className="onb">
       <header className="onb__top">
-        <Brand ariaLabel="Zinwe home" />
+        <Brand ariaLabel="Zinwe home" height={24} />
         <div className="onb__who">
           <span className="onb__email">{user?.email}</span>
           <button

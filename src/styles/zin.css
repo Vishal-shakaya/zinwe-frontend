@@ -214,13 +214,10 @@
 }
 
 .zin-orb__z {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.15rem;
-  line-height: 1;
-  color: var(--orange);
-  text-shadow: 0 0 10px rgba(var(--zin-ember), 0.8);
-  transform: translateY(-1px);
+  display: block;
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 5px rgba(var(--zin-ember), 0.7));
 }
 
 @keyframes zin-breathe {
@@ -257,55 +254,20 @@
     transform: rotate(90deg);
   }
   .zin-orb__z {
-    transform: rotate(-90deg) translateX(1px);
+    transform: rotate(-90deg);
   }
 }
 
 /* ---------- Ember details ---------- */
 
-/* The wordmark's dot is a living ember; hovering the logo lets a wisp escape. */
-.brand__dot {
-  position: relative;
-  animation: zin-ember 3.6s ease-in-out infinite;
+/* Hovering the logo warms the Z like an ember (the logo itself is the founder's original). */
+.brand__logo {
+  transition: filter 0.35s var(--ease);
 }
 
-.brand__dot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 60%;
-  width: 12px;
-  height: 16px;
-  margin-left: -6px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(var(--zin-smoke), 0.45), transparent);
-  filter: blur(2px);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.brand:hover .brand__dot::after {
-  animation: zin-wisp 1.2s ease-out;
-}
-
-@keyframes zin-ember {
-  50% {
-    box-shadow: 0 0 9px 1px rgba(var(--zin-ember), 0.55);
-  }
-}
-
-@keyframes zin-wisp {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.6);
-  }
-  25% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(4px, -18px) scale(1.8);
-  }
+.brand:hover .brand__logo,
+.brand:focus-visible .brand__logo {
+  filter: drop-shadow(0 0 6px rgba(var(--zin-ember), 0.35));
 }
 
 /* Primary actions glow like an ember on hover. */
@@ -388,10 +350,11 @@
     transform: translate3d(-50%, -30%, 0) scale(1);
   }
   .zin-conduit__flow,
-  .zin-orb,
-  .brand__dot,
-  .brand:hover .brand__dot::after {
+  .zin-orb {
     animation: none;
+  }
+  .brand__logo {
+    transition: none;
   }
   .zin-conduit__puff {
     display: none;

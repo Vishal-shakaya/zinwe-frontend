@@ -9,7 +9,7 @@ export function Footer(): ReactElement {
     <footer className="footer">
       <div className="wrap footer__row">
         <div>
-          <Brand />
+          <Brand ariaLabel="Zinwe home" height={26} />
           <p className="footer__meta">
             Monitor. Team. Data. Privacy.
             <br />
