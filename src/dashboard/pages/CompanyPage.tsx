@@ -3,19 +3,23 @@ import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, getCompany } from "../../lib/api";
 import { CompanyForm } from "../../portal/components/CompanyForm";
-import { ErrorState, LoadingState, PageHeader } from "../components/States";
+import { ErrorState, LoadingState } from "../components/States";
 import { useResource } from "../useResource";
 
 export default function CompanyPage(): ReactElement {
-  usePageMeta({ title: "Company — Zinwe", description: "Your company details." });
+  usePageMeta({ title: "Company — Settings", description: "Your company details." });
   const { refresh } = useAuth();
   const load = useCallback((signal: AbortSignal) => getCompany(signal), []);
   const company = useResource(load);
 
   return (
     <>
-      <PageHeader title="Company" lede="The business details on your Zinwe account." />
-      <section className="dash-card" aria-label="Company details">
+      <section className="dash-card" aria-labelledby="co-title">
+        <div className="dash-card__head">
+          <h2 className="dash-card__title" id="co-title">
+            Company details
+          </h2>
+        </div>
         {company.data === undefined ? (
           company.error ? (
             <ErrorState

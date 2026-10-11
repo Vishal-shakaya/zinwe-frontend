@@ -87,6 +87,14 @@ export interface Payment {
   has_proof: boolean;
   submitted_at: string;
   reviewed_at: string | null;
+  /** Paid while the plan was active, to extend it by a month. */
+  is_renewal: boolean;
+  /** The period an approved payment paid for. */
+  covers_from: string | null;
+  covers_until: string | null;
+  plan_name: string;
+  /** Set when this payment is an upgrade to another plan. */
+  upgrade_plan_name?: string | null;
 }
 
 export interface Subscription {
@@ -101,6 +109,12 @@ export interface Subscription {
   latest_payment: Payment | null;
   /** v1.1: a built-in free trial (amount 0, ends at `ends_at`). */
   is_trial: boolean;
+  /** Whole days until an active plan ends (0 = today); null when open-ended. */
+  days_left: number | null;
+  /** An active paid plan with no payment under review: next month can be paid now. */
+  can_renew: boolean;
+  /** The month a renewal paid now would add (starts at the current end date). */
+  renewal_period: { from: string; until: string } | null;
 }
 
 export interface PaymentInstructions {
@@ -130,6 +144,21 @@ export interface Me extends User {
   active_plan?: unknown;
 }
 
+/** A dashboard notification-bar item (M11): a version note, an offer, or an upgrade nudge. */
+export type AnnouncementKind = "version" | "offer" | "upgrade";
+
+export interface Announcement {
+  /** Stable id used to remember a dismissal; changes when the message changes. */
+  id: string;
+  kind: AnnouncementKind;
+  title: string;
+  body: string;
+  /** Call-to-action; `cta_label` is empty when there's no action. */
+  cta_label: string;
+  cta_href: string;
+  dismissible: boolean;
+}
+
 export interface PaymentPayload {
   method: PaymentMethod;
   amount_inr: string;
@@ -138,6 +167,8 @@ export interface PaymentPayload {
   paid_on: string;
   payer_name: string;
   proof: File | null;
+  /** Dashboard upgrade: the plan code this payment moves the owner up to. */
+  upgrade_plan?: string;
 }
 
 export type PaymentField = keyof PaymentPayload;

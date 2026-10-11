@@ -17,7 +17,7 @@ import "../../styles/portal.css";
 export default function PlansPage(): ReactElement {
   usePageMeta({
     title: "Plans and pricing — Zinwe",
-    description: "Start free, or try the Businesses plan free for your first 3 months. Simple pricing in rupees.",
+    description: "Start free forever for up to 3 PCs, and upgrade as you grow. Simple pricing in rupees.",
   });
   const { token, onboarding } = useAuth();
   const plans = usePlans();
@@ -27,7 +27,7 @@ export default function PlansPage(): ReactElement {
     if (token) {
       const inApp = onboarding ? canUseApp(onboarding.step) : false;
       return (
-        <Link className={className} to={inApp ? "/app/billing" : "/onboarding/plan"}>
+        <Link className={className} to={inApp ? "/app/settings/billing" : "/onboarding/plan"}>
           {inApp ? "See your plan" : planCtaLabel(plan)}
         </Link>
       );

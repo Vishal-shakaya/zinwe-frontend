@@ -43,7 +43,7 @@ export default function ContactPage(): ReactElement {
         </div>
       </section>
 
-      <OfferBand title="Rather just try it?" sub="The Businesses plan is free for your first 3 months." />
+      <OfferBand title="Rather just try it?" sub="Zinwe is free forever for up to 3 PCs." />
     </>
   );
 }

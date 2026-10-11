@@ -1,157 +1,189 @@
-import { useCallback, type ReactElement } from "react";
+import { useCallback, useMemo, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { listDevices, listEvents, type DeviceEvent } from "../../lib/api";
-import { cx } from "../../lib/cx";
-import { SubscriptionSummary } from "../../portal/components/SubscriptionSummary";
-import { isTrialSubscription } from "../../portal/subscription";
+import { listDevices, listEvents, listMembers, type DeviceEvent, type Member } from "../../lib/api";
+import { AlertsTable } from "../components/AlertsTable";
+import { StatTiles } from "../components/StatTiles";
+import { useUpgrade } from "../features/upgrade";
 import { DashIcon } from "../components/DashIcon";
 import { LoadingState, PageHeader } from "../components/States";
-import { useNow } from "../time";
+import { makeMemberResolver, severityOf } from "../features/events";
+import { formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
+import { formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
 
-const WEEK_MS = 7 * 86_400_000;
+/** Overview is a glance: the few newest alerts, the rest live in Activity. */
+const MAX_ALERTS = 5;
+const MAX_PEOPLE = 6;
 
-function alertsThisWeek(events: DeviceEvent[], now: number): number {
-  return events.filter(
-    (e) => (e.severity === "warning" || e.severity === "critical") && now - new Date(e.occurred_at).getTime() < WEEK_MS,
-  ).length;
+function startOfToday(now: number): number {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 }
 
-interface Task {
-  label: string;
-  detail: string;
-  state: "done" | "doing" | "todo";
-  to?: string;
-  cta?: string;
+function alertsToday(events: DeviceEvent[], now: number): number {
+  const from = startOfToday(now);
+  return events.filter((e) => severityOf(e) !== "info" && Date.parse(e.occurred_at) >= from).length;
+}
+
+/** The actionable alerts for the main table: warnings/criticals, newest first. */
+function actionable(events: DeviceEvent[]): DeviceEvent[] {
+  return events.filter((e) => severityOf(e) !== "info").slice(0, MAX_ALERTS);
 }
 
 export default function OverviewPage(): ReactElement {
-  usePageMeta({ title: "Overview — Zinwe", description: "Your Zinwe account at a glance." });
+  usePageMeta({ title: "Overview — Zinwe", description: "Who's working, your plan and the latest alerts, at a glance." });
   const { account } = useAuth();
 
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
-  const loadEvents = useCallback((signal: AbortSignal) => listEvents({ limit: 50 }, signal), []);
-  const devices = useResource(loadDevices);
-  const events = useResource(loadEvents);
+  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
+  const loadEvents = useCallback((signal: AbortSignal) => listEvents({ limit: 100 }, signal), []);
+  const devices = useResource(loadDevices, { pollMs: 60_000 });
+  const members = useResource(loadMembers, { pollMs: 60_000 });
+  const events = useResource(loadEvents, { pollMs: 60_000 });
   const now = useNow(60_000);
 
   const firstName = account?.user.full_name.trim().split(/\s+/)[0];
   const company = account?.company;
-  const subscription = account?.subscription;
-  const inReview = account?.onboarding.step === "payment_review";
+  const upgrade = useUpgrade();
 
-  const active = devices.data?.filter((d) => !d.is_revoked) ?? [];
-  const online = active.filter((d) => d.is_online).length;
-  const alerts = events.data ? alertsThisWeek(events.data, now) : null;
-  const count = (value: number | null, loaded: boolean) => (loaded && value !== null ? value : "–");
+  const activeMembers = useMemo(() => (members.data ?? []).filter((m) => m.is_active), [members.data]);
+  const presence = useMemo(() => activeMembers.map((m) => presenceOf(m.device)), [activeMembers]);
+  const working = presence.filter((p) => p === "working").length;
+  const onBreak = presence.filter((p) => p === "break").length;
+  const offline = presence.filter((p) => p === "offline").length;
 
-  const tasks: Task[] = [
-    { label: "Create your account", detail: "Email confirmed.", state: "done" },
-    { label: "Add your company", detail: company?.name ?? "Done.", state: "done" },
-    inReview
-      ? { label: "Activate your plan", detail: "Payment received, being checked.", state: "doing", to: "/app/billing", cta: "View" }
-      : {
-          label: "Activate your plan",
-          detail: subscription
-            ? isTrialSubscription(subscription)
-              ? `${subscription.plan.name} free trial is on.`
-              : `${subscription.plan.name} is active.`
-            : "Done.",
-          state: "done",
-        },
-    active.length > 0
-      ? { label: "Add your first PC", detail: `${active.length} connected.`, state: "done" }
-      : {
-          label: "Add your first PC",
-          detail: "Install the agent with your enrollment key. Takes about 5 minutes.",
-          state: "todo",
-          to: "/app/devices#add-pc",
-          cta: "Add a PC",
-        },
-    {
-      label: "Choose your USB rule",
-      detail: "Allow, read-only or block USB drives on every PC.",
-      state: "todo",
-      to: "/app/rules",
-      cta: "Set rule",
-    },
-  ];
+  const alerts = events.data ? actionable(events.data) : [];
+  const todays = events.data ? alertsToday(events.data, now) : null;
+  const resolveMember = useMemo(() => makeMemberResolver(devices.data), [devices.data]);
+
+  const loaded = members.data !== undefined;
+  const num = (value: number) => (loaded ? String(value) : "–");
 
   return (
     <>
       <PageHeader
         title={firstName ? `Welcome, ${firstName}` : "Welcome"}
-        lede={company ? `${company.name} · Here's how things stand today.` : "Here's how things stand today."}
+        lede={company ? `${company.name} · Here's your team today.` : "Here's your team today."}
+        actions={
+          upgrade.canUpgrade ? (
+            <button type="button" className="btn btn--primary dash-btn-sm" onClick={upgrade.open}>
+              <DashIcon name="arrow" />
+              Upgrade plan
+            </button>
+          ) : null
+        }
       />
 
-      <ul className="dash-stats" aria-label="Summary">
-        <li>
-          <b>{count(active.length, devices.data !== undefined)}</b>
-          <span>PCs connected</span>
-        </li>
-        <li className={cx(online > 0 && "is-good")}>
-          <b>{count(online, devices.data !== undefined)}</b>
-          <span>online now</span>
-        </li>
-        <li className={cx(alerts !== null && alerts > 0 && "is-warn")}>
-          <b>{count(alerts, events.data !== undefined)}</b>
-          <span>alerts this week</span>
-        </li>
-      </ul>
+      <StatTiles
+        wide
+        label="Team and alerts"
+        tiles={[
+          { value: num(activeMembers.length), label: activeMembers.length === 1 ? "team member" : "team members" },
+          { value: num(working), label: "working now", tone: working > 0 ? "good" : undefined },
+          { value: num(onBreak), label: "on break" },
+          { value: num(offline), label: "offline" },
+          {
+            value: todays !== null ? String(todays) : "–",
+            label: "alerts today",
+            tone: todays !== null && todays > 0 ? "warn" : undefined,
+          },
+        ]}
+      />
 
-      <div className="ov-grid">
-        <section className="dash-card" aria-labelledby="ov-setup-title">
-          <div>
-            <h2 className="dash-card__title" id="ov-setup-title">
-              Get set up
-            </h2>
-            <p className="dash-card__sub">A few steps and Zinwe starts watching your PCs.</p>
-          </div>
-          <ol className="ov-tasks">
-            {tasks.map((task) => (
-              <li key={task.label} className={cx("ov-task", `ov-task--${task.state}`)}>
-                <span className="ov-task__mark" aria-hidden="true">
-                  {task.state === "done" ? <DashIcon name="check" /> : task.state === "doing" ? <DashIcon name="clock" /> : null}
-                </span>
-                <span className="ov-task__text">
-                  <b>
-                    {task.label}
-                    <span className="dash-sr">
-                      {task.state === "done" ? " (done)" : task.state === "doing" ? " (in progress)" : " (to do)"}
-                    </span>
-                  </b>
-                  <span>{task.detail}</span>
-                </span>
-                {task.to && task.cta ? (
-                  <Link
-                    className={cx("btn dash-btn-sm", task.state === "todo" && task.to.includes("devices") ? "btn--primary" : "btn--ghost")}
-                    to={task.to}
-                  >
-                    {task.cta}
-                  </Link>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {subscription ? (
-          <SubscriptionSummary
-            subscription={subscription}
-            action={
-              <Link className="dash-link" to="/app/billing">
-                Billing details <DashIcon name="arrow" />
-              </Link>
-            }
-          />
+      <section className="dash-card" aria-labelledby="ov-team-title">
+        <div className="dash-card__head dash-card__head--split">
+          <h2 className="dash-card__title" id="ov-team-title">
+            Who's working
+          </h2>
+          <Link className="dash-link" to="/app/team">
+            Team <DashIcon name="arrow" />
+          </Link>
+        </div>
+        {members.data === undefined ? (
+          <LoadingState label="Loading your team…" rows={3} />
+        ) : activeMembers.length === 0 ? (
+          <p className="dash-note">
+            No team members yet.{" "}
+            <Link className="dash-link" to="/app/team">
+              Add your first
+            </Link>{" "}
+            to see who's working.
+          </p>
         ) : (
-          <section className="dash-card">
-            <LoadingState label="Loading your plan…" rows={2} />
-          </section>
+          <ul className="ov-people">
+            {activeMembers.slice(0, MAX_PEOPLE).map((member) => (
+              <PersonStatus key={member.id} member={member} now={now} />
+            ))}
+            {activeMembers.length > MAX_PEOPLE ? (
+              <li className="ov-person ov-person--more">
+                <Link className="dash-link" to="/app/team">
+                  +{activeMembers.length - MAX_PEOPLE} more <DashIcon name="arrow" />
+                </Link>
+              </li>
+            ) : null}
+          </ul>
         )}
-      </div>
+      </section>
+
+      <section className="dash-card" aria-labelledby="ov-alerts-title">
+        <div className="dash-card__head dash-card__head--split">
+          <div>
+            <h2 className="dash-card__title" id="ov-alerts-title">
+              Recent alerts
+            </h2>
+            {todays !== null ? (
+              <p className="dash-card__sub">
+                {todays === 0 ? "Nothing new today." : `${todays} ${todays === 1 ? "alert" : "alerts"} today.`}
+              </p>
+            ) : null}
+          </div>
+          <Link className="dash-link" to="/app/alerts">
+            See all <DashIcon name="arrow" />
+          </Link>
+        </div>
+        {events.data === undefined ? (
+          <LoadingState label="Loading alerts…" rows={3} />
+        ) : (
+          <AlertsTable
+            events={alerts}
+            resolveMember={resolveMember}
+            now={now}
+            caption="Most recent alerts needing attention"
+            emptyText="No alerts need attention. Everything looks calm right now."
+          />
+        )}
+      </section>
     </>
+  );
+}
+
+function PersonStatus({ member, now }: { member: Member; now: number }): ReactElement {
+  const status = presenceOf(member.device);
+  const worked = member.device?.worked_seconds ?? 0;
+  const showWorked = (status === "working" || status === "break") && worked > 0;
+  return (
+    <li className="ov-person">
+      <span className="dash-pc__ico" aria-hidden="true">
+        <DashIcon name="team" />
+      </span>
+      <span className="ov-person__text">
+        <b>{member.name}</b>
+        <small>
+          {member.device
+            ? `${member.device.hostname || "Unnamed PC"} · last seen ${formatRelative(member.device.last_seen_at, now, "never")}`
+            : "No PC connected yet"}
+        </small>
+      </span>
+      <span className="ov-person__status">
+        <span className={`dash-status dash-status--${PRESENCE_CLASS[status]}`}>
+          <i aria-hidden="true" />
+          {PRESENCE_LABEL[status]}
+        </span>
+        {showWorked ? <small>{formatDuration(worked)} today</small> : null}
+      </span>
+    </li>
   );
 }

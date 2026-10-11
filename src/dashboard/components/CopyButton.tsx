@@ -1,32 +1,7 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { cx } from "../../lib/cx";
+import { copyText } from "../../lib/clipboard";
 import { DashIcon } from "./DashIcon";
-
-/** Clipboard API first; the hidden-textarea fallback covers older or non-secure contexts. */
-async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    // Permission denied: try the fallback below.
-  }
-  try {
-    const area = document.createElement("textarea");
-    area.value = text;
-    area.setAttribute("readonly", "");
-    area.style.position = "fixed";
-    area.style.opacity = "0";
-    document.body.appendChild(area);
-    area.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(area);
-    return ok;
-  } catch {
-    return false;
-  }
-}
 
 interface CopyButtonProps {
   text: string;

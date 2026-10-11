@@ -54,7 +54,7 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
 export const PLAN_INTENT_COPY: Record<string, string> = {
   free: "Free forever: up to 3 PCs, no payment ever.",
   startups: "Startups plan: every monitoring module for up to 10 PCs.",
-  businesses: "Businesses plan: free for your first 3 months. No payment needed to start.",
+  businesses: "Businesses plan: compliance records and every module for growing teams.",
 };
 
 /** Side panel on the sign-up, login and reset pages. */

@@ -24,13 +24,15 @@ const ORDER: readonly SignupField[] = ["full_name", "email", "password"];
 export default function SignupPage(): ReactElement {
   usePageMeta({
     title: "Create your account — Zinwe",
-    description: "Create a Zinwe account to protect your team's PCs. Start free, or try Businesses free for your first 3 months.",
+    description: "Create a Zinwe account to protect your team's PCs. Start free forever for up to 3 PCs.",
   });
 
   const [params] = useSearchParams();
   const planParam = planCodeParam(params.get("plan"));
   const planCode = planParam ?? readPlanIntent();
-  useEffect(() => rememberPlanIntent(planParam), [planParam]);
+  useEffect(() => {
+    rememberPlanIntent(planParam);
+  }, [planParam]);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");

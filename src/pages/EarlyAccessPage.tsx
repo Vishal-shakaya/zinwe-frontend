@@ -7,7 +7,7 @@ import { StaggerTitle } from "../components/ui/StaggerTitle";
 import { usePageMeta } from "../hooks/usePageMeta";
 
 const perks: Array<{ title: string; detail: string }> = [
-  { title: "Full plan, free for 3 months", detail: "Every feature, every PC, no card required." },
+  { title: "Free forever for up to 3 PCs", detail: "Start protecting your team at no cost, no card required." },
   { title: "Setup done with you", detail: "A 20-minute call with the founder to get your rules right." },
   { title: "A say in what ships next", detail: "Early teams decide which alerts and controls we build first." },
 ];
@@ -15,7 +15,7 @@ const perks: Array<{ title: string; detail: string }> = [
 export default function EarlyAccessPage(): ReactElement {
   usePageMeta({
     title: "Early access — Zinwe",
-    description: "Reserve early access to Zinwe and get the full plan free for 3 months.",
+    description: "Reserve early access to Zinwe: free forever for up to 3 PCs, with setup done with you.",
   });
 
   return (
@@ -25,9 +25,9 @@ export default function EarlyAccessPage(): ReactElement {
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
             <div className="hero__pill fade">
-              <b>EARLY ACCESS</b> Full plan · 3 months free
+              <b>EARLY ACCESS</b> Free forever · Setup done with you
             </div>
-            <StaggerTitle text="Be first. Pay nothing for 3 months." />
+            <StaggerTitle text="Be first. Start free, stay free." />
             <p className="lede fade" style={{ animationDelay: ".4s" }}>
               Reserve a spot before launch and we'll set you up personally the week we go live.
             </p>

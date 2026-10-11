@@ -38,9 +38,9 @@ export default function HomePage(): ReactElement {
       <ConsentFacts />
       <Platforms />
       <OfferBand
-        title="Get 3 months of Zinwe, free."
-        sub="The Businesses plan is free for your first 3 months. Set up in minutes, and tell us what to build next."
-        note="No card needed. No payment until your trial ends."
+        title="Start with Zinwe, free forever."
+        sub="Protect up to 3 PCs at no cost, for as long as you like. Set up in minutes, and tell us what to build next."
+        note="No card needed. Upgrade only when you grow."
       />
     </>
   );

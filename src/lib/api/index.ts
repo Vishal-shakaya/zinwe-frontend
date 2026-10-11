@@ -3,7 +3,7 @@
  *
  * - http.ts: transport (public union results, ApiError for signed-in calls)
  * - types.ts: shapes from the portal contract
- * - auth.ts / billing.ts / devices.ts / earlyAccess.ts: one function per endpoint
+ * - auth.ts / billing.ts / devices.ts / earlyAccess.ts / feedback.ts: one function per endpoint
  */
 export * from "./http";
 export * from "./types";
@@ -11,3 +11,4 @@ export * from "./auth";
 export * from "./billing";
 export * from "./devices";
 export * from "./earlyAccess";
+export * from "./feedback";

@@ -40,10 +40,12 @@ interface PaymentFormProps {
   amount: string;
   payerName: string;
   onSubmitted: (payment: Payment) => void | Promise<void>;
+  /** Dashboard upgrade: the plan code this payment is for. */
+  upgradePlan?: string;
 }
 
 /** "I've paid" form: method, amount, reference/UTR, date, payer, optional proof. */
-export function PaymentForm({ amount, payerName, onSubmitted }: PaymentFormProps): ReactElement {
+export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: PaymentFormProps): ReactElement {
   const [method, setMethod] = useState<PaymentMethod>("upi");
   const [amountInr, setAmountInr] = useState(() => String(Number(amount) || ""));
   const [reference, setReference] = useState("");
@@ -99,6 +101,7 @@ export function PaymentForm({ amount, payerName, onSubmitted }: PaymentFormProps
         paid_on: paidOn,
         payer_name: payer.trim(),
         proof,
+        upgrade_plan: upgradePlan,
       });
       await onSubmitted(payment);
     } catch (error) {

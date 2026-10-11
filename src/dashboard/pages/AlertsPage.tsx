@@ -1,0 +1,429 @@
+import { useCallback, useMemo, useState, type ReactElement, type ReactNode } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { usePageMeta } from "../../hooks/usePageMeta";
+import {
+  EVENTS_DEFAULT_LIMIT,
+  EVENTS_MAX_LIMIT,
+  errorMessage,
+  listDevices,
+  listEvents,
+  listMembers,
+  ApiError,
+  emailAlert,
+  type DeviceEvent,
+  type Member,
+} from "../../lib/api";
+import { cx } from "../../lib/cx";
+import { DashIcon, type DashIconName } from "../components/DashIcon";
+import { eventMeta, severityOf, type FeatureKey, type Severity } from "../features/events";
+import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
+import { formatDateTime, formatRelative, useNow } from "../time";
+import { useResource } from "../useResource";
+
+function parseDeviceId(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : undefined;
+}
+
+export default function AlertsPage(): ReactElement {
+  usePageMeta({ title: "Alerts — Zinwe", description: "Every alert on your PCs, newest first." });
+
+  const [params, setParams] = useSearchParams();
+  const deviceId = parseDeviceId(params.get("device"));
+  const [limit, setLimit] = useState(EVENTS_DEFAULT_LIMIT);
+  const now = useNow();
+
+  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
+  const devices = useResource(loadDevices);
+  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
+  const members = useResource(loadMembers);
+  const [priority, setPriority] = useState<Priority | "all">("all");
+  const [type, setType] = useState<FeatureKey | "all">("all");
+
+  const loadEvents = useCallback(
+    (signal: AbortSignal) => listEvents({ device: deviceId, limit }, signal),
+    [deviceId, limit],
+  );
+  // "Show older" keeps the list on screen; a different PC starts from a clean slate.
+  const events = useResource(loadEvents, { pollMs: 60_000, resetKey: deviceId ?? "all" });
+
+  const deviceList = devices.data ?? [];
+  const selectedDevice = deviceList.find((d) => d.id === deviceId);
+  const hasDevices = deviceList.length > 0;
+
+  const onFilter = (value: string) => {
+    setLimit(EVENTS_DEFAULT_LIMIT);
+    const next = new URLSearchParams(params);
+    if (value) next.set("device", value);
+    else next.delete("device");
+    setParams(next, { replace: true });
+  };
+
+  const list = events.data ?? [];
+
+  // device → person, for the "PC · person" column and the Send mail recipient.
+  const personFor = useMemo(() => {
+    const byMember = new Map((members.data ?? []).map((m) => [m.id, m] as const));
+    const byDevice = new Map<number, Member>();
+    for (const d of devices.data ?? []) {
+      // member_id from current backends; older ones only name the member.
+      const person =
+        d.member_id != null
+          ? byMember.get(d.member_id)
+          : (members.data ?? []).find((m) => m.is_active && m.name === d.member_name);
+      if (person) byDevice.set(d.id, person);
+    }
+    return (deviceId: number) => byDevice.get(deviceId);
+  }, [members.data, devices.data]);
+
+  const counts = { high: 0, medium: 0, low: 0 } as Record<Priority, number>;
+  for (const e of list) counts[PRIORITY[severityOf(e)]] += 1;
+  const shown = list.filter(
+    (e) =>
+      (priority === "all" || PRIORITY[severityOf(e)] === priority) &&
+      (type === "all" || eventMeta(e.type).feature === type),
+  );
+  const canLoadMore = events.data !== undefined && list.length >= limit && limit < EVENTS_MAX_LIMIT;
+
+  return (
+    <>
+      <PageHeader
+        title="Alerts"
+        lede="Every alert on your PCs, newest first. Filter by priority or type, and email the person in one click — Zinwe sends it for you."
+        actions={<RefreshButton onClick={events.reload} pending={events.pending} />}
+      />
+
+      <section className="dash-card" aria-labelledby="feed-title">
+        <div className="dash-card__head dash-card__head--split">
+          <h2 className="dash-card__title" id="feed-title">
+            {selectedDevice ? `Alerts on ${selectedDevice.hostname}` : "All alerts"}
+          </h2>
+        </div>
+
+        {events.data === undefined ? (
+          events.error ? (
+            <ErrorState
+              title="We couldn't load your activity"
+              message={errorMessage(events.error)}
+              onRetry={events.reload}
+              retrying={events.pending}
+            />
+          ) : (
+            <LoadingState label="Loading activity…" rows={4} />
+          )
+        ) : list.length === 0 ? (
+          <FeedEmpty filtered={deviceId !== undefined} hasDevices={hasDevices} onClear={() => onFilter("")} />
+        ) : (
+          <>
+            {events.error ? <StaleBanner message={errorMessage(events.error)} onRetry={events.reload} /> : null}
+            <ActivityFilters
+              pcFilter={
+                hasDevices || deviceId !== undefined ? (
+                  <label className="dash-filter">
+                    <span>PC</span>
+                    <select
+                      value={deviceId !== undefined ? String(deviceId) : ""}
+                      onChange={(e) => onFilter(e.target.value)}
+                    >
+                      <option value="">All PCs</option>
+                      {deviceList.map((d) => (
+                        <option key={d.id} value={String(d.id)}>
+                          {d.hostname}
+                          {d.is_revoked ? " (removed)" : ""}
+                        </option>
+                      ))}
+                      {deviceId !== undefined && !selectedDevice ? (
+                        <option value={String(deviceId)}>This PC</option>
+                      ) : null}
+                    </select>
+                  </label>
+                ) : null
+              }
+              priority={priority}
+              type={type}
+              counts={counts}
+              onPriority={setPriority}
+              onType={setType}
+            />
+            {shown.length === 0 ? (
+              <p className="dash-note">
+                Nothing matches these filters.{" "}
+                <button
+                  type="button"
+                  className="dash-link"
+                  onClick={() => {
+                    setPriority("all");
+                    setType("all");
+                  }}
+                >
+                  Show everything
+                </button>
+              </p>
+            ) : (
+              <AlertTable events={shown} now={now} personFor={personFor} />
+            )}
+            {canLoadMore ? (
+              <div className="dash-more">
+                <button
+                  type="button"
+                  className="btn btn--ghost dash-btn-sm"
+                  disabled={events.pending}
+                  onClick={() => setLimit((l) => Math.min(l + EVENTS_DEFAULT_LIMIT, EVENTS_MAX_LIMIT))}
+                >
+                  {events.pending ? "Loading…" : "Show older activity"}
+                </button>
+              </div>
+            ) : list.length >= EVENTS_MAX_LIMIT ? (
+              <p className="dash-note">Showing the latest {EVENTS_MAX_LIMIT} events.</p>
+            ) : null}
+          </>
+        )}
+      </section>
+    </>
+  );
+}
+
+function FeedEmpty({
+  filtered,
+  hasDevices,
+  onClear,
+}: {
+  filtered: boolean;
+  hasDevices: boolean;
+  onClear: () => void;
+}): ReactElement {
+  if (filtered) {
+    return (
+      <EmptyState
+        icon="activity"
+        title="Nothing from this PC yet"
+        action={
+          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onClear}>
+            Show all PCs
+          </button>
+        }
+      >
+        When someone plugs in a USB drive or a rule changes on this PC, it shows up here.
+      </EmptyState>
+    );
+  }
+  if (!hasDevices) {
+    return (
+      <EmptyState
+        icon="pc"
+        title="No activity yet"
+        action={
+          <Link className="btn btn--primary dash-btn-sm" to="/app/team">
+            Add your first PC <span className="arr">→</span>
+          </Link>
+        }
+      >
+        Activity appears here once a PC has the Zinwe agent installed.
+      </EmptyState>
+    );
+  }
+  return (
+    <EmptyState icon="shield" title="All quiet">
+      Nothing has happened on your PCs yet. When someone plugs in a USB drive or a rule changes, you'll see it here.
+    </EmptyState>
+  );
+}
+
+type Priority = "high" | "medium" | "low";
+
+const PRIORITY: Record<Severity, Priority> = { critical: "high", warning: "medium", info: "low" };
+const PRIORITY_LABEL: Record<Priority, string> = { high: "High", medium: "Medium", low: "Low" };
+const PRIORITY_ORDER: readonly Priority[] = ["high", "medium", "low"];
+
+const TYPE_LABEL: Record<FeatureKey, string> = {
+  internet: "Online protection",
+  data: "Data safety",
+  remote: "App monitoring",
+  other: "System",
+};
+const TYPE_ORDER: readonly FeatureKey[] = ["internet", "data", "remote", "other"];
+
+const TYPE_ICON: Record<FeatureKey, DashIconName> = {
+  internet: "globe",
+  data: "usb",
+  remote: "screen",
+  other: "shield",
+};
+
+/**
+ * Emails the person whose PC raised the alert, straight from Zinwe (no mail app),
+ * once per alert. Shows "Emailed" afterwards, also after a reload (`emailed_at`).
+ */
+function SendMailButton({ event, person }: { event: DeviceEvent; person: Member | undefined }): ReactElement {
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(event.emailed_at ? "sent" : "idle");
+  const [error, setError] = useState<string | null>(null);
+  const meta = eventMeta(event.type);
+
+  if (!person) {
+    return (
+      <span className="act-mail act-mail--none" title="This PC isn't linked to a team member">
+        No one to email
+      </span>
+    );
+  }
+  if (state === "sent") {
+    return (
+      <span className="act-mail act-mail--sent" title={`Emailed to ${person.email}`}>
+        <DashIcon name="check" />
+        Emailed
+      </span>
+    );
+  }
+
+  const send = async () => {
+    setState("sending");
+    setError(null);
+    try {
+      await emailAlert(event.id, { label: meta.label, suggested: meta.suggested });
+      setState("sent");
+    } catch (err) {
+      // Already emailed (409) counts as done.
+      if (err instanceof ApiError && err.status === 409) return setState("sent");
+      setError(errorMessage(err));
+      setState("error");
+    }
+  };
+
+  return (
+    <span className="act-mail">
+      <button
+        type="button"
+        className="btn btn--ghost dash-btn-sm"
+        onClick={() => void send()}
+        disabled={state === "sending"}
+        aria-label={`Email ${person.name} about ${meta.label}`}
+      >
+        <DashIcon name="share" />
+        {state === "sending" ? "Sending…" : state === "error" ? "Try again" : "Send mail"}
+      </button>
+      {error ? (
+        <small className="act-mail__err" role="alert">
+          {error}
+        </small>
+      ) : null}
+    </span>
+  );
+}
+
+/**
+ * The activity table: what happened, its type and priority, whose PC, when,
+ * and a "Send mail" that drafts an email to that person about it.
+ */
+function AlertTable({
+  events,
+  now,
+  personFor,
+}: {
+  events: DeviceEvent[];
+  now: number;
+  personFor: (deviceId: number) => Member | undefined;
+}): ReactElement {
+  return (
+    <div className="act-table" role="table" aria-label="Activity">
+      <div className="act-row act-row--head" role="row">
+        <span role="columnheader">Alert</span>
+        <span role="columnheader">Type</span>
+        <span role="columnheader">Priority</span>
+        <span role="columnheader">PC · person</span>
+        <span role="columnheader">When</span>
+        <span role="columnheader">
+          <span className="dash-sr">Action</span>
+        </span>
+      </div>
+      {events.map((event) => {
+        const meta = eventMeta(event.type);
+        const priority = PRIORITY[severityOf(event)];
+        const person = personFor(event.device_id);
+        return (
+          <div key={event.id} className={`act-row act-row--${priority}`} role="row">
+            <span role="cell" className="act-alert">
+              <span className={`act-mark act-mark--${priority}`} aria-hidden="true">
+                <DashIcon name={priority === "low" ? TYPE_ICON[meta.feature] : "alert"} />
+              </span>
+              <span className="act-alert__text">
+                <b>{meta.label}</b>
+                {event.title && event.title !== meta.label ? <small>{event.title}</small> : null}
+              </span>
+            </span>
+            <span role="cell" data-label="Type" className="act-type">
+              {TYPE_LABEL[meta.feature]}
+            </span>
+            <span role="cell" data-label="Priority">
+              <span className={`act-pri act-pri--${priority}`}>{PRIORITY_LABEL[priority]}</span>
+            </span>
+            <span role="cell" data-label="PC · person" className="act-who">
+              <b>{event.hostname || "A PC"}</b>
+              <small>{person ? person.name : "No person linked"}</small>
+            </span>
+            <span role="cell" data-label="When" className="act-when">
+              <time dateTime={event.occurred_at} title={formatDateTime(event.occurred_at)}>
+                {now - Date.parse(event.occurred_at) < 12 * 3_600_000
+                  ? formatRelative(event.occurred_at, now)
+                  : formatDateTime(event.occurred_at)}
+              </time>
+            </span>
+            <span role="cell" className="act-action">
+              <SendMailButton event={event} person={person} />
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Priority, PC and type filters, in one row above the table. */
+function ActivityFilters({
+  pcFilter,
+  priority,
+  type,
+  counts,
+  onPriority,
+  onType,
+}: {
+  /** The "which PC" picker, kept in the same row. */
+  pcFilter: ReactNode;
+  priority: Priority | "all";
+  type: FeatureKey | "all";
+  counts: Record<Priority, number>;
+  onPriority: (value: Priority | "all") => void;
+  onType: (value: FeatureKey | "all") => void;
+}): ReactElement {
+  return (
+    <div className="act-filters">
+      <div className="dash-range" role="group" aria-label="Filter by priority">
+        {(["all", ...PRIORITY_ORDER] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            className={cx("dash-range__btn", priority === value && "is-on")}
+            aria-pressed={priority === value}
+            onClick={() => onPriority(value)}
+          >
+            {value === "all" ? "All" : `${PRIORITY_LABEL[value]} (${counts[value]})`}
+          </button>
+        ))}
+      </div>
+      <div className="act-filters__end">
+        {pcFilter}
+        <label className="dash-filter">
+          <span>Type</span>
+          <select value={type} onChange={(e) => onType(e.target.value as FeatureKey | "all")}>
+            <option value="all">All types</option>
+            {TYPE_ORDER.map((key) => (
+              <option key={key} value={key}>
+                {TYPE_LABEL[key]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </div>
+  );
+}

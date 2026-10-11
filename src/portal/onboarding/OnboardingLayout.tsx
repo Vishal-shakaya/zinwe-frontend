@@ -14,7 +14,12 @@ export default function OnboardingLayout(): ReactElement {
   const [leaving, setLeaving] = useState(false);
   const current = ONBOARDING_STEPS.findIndex((s) => pathname.endsWith(`/${s.key}`));
 
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  // Block body on purpose: an effect must return nothing or a cleanup function. A concise
+  // `() => window.scrollTo(0, 0)` returns scrollTo's result, and browser extensions that
+  // patch scrollTo make that a non-function -> "destroy is not a function" on navigation.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   return (
     <div className="onb">

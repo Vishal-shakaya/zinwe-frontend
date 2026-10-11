@@ -76,3 +76,63 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* Page error boundary (components/ui/PageErrorBoundary.tsx): shown instead of a blank screen. */
+.page-error {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.page-error__card {
+  max-width: 440px;
+  text-align: center;
+}
+
+.page-error__title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 1.6rem;
+}
+
+.page-error__text {
+  margin: 0 0 22px;
+  color: var(--ink-2);
+}
+
+.page-error__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Dev-only crash details under the error message. */
+.page-error__details {
+  margin-top: 28px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+
+.page-error__details summary {
+  cursor: pointer;
+  text-align: center;
+}
+
+.page-error__details pre {
+  margin: 12px 0;
+  padding: 12px;
+  max-height: 280px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}

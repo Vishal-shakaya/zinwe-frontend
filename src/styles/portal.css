@@ -778,9 +778,76 @@
   font-weight: 600;
 }
 
+/* Company form groups: Company / Location and contact / Online and tax. */
+.co-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0; /* fieldsets default to min-content width, which breaks the grid on phones */
+}
+
+.co-section + .co-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.co-section__title {
+  /* Floated so the browser doesn't draw the legend on the fieldset's top border. */
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 14px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.co-section .form__grid {
+  clear: both;
+}
+
+.co-section__title small {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+/* Phone: the country's dialling code sits inside the field, fixed; the owner types the rest. */
+.co-phone {
+  display: flex;
+  align-items: stretch;
+}
+
+.co-phone__dial {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1.5px solid var(--line-strong);
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.field .co-phone input {
+  min-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.field.is-invalid .co-phone__dial,
+.co-form .field.is-invalid select {
+  border-color: #d12d2d;
+}
+
 .co-form__foot {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 560px) {

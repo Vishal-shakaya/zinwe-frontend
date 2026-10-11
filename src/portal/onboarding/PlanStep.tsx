@@ -21,6 +21,8 @@ export default function PlanStep(): ReactElement {
   // Back here because the free trial ran out (step `plan`, latest subscription an expired trial).
   const latest = account?.subscription;
   const trialEnded = latest?.is_trial === true && latest.status === "expired";
+  // ...or a paid plan that ran out without a renewal.
+  const paidEnded = latest?.is_trial === false && latest.status === "expired" && Number(latest.amount_inr) > 0;
 
   return (
     <section className="onb__wide" aria-labelledby="onb-plan-title">
@@ -31,7 +33,9 @@ export default function PlanStep(): ReactElement {
         <p className="onb__lede">
           {trialEnded
             ? `Your free trial of ${latest.plan.name} has ended. Choose a plan to keep protecting your PCs.`
-            : "Start free. You can change your plan later."}
+            : paidEnded
+              ? `Your ${latest.plan.name} plan ended. Choose it again to renew, or pick another plan. Your devices and settings are saved.`
+              : "Start free. You can change your plan later."}
         </p>
       </div>
 

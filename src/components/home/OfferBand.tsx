@@ -9,7 +9,7 @@ interface OfferBandProps {
   note?: string;
 }
 
-/** Orange call-to-action band with the faint "3 mo" watermark. */
+/** Orange call-to-action band with the faint "₹0" watermark. */
 export function OfferBand({ title, sub, note }: OfferBandProps): ReactElement {
   return (
     <section className="sec--tight">
@@ -20,13 +20,13 @@ export function OfferBand({ title, sub, note }: OfferBandProps): ReactElement {
             <p className="offer__sub">{sub}</p>
           </div>
           <div className="offer__cta">
-            <Link className="btn btn--ink btn--lg" to="/signup?plan=businesses">
-              Get 3 months free <span className="arr">→</span>
+            <Link className="btn btn--ink btn--lg" to="/signup?plan=free">
+              Start free <span className="arr">→</span>
             </Link>
             {note ? <small>{note}</small> : null}
           </div>
           <div className="offer__big" aria-hidden="true">
-            3 mo
+            ₹0
           </div>
         </Reveal>
       </div>

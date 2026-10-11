@@ -51,7 +51,13 @@ export function createSubscription(plan: string): Promise<Subscription> {
   return authedRequest<Subscription>("/api/auth/subscription/", { method: "POST", body: { plan } });
 }
 
-/** POST subscription/payment/ — multipart, so the proof file can ride along. */
+/** GET subscription/payments/ — every payment the owner reported, newest first. */
+export function getPaymentHistory(signal?: AbortSignal): Promise<Payment[]> {
+  return authedRequest<Payment[]>("/api/auth/subscription/payments/", { signal });
+}
+
+/** POST subscription/payment/ — multipart, so the proof file can ride along. A payment made
+ * while a paid plan is active is a renewal: it adds a month once confirmed. */
 export function submitPayment(payload: PaymentPayload): Promise<Payment> {
   const form = new FormData();
   form.append("method", payload.method);
@@ -60,5 +66,6 @@ export function submitPayment(payload: PaymentPayload): Promise<Payment> {
   form.append("paid_on", payload.paid_on);
   form.append("payer_name", payload.payer_name);
   if (payload.proof) form.append("proof", payload.proof, payload.proof.name);
+  if (payload.upgrade_plan) form.append("upgrade_plan", payload.upgrade_plan);
   return authedRequest<Payment>("/api/auth/subscription/payment/", { method: "POST", form });
 }

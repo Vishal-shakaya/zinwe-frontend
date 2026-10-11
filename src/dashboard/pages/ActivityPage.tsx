@@ -1,230 +1,273 @@
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useMemo, useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import {
-  EVENTS_DEFAULT_LIMIT,
-  EVENTS_MAX_LIMIT,
-  errorMessage,
-  listDevices,
-  listEvents,
-  type DeviceEvent,
-} from "../../lib/api";
+import { errorMessage, getWorkLog, listMembers, type Member } from "../../lib/api";
+import { cx } from "../../lib/cx";
 import { DashIcon } from "../components/DashIcon";
+import { StatTiles } from "../components/StatTiles";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
-import { dayGroup, formatDateTime, formatRelative, formatTime, useNow } from "../time";
+import { formatDuration } from "../features/memberStatus";
+import { isoDay, shiftDay, summarizeDay, type PersonDay, type TimelineItem } from "../features/workDay";
+import { dayLabel, formatDateTime, formatTime, useNow } from "../time";
 import { useResource } from "../useResource";
 
-type Severity = "info" | "warning" | "critical";
-
-const SEVERITY_LABEL: Record<Severity, string> = {
-  info: "For your information",
-  warning: "Worth a look",
-  critical: "Needs attention",
+const KIND_LABEL: Record<TimelineItem["kind"], string> = {
+  start: "Started work",
+  break: "Went on a break",
+  back: "Back to work",
+  end: "Ended the day",
 };
 
-function severityOf(event: DeviceEvent): Severity {
-  return event.severity === "warning" || event.severity === "critical" ? event.severity : "info";
+function parseDay(raw: string | null, today: string): string {
+  return raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) && raw <= today ? raw : today;
 }
 
-function parseDeviceId(raw: string | null): number | undefined {
-  if (!raw) return undefined;
-  const id = Number(raw);
-  return Number.isInteger(id) && id > 0 ? id : undefined;
-}
-
+/**
+ * Activity: how the team's day went — when each person started, every break
+ * (with the reason they picked in the Zinwe widget) and when they finished.
+ * One day at a time; today refreshes every minute.
+ */
 export default function ActivityPage(): ReactElement {
-  usePageMeta({ title: "Activity — Zinwe", description: "What happened on your PCs, newest first." });
+  usePageMeta({ title: "Activity — Zinwe", description: "When your team started, took breaks and finished work." });
 
+  const now = useNow(60_000);
+  const today = isoDay(new Date(now));
   const [params, setParams] = useSearchParams();
-  const deviceId = parseDeviceId(params.get("device"));
-  const [limit, setLimit] = useState(EVENTS_DEFAULT_LIMIT);
-  const now = useNow();
+  const day = parseDay(params.get("date"), today);
+  const isToday = day === today;
 
-  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
-  const devices = useResource(loadDevices);
+  const loadLog = useCallback((signal: AbortSignal) => getWorkLog({ date: day }, signal), [day]);
+  const log = useResource(loadLog, { resetKey: day, pollMs: isToday ? 60_000 : undefined });
+  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
+  const members = useResource(loadMembers);
 
-  const loadEvents = useCallback(
-    (signal: AbortSignal) => listEvents({ device: deviceId, limit }, signal),
-    [deviceId, limit],
+  const people = useMemo(
+    () => (log.data ? summarizeDay(log.data.entries, isToday, now) : []),
+    [log.data, isToday, now],
   );
-  // "Show older" keeps the list on screen; a different PC starts from a clean slate.
-  const events = useResource(loadEvents, { pollMs: 60_000, resetKey: deviceId ?? "all" });
+  const byMember = useMemo(() => new Map((members.data ?? []).map((m) => [m.id, m] as const)), [members.data]);
+  // Active members with nothing logged that day.
+  const absent = useMemo(() => {
+    const seen = new Set(people.map((p) => p.memberId));
+    return (members.data ?? []).filter((m) => m.is_active && !seen.has(m.id));
+  }, [people, members.data]);
 
-  const deviceList = devices.data ?? [];
-  const selectedDevice = deviceList.find((d) => d.id === deviceId);
-  const hasDevices = deviceList.length > 0;
-
-  const onFilter = (value: string) => {
-    setLimit(EVENTS_DEFAULT_LIMIT);
-    const next = new URLSearchParams(params);
-    if (value) next.set("device", value);
-    else next.delete("device");
-    setParams(next, { replace: true });
+  const go = (next: string) => {
+    const p = new URLSearchParams(params);
+    if (next === today) p.delete("date");
+    else p.set("date", next);
+    setParams(p, { replace: true });
   };
 
-  const list = events.data ?? [];
-  const canLoadMore = events.data !== undefined && list.length >= limit && limit < EVENTS_MAX_LIMIT;
+  const [y, m, d] = day.split("-").map(Number);
+  const label = dayLabel(new Date(y, m - 1, d), now);
+  const onBreakNow = isToday ? people.filter((p) => p.current === "on_break").length : 0;
+  const breaks = people.reduce((sum, p) => sum + p.breaks.length, 0);
+  const finished = people.filter((p) => p.endedAt).length;
 
   return (
     <>
       <PageHeader
         title="Activity"
-        lede="What happened on your PCs, newest first, in plain language."
-        actions={<RefreshButton onClick={events.reload} pending={events.pending} />}
+        lede="When your team started, every break and why, and when they finished — from the Start, Break and End buttons in their Zinwe widget."
+        actions={<RefreshButton onClick={log.reload} pending={log.pending} />}
       />
 
-      <section className="dash-card" aria-labelledby="feed-title">
-        <div className="dash-card__head dash-card__head--split">
-          <h2 className="dash-card__title" id="feed-title">
-            {selectedDevice ? `Activity on ${selectedDevice.hostname}` : "All activity"}
+      <div className="wd-days" role="group" aria-label="Choose a day">
+        <button type="button" className="btn btn--ghost dash-btn-sm" onClick={() => go(shiftDay(day, -1))}>
+          ‹ Previous day
+        </button>
+        <span className="wd-days__label">
+          <b>{label}</b>
+          {label === "Today" || label === "Yesterday" ? <small>{new Date(y, m - 1, d).toDateString()}</small> : null}
+        </span>
+        <label className="dash-filter">
+          <span className="dash-sr">Pick a date</span>
+          <input type="date" value={day} max={today} onChange={(e) => e.target.value && go(e.target.value)} />
+        </label>
+        <button
+          type="button"
+          className="btn btn--ghost dash-btn-sm"
+          onClick={() => go(shiftDay(day, 1))}
+          disabled={isToday}
+        >
+          Next day ›
+        </button>
+        {!isToday ? (
+          <button type="button" className="dash-link" onClick={() => go(today)}>
+            Back to today
+          </button>
+        ) : null}
+      </div>
+
+      <StatTiles
+        wide
+        label="The day at a glance"
+        tiles={[
+          { value: log.data ? String(people.length) : "–", label: people.length === 1 ? "person worked" : "people worked" },
+          ...(isToday
+            ? [{ value: log.data ? String(onBreakNow) : "–", label: "on a break now", tone: onBreakNow > 0 ? ("warn" as const) : undefined }]
+            : []),
+          { value: log.data ? String(breaks) : "–", label: breaks === 1 ? "break taken" : "breaks taken" },
+          { value: log.data ? String(finished) : "–", label: "ended their day", tone: finished > 0 ? ("good" as const) : undefined },
+        ]}
+      />
+
+      <section className="dash-card" aria-labelledby="wd-title">
+        <div className="dash-card__head">
+          <h2 className="dash-card__title" id="wd-title">
+            {isToday ? "Today so far" : `Work day · ${label}`}
           </h2>
-          {hasDevices || deviceId !== undefined ? (
-            <label className="dash-filter">
-              <span>Show</span>
-              <select value={deviceId !== undefined ? String(deviceId) : ""} onChange={(e) => onFilter(e.target.value)}>
-                <option value="">All PCs</option>
-                {deviceList.map((d) => (
-                  <option key={d.id} value={String(d.id)}>
-                    {d.hostname}
-                    {d.is_revoked ? " (removed)" : ""}
-                  </option>
-                ))}
-                {deviceId !== undefined && !selectedDevice ? (
-                  <option value={String(deviceId)}>This PC</option>
-                ) : null}
-              </select>
-            </label>
-          ) : null}
+          <p className="dash-card__sub">Open a person to see their full timeline.</p>
         </div>
 
-        {events.data === undefined ? (
-          events.error ? (
-            <ErrorState
-              title="We couldn't load your activity"
-              message={errorMessage(events.error)}
-              onRetry={events.reload}
-              retrying={events.pending}
-            />
+        {log.data === undefined ? (
+          log.error ? (
+            <ErrorState message={errorMessage(log.error)} onRetry={log.reload} retrying={log.pending} />
           ) : (
-            <LoadingState label="Loading activity…" rows={4} />
+            <LoadingState label="Loading the day…" rows={3} />
           )
-        ) : list.length === 0 ? (
-          <FeedEmpty filtered={deviceId !== undefined} hasDevices={hasDevices} onClear={() => onFilter("")} />
+        ) : people.length === 0 ? (
+          <EmptyState
+            icon="clock"
+            title={isToday ? "No one has started yet today" : "No work recorded that day"}
+            action={
+              (members.data ?? []).length === 0 ? (
+                <Link className="btn btn--primary dash-btn-sm" to="/app/team">
+                  Add your team
+                </Link>
+              ) : undefined
+            }
+          >
+            When someone presses <b>Start</b> in their Zinwe widget, their day shows up here — with every break and
+            when they finish.
+          </EmptyState>
         ) : (
           <>
-            {events.error ? <StaleBanner message={errorMessage(events.error)} onRetry={events.reload} /> : null}
-            <Feed events={list} now={now} />
-            {canLoadMore ? (
-              <div className="dash-more">
-                <button
-                  type="button"
-                  className="btn btn--ghost dash-btn-sm"
-                  disabled={events.pending}
-                  onClick={() => setLimit((l) => Math.min(l + EVENTS_DEFAULT_LIMIT, EVENTS_MAX_LIMIT))}
-                >
-                  {events.pending ? "Loading…" : "Show older activity"}
-                </button>
+            {log.error ? <StaleBanner message={errorMessage(log.error)} onRetry={log.reload} /> : null}
+            <div className="wd-table">
+              <div className="wd-row wd-row--head" aria-hidden="true">
+                <span>Person</span>
+                <span>Started</span>
+                <span>Breaks</span>
+                <span>Ended</span>
+                <span>Worked</span>
               </div>
-            ) : list.length >= EVENTS_MAX_LIMIT ? (
-              <p className="dash-note">Showing the latest {EVENTS_MAX_LIMIT} events.</p>
-            ) : null}
+              {people.map((person) => (
+                <PersonRow
+                  key={person.key}
+                  person={person}
+                  member={person.memberId != null ? byMember.get(person.memberId) : undefined}
+                  isToday={isToday}
+                />
+              ))}
+            </div>
           </>
         )}
+
+        {log.data && absent.length > 0 ? (
+          <p className="dash-note wd-absent">
+            <b>No activity {isToday ? "yet" : "that day"}:</b> {absent.map((m) => m.name).join(", ")}
+          </p>
+        ) : null}
       </section>
     </>
   );
 }
 
-function FeedEmpty({
-  filtered,
-  hasDevices,
-  onClear,
+function PersonRow({
+  person,
+  member,
+  isToday,
 }: {
-  filtered: boolean;
-  hasDevices: boolean;
-  onClear: () => void;
+  person: PersonDay;
+  member: Member | undefined;
+  isToday: boolean;
 }): ReactElement {
-  if (filtered) {
-    return (
-      <EmptyState
-        icon="activity"
-        title="Nothing from this PC yet"
-        action={
-          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onClear}>
-            Show all PCs
-          </button>
-        }
-      >
-        When someone plugs in a USB drive or a rule changes on this PC, it shows up here.
-      </EmptyState>
-    );
-  }
-  if (!hasDevices) {
-    return (
-      <EmptyState
-        icon="pc"
-        title="No activity yet"
-        action={
-          <Link className="btn btn--primary dash-btn-sm" to="/app/devices#add-pc">
-            Add your first PC <span className="arr">→</span>
-          </Link>
-        }
-      >
-        Activity appears here once a PC has the Zinwe agent installed.
-      </EmptyState>
-    );
-  }
-  return (
-    <EmptyState icon="shield" title="All quiet">
-      Nothing has happened on your PCs yet. When someone plugs in a USB drive or a rule changes, you'll see it here.
-    </EmptyState>
-  );
-}
-
-function Feed({ events, now }: { events: DeviceEvent[]; now: number }): ReactElement {
-  const groups: Array<{ key: string; label: string; items: DeviceEvent[] }> = [];
-  for (const event of events) {
-    const { key, label } = dayGroup(event.occurred_at, now);
-    const last = groups[groups.length - 1];
-    if (last && last.key === key) last.items.push(event);
-    else groups.push({ key, label, items: [event] });
-  }
+  const [open, setOpen] = useState(false);
+  // Today the widget's own totals are exact (no missed short breaks); past days use the log.
+  const live = isToday ? member?.device?.worked_seconds ?? 0 : 0;
+  const worked = live > 0 ? live : person.workedSeconds;
+  const status =
+    person.current === "on_break" && isToday
+      ? "On a break"
+      : person.current === "working" && isToday
+        ? "Working"
+        : person.current === "ended"
+          ? "Finished"
+          : null;
 
   return (
-    <div className="dash-feed">
-      {groups.map((group) => (
-        <section key={group.key} className="dash-feed__day" aria-label={group.label}>
-          <h3 className="dash-feed__date">{group.label}</h3>
-          <ul className="dash-feed__list">
-            {group.items.map((event) => {
-              const severity = severityOf(event);
-              return (
-                <li key={event.id} className={`dash-event dash-event--${severity}`}>
-                  <span className="dash-event__mark" aria-hidden="true">
-                    <DashIcon name={event.type.startsWith("usb.") ? "usb" : severity === "info" ? "activity" : "alert"} />
-                  </span>
-                  <div className="dash-event__body">
-                    <p className="dash-event__title">{event.title}</p>
-                    <p className="dash-event__meta">
-                      <span>{event.hostname}</span>
-                      <span aria-hidden="true">·</span>
-                      <time dateTime={event.occurred_at} title={formatDateTime(event.occurred_at)}>
-                        {/* Under a day heading: relative for recent events, clock time for older ones. */}
-                        {now - Date.parse(event.occurred_at) < 12 * 3_600_000
-                          ? formatRelative(event.occurred_at, now)
-                          : formatTime(event.occurred_at)}
-                      </time>
-                      {severity !== "info" ? (
-                        <span className={`dash-sev dash-sev--${severity}`}>{SEVERITY_LABEL[severity]}</span>
+    <div className={cx("wd-person", open && "is-open")}>
+      <button
+        type="button"
+        className="wd-row"
+        aria-expanded={open}
+        aria-label={`${person.name}: show the full day`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="wd-who">
+          <DashIcon name="arrow" />
+          <span>
+            <b>{person.name}</b>
+            <small>
+              {person.hostname}
+              {status ? ` · ${status}` : ""}
+            </small>
+          </span>
+        </span>
+        <span data-label="Started" title={formatDateTime(person.startedAt)}>
+          {person.startedAt ? formatTime(person.startedAt) : "—"}
+        </span>
+        <span data-label="Breaks">
+          {person.breaks.length === 0 ? (
+            "None"
+          ) : (
+            <>
+              {person.breaks.length} · {formatDuration(person.breakSeconds)}
+            </>
+          )}
+        </span>
+        <span data-label="Ended">
+          {person.endedAt ? (
+            formatTime(person.endedAt)
+          ) : person.openEnded ? (
+            <span className="wd-warn">Didn't press End</span>
+          ) : isToday ? (
+            <span className="wd-muted">Not yet</span>
+          ) : (
+            "—"
+          )}
+        </span>
+        <span data-label="Worked" className="wd-worked">
+          {formatDuration(worked)}
+        </span>
+      </button>
+
+      {open ? (
+        <ol className="wd-timeline" aria-label={`${person.name}'s day`}>
+          {person.timeline.map((item, i) => {
+            const brk = item.kind === "break" ? person.breaks.find((b) => b.start === item.at) : undefined;
+            return (
+              <li key={`${item.at}-${i}`} className={`wd-step wd-step--${item.kind}`}>
+                <time dateTime={item.at}>{formatTime(item.at)}</time>
+                <span className="wd-step__dot" aria-hidden="true" />
+                <span className="wd-step__text">
+                  <b>{KIND_LABEL[item.kind]}</b>
+                  {item.kind === "break" ? (
+                    <>
+                      {item.reason ? <span className="wd-reason">{item.reason}</span> : <span className="wd-muted">No reason given</span>}
+                      {brk ? (
+                        <small>{brk.end ? `for ${formatDuration(brk.seconds)}` : `${formatDuration(brk.seconds)} so far`}</small>
                       ) : null}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+                    </>
+                  ) : null}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      ) : null}
     </div>
   );
 }

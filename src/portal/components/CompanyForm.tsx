@@ -2,6 +2,13 @@ import { useRef, useState, type FormEvent, type ReactElement } from "react";
 import { ChipGroup } from "../../components/forms/ChipGroup";
 import { Field } from "../../components/forms/Field";
 import { teamSizeOptions } from "../../content/forms";
+import {
+  COUNTRIES,
+  FREE_REGION_LABEL,
+  POPULAR_COUNTRY_CODES,
+  REGIONS,
+  countryByName,
+} from "../../content/locations";
 import { industryOptions } from "../../content/portal";
 import {
   ApiError,
@@ -27,29 +34,55 @@ import {
 import { apiFieldErrors, apiFormError } from "../failure";
 import { FormAlert, FormStatus } from "./FormAlert";
 
+/** Visual (and focus) order of the form, top to bottom. */
 const FIELDS: readonly CompanyField[] = [
   "name",
   "industry",
   "team_size",
-  "phone",
-  "city",
-  "state",
   "country",
-  "gstin",
+  "state",
+  "city",
+  "phone",
   "website",
+  "gstin",
 ];
+
+const DEFAULT_COUNTRY = "India";
 
 type Draft = Omit<CompanyPayload, "industry" | "team_size"> & { industry: Industry | ""; team_size: TeamSize | "" };
 
+const popularCountries = POPULAR_COUNTRY_CODES.map((code) => COUNTRIES.find((c) => c.code === code)!).filter(Boolean);
+
+/** Dialling code for a country name ("" when unknown). */
+function dialFor(countryName: string): string {
+  return countryByName(countryName)?.dial ?? "";
+}
+
+/** The phone field holds the local number; a stored "+91 98100 00000" loses its "+91 " here. */
+function localPhone(phone: string, countryName: string): string {
+  const dial = dialFor(countryName);
+  const p = phone.trim();
+  return dial && p.startsWith(dial) ? p.slice(dial.length).trim() : p;
+}
+
+/** What we store: "+91 98100 00000". A number typed with its own "+" code is kept as typed. */
+function fullPhone(local: string, countryName: string): string {
+  const p = local.trim();
+  if (p === "" || p.startsWith("+")) return p;
+  const dial = dialFor(countryName);
+  return dial ? `${dial} ${p}` : p;
+}
+
 function draftFrom(company: Company | null | undefined): Draft {
+  const country = company?.country || DEFAULT_COUNTRY;
   return {
     name: company?.name ?? "",
     industry: company?.industry ?? "",
     team_size: company?.team_size ?? "",
-    phone: company?.phone ?? "",
+    phone: localPhone(company?.phone ?? "", country),
     city: company?.city ?? "",
     state: company?.state ?? "",
-    country: company?.country || "India",
+    country,
     gstin: company?.gstin ?? "",
     website: company?.website ?? "",
   };
@@ -96,17 +129,36 @@ export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict }:
     controls.current[field] = el;
   };
 
+  const country = countryByName(draft.country);
+  const regionSet = country ? REGIONS[country.code] : undefined;
+  const regionLabel = regionSet?.label ?? FREE_REGION_LABEL;
+  const isIndia = country?.code === "IN";
+  const dial = country?.dial ?? "";
+
+  // A new country brings its own regions: keep the state only if it still exists there.
+  const changeCountry = (name: string) => {
+    const next = countryByName(name);
+    const regions = next ? REGIONS[next.code]?.regions : undefined;
+    setDraft((d) => ({
+      ...d,
+      country: name,
+      state: regions && !regions.includes(d.state) ? "" : d.state,
+    }));
+    setSaved(null);
+  };
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending) return;
     const clean: Draft = {
       ...draft,
       name: draft.name.trim(),
-      phone: draft.phone.trim(),
+      phone: fullPhone(draft.phone, draft.country),
       city: draft.city.trim(),
       state: draft.state.trim(),
       country: draft.country.trim(),
-      gstin: draft.gstin.trim().toUpperCase(),
+      // GSTIN is an Indian tax ID; other countries never send one.
+      gstin: isIndia ? draft.gstin.trim().toUpperCase() : "",
       website: normaliseWebsite(draft.website),
     };
     const clientErrors = validate(clean);
@@ -133,140 +185,210 @@ export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict }:
     }
   };
 
+  // A saved country that isn't in our list (older free-text data) stays selectable.
+  const knownCountry = Boolean(country);
+
   return (
     <form className="co-form" onSubmit={onSubmit} noValidate>
-      <div className="form__grid">
-        <Field full error={errors.name}>
-          <label htmlFor="co-name">Company name</label>
-          <input
-            ref={reg("name")}
-            id="co-name"
-            autoComplete="organization"
-            value={draft.name}
-            onChange={(e) => set("name", e.target.value)}
-            aria-invalid={errors.name ? true : undefined}
-          />
-        </Field>
+      {/* 1. The business */}
+      <fieldset className="co-section">
+        <legend className="co-section__title">Company</legend>
+        <div className="form__grid">
+          <Field full error={errors.name}>
+            <label htmlFor="co-name">Company name</label>
+            <input
+              ref={reg("name")}
+              id="co-name"
+              autoComplete="organization"
+              placeholder="e.g. Verma Textiles Pvt Ltd"
+              value={draft.name}
+              onChange={(e) => set("name", e.target.value)}
+              aria-invalid={errors.name ? true : undefined}
+            />
+          </Field>
 
-        <Field error={errors.industry}>
-          <label htmlFor="co-industry">Industry</label>
-          <select
-            ref={reg("industry")}
-            id="co-industry"
-            value={draft.industry}
-            onChange={(e) => set("industry", e.target.value as Industry | "")}
-            aria-invalid={errors.industry ? true : undefined}
-          >
-            <option value="" disabled>
-              Choose one
-            </option>
-            {industryOptions.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+          <Field error={errors.industry}>
+            <label htmlFor="co-industry">Industry</label>
+            <select
+              ref={reg("industry")}
+              id="co-industry"
+              value={draft.industry}
+              onChange={(e) => set("industry", e.target.value as Industry | "")}
+              aria-invalid={errors.industry ? true : undefined}
+            >
+              <option value="" disabled>
+                Choose an industry
               </option>
-            ))}
-          </select>
-        </Field>
+              {industryOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-        <Field error={errors.phone}>
-          <label htmlFor="co-phone">Business phone</label>
-          <input
-            ref={reg("phone")}
-            id="co-phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+91 98100 00000"
-            value={draft.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            aria-invalid={errors.phone ? true : undefined}
-          />
-        </Field>
+          <Field error={errors.team_size}>
+            <span className="co-label" id="co-team-label">
+              Team size
+            </span>
+            <ChipGroup
+              type="radio"
+              name="team_size"
+              options={teamSizeOptions}
+              selected={draft.team_size ? [draft.team_size] : []}
+              onToggle={(value) => set("team_size", value)}
+              labelledBy="co-team-label"
+              firstInputRef={reg("team_size")}
+            />
+          </Field>
+        </div>
+      </fieldset>
 
-        <Field full error={errors.team_size}>
-          <span className="co-label" id="co-team-label">
-            People on your team
-          </span>
-          <ChipGroup
-            type="radio"
-            name="team_size"
-            options={teamSizeOptions}
-            selected={draft.team_size ? [draft.team_size] : []}
-            onToggle={(value) => set("team_size", value)}
-            labelledBy="co-team-label"
-            firstInputRef={reg("team_size")}
-          />
-        </Field>
+      {/* 2. Where it is and how to reach it: country first, its regions follow. */}
+      <fieldset className="co-section">
+        <legend className="co-section__title">Location and contact</legend>
+        <div className="form__grid">
+          <Field error={errors.country}>
+            <label htmlFor="co-country">Country</label>
+            <select
+              ref={reg("country")}
+              id="co-country"
+              autoComplete="country-name"
+              value={draft.country}
+              onChange={(e) => changeCountry(e.target.value)}
+              aria-invalid={errors.country ? true : undefined}
+            >
+              {!knownCountry && draft.country ? <option value={draft.country}>{draft.country}</option> : null}
+              <optgroup label="Common">
+                {popularCountries.map((c) => (
+                  <option key={`p-${c.code}`} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="All countries">
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </Field>
 
-        <Field error={errors.city}>
-          <label htmlFor="co-city">City</label>
-          <input
-            ref={reg("city")}
-            id="co-city"
-            autoComplete="address-level2"
-            value={draft.city}
-            onChange={(e) => set("city", e.target.value)}
-            aria-invalid={errors.city ? true : undefined}
-          />
-        </Field>
+          <Field error={errors.state}>
+            <label htmlFor="co-state">{regionLabel}</label>
+            {regionSet ? (
+              <select
+                ref={reg("state")}
+                id="co-state"
+                autoComplete="address-level1"
+                value={draft.state}
+                onChange={(e) => set("state", e.target.value)}
+                aria-invalid={errors.state ? true : undefined}
+              >
+                <option value="" disabled>
+                  Choose one
+                </option>
+                {regionSet.regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                ref={reg("state")}
+                id="co-state"
+                autoComplete="address-level1"
+                value={draft.state}
+                onChange={(e) => set("state", e.target.value)}
+                aria-invalid={errors.state ? true : undefined}
+              />
+            )}
+          </Field>
 
-        <Field error={errors.state}>
-          <label htmlFor="co-state">State</label>
-          <input
-            ref={reg("state")}
-            id="co-state"
-            autoComplete="address-level1"
-            value={draft.state}
-            onChange={(e) => set("state", e.target.value)}
-            aria-invalid={errors.state ? true : undefined}
-          />
-        </Field>
+          <Field error={errors.city}>
+            <label htmlFor="co-city">City</label>
+            <input
+              ref={reg("city")}
+              id="co-city"
+              autoComplete="address-level2"
+              value={draft.city}
+              onChange={(e) => set("city", e.target.value)}
+              aria-invalid={errors.city ? true : undefined}
+            />
+          </Field>
 
-        <Field error={errors.country}>
-          <label htmlFor="co-country">Country</label>
-          <input
-            ref={reg("country")}
-            id="co-country"
-            autoComplete="country-name"
-            value={draft.country}
-            onChange={(e) => set("country", e.target.value)}
-            aria-invalid={errors.country ? true : undefined}
-          />
-        </Field>
+          <Field error={errors.phone}>
+            <label htmlFor="co-phone">Business phone</label>
+            <div className={dial ? "co-phone" : undefined}>
+              {dial ? (
+                <span className="co-phone__dial" aria-hidden="true">
+                  {dial}
+                </span>
+              ) : null}
+              <input
+                ref={reg("phone")}
+                id="co-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel-national"
+                placeholder={isIndia ? "98100 00000" : "Phone number"}
+                aria-describedby={dial ? "co-phone-dial" : undefined}
+                value={draft.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                aria-invalid={errors.phone ? true : undefined}
+              />
+              {dial ? (
+                <span id="co-phone-dial" className="dash-sr">
+                  Country code {dial} is added automatically.
+                </span>
+              ) : null}
+            </div>
+          </Field>
+        </div>
+      </fieldset>
 
-        <Field error={errors.gstin}>
-          <label htmlFor="co-gstin">
-            GSTIN <small>(optional)</small>
-          </label>
-          <input
-            ref={reg("gstin")}
-            id="co-gstin"
-            autoCapitalize="characters"
-            spellCheck={false}
-            maxLength={15}
-            value={draft.gstin}
-            onChange={(e) => set("gstin", e.target.value.toUpperCase())}
-            aria-invalid={errors.gstin ? true : undefined}
-          />
-        </Field>
+      {/* 3. Nice to have */}
+      <fieldset className="co-section">
+        <legend className="co-section__title">
+          Online and tax <small>(optional)</small>
+        </legend>
+        <div className="form__grid">
+          <Field full={!isIndia} error={errors.website}>
+            <label htmlFor="co-website">Website</label>
+            <input
+              ref={reg("website")}
+              id="co-website"
+              type="url"
+              inputMode="url"
+              autoComplete="url"
+              placeholder="yourcompany.com"
+              value={draft.website}
+              onChange={(e) => set("website", e.target.value)}
+              aria-invalid={errors.website ? true : undefined}
+            />
+          </Field>
 
-        <Field full error={errors.website}>
-          <label htmlFor="co-website">
-            Website <small>(optional)</small>
-          </label>
-          <input
-            ref={reg("website")}
-            id="co-website"
-            type="url"
-            inputMode="url"
-            autoComplete="url"
-            placeholder="verma.in"
-            value={draft.website}
-            onChange={(e) => set("website", e.target.value)}
-            aria-invalid={errors.website ? true : undefined}
-          />
-        </Field>
-      </div>
+          {isIndia ? (
+            <Field error={errors.gstin}>
+              <label htmlFor="co-gstin">GSTIN</label>
+              <input
+                ref={reg("gstin")}
+                id="co-gstin"
+                autoCapitalize="characters"
+                spellCheck={false}
+                maxLength={15}
+                placeholder="07ABCDE1234F1Z5"
+                value={draft.gstin}
+                onChange={(e) => set("gstin", e.target.value.toUpperCase())}
+                aria-invalid={errors.gstin ? true : undefined}
+              />
+            </Field>
+          ) : null}
+        </div>
+      </fieldset>
 
       <FormAlert message={formError} />
       <FormStatus message={saved} />

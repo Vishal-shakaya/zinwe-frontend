@@ -5,8 +5,8 @@
 const KEY = "zinwe.planIntent";
 const CODE_RE = /^[a-z0-9-]{1,40}$/;
 
-/** Retired plan codes still found in old links and bookmarks (v1.1: early access became the Businesses trial). */
-const LEGACY_CODES: Record<string, string> = { "early-access": "businesses" };
+/** Retired plan codes still found in old links and bookmarks (early access now starts on Free forever). */
+const LEGACY_CODES: Record<string, string> = { "early-access": "free" };
 
 /** A valid plan code with legacy codes mapped to their replacement; null otherwise. */
 function normalize(value: string | null): string | null {
@@ -40,7 +40,7 @@ export function clearPlanIntent(): void {
   }
 }
 
-/** A `?plan=` value, if it looks like a plan code (`early-access` reads as `businesses`). */
+/** A `?plan=` value, if it looks like a plan code (`early-access` reads as `free`). */
 export function planCodeParam(value: string | null): string | null {
   return normalize(value);
 }

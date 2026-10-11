@@ -1,6 +1,6 @@
 /** Accounts: sign up, codes, log in/out, password reset, the current user. */
 import { authedRequest, postPublic, type SubmitResult } from "./http";
-import type { AuthResponse, Me } from "./types";
+import type { Announcement, AuthResponse, Me } from "./types";
 
 export type OtpPurpose = "signup" | "login" | "password_reset";
 
@@ -76,6 +76,19 @@ export function resetPassword(
   ]);
 }
 
+export type ChangePasswordField = "current_password" | "new_password";
+
+/**
+ * POST password/change/ — signed in. Rotates the token (other devices are signed
+ * out) and returns a fresh AuthResponse; 400 carries `current_password` / `new_password` errors.
+ */
+export function changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse> {
+  return authedRequest<AuthResponse>("/api/auth/password/change/", {
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+}
+
 /** POST logout/ — deletes the token server-side (204). */
 export function logout(signal?: AbortSignal): Promise<null> {
   return authedRequest<null>("/api/auth/logout/", { method: "POST", signal });
@@ -84,4 +97,10 @@ export function logout(signal?: AbortSignal): Promise<null> {
 /** GET me/ — the owner, their onboarding step, company and subscription. */
 export function getMe(signal?: AbortSignal): Promise<Me> {
   return authedRequest<Me>("/api/auth/me/", { signal });
+}
+
+/** GET announcements/ — the dashboard notification-bar items (version/offer/upgrade). */
+export async function getAnnouncements(signal?: AbortSignal): Promise<Announcement[]> {
+  const data = await authedRequest<{ announcements: Announcement[] }>("/api/auth/announcements/", { signal });
+  return data.announcements ?? [];
 }

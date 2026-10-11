@@ -21,15 +21,15 @@ export function Hero(): ReactElement {
           you what matters in words anyone can read. No IT department needed.
         </p>
         <div className="hero__cta fade" style={{ animationDelay: ".65s" }} ref={ctaRef}>
-          <Link className="btn btn--primary btn--lg" to="/signup?plan=businesses">
-            Get 3 months free <span className="arr">→</span>
+          <Link className="btn btn--primary btn--lg" to="/signup?plan=free">
+            Start free <span className="arr">→</span>
           </Link>
           <Link className="btn btn--ghost btn--lg" to="/#how">
             See how it works
           </Link>
         </div>
         <p className="hero__note fade" style={{ animationDelay: ".8s" }}>
-          The Businesses plan is free for your first 3 months.
+          Free forever for up to 3 PCs. No card needed.
         </p>
 
         {/* Signature: raw log → plain-language alert */}

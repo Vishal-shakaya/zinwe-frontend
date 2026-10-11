@@ -16,7 +16,20 @@ export type DashIconName =
   | "clock"
   | "home"
   | "card"
-  | "building";
+  | "building"
+  | "globe"
+  | "swap"
+  | "screen"
+  | "share"
+  | "team"
+  | "chat"
+  | "close"
+  | "settings"
+  | "help"
+  | "lock"
+  | "more"
+  | "plus"
+  | "book";
 
 const strokeProps = {
   fill: "none",
@@ -118,6 +131,83 @@ function paths(name: DashIconName): ReactElement {
         <>
           <path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18" />
           <path d="M8 8h3M8 12h3M8 16h3" />
+        </>
+      );
+    case "globe":
+      return (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" />
+        </>
+      );
+    case "swap":
+      return <path d="M7 7h11l-3-3M17 17H6l3 3" />;
+    case "share":
+      return (
+        <>
+          <circle cx="18" cy="5" r="2.5" />
+          <circle cx="6" cy="12" r="2.5" />
+          <circle cx="18" cy="19" r="2.5" />
+          <path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" />
+        </>
+      );
+    case "screen":
+      return (
+        <>
+          <rect x="3" y="4" width="18" height="13" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+          <circle cx="12" cy="10.5" r="2.5" />
+        </>
+      );
+    case "team":
+      return (
+        <>
+          <circle cx="9" cy="8" r="3.2" />
+          <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+          <path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M17.5 19a5.5 5.5 0 0 0-3-4.9" />
+        </>
+      );
+    case "chat":
+      return (
+        <>
+          <path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z" />
+          <path d="M9 11h6M9 14h4" />
+        </>
+      );
+    case "close":
+      return <path d="M6 6l12 12M18 6L6 18" />;
+    case "settings":
+      return (
+        <>
+          <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+          <circle cx="16" cy="7" r="2.2" />
+          <circle cx="8" cy="17" r="2.2" />
+        </>
+      );
+    case "help":
+      return (
+        <>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7" />
+          <path d="M12 17.2h.01" />
+        </>
+      );
+    case "lock":
+      return (
+        <>
+          <rect x="5" y="10.5" width="14" height="9.5" rx="2" />
+          <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+        </>
+      );
+    case "more":
+      return <path d="M6 12h.01M12 12h.01M18 12h.01" strokeWidth={3} />;
+    case "plus":
+      return <path d="M12 5v14M5 12h14" />;
+    case "book":
+      return (
+        <>
+          <path d="M4.5 5.5A2 2 0 0 1 6.5 4H19v13H6.5a2 2 0 0 0-2 2V5.5z" />
+          <path d="M4.5 19a2 2 0 0 0 2 2H19v-4M9 8h6" />
         </>
       );
   }
