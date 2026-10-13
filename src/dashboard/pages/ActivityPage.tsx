@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { errorMessage, getWorkLog, listMembers, type Member } from "../../lib/api";
+import { decideBreak, errorMessage, getWorkLog, listMembers, type Member } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { DashIcon } from "../components/DashIcon";
 import { StatTiles } from "../components/StatTiles";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
 import { formatDuration } from "../features/memberStatus";
-import { isoDay, shiftDay, summarizeDay, type PersonDay, type TimelineItem } from "../features/workDay";
+import { isoDay, shiftDay, summarizeDay, type BreakSpan, type PersonDay, type TimelineItem } from "../features/workDay";
 import { dayLabel, formatDateTime, formatTime, useNow } from "../time";
 import { useResource } from "../useResource";
 
@@ -64,6 +64,7 @@ export default function ActivityPage(): ReactElement {
   const onBreakNow = isToday ? people.filter((p) => p.current === "on_break").length : 0;
   const breaks = people.reduce((sum, p) => sum + p.breaks.length, 0);
   const finished = people.filter((p) => p.endedAt).length;
+  const toReview = people.reduce((sum, p) => sum + p.breaks.filter((b) => b.approval === "pending").length, 0);
 
   return (
     <>
@@ -109,6 +110,11 @@ export default function ActivityPage(): ReactElement {
             ? [{ value: log.data ? String(onBreakNow) : "–", label: "on a break now", tone: onBreakNow > 0 ? ("warn" as const) : undefined }]
             : []),
           { value: log.data ? String(breaks) : "–", label: breaks === 1 ? "break taken" : "breaks taken" },
+          {
+            value: log.data ? String(toReview) : "–",
+            label: "breaks to review",
+            tone: toReview > 0 ? ("warn" as const) : undefined,
+          },
           { value: log.data ? String(finished) : "–", label: "ended their day", tone: finished > 0 ? ("good" as const) : undefined },
         ]}
       />
@@ -159,6 +165,7 @@ export default function ActivityPage(): ReactElement {
                   person={person}
                   member={person.memberId != null ? byMember.get(person.memberId) : undefined}
                   isToday={isToday}
+                  onDecided={log.reload}
                 />
               ))}
             </div>
@@ -179,11 +186,14 @@ function PersonRow({
   person,
   member,
   isToday,
+  onDecided,
 }: {
   person: PersonDay;
   member: Member | undefined;
   isToday: boolean;
+  onDecided: () => void;
 }): ReactElement {
+  const pending = person.breaks.filter((b) => b.approval === "pending").length;
   const [open, setOpen] = useState(false);
   // Today the widget's own totals are exact (no missed short breaks); past days use the log.
   const live = isToday ? member?.device?.worked_seconds ?? 0 : 0;
@@ -209,7 +219,14 @@ function PersonRow({
         <span className="wd-who">
           <DashIcon name="arrow" />
           <span>
-            <b>{person.name}</b>
+            <b>
+              {person.name}
+              {pending > 0 ? (
+                <span className="wd-pending" title="Breaks waiting for your approval">
+                  {pending} to review
+                </span>
+              ) : null}
+            </b>
             <small>
               {person.hostname}
               {status ? ` · ${status}` : ""}
@@ -260,6 +277,8 @@ function PersonRow({
                       {brk ? (
                         <small>{brk.end ? `for ${formatDuration(brk.seconds)}` : `${formatDuration(brk.seconds)} so far`}</small>
                       ) : null}
+                      {brk?.note ? <q className="wd-note">{brk.note}</q> : null}
+                      {brk ? <BreakDecision brk={brk} onDecided={onDecided} /> : null}
                     </>
                   ) : null}
                 </span>
@@ -269,5 +288,54 @@ function PersonRow({
         </ol>
       ) : null}
     </div>
+  );
+}
+
+/** Approve or deny one break. The member is told in their Zinwe widget; the owner can change their mind. */
+function BreakDecision({ brk, onDecided }: { brk: BreakSpan; onDecided: () => void }): ReactElement | null {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  if (!brk.approval) return null;
+
+  const decide = async (decision: "approved" | "denied") => {
+    setBusy(true);
+    setError(null);
+    try {
+      await decideBreak(brk.id, decision);
+      setEditing(false);
+      onDecided();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (brk.approval !== "pending" && !editing) {
+    return (
+      <span className="wd-decision">
+        <span className={`wd-approval wd-approval--${brk.approval}`}>
+          <DashIcon name={brk.approval === "approved" ? "check" : "close"} />
+          {brk.approval === "approved" ? "Approved" : "Not approved"}
+        </span>
+        <button type="button" className="dash-link" onClick={() => setEditing(true)}>
+          Change
+        </button>
+      </span>
+    );
+  }
+  return (
+    <span className="wd-decision">
+      <button type="button" className="btn btn--ghost dash-btn-sm wd-approve" onClick={() => void decide("approved")} disabled={busy}>
+        <DashIcon name="check" />
+        Approve
+      </button>
+      <button type="button" className="btn btn--ghost dash-btn-sm wd-deny" onClick={() => void decide("denied")} disabled={busy}>
+        <DashIcon name="close" />
+        Deny
+      </button>
+      {error ? <small className="form__err">{error}</small> : null}
+    </span>
   );
 }

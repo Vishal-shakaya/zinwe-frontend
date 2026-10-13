@@ -198,12 +198,26 @@ export interface WorkLogEntry {
   at: string;
   /** The break reason the member picked (only on "on_break"). */
   reason: string;
+  /** Optional message the member added to the break. */
+  note?: string;
+  /** Breaks only: "pending" until the owner approves or denies; "" for other changes. */
+  approval?: "" | "pending" | "approved" | "denied";
+  decided_at?: string | null;
+  decision_note?: string;
 }
 
 export interface WorkLog {
   /** yyyy-mm-dd (server-local day). */
   date: string;
   entries: WorkLogEntry[];
+}
+
+/** POST /api/devices/work-log/<id>/decision/ — approve or deny a break; the member is told in their widget. */
+export function decideBreak(id: number, decision: "approved" | "denied", note = ""): Promise<WorkLogEntry> {
+  return authedRequest<WorkLogEntry>(`/api/devices/work-log/${id}/decision/`, {
+    method: "POST",
+    body: { decision, note },
+  });
 }
 
 /** GET /api/devices/work-log/?date=&member= — one day's start/break/end changes, oldest first. */

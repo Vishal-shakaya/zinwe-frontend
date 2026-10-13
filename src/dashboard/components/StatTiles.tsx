@@ -1,11 +1,19 @@
 import type { ReactElement } from "react";
 import { cx } from "../../lib/cx";
+import { DashIcon, type DashIconName } from "./DashIcon";
 
 export interface StatTile {
   value: string;
   label: string;
-  /** Colours the number: good (green), warn (amber). Default is neutral ink. */
-  tone?: "good" | "warn";
+  /**
+   * How serious the number is, shown as colour on the number and its icon:
+   * good (green), warn (amber), bad (red). Default is neutral ink.
+   */
+  tone?: "good" | "warn" | "bad";
+  /** Small icon beside the number, so tiles read at a glance. */
+  icon?: DashIconName;
+  /** What the number means, shown on hover/focus. */
+  hint?: string;
 }
 
 /** A row of summary numbers, reusing the dashboard's .dash-stats styling. */
@@ -22,9 +30,25 @@ export function StatTiles({
   return (
     <ul className={cx("dash-stats", wide && "dash-stats--wide")} aria-label={label}>
       {tiles.map((tile) => (
-        <li key={tile.label} className={cx(tile.tone === "good" && "is-good", tile.tone === "warn" && "is-warn")}>
+        <li
+          key={tile.label}
+          className={cx(
+            tile.tone === "good" && "is-good",
+            tile.tone === "warn" && "is-warn",
+            tile.tone === "bad" && "is-bad",
+            tile.icon && "has-icon",
+          )}
+          data-tip={tile.hint}
+          tabIndex={tile.hint ? 0 : undefined}
+        >
+          {tile.icon ? (
+            <span className="dash-stats__ico" aria-hidden="true">
+              <DashIcon name={tile.icon} />
+            </span>
+          ) : null}
           <b>{tile.value}</b>
           <span>{tile.label}</span>
+          {tile.hint ? <span className="dash-sr">{tile.hint}</span> : null}
         </li>
       ))}
     </ul>

@@ -25,6 +25,7 @@ const OverviewPage = lazyPage(() => import("./dashboard/pages/OverviewPage"));
 const TeamPage = lazyPage(() => import("./dashboard/pages/TeamPage"));
 const TeamChatPage = lazyPage(() => import("./dashboard/pages/TeamChatPage"));
 const UpgradePage = lazyPage(() => import("./dashboard/pages/UpgradePage"));
+const InvoicePage = lazyPage(() => import("./dashboard/pages/InvoicePage"));
 const SetupPage = lazyPage(() => import("./dashboard/pages/SetupPage"));
 const InternetPage = lazyPage(() => import("./dashboard/pages/InternetPage"));
 const DataPage = lazyPage(() => import("./dashboard/pages/DataPage"));
@@ -108,6 +109,7 @@ export function AppRoutes(): ReactElement {
               <Route path="chat" element={<TeamChatPage />} />
               <Route path="team/chat" element={<Navigate to="/app/chat" replace />} />
               <Route path="upgrade" element={<UpgradePage />} />
+              <Route path="invoice/:id" element={<InvoicePage />} />
               <Route path="setup" element={<SetupPage />} />
               <Route path="alerts" element={<AlertsPage />} />
               <Route path="activity" element={<ActivityPage />} />

@@ -81,14 +81,38 @@ export default function OverviewPage(): ReactElement {
         wide
         label="Team and alerts"
         tiles={[
-          { value: num(activeMembers.length), label: activeMembers.length === 1 ? "team member" : "team members" },
-          { value: num(working), label: "working now", tone: working > 0 ? "good" : undefined },
-          { value: num(onBreak), label: "on break" },
-          { value: num(offline), label: "offline" },
+          {
+            value: num(activeMembers.length),
+            label: activeMembers.length === 1 ? "team member" : "team members",
+            icon: "team",
+            hint: "Everyone you've added whose PC Zinwe protects.",
+          },
+          {
+            value: num(working),
+            label: "working now",
+            tone: working > 0 ? "good" : undefined,
+            icon: "activity",
+            hint: "Pressed Start in their Zinwe widget and aren't on a break.",
+          },
+          {
+            value: num(onBreak),
+            label: "on break",
+            tone: onBreak > 0 ? "warn" : undefined,
+            icon: "clock",
+            hint: "On a break right now. See why on the Activity page.",
+          },
+          {
+            value: num(offline),
+            label: "offline",
+            icon: "pc",
+            hint: "PC switched off or without internet. Its rules still apply.",
+          },
           {
             value: todays !== null ? String(todays) : "–",
             label: "alerts today",
-            tone: todays !== null && todays > 0 ? "warn" : undefined,
+            tone: todays !== null && todays > 0 ? (todays >= 10 ? "bad" : "warn") : "good",
+            icon: "alert",
+            hint: "Warnings and critical alerts since midnight. Open Alerts to act on them.",
           },
         ]}
       />

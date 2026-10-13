@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FAQS, GUIDE_STEPS } from "../../content/help";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { DashIcon } from "../components/DashIcon";
+import { startTour } from "../features/tour";
 
 /** Help → How to use: four steps from sign-up to protected, then the questions owners ask most. */
 export default function HelpGuidePage(): ReactElement {
@@ -16,6 +17,12 @@ export default function HelpGuidePage(): ReactElement {
             Get protected in four steps
           </h2>
           <p className="dash-card__sub">About 5 minutes per PC. No IT skills needed.</p>
+        </div>
+        <div>
+          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={startTour}>
+            <DashIcon name="help" />
+            Take the 1-minute tour
+          </button>
         </div>
         <ol className="help-steps">
           {GUIDE_STEPS.map((step, i) => (

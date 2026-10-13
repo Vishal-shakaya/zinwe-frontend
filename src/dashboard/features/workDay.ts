@@ -10,10 +10,15 @@
 import type { WorkLogEntry } from "../../lib/api";
 
 export interface BreakSpan {
+  /** The work-log entry id (for approve / deny). */
+  id: number;
   start: string;
   /** null while the break is still going (today). */
   end: string | null;
   reason: string;
+  note: string;
+  approval: "" | "pending" | "approved" | "denied";
+  decisionNote: string;
   seconds: number;
 }
 
@@ -82,7 +87,16 @@ export function summarizeDay(entries: WorkLogEntry[], isToday: boolean, now: num
       } else if (entry.state === "on_break") {
         if (day.startedAt === null) day.startedAt = entry.at;
         const span = until !== null ? seconds(entry.at, until) : 0;
-        day.breaks.push({ start: entry.at, end: next ? next.at : null, reason: entry.reason, seconds: span });
+        day.breaks.push({
+          id: entry.id,
+          start: entry.at,
+          end: next ? next.at : null,
+          reason: entry.reason,
+          note: entry.note ?? "",
+          approval: entry.approval ?? "",
+          decisionNote: entry.decision_note ?? "",
+          seconds: span,
+        });
         day.breakSeconds += span;
         day.timeline.push({ at: entry.at, kind: "break", reason: entry.reason });
       } else {

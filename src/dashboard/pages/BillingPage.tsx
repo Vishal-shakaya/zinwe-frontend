@@ -107,13 +107,16 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
           <span role="columnheader">Amount</span>
           <span role="columnheader">Period covered</span>
           <span role="columnheader">Status</span>
+          <span role="columnheader">
+            <span className="dash-sr">Invoice</span>
+          </span>
         </div>
         {payments.map((p) => (
           <div key={p.id} className="pay-hist__row" role="row">
             <span role="cell">{formatDate(p.paid_on)}</span>
             <span role="cell">
-              {p.plan_name}
-              <small>{p.is_renewal ? "Renewal" : "New plan"}</small>
+              {p.upgrade_plan_name ?? p.plan_name}
+              <small>{p.upgrade_plan_name ? "Upgrade" : p.is_renewal ? "Renewal" : "New plan"}</small>
             </span>
             <span role="cell">{formatInr(p.amount_inr)}</span>
             <span role="cell">
@@ -125,6 +128,13 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
             </span>
             <span role="cell">
               <PaymentStatusPill payment={p} />
+            </span>
+            <span role="cell" className="pay-hist__inv">
+              {p.status === "verified" ? (
+                <Link className="dash-link" to={`/app/invoice/${p.id}`}>
+                  Invoice
+                </Link>
+              ) : null}
             </span>
           </div>
         ))}

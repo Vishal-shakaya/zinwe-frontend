@@ -7,6 +7,9 @@ import { DashIcon, type DashIconName } from "./components/DashIcon";
 import { FeedbackForm } from "./components/FeedbackForm";
 import { Modal } from "./components/Modal";
 import { NotificationBar } from "./components/NotificationBar";
+import { SupportWidget } from "./components/SupportWidget";
+import { Tour } from "./components/Tour";
+import { DASHBOARD_TOUR, tourDone } from "./features/tour";
 import { higherPlans, isUpgradeDone, UpgradeContext } from "./features/upgrade";
 import { useResource } from "./useResource";
 import { usePlans } from "../portal/usePlans";
@@ -22,6 +25,8 @@ interface NavItem {
   children?: ReadonlyArray<{ to: string; label: string }>;
   /** A live count shown after the label ("unread" = member replies waiting in Chat). */
   badge?: "unread";
+  /** Hook for the first-visit tour. */
+  tour?: string;
 }
 
 /**
@@ -33,8 +38,8 @@ interface NavItem {
 const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
   {
     items: [
-      { to: "/app", label: "Overview", icon: "home", end: true },
-      { to: "/app/alerts", label: "Alerts", icon: "alert" },
+      { to: "/app", label: "Overview", icon: "home", end: true, tour: "overview" },
+      { to: "/app/alerts", label: "Alerts", icon: "alert", tour: "alerts" },
     ],
   },
   {
@@ -48,9 +53,9 @@ const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
   {
     group: "People",
     items: [
-      { to: "/app/team", label: "Team & devices", icon: "team" },
-      { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread" },
-      { to: "/app/activity", label: "Activity", icon: "activity" },
+      { to: "/app/team", label: "Team & devices", icon: "team", tour: "team" },
+      { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread", tour: "chat" },
+      { to: "/app/activity", label: "Activity", icon: "activity", tour: "activity" },
     ],
   },
   {
@@ -81,7 +86,7 @@ function initials(name: string, email: string): string {
  * phones. Pages render into <Outlet />.
  */
 export default function AppLayout(): ReactElement {
-  const { account, signOut } = useAuth();
+  const { account, signOut, refresh } = useAuth();
   const user = account?.user ?? null;
   const companyName = account?.company?.name || user?.email || " ";
   const inReview = account?.onboarding.step === "payment_review";
@@ -91,6 +96,10 @@ export default function AppLayout(): ReactElement {
   const [leaving, setLeaving] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  // Navbar refresh: remounting the page reloads everything it shows.
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [touring, setTouring] = useState(() => !tourDone());
   const onLogout = () => {
     setLeaving(true);
     void signOut();
@@ -122,6 +131,21 @@ export default function AppLayout(): ReactElement {
   const upgradedTo = isUpgradeDone(location.state) ? location.state.upgradedTo : null;
   const closeUpgraded = () => navigate(pathname, { replace: true, state: null });
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setRefreshKey((k) => k + 1);
+    members.reload();
+    await refresh();
+    window.setTimeout(() => setRefreshing(false), 500);
+  };
+
+  // Help → "Take the tour" asks for a replay with this event.
+  useEffect(() => {
+    const start = () => setTouring(true);
+    window.addEventListener("zinwe:tour", start);
+    return () => window.removeEventListener("zinwe:tour", start);
+  }, []);
+
   // Phones show the nav as a sideways-scrolling strip: keep the current tab in view.
   useEffect(() => {
     document.querySelector(".dash__nav .dash__link.active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -142,6 +166,16 @@ export default function AppLayout(): ReactElement {
       <aside className="dash__side">
         <div className="dash__top">
           <Brand to="/app" ariaLabel="Zinwe dashboard home" className="dash__brand" height={26} />
+          <button
+            type="button"
+            className={`dash__refresh${refreshing ? " is-spinning" : ""}`}
+            onClick={() => void onRefresh()}
+            disabled={refreshing}
+            aria-label="Refresh everything"
+            data-tip="Refresh everything"
+          >
+            <DashIcon name="refresh" />
+          </button>
           <button type="button" className="dash__logout dash__logout--top" onClick={onLogout} disabled={leaving}>
             <DashIcon name="logout" />
             <span>{leaving ? "Logging out…" : "Log out"}</span>
@@ -150,7 +184,13 @@ export default function AppLayout(): ReactElement {
 
         <nav className="dash__nav" aria-label="Dashboard">
           {NAV.map((section) => (
-            <div key={section.group ?? "main"} className="dash__group" role="group" aria-label={section.group}>
+            <div
+              key={section.group ?? "main"}
+              className="dash__group"
+              role="group"
+              aria-label={section.group}
+              data-tour={section.group === "Protection" ? "protection" : undefined}
+            >
               {section.group ? (
                 <span className="dash__group-label" aria-hidden="true">
                   {section.group}
@@ -158,7 +198,7 @@ export default function AppLayout(): ReactElement {
               ) : null}
               {section.items.map((item) => (
                 <div key={item.to} className="dash__item">
-                  <NavLink to={item.to} end={item.end} className="dash__link">
+                  <NavLink to={item.to} end={item.end} className="dash__link" data-tour={item.tour}>
                     <DashIcon name={item.icon} />
                     <span>{item.label}</span>
                     {item.badge === "unread" && unread > 0 ? (
@@ -260,7 +300,7 @@ export default function AppLayout(): ReactElement {
             }
           >
             <UpgradeContext.Provider value={upgrade}>
-              <Outlet />
+              <Outlet key={refreshKey} />
             </UpgradeContext.Provider>
           </Suspense>
         </div>
@@ -274,6 +314,9 @@ export default function AppLayout(): ReactElement {
       >
         <FeedbackForm page={`modal:${pathname}`.slice(0, 120)} onDone={() => setFeedbackOpen(false)} />
       </Modal>
+
+      <SupportWidget />
+      {touring ? <Tour steps={DASHBOARD_TOUR} onClose={() => setTouring(false)} /> : null}
 
       <Modal
         open={upgradedTo !== null}

@@ -51,6 +51,24 @@ export function createSubscription(plan: string): Promise<Subscription> {
   return authedRequest<Subscription>("/api/auth/subscription/", { method: "POST", body: { plan } });
 }
 
+export interface Invoice {
+  number: string;
+  issued_on: string;
+  paid_on: string;
+  status: "paid";
+  seller: { name: string; address: string; email: string; gstin: string };
+  customer: { name: string; contact: string; email: string; address: string; gstin: string };
+  lines: Array<{ description: string; period_from: string | null; period_until: string | null; amount_inr: string }>;
+  total_inr: string;
+  payment: { method: string; reference: string; payer: string };
+  note: string;
+}
+
+/** GET subscription/payments/<id>/invoice/ — only for confirmed payments (409 before). */
+export function getInvoice(paymentId: number, signal?: AbortSignal): Promise<Invoice> {
+  return authedRequest<Invoice>(`/api/auth/subscription/payments/${paymentId}/invoice/`, { signal });
+}
+
 /** GET subscription/payments/ — every payment the owner reported, newest first. */
 export function getPaymentHistory(signal?: AbortSignal): Promise<Payment[]> {
   return authedRequest<Payment[]>("/api/auth/subscription/payments/", { signal });
