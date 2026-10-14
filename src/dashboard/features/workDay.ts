@@ -26,6 +26,8 @@ export interface TimelineItem {
   at: string;
   kind: "start" | "break" | "back" | "end";
   reason: string;
+  /** Log out: the message the member added in the widget (breaks keep theirs on the BreakSpan). */
+  note?: string;
 }
 
 export interface PersonDay {
@@ -38,7 +40,7 @@ export interface PersonDay {
   breaks: BreakSpan[];
   breakSeconds: number;
   workedSeconds: number;
-  /** Past day with no End pressed: the last stretch couldn't be counted. */
+  /** Past day the member never logged out of: the last stretch couldn't be counted. */
   openEnded: boolean;
   current: "working" | "on_break" | "ended" | null;
   timeline: TimelineItem[];
@@ -101,7 +103,8 @@ export function summarizeDay(entries: WorkLogEntry[], isToday: boolean, now: num
         day.timeline.push({ at: entry.at, kind: "break", reason: entry.reason });
       } else {
         day.endedAt = entry.at;
-        day.timeline.push({ at: entry.at, kind: "end", reason: "" });
+        // Logging out carries the reason + note the member gave in the widget (older agents send none).
+        day.timeline.push({ at: entry.at, kind: "end", reason: entry.reason ?? "", note: entry.note ?? "" });
       }
       day.current = entry.state;
     });

@@ -59,9 +59,9 @@ export default function RemotePage(): ReactElement {
 
       <StatTiles
         tiles={[
-          { value: metrics.data ? formatHours(appSeconds) : "–", label: "time in apps" },
-          { value: metrics.data ? String(detections) : "–", label: "remote sessions seen", tone: detections > 0 ? "warn" : undefined },
-          { value: String(installs), label: "software installs" },
+          { value: metrics.data ? formatHours(appSeconds) : "–", label: "time in apps", icon: "screen", hint: "Time with an app open in front, across your PCs." },
+          { value: metrics.data ? String(detections) : "–", label: "remote sessions seen", tone: detections > 0 ? "warn" : "good", icon: "alert", hint: "Times a remote-control tool like AnyDesk ran on a PC." },
+          { value: String(installs), label: "software installs", icon: "plus", hint: "New programs installed on your PCs." },
         ]}
       />
 

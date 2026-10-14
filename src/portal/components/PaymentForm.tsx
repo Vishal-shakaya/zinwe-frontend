@@ -7,8 +7,18 @@ import { todayIso } from "../../lib/format";
 import { compactErrors, focusFirstInvalid, requiredError, type FieldErrorMap } from "../../lib/validation";
 import { apiFieldErrors, apiFormError } from "../failure";
 import { FormAlert } from "./FormAlert";
+import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
+import { PAYMENT_TERMS } from "../../content/legal";
 
-const FIELDS: readonly PaymentField[] = ["method", "amount_inr", "reference", "paid_on", "payer_name", "proof"];
+const FIELDS: readonly PaymentField[] = [
+  "method",
+  "amount_inr",
+  "reference",
+  "paid_on",
+  "payer_name",
+  "proof",
+  "accept_terms",
+];
 const MAX_PROOF_BYTES = 5 * 1024 * 1024;
 const PROOF_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 const PROOF_EXT = /\.(jpe?g|png|pdf)$/i;
@@ -51,6 +61,7 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
   const [reference, setReference] = useState("");
   const [paidOn, setPaidOn] = useState(todayIso);
   const [payer, setPayer] = useState(payerName);
+  const [accepted, setAccepted] = useState(false);
   const [proof, setProof] = useState<File | null>(null);
   const [errors, setErrors] = useState<FieldErrorMap<PaymentField>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -87,6 +98,7 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
       paid_on: paidOnError(paidOn),
       payer_name: requiredError(payer),
       proof: proofError(proof),
+      accept_terms: accepted ? undefined : "Please accept the payment terms to continue.",
     });
     setErrors(clientErrors);
     setFormError(null);
@@ -102,6 +114,7 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
         payer_name: payer.trim(),
         proof,
         upgrade_plan: upgradePlan,
+        accept_terms: accepted,
       });
       await onSubmitted(payment);
     } catch (error) {
@@ -215,6 +228,21 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
           />
         </Field>
       </div>
+
+      <TermsCheckbox
+        id="pay-terms"
+        checked={accepted}
+        onChange={(value) => {
+          setAccepted(value);
+          if (value && errors.accept_terms) setErrors((e) => ({ ...e, accept_terms: undefined }));
+        }}
+        docs={[PAYMENT_TERMS]}
+        dialogTitle="Payment terms"
+        lead="I've paid and agree to Zinwe's"
+        error={errors.accept_terms}
+        inputRef={reg("accept_terms") as (el: HTMLInputElement | null) => void}
+        disabled={pending}
+      />
 
       <FormAlert message={formError} />
 

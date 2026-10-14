@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { reloadOnceForFreshCode } from "./lib/lazyPage";
+import { clearPrerender } from "./lib/prerender";
 import "./styles/site.css";
 import "./styles/app.css";
 import "./styles/zin.css";
@@ -11,6 +12,8 @@ import "./styles/zin.css";
 window.addEventListener("vite:preloadError", (event) => {
   if (reloadOnceForFreshCode()) event.preventDefault();
 });
+
+clearPrerender(); // undo server pre-rendered head tags (/blog pages) before the app takes over
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

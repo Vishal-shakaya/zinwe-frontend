@@ -1,6 +1,6 @@
 /** Accounts: sign up, codes, log in/out, password reset, the current user. */
 import { authedRequest, postPublic, type SubmitResult } from "./http";
-import type { Announcement, AuthResponse, Me } from "./types";
+import type { Announcement, AuthResponse, Me, User } from "./types";
 
 export type OtpPurpose = "signup" | "login" | "password_reset";
 
@@ -15,6 +15,8 @@ export interface SignupPayload {
   full_name: string;
   email: string;
   password: string;
+  /** The Terms + Privacy + Acceptable Use checkbox; the server refuses sign-up without it. */
+  accept_terms: boolean;
 }
 export type SignupField = keyof SignupPayload;
 export interface SignupResponse extends CodeSent {
@@ -24,7 +26,7 @@ export interface SignupResponse extends CodeSent {
 
 /** POST signup/ — create (or refresh) an unverified account and email a code. */
 export function signup(payload: SignupPayload): Promise<SubmitResult<SignupResponse, SignupField>> {
-  return postPublic("/api/auth/signup/", payload, ["full_name", "email", "password"]);
+  return postPublic("/api/auth/signup/", payload, ["full_name", "email", "password", "accept_terms"]);
 }
 
 export type CodeField = "email" | "code";
@@ -87,6 +89,11 @@ export function changePassword(currentPassword: string, newPassword: string): Pr
     method: "POST",
     body: { current_password: currentPassword, new_password: newPassword },
   });
+}
+
+/** POST terms/accept/ — the owner accepts the current Terms (the updated-terms prompt). */
+export function acceptTerms(): Promise<User> {
+  return authedRequest<User>("/api/auth/terms/accept/", { method: "POST", body: { accept_terms: true } });
 }
 
 /** POST logout/ — deletes the token server-side (204). */

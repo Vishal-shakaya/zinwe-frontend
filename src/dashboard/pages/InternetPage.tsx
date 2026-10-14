@@ -45,8 +45,8 @@ export default function InternetPage(): ReactElement {
 
       <StatTiles
         tiles={[
-          { value: metrics.data ? String(websites) : "–", label: "page loads tracked" },
-          { value: String(alerts.length), label: "blocked attempts", tone: alerts.length > 0 ? "warn" : undefined },
+          { value: metrics.data ? String(websites) : "–", label: "page loads tracked", icon: "globe", hint: "Pages opened in a browser on your PCs, over the chosen range." },
+          { value: String(alerts.length), label: "blocked attempts", tone: alerts.length > 0 ? "warn" : "good", icon: "shield", hint: "Times someone tried to open a site your rules block." },
         ]}
       />
 

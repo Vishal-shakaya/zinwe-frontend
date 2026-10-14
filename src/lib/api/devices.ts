@@ -63,6 +63,9 @@ export interface MemberDevice {
   work_state?: WorkState;
   worked_seconds?: number;
   break_seconds?: number;
+  /** The member's consent on the widget's consent screen: which policy version, and when ("" / null = not yet). */
+  consent_version?: string;
+  consent_at?: string | null;
 }
 
 export interface MemberPayload {
@@ -279,6 +282,10 @@ export interface Message {
   /** Seen state per side (for "delivered"/unread). */
   read_by_owner: boolean;
   read_by_member: boolean;
+  /** Admin lines: when the member's PC first pulled it (null = not on their PC yet). */
+  delivered_at?: string | null;
+  /** Admin lines: when the member opened it in the widget's chat (null on older rows). */
+  read_by_member_at?: string | null;
 }
 
 /**

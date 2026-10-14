@@ -1158,3 +1158,18 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Company details: the read-only login email. */
+.co-readonly {
+  background: var(--paper) !important;
+  color: var(--ink-2);
+  cursor: default;
+}
+
+.co-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--mute);
+}

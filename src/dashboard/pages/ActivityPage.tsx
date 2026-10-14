@@ -11,11 +11,12 @@ import { isoDay, shiftDay, summarizeDay, type BreakSpan, type PersonDay, type Ti
 import { dayLabel, formatDateTime, formatTime, useNow } from "../time";
 import { useResource } from "../useResource";
 
+/** Same words as the member's Zinwe widget: Log in · Take a break · I'm back · Log out. */
 const KIND_LABEL: Record<TimelineItem["kind"], string> = {
-  start: "Started work",
+  start: "Logged in",
   break: "Went on a break",
-  back: "Back to work",
-  end: "Ended the day",
+  back: "Back from break",
+  end: "Logged out",
 };
 
 function parseDay(raw: string | null, today: string): string {
@@ -70,7 +71,7 @@ export default function ActivityPage(): ReactElement {
     <>
       <PageHeader
         title="Activity"
-        lede="When your team started, every break and why, and when they finished — from the Start, Break and End buttons in their Zinwe widget."
+        lede="When your team logged in, every break and why, and when and why they logged out — from the Log in, Take a break and Log out buttons in their Zinwe widget."
         actions={<RefreshButton onClick={log.reload} pending={log.pending} />}
       />
 
@@ -115,7 +116,7 @@ export default function ActivityPage(): ReactElement {
             label: "breaks to review",
             tone: toReview > 0 ? ("warn" as const) : undefined,
           },
-          { value: log.data ? String(finished) : "–", label: "ended their day", tone: finished > 0 ? ("good" as const) : undefined },
+          { value: log.data ? String(finished) : "–", label: "logged out", tone: finished > 0 ? ("good" as const) : undefined },
         ]}
       />
 
@@ -154,9 +155,9 @@ export default function ActivityPage(): ReactElement {
             <div className="wd-table">
               <div className="wd-row wd-row--head" aria-hidden="true">
                 <span>Person</span>
-                <span>Started</span>
+                <span>Logged in</span>
                 <span>Breaks</span>
-                <span>Ended</span>
+                <span>Logged out</span>
                 <span>Worked</span>
               </div>
               {people.map((person) => (
@@ -233,7 +234,7 @@ function PersonRow({
             </small>
           </span>
         </span>
-        <span data-label="Started" title={formatDateTime(person.startedAt)}>
+        <span data-label="Logged in" title={formatDateTime(person.startedAt)}>
           {person.startedAt ? formatTime(person.startedAt) : "—"}
         </span>
         <span data-label="Breaks">
@@ -245,11 +246,11 @@ function PersonRow({
             </>
           )}
         </span>
-        <span data-label="Ended">
+        <span data-label="Logged out">
           {person.endedAt ? (
             formatTime(person.endedAt)
           ) : person.openEnded ? (
-            <span className="wd-warn">Didn't press End</span>
+            <span className="wd-warn">Didn't log out</span>
           ) : isToday ? (
             <span className="wd-muted">Not yet</span>
           ) : (
@@ -279,6 +280,12 @@ function PersonRow({
                       ) : null}
                       {brk?.note ? <q className="wd-note">{brk.note}</q> : null}
                       {brk ? <BreakDecision brk={brk} onDecided={onDecided} /> : null}
+                    </>
+                  ) : null}
+                  {item.kind === "end" && (item.reason || item.note) ? (
+                    <>
+                      {item.reason ? <span className="wd-reason">{item.reason}</span> : null}
+                      {item.note ? <q className="wd-note">{item.note}</q> : null}
                     </>
                   ) : null}
                 </span>

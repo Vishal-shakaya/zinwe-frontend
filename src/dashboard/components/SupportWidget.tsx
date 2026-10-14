@@ -180,21 +180,21 @@ function TicketList({
 
 function NewTicket({ page, onCreated }: { page: string; onCreated: (t: SupportTicketDetail) => void }): ReactElement {
   const [category, setCategory] = useState<SupportCategory>("question");
-  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!subject.trim() || !message.trim()) {
-      setError("Add a short subject and your message.");
+    if (!message.trim()) {
+      setError("Write your message.");
       return;
     }
     setPending(true);
     setError(null);
     try {
-      onCreated(await openSupportTicket({ subject: subject.trim(), category, message: message.trim(), page }));
+      // No subject box: the backend titles the conversation from the message's first line.
+      onCreated(await openSupportTicket({ category, message: message.trim(), page }));
     } catch (err) {
       setError(errorMessage(err));
       setPending(false);
@@ -212,10 +212,6 @@ function NewTicket({ page, onCreated }: { page: string; onCreated: (t: SupportTi
             </option>
           ))}
         </select>
-      </label>
-      <label className="sup__field">
-        <span>Subject</span>
-        <input maxLength={160} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="USB block isn't working" />
       </label>
       <label className="sup__field">
         <span>Your message</span>

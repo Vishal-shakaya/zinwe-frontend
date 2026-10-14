@@ -110,10 +110,12 @@ interface CompanyFormProps {
   onSaved: (company: Company) => void | Promise<void>;
   /** 409 on create: the company exists already, so just move on. */
   onConflict?: () => void;
+  /** Edit mode: the email the owner signs in with, shown read-only with the company. */
+  loginEmail?: string;
 }
 
 /** Company details: required name, industry, team size, phone, city, state; optional GSTIN and website. */
-export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict }: CompanyFormProps): ReactElement {
+export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict, loginEmail }: CompanyFormProps): ReactElement {
   const [draft, setDraft] = useState<Draft>(() => draftFrom(initial));
   const [errors, setErrors] = useState<FieldErrorMap<CompanyField>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -206,6 +208,24 @@ export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict }:
               aria-invalid={errors.name ? true : undefined}
             />
           </Field>
+
+          {mode === "edit" && loginEmail ? (
+            <Field full>
+              <label htmlFor="co-login-email">Login email</label>
+              <input
+                id="co-login-email"
+                type="email"
+                value={loginEmail}
+                readOnly
+                aria-describedby="co-login-email-note"
+                className="co-readonly"
+              />
+              <small className="co-note" id="co-login-email-note">
+                You sign in to Zinwe with this email, and we send your account emails to it. To change it, message us from
+                Support.
+              </small>
+            </Field>
+          ) : null}
 
           <Field error={errors.industry}>
             <label htmlFor="co-industry">Industry</label>

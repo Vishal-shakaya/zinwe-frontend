@@ -30,7 +30,8 @@ export interface SupportTicketDetail extends SupportTicket {
 }
 
 export interface OpenTicketPayload {
-  subject: string;
+  /** Optional: left out, the backend titles the conversation from the message's first line. */
+  subject?: string;
   category: SupportCategory;
   message: string;
   page?: string;

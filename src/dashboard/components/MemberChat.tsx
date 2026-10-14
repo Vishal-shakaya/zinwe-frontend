@@ -21,8 +21,10 @@ import { compactErrors, focusFirstInvalid, requiredError, type FieldErrorMap } f
 import { apiFieldErrors, apiFormError } from "../../portal/failure";
 import { Field } from "../../components/forms/Field";
 import { FormAlert } from "../../portal/components/FormAlert";
+import { CHAT_READ_EVENT } from "../features/chatEvents";
 import { formatRelative, useNow } from "../time";
 import { DashIcon } from "./DashIcon";
+import { TaggedComposer } from "./TaggedComposer";
 
 const MESSAGE_FIELDS: readonly MessageField[] = ["title", "body", "severity"];
 
@@ -54,18 +56,48 @@ function bodyError(value: string): string | undefined {
     : undefined;
 }
 
+/** Read receipt for the admin's latest line: Sent → Delivered (on their PC) → Seen (opened in the widget). */
+function Receipt({ message: m, now }: { message: Message; now: number }): ReactElement {
+  const label = m.read_by_member
+    ? m.read_by_member_at
+      ? `Seen ${formatRelative(m.read_by_member_at, now, "just now")}`
+      : "Seen"
+    : m.delivered_at
+      ? "Delivered"
+      : "Sent — shows on their PC when it's online";
+  return (
+    <span className={cx("team-chat__receipt", m.read_by_member && "is-seen")} aria-live="polite">
+      {label}
+    </span>
+  );
+}
+
 /** The two-way conversation with one member: admin alerts and the member's replies, oldest→newest. */
-export function MemberChatThread({ member, reloadKey }: { member: Member; reloadKey: number }): ReactElement {
+export function MemberChatThread({
+  member,
+  reloadKey,
+}: {
+  member: Pick<Member, "id" | "name">;
+  reloadKey: number;
+}): ReactElement {
   const [thread, setThread] = useState<Message[] | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const now = useNow(30_000);
+  const lastReplyId = useRef<number | null>(null);
 
   useEffect(() => {
     let alive = true;
     // Fetching the thread also marks the member's replies read server-side.
     getMemberThread(member.id)
       .then((msgs) => {
-        if (alive) setThread(msgs);
+        if (!alive) return;
+        setThread(msgs);
+        // A new reply was just read here: let the sidebar badge catch up instead of waiting for its poll.
+        const newest = msgs.find((m) => m.sender === "member")?.id ?? null;
+        if (newest !== lastReplyId.current) {
+          lastReplyId.current = newest;
+          window.dispatchEvent(new Event(CHAT_READ_EVENT));
+        }
       })
       .catch((e) => {
         if (alive) setError(errorMessage(e));
@@ -87,6 +119,8 @@ export function MemberChatThread({ member, reloadKey }: { member: Member; reload
 
   const ordered = [...thread].reverse(); // API is newest-first; show like a chat (oldest → newest)
   const firstName = member.name.trim().split(/\s+/)[0] || "Member";
+  // The receipt sits under the admin's latest line only (like most chat apps).
+  const lastOwnerId = thread.find((m) => m.sender === "owner")?.id;
   return (
     <div className="team-chat" role="log" aria-label={`Conversation with ${member.name}`}>
       {ordered.map((m) => (
@@ -102,6 +136,7 @@ export function MemberChatThread({ member, reloadKey }: { member: Member; reload
           <time className="team-chat__time">
             {m.sender === "owner" ? "You" : firstName} · {formatRelative(m.created_at, now, "just now")}
           </time>
+          {m.id === lastOwnerId ? <Receipt message={m} now={now} /> : null}
         </div>
       ))}
     </div>
@@ -251,101 +286,14 @@ export function SendMessageForm({ member, onClose, onSent }: { member: Member; o
   );
 }
 
-/** A note as the widget shows it: the API needs a title, so short notes are the title and long ones are cut into one. */
-function toPayload(text: string, severity: EventSeverity): MessagePayload {
-  if (text.length <= MESSAGE_TITLE_MAX && !text.includes("\n")) return { title: text, severity };
-  const firstLine = text.split("\n")[0].trim();
-  const title = firstLine.length <= 80 ? firstLine : `${firstLine.slice(0, 79).trimEnd()}…`;
-  return { title, body: text.slice(0, MESSAGE_BODY_MAX), severity };
-}
-
 /**
- * Chat-style composer for the Team → Chat tab: one box, Enter to send
- * (Shift+Enter for a new line), and the importance as a small picker.
+ * The Chat page composer: the same tagged composer as the chat bubble (tags,
+ * urgency, PC / PC + email), without alert-only options.
  */
 export function ChatComposer({ member, onSent }: { member: Member; onSent: () => void }): ReactElement {
-  const [text, setText] = useState("");
-  const [severity, setSeverity] = useState<EventSeverity>("info");
-  // On by default: the email reaches them even when their PC is off.
-  const [alsoEmail, setAlsoEmail] = useState(true);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  const send = async () => {
-    const clean = text.trim();
-    if (!clean || pending) return;
-    setPending(true);
-    setError(null);
-    try {
-      await sendMessage(member.id, { ...toPayload(clean, severity), also_email: alsoEmail });
-      setText("");
-      setSeverity("info");
-      setNotice(alsoEmail ? `Sent to their widget and emailed to ${member.email}.` : "Sent to their widget.");
-      onSent();
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setPending(false);
-    }
-  };
-
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    void send();
-  };
-
   return (
-    <form className="tchat__compose" onSubmit={onSubmit} noValidate>
-      {error ? (
-        <p className="form__err" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {notice ? (
-        <p className="tchat__notice" role="status">
-          {notice}
-        </p>
-      ) : null}
-      <label className="dash-sr" htmlFor={`chat-input-${member.id}`}>
-        Message to {member.name}
-      </label>
-      <textarea
-        id={`chat-input-${member.id}`}
-        rows={2}
-        maxLength={MESSAGE_BODY_MAX}
-        placeholder={`Message ${member.name.split(/\s+/)[0] || member.name}…`}
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          setNotice(null);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            void send();
-          }
-        }}
-        disabled={pending}
-      />
-      <div className="tchat__compose-bar">
-        <label className="tchat__sev">
-          <span className="dash-sr">Importance</span>
-          <select value={severity} onChange={(e) => setSeverity(e.target.value as EventSeverity)} disabled={pending}>
-            <option value="info">Normal</option>
-            <option value="warning">Important</option>
-            <option value="critical">Urgent</option>
-          </select>
-        </label>
-        <label className="tchat__email">
-          <input type="checkbox" checked={alsoEmail} onChange={(e) => setAlsoEmail(e.target.checked)} disabled={pending} />
-          <span>Also email</span>
-        </label>
-        <small className="tchat__hint">Enter to send · Shift+Enter for a new line</small>
-        <button type="submit" className="btn btn--primary dash-btn-sm" disabled={pending || !text.trim()}>
-          {pending ? "Sending…" : "Send"}
-        </button>
-      </div>
-    </form>
+    <div className="tchat__compose">
+      <TaggedComposer person={member} initialDelivery="both" onSent={onSent} />
+    </div>
   );
 }

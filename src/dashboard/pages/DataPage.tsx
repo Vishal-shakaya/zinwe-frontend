@@ -65,9 +65,9 @@ export default function DataPage(): ReactElement {
 
       <StatTiles
         tiles={[
-          { value: metrics.data ? formatBytes(totalBytes) : "–", label: "data moved out" },
-          { value: metrics.data ? formatBytes(usbBytes) : "–", label: "copied to USB" },
-          { value: String(alerts.length), label: "data alerts", tone: alerts.length > 0 ? "warn" : undefined },
+          { value: metrics.data ? formatBytes(totalBytes) : "–", label: "data moved out", icon: "share", hint: "Copied to USB drives, shared folders and email, over the chosen range." },
+          { value: metrics.data ? formatBytes(usbBytes) : "–", label: "copied to USB", icon: "usb", hint: "Data copied onto pen drives and other USB storage." },
+          { value: String(alerts.length), label: "data alerts", tone: alerts.length > 0 ? "warn" : "good", icon: "alert", hint: "Large copies, blocked USB drives and other data warnings." },
         ]}
       />
 

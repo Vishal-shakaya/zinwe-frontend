@@ -17,9 +17,11 @@ import { AuthShell } from "../components/AuthShell";
 import { CodeStep } from "../components/CodeStep";
 import { FormAlert } from "../components/FormAlert";
 import { PasswordField } from "../components/PasswordField";
+import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
+import { SIGNUP_DOCS } from "../../content/legal";
 import { failureMessage } from "../failure";
 
-const ORDER: readonly SignupField[] = ["full_name", "email", "password"];
+const ORDER: readonly SignupField[] = ["full_name", "email", "password", "accept_terms"];
 
 export default function SignupPage(): ReactElement {
   usePageMeta({
@@ -37,6 +39,7 @@ export default function SignupPage(): ReactElement {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState<FieldErrorMap<SignupField>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -44,12 +47,14 @@ export default function SignupPage(): ReactElement {
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const termsRef = useRef<HTMLInputElement>(null);
 
   const focusErrors = (next: FieldErrorMap<SignupField>) =>
     focusFirstInvalid(ORDER, next, {
       full_name: nameRef.current,
       email: emailRef.current,
       password: passwordRef.current,
+      accept_terms: termsRef.current,
     });
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -59,13 +64,14 @@ export default function SignupPage(): ReactElement {
       full_name: requiredError(fullName),
       email: emailError(email),
       password: newPasswordError(password),
+      accept_terms: accepted ? undefined : "Please accept the Terms and Conditions and Privacy Policy to continue.",
     });
     setErrors(clientErrors);
     setFormError(null);
     if (Object.keys(clientErrors).length > 0) return focusErrors(clientErrors);
 
     setPending(true);
-    const result = await signup({ full_name: fullName.trim(), email: email.trim(), password });
+    const result = await signup({ full_name: fullName.trim(), email: email.trim(), password, accept_terms: accepted });
     setPending(false);
     if (result.ok) {
       setCodeSent({ email: result.data.email || email.trim(), resendIn: result.data.resend_in });
@@ -76,6 +82,7 @@ export default function SignupPage(): ReactElement {
         full_name: result.fieldErrors.full_name?.[0],
         email: result.fieldErrors.email?.[0],
         password: result.fieldErrors.password?.join(" "),
+        accept_terms: result.fieldErrors.accept_terms?.[0],
       });
       setErrors(next);
       setFormError(result.formError ?? null);
@@ -160,6 +167,21 @@ export default function SignupPage(): ReactElement {
             error={errors.password}
             autoComplete="new-password"
             inputRef={passwordRef}
+          />
+
+          <TermsCheckbox
+            id="su-terms"
+            checked={accepted}
+            onChange={(value) => {
+              setAccepted(value);
+              if (value && errors.accept_terms) setErrors((e) => ({ ...e, accept_terms: undefined }));
+            }}
+            docs={SIGNUP_DOCS}
+            dialogTitle="Before you create your account"
+            lead="I agree to Zinwe's"
+            error={errors.accept_terms}
+            inputRef={termsRef}
+            disabled={pending}
           />
 
           <FormAlert message={formError} />

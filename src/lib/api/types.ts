@@ -10,6 +10,15 @@ export interface User {
   is_staff: boolean;
   date_joined: string;
   email_verified?: boolean;
+  /** Which Terms version they accepted; `needs_acceptance` asks once for the current one. */
+  terms?: TermsStatus;
+}
+
+export interface TermsStatus {
+  version: string;
+  accepted_at: string | null;
+  current_version: string;
+  needs_acceptance: boolean;
 }
 
 export type OnboardingStep = "company" | "plan" | "payment" | "payment_review" | "complete";
@@ -169,6 +178,8 @@ export interface PaymentPayload {
   proof: File | null;
   /** Dashboard upgrade: the plan code this payment moves the owner up to. */
   upgrade_plan?: string;
+  /** The payment-terms checkbox (billing terms + refund policy); required by the server. */
+  accept_terms: boolean;
 }
 
 export type PaymentField = keyof PaymentPayload;

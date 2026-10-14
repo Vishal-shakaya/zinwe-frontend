@@ -8,7 +8,12 @@ import { FeedbackForm } from "./components/FeedbackForm";
 import { Modal } from "./components/Modal";
 import { NotificationBar } from "./components/NotificationBar";
 import { SupportWidget } from "./components/SupportWidget";
+import { ChatBubble } from "./components/ChatBubble";
+import { ChatLauncher } from "./components/ChatLauncher";
+import { ChatBubbleContext, type ChatBubbleRequest } from "./features/chatBubble";
 import { Tour } from "./components/Tour";
+import { UpdatedTermsDialog } from "./components/UpdatedTermsDialog";
+import { CHAT_READ_EVENT } from "./features/chatEvents";
 import { DASHBOARD_TOUR, tourDone } from "./features/tour";
 import { higherPlans, isUpgradeDone, UpgradeContext } from "./features/upgrade";
 import { useResource } from "./useResource";
@@ -90,6 +95,9 @@ export default function AppLayout(): ReactElement {
   const user = account?.user ?? null;
   const companyName = account?.company?.name || user?.email || " ";
   const inReview = account?.onboarding.step === "payment_review";
+  // Owners who haven't accepted the current Terms (signed up earlier, or the Terms changed) are asked once.
+  const terms = user?.terms;
+  const needsTerms = terms?.needs_acceptance === true;
   const location = useLocation();
   const { pathname, hash } = location;
   const navigate = useNavigate();
@@ -100,6 +108,9 @@ export default function AppLayout(): ReactElement {
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [touring, setTouring] = useState(() => !tourDone());
+  // The floating chat bubble (one at a time); pages open it with useChatBubble().
+  const [bubble, setBubble] = useState<ChatBubbleRequest | null>(null);
+  const bubbleApi = useMemo(() => ({ open: (request: ChatBubbleRequest) => setBubble(request) }), []);
   const onLogout = () => {
     setLeaving(true);
     void signOut();
@@ -138,6 +149,13 @@ export default function AppLayout(): ReactElement {
     await refresh();
     window.setTimeout(() => setRefreshing(false), 500);
   };
+
+  // A chat thread just read a member's reply: refresh the Chat badge now, not on the next poll.
+  const reloadMembers = members.reload;
+  useEffect(() => {
+    window.addEventListener(CHAT_READ_EVENT, reloadMembers);
+    return () => window.removeEventListener(CHAT_READ_EVENT, reloadMembers);
+  }, [reloadMembers]);
 
   // Help → "Take the tour" asks for a replay with this event.
   useEffect(() => {
@@ -300,7 +318,9 @@ export default function AppLayout(): ReactElement {
             }
           >
             <UpgradeContext.Provider value={upgrade}>
-              <Outlet key={refreshKey} />
+              <ChatBubbleContext.Provider value={bubbleApi}>
+                <Outlet key={refreshKey} />
+              </ChatBubbleContext.Provider>
             </UpgradeContext.Provider>
           </Suspense>
         </div>
@@ -315,8 +335,27 @@ export default function AppLayout(): ReactElement {
         <FeedbackForm page={`modal:${pathname}`.slice(0, 120)} onDone={() => setFeedbackOpen(false)} />
       </Modal>
 
+      <ChatLauncher
+        members={members.data}
+        onPick={(m) =>
+          setBubble({
+            person: { id: m.id, name: m.name, email: m.email, hostname: m.device?.hostname },
+            onSent: () => members.reload(),
+          })
+        }
+      />
       <SupportWidget />
-      {touring ? <Tour steps={DASHBOARD_TOUR} onClose={() => setTouring(false)} /> : null}
+      {bubble ? (
+        <ChatBubble
+          key={`${bubble.person.id}-${bubble.event?.id ?? "chat"}-${bubble.tag ?? ""}`}
+          request={bubble}
+          onClose={() => setBubble(null)}
+        />
+      ) : null}
+      {touring && !needsTerms ? <Tour steps={DASHBOARD_TOUR} onClose={() => setTouring(false)} /> : null}
+      {needsTerms && !leaving ? (
+        <UpdatedTermsDialog firstTime={!terms?.version} onAccepted={() => refresh()} onSignOut={onLogout} />
+      ) : null}
 
       <Modal
         open={upgradedTo !== null}

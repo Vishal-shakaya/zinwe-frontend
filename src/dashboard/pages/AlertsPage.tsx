@@ -8,16 +8,16 @@ import {
   listDevices,
   listEvents,
   listMembers,
-  ApiError,
-  emailAlert,
   type DeviceEvent,
   type Member,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { DashIcon, type DashIconName } from "../components/DashIcon";
 import { eventMeta, severityOf, type FeatureKey, type Severity } from "../features/events";
+import { detailOf, groupAlerts, type AlertGroup } from "../features/alertGroups";
+import { SendAlertMenu } from "../components/SendAlertMenu";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
-import { formatDateTime, formatRelative, useNow } from "../time";
+import { dayGroup, formatDateTime, formatRelative, formatTime, useNow } from "../time";
 import { useResource } from "../useResource";
 
 function parseDeviceId(raw: string | null): number | undefined {
@@ -90,7 +90,7 @@ export default function AlertsPage(): ReactElement {
     <>
       <PageHeader
         title="Alerts"
-        lede="Every alert on your PCs, newest first. Filter by priority or type, and email the person in one click — Zinwe sends it for you."
+        lede="Every alert on your PCs, newest first. Filter by priority or type, and alert the person on their PC, by email, or both."
         actions={<RefreshButton onClick={events.reload} pending={events.pending} />}
       />
 
@@ -252,68 +252,9 @@ const TYPE_ICON: Record<FeatureKey, DashIconName> = {
 };
 
 /**
- * Emails the person whose PC raised the alert, straight from Zinwe (no mail app),
- * once per alert. Shows "Emailed" afterwards, also after a reload (`emailed_at`).
- */
-function SendMailButton({ event, person }: { event: DeviceEvent; person: Member | undefined }): ReactElement {
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(event.emailed_at ? "sent" : "idle");
-  const [error, setError] = useState<string | null>(null);
-  const meta = eventMeta(event.type);
-
-  if (!person) {
-    return (
-      <span className="act-mail act-mail--none" title="This PC isn't linked to a team member">
-        No one to email
-      </span>
-    );
-  }
-  if (state === "sent") {
-    return (
-      <span className="act-mail act-mail--sent" title={`Emailed to ${person.email}`}>
-        <DashIcon name="check" />
-        Emailed
-      </span>
-    );
-  }
-
-  const send = async () => {
-    setState("sending");
-    setError(null);
-    try {
-      await emailAlert(event.id, { label: meta.label, suggested: meta.suggested });
-      setState("sent");
-    } catch (err) {
-      // Already emailed (409) counts as done.
-      if (err instanceof ApiError && err.status === 409) return setState("sent");
-      setError(errorMessage(err));
-      setState("error");
-    }
-  };
-
-  return (
-    <span className="act-mail">
-      <button
-        type="button"
-        className="btn btn--ghost dash-btn-sm"
-        onClick={() => void send()}
-        disabled={state === "sending"}
-        aria-label={`Email ${person.name} about ${meta.label}`}
-      >
-        <DashIcon name="share" />
-        {state === "sending" ? "Sending…" : state === "error" ? "Try again" : "Send mail"}
-      </button>
-      {error ? (
-        <small className="act-mail__err" role="alert">
-          {error}
-        </small>
-      ) : null}
-    </span>
-  );
-}
-
-/**
- * The activity table: what happened, its type and priority, whose PC, when,
- * and a "Send mail" that drafts an email to that person about it.
+ * The alerts list: grouped by day, repeats of the same alert on the same PC
+ * folded into one row, a plain detail line, who it's about, priority, when,
+ * and "Send alert" to reach that person (widget, email or both).
  */
 function AlertTable({
   events,
@@ -324,56 +265,94 @@ function AlertTable({
   now: number;
   personFor: (deviceId: number) => Member | undefined;
 }): ReactElement {
+  const groups = groupAlerts(events);
+  const days: Array<{ key: string; label: string; rows: AlertGroup[] }> = [];
+  for (const g of groups) {
+    const { key, label } = dayGroup(g.latest.occurred_at, now);
+    const last = days[days.length - 1];
+    if (last && last.key === key) last.rows.push(g);
+    else days.push({ key, label, rows: [g] });
+  }
+
   return (
-    <div className="act-table" role="table" aria-label="Activity">
-      <div className="act-row act-row--head" role="row">
-        <span role="columnheader">Alert</span>
-        <span role="columnheader">Type</span>
-        <span role="columnheader">Priority</span>
-        <span role="columnheader">PC · person</span>
-        <span role="columnheader">When</span>
-        <span role="columnheader">
-          <span className="dash-sr">Action</span>
-        </span>
+    <div className="al-table">
+      <div className="al-row al-row--head" aria-hidden="true">
+        <span>Alert</span>
+        <span>Person · PC</span>
+        <span>Priority</span>
+        <span>When</span>
+        <span />
       </div>
-      {events.map((event) => {
-        const meta = eventMeta(event.type);
-        const priority = PRIORITY[severityOf(event)];
-        const person = personFor(event.device_id);
-        return (
-          <div key={event.id} className={`act-row act-row--${priority}`} role="row">
-            <span role="cell" className="act-alert">
-              <span className={`act-mark act-mark--${priority}`} aria-hidden="true">
-                <DashIcon name={priority === "low" ? TYPE_ICON[meta.feature] : "alert"} />
-              </span>
-              <span className="act-alert__text">
-                <b>{meta.label}</b>
-                {event.title && event.title !== meta.label ? <small>{event.title}</small> : null}
-              </span>
-            </span>
-            <span role="cell" data-label="Type" className="act-type">
+      {days.map((day) => (
+        <section key={day.key} className="al-day" aria-label={day.label}>
+          <h3 className="al-day__label">
+            {day.label}
+            <small>
+              {day.rows.reduce((n, g) => n + g.count, 0)} alert{day.rows.reduce((n, g) => n + g.count, 0) === 1 ? "" : "s"}
+            </small>
+          </h3>
+          {day.rows.map((g) => (
+            <AlertRow key={g.latest.id} group={g} now={now} person={personFor(g.latest.device_id)} />
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function AlertRow({ group, now, person }: { group: AlertGroup; now: number; person: Member | undefined }): ReactElement {
+  const event = group.latest;
+  const meta = eventMeta(event.type);
+  const priority = PRIORITY[severityOf(event)];
+  const recent = now - Date.parse(event.occurred_at) < 12 * 3_600_000;
+  const spanMin = Math.max(1, Math.round((Date.parse(group.lastAt) - Date.parse(group.firstAt)) / 60_000));
+
+  return (
+    <div className={`al-row al-row--${priority}`}>
+      <span className="al-alert">
+        <span className={`act-mark act-mark--${priority}`} aria-hidden="true">
+          <DashIcon name={priority === "low" ? TYPE_ICON[meta.feature] : "alert"} />
+        </span>
+        <span className="al-alert__text">
+          <b>
+            {meta.label}
+            {group.subject ? <span className="al-subject">{group.subject}</span> : null}
+          </b>
+          <small className="al-detail" title={detailOf(event)}>
+            {detailOf(event)}
+          </small>
+          <span className="al-chips">
+            <span className="al-chip">
+              <DashIcon name={TYPE_ICON[meta.feature]} />
               {TYPE_LABEL[meta.feature]}
             </span>
-            <span role="cell" data-label="Priority">
-              <span className={`act-pri act-pri--${priority}`}>{PRIORITY_LABEL[priority]}</span>
-            </span>
-            <span role="cell" data-label="PC · person" className="act-who">
-              <b>{event.hostname || "A PC"}</b>
-              <small>{person ? person.name : "No person linked"}</small>
-            </span>
-            <span role="cell" data-label="When" className="act-when">
-              <time dateTime={event.occurred_at} title={formatDateTime(event.occurred_at)}>
-                {now - Date.parse(event.occurred_at) < 12 * 3_600_000
-                  ? formatRelative(event.occurred_at, now)
-                  : formatDateTime(event.occurred_at)}
-              </time>
-            </span>
-            <span role="cell" className="act-action">
-              <SendMailButton event={event} person={person} />
-            </span>
-          </div>
-        );
-      })}
+            {group.count > 1 ? (
+              <span
+                className="al-chip al-chip--repeat"
+                data-tip={`Same alert ${group.count} times on this PC, ${formatTime(group.firstAt)}–${formatTime(group.lastAt)}`}
+              >
+                ×{group.count} in {spanMin < 60 ? `${spanMin} min` : `${Math.round(spanMin / 60)} h`}
+              </span>
+            ) : null}
+          </span>
+        </span>
+      </span>
+      <span className="al-who" data-label="Person · PC">
+        {person ? <b>{person.name}</b> : <b className="al-muted">No one linked</b>}
+        <small>{event.hostname || "A PC"}</small>
+      </span>
+      <span data-label="Priority">
+        <span className={`act-pri act-pri--${priority}`}>{PRIORITY_LABEL[priority]}</span>
+      </span>
+      <span className="al-when" data-label="When">
+        <time dateTime={event.occurred_at} title={formatDateTime(event.occurred_at)}>
+          {recent ? formatRelative(event.occurred_at, now) : formatTime(event.occurred_at)}
+        </time>
+        {recent ? <small>{formatTime(event.occurred_at)}</small> : null}
+      </span>
+      <span className="al-action">
+        <SendAlertMenu event={event} person={person ? { id: person.id, name: person.name, email: person.email } : undefined} />
+      </span>
     </div>
   );
 }

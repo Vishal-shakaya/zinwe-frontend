@@ -29,6 +29,7 @@ import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleB
 import { formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
 import { formatDateTime, formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
+import { formatDate } from "../../lib/format";
 
 const MEMBER_FIELDS: readonly MemberField[] = ["name", "email"];
 
@@ -480,6 +481,27 @@ function MemberTile({
             )}
           </dd>
         </div>
+        {pc ? (
+          <div>
+            <dt>Consent</dt>
+            <dd>
+              {pc.consent_at ? (
+                <span className="team-consent team-consent--ok" data-tip={`Policy version ${pc.consent_version}`}>
+                  <DashIcon name="check" />
+                  Given {formatDate(pc.consent_at)}
+                </span>
+              ) : (
+                <span
+                  className="team-consent team-consent--wait"
+                  data-tip="They'll be asked on their Zinwe widget. Under India's DPDP Act, monitoring needs their own consent."
+                >
+                  <DashIcon name="clock" />
+                  Waiting for them
+                </span>
+              )}
+            </dd>
+          </div>
+        ) : null}
         <div>
           <dt>Their ID</dt>
           <dd className="team-id">

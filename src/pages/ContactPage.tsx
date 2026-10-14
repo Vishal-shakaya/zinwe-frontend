@@ -1,6 +1,8 @@
 import type { ReactElement } from "react";
 import { ContactForm } from "../components/forms/ContactForm";
 import { OfferBand } from "../components/home/OfferBand";
+import { SocialLinks } from "../components/ui/SocialLinks";
+import { COMPANY_EMAIL } from "../content/company";
 import { Smoke } from "../components/ui/Smoke";
 import { StaggerTitle } from "../components/ui/StaggerTitle";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -26,7 +28,7 @@ export default function ContactPage(): ReactElement {
             <ul className="contact-list fade" style={{ animationDelay: ".55s" }}>
               <li>
                 <small>Email</small>
-                <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>
+                <a href={`mailto:${COMPANY_EMAIL}`}>{COMPANY_EMAIL}</a>
               </li>
               <li>
                 <small>Office</small>
@@ -35,6 +37,10 @@ export default function ContactPage(): ReactElement {
               <li>
                 <small>Hours</small>
                 <span>Mon–Sat, 10:00–19:00 IST</span>
+              </li>
+              <li>
+                <small>Follow us</small>
+                <SocialLinks />
               </li>
             </ul>
           </div>

@@ -1,6 +1,9 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { openCookieSettings } from "../../lib/cookieConsent";
+import { COMPANY_EMAIL } from "../../content/company";
 import { Brand } from "../ui/Brand";
+import { SocialLinks } from "../ui/SocialLinks";
 
 const YEAR = new Date().getFullYear();
 
@@ -14,7 +17,10 @@ export function Footer(): ReactElement {
             Monitor. Team. Data. Privacy.
             <br />
             SKYTECHNO · New Delhi, India
+            <br />
+            <a href={`mailto:${COMPANY_EMAIL}`}>{COMPANY_EMAIL}</a>
           </p>
+          <SocialLinks className="footer__social" />
         </div>
         <ul className="footer__links">
           <li>
@@ -27,12 +33,26 @@ export function Footer(): ReactElement {
             <Link to="/early-access">Early access</Link>
           </li>
           <li>
+            <Link to="/blog">Blog</Link>
+          </li>
+          <li>
             <Link to="/contact">Contact</Link>
           </li>
         </ul>
         <p className="footer__meta">
           © <span data-year="">{YEAR}</span> SKYTECHNO. zinwe.io
         </p>
+      </div>
+      <div className="wrap footer__legal">
+        <Link to="/legal/terms">Terms</Link>
+        <Link to="/legal/privacy">Privacy</Link>
+        <Link to="/legal/refund">Refunds</Link>
+        <Link to="/legal/cookies">Cookies</Link>
+        <Link to="/legal/acceptable-use">Acceptable use</Link>
+        <Link to="/legal/disclaimer">Disclaimer</Link>
+        <button type="button" onClick={openCookieSettings}>
+          Cookie settings
+        </button>
       </div>
     </footer>
   );

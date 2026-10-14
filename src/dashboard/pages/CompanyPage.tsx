@@ -8,7 +8,7 @@ import { useResource } from "../useResource";
 
 export default function CompanyPage(): ReactElement {
   usePageMeta({ title: "Company — Settings", description: "Your company details." });
-  const { refresh } = useAuth();
+  const { account, refresh } = useAuth();
   const load = useCallback((signal: AbortSignal) => getCompany(signal), []);
   const company = useResource(load);
 
@@ -36,6 +36,7 @@ export default function CompanyPage(): ReactElement {
             mode="edit"
             initial={company.data}
             submitLabel="Save changes"
+            loginEmail={account?.user.email}
             onSaved={async (saved) => {
               company.setData(saved);
               await refresh({ company: saved });

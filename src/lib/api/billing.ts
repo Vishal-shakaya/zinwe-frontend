@@ -85,5 +85,6 @@ export function submitPayment(payload: PaymentPayload): Promise<Payment> {
   form.append("payer_name", payload.payer_name);
   if (payload.proof) form.append("proof", payload.proof, payload.proof.name);
   if (payload.upgrade_plan) form.append("upgrade_plan", payload.upgrade_plan);
+  form.append("accept_terms", payload.accept_terms ? "true" : "false");
   return authedRequest<Payment>("/api/auth/subscription/payment/", { method: "POST", form });
 }

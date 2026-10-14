@@ -1,0 +1,380 @@
+/* Legal texts, agree dialogs, the terms checkbox and the cookie sheet (site-wide; site.css tokens). */
+
+.legal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.legal-text__h {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.legal-text p {
+  margin: 0 0 10px;
+}
+
+.legal-text ul {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.legal-text li {
+  margin-bottom: 6px;
+}
+
+/* ---------- Agree dialog ---------- */
+
+.legal-dialog {
+  width: min(760px, calc(100vw - 24px));
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 30px 80px -24px rgba(13, 13, 14, 0.4);
+}
+
+.legal-dialog::backdrop {
+  background: rgba(13, 13, 14, 0.45);
+}
+
+.legal-dialog__panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 42px);
+}
+
+.legal-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 22px 12px;
+}
+
+.legal-dialog__head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.legal-dialog__head small {
+  color: var(--mute);
+}
+
+.legal-dialog__x {
+  border: 0;
+  background: transparent;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.legal-dialog__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.legal-dialog__tabs button {
+  flex: none;
+  padding: 9px 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.legal-dialog__tabs button.is-on {
+  border-bottom-color: var(--orange);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.legal-dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px;
+  outline: none;
+}
+
+.legal-dialog__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 22px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.legal-dialog__open {
+  margin-right: auto;
+  font-size: 0.86rem;
+  color: var(--ink-2);
+}
+
+/* ---------- Terms checkbox ---------- */
+
+.terms-check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  align-items: start;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.terms-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--orange);
+}
+
+.terms-check__link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.terms-check__err {
+  grid-column: 2;
+  margin: 0;
+}
+
+/* Shown wherever the checkbox sits (not only inside a .field wrapper). */
+.terms-check.is-invalid .terms-check__err {
+  display: block;
+}
+
+/* ---------- Cookie bottom sheet ---------- */
+
+.cookie-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  padding: 0 16px 16px;
+  pointer-events: none;
+  animation: legal-sheet-in 0.28s ease-out;
+}
+
+@keyframes legal-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.cookie-sheet__inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 -10px 50px -20px rgba(13, 13, 14, 0.35);
+  pointer-events: auto;
+}
+
+.cookie-sheet__text h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.cookie-sheet__text p {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.cookie-sheet__text a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cookie-sheet__prefs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 14px;
+}
+
+.cookie-pref {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.88rem;
+}
+
+.cookie-pref input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--orange);
+}
+
+.cookie-pref span {
+  display: flex;
+  flex-direction: column;
+}
+
+.cookie-pref small {
+  color: var(--mute);
+}
+
+.cookie-sheet__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cookie-sheet__more {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .cookie-sheet {
+    padding: 0;
+  }
+  .cookie-sheet__inner {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 16px 16px 0 0;
+  }
+  .cookie-sheet__actions {
+    flex-wrap: wrap;
+  }
+  .cookie-sheet__actions .btn {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-sheet {
+    animation: none;
+  }
+}
+
+/* ---------- /legal pages ---------- */
+
+.legal-page {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  padding: clamp(32px, 6vw, 72px) 0;
+}
+
+.legal-nav {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legal-nav a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+.legal-nav a:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.legal-nav a.is-on {
+  background: var(--orange-tint);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.legal-doc h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  letter-spacing: -0.025em;
+}
+
+.legal-doc__meta {
+  margin: 0 0 28px;
+  color: var(--mute);
+  font-size: 0.9rem;
+}
+
+.legal-index {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.legal-index a {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  transition: border-color 0.15s;
+}
+
+.legal-index a:hover {
+  border-color: var(--ink);
+}
+
+.legal-index small {
+  color: var(--mute);
+  line-height: 1.45;
+}
+
+@media (max-width: 860px) {
+  .legal-page {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .legal-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

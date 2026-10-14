@@ -52,26 +52,31 @@ export function Nav(): ReactElement {
             </Link>
           </li>
           <li>
+            <Link to="/blog" aria-current={pathname.startsWith("/blog") ? "page" : undefined} onClick={close}>
+              Blog
+            </Link>
+          </li>
+          <li>
             <Link to="/contact" aria-current={current("/contact")} onClick={close}>
               Contact
             </Link>
           </li>
-          <li>
-            <Link to={token ? "/app" : "/login"} onClick={close}>
-              {token ? "Dashboard" : "Log in"}
-            </Link>
-          </li>
-          {token ? null : (
-            <li className="nav__signup">
-              <Link className="btn btn--ghost" to="/signup" onClick={close}>
-                Sign up
+          {/* One way in for each visitor: sign in, or start free (which is sign-up); signed in = the dashboard. */}
+          <li className="nav__cta">
+            {token ? (
+              <Link className="btn btn--primary" to="/app" onClick={close}>
+                Dashboard <span className="arr">→</span>
               </Link>
-            </li>
-          )}
-          <li>
-            <Link className="btn btn--primary" to="/signup?plan=free" onClick={close}>
-              Start free <span className="arr">→</span>
-            </Link>
+            ) : (
+              <>
+                <Link className="btn btn--ghost" to="/login" aria-current={current("/login")} onClick={close}>
+                  Log in
+                </Link>
+                <Link className="btn btn--primary" to="/signup?plan=free" onClick={close}>
+                  Start free <span className="arr">→</span>
+                </Link>
+              </>
+            )}
           </li>
         </ul>
       </div>

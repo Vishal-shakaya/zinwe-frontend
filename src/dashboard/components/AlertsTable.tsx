@@ -1,11 +1,11 @@
-import { useState, type ReactElement } from "react";
+import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
 import type { DeviceEvent } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { eventDomain, eventMeta, severityOf, SEVERITY_LABEL, type AlertMember } from "../features/events";
+import { eventMeta, severityOf, SEVERITY_LABEL, type AlertMember } from "../features/events";
 import { formatDateTime, formatRelative } from "../time";
 import { DashIcon } from "./DashIcon";
-import { MessageComposer } from "./MessageComposer";
+import { SendAlertMenu } from "./SendAlertMenu";
 
 export type { AlertMember };
 
@@ -23,8 +23,8 @@ export interface AlertsTableProps {
 
 /**
  * The actionable alert table: Type · Status · Action · Suggested message.
- * "Action" is contextual — block a domain (→ Internet controls), message the
- * member (inline, prefilled), or review on the relevant feature page.
+ * "Action" is "Send alert": message the person (widget, email or both), or block the
+ * site / review the rule on the relevant feature page.
  */
 export function AlertsTable({
   events,
@@ -34,7 +34,6 @@ export function AlertsTable({
   emptyText,
   limit,
 }: AlertsTableProps): ReactElement {
-  const [openId, setOpenId] = useState<number | null>(null);
 
   const shown = limit !== undefined ? events.slice(0, limit) : events;
 
@@ -56,8 +55,6 @@ export function AlertsTable({
           const meta = eventMeta(event.type);
           const severity = severityOf(event);
           const member = resolveMember(event.device_id);
-          const domain = eventDomain(event);
-          const open = openId === event.id;
           return (
             <div className="dash-alerts__group" key={event.id}>
               <div className={cx("dash-alerts__row", `dash-alerts__row--${severity}`)} role="row">
@@ -82,25 +79,7 @@ export function AlertsTable({
                 </span>
 
                 <span role="cell" data-label="Action">
-                  {meta.action === "block-domain" && domain ? (
-                    <Link className="btn btn--ink dash-btn-sm" to={`/app/internet?block=${encodeURIComponent(domain)}`}>
-                      Block {domain.length > 22 ? `${domain.slice(0, 20)}…` : domain}
-                    </Link>
-                  ) : meta.action === "message" && member ? (
-                    <button
-                      type="button"
-                      className="btn btn--ink dash-btn-sm"
-                      aria-expanded={open}
-                      onClick={() => setOpenId(open ? null : event.id)}
-                    >
-                      <DashIcon name="activity" />
-                      Message
-                    </button>
-                  ) : (
-                    <Link className="btn btn--ghost dash-btn-sm" to={meta.reviewTo}>
-                      Review
-                    </Link>
-                  )}
+                  <SendAlertMenu event={event} person={member ?? undefined} compact />
                 </span>
 
                 <span role="cell" className="dash-alerts__suggest" data-label="Suggested message">
@@ -108,20 +87,6 @@ export function AlertsTable({
                 </span>
               </div>
 
-              {open && member ? (
-                <div className="dash-alerts__compose">
-                  <MessageComposer
-                    memberId={member.id}
-                    memberName={member.name}
-                    preset={{
-                      title: meta.label,
-                      body: meta.suggested || undefined,
-                      severity: severity === "info" ? "info" : severity,
-                    }}
-                    onClose={() => setOpenId(null)}
-                  />
-                </div>
-              ) : null}
             </div>
           );
         })}

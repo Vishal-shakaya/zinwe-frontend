@@ -10,6 +10,11 @@ import EarlyAccessPage from "./pages/EarlyAccessPage";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
 
+const LegalPage = lazyPage(() => import("./pages/LegalPage"));
+const BlogPage = lazyPage(() => import("./pages/BlogPage"));
+const ArticlePage = lazyPage(() => import("./pages/ArticlePage"));
+const NewsletterPage = lazyPage(() => import("./pages/NewsletterPage"));
+
 // The portal (sign up, log in, onboarding, dashboard) ships as separate
 // chunks, so marketing visitors never download it.
 const PlansPage = lazyPage(() => import("./portal/pages/PlansPage"));
@@ -73,6 +78,11 @@ export function AppRoutes(): ReactElement {
           <Route path="plans" element={<PlansPage />} />
           <Route path="early-access" element={<EarlyAccessPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="blog" element={<BlogPage />} />
+          <Route path="blog/:slug" element={<ArticlePage />} />
+          <Route path="newsletter" element={<NewsletterPage />} />
+          <Route path="legal" element={<LegalPage />} />
+          <Route path="legal/:slug" element={<LegalPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
