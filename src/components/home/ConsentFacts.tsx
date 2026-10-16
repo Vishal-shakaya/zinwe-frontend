@@ -9,12 +9,12 @@ const facts: Array<{ title: string; detail: string }> = [
     detail: "Every PC shows the active rules. Nothing runs hidden.",
   },
   {
-    title: "You decide what is logged, and for how long.",
-    detail: "Full admin visibility, with retention you control.",
+    title: "You decide what is logged.",
+    detail: "Full admin visibility, and we delete your data when you ask.",
   },
   {
-    title: "Aligned with India's DPDP Act from day one.",
-    detail: "Consent and purpose are part of the setup, not a checkbox.",
+    title: "Built around India's DPDP Act and US notice laws.",
+    detail: "Each person agrees on their own PC before anything is recorded. You see who agreed, and when.",
   },
 ];
 

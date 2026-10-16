@@ -3,11 +3,13 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, getTopMetrics } from "../../lib/api";
 import { AlertsTable } from "../components/AlertsTable";
 import { MetricsDisclosure } from "../components/MetricsDisclosure";
+import { PagePlanGate, PlanLock } from "../components/PlanLock";
 import { RangeTabs } from "../components/RangeTabs";
 import { StatTiles } from "../components/StatTiles";
 import { ErrorState, PageHeader } from "../components/States";
 import { TopUsageTable } from "../components/TopUsageTable";
 import { UsageChart } from "../components/UsageChart";
+import { useEntitlements } from "../features/entitlements";
 import { FEATURE_EVENT_TYPES } from "../features/events";
 import { formatHours, toChartRows, totalFor, type SeriesSpec } from "../features/metrics";
 import { RemoteSoftwareCard } from "../features/policyControls";
@@ -29,7 +31,22 @@ const APPS_NEVER = [
   "Anything said or shown during a remote session",
 ];
 
+/** Plan enforcement: remote tools + software are Startups; the app-usage parts are Businesses. */
 export default function RemotePage(): ReactElement {
+  return (
+    <PagePlanGate
+      module="remote_access"
+      title="Application monitoring"
+      lede="Spot remote-control tools like AnyDesk or TeamViewer and new software on your PCs."
+      lock="Get an alert when someone runs AnyDesk, TeamViewer or another remote-control tool, block the ones you don't use, and see every new program installed on your PCs."
+    >
+      <RemotePageContent />
+    </PagePlanGate>
+  );
+}
+
+function RemotePageContent(): ReactElement {
+  const appsOn = useEntitlements().has("app_usage");
   usePageMeta({ title: "Application monitoring — Zinwe", description: "Which apps your team uses, remote-control tools and new software." });
 
   const [days, setDays] = useState(7);
@@ -59,7 +76,9 @@ export default function RemotePage(): ReactElement {
 
       <StatTiles
         tiles={[
-          { value: metrics.data ? formatHours(appSeconds) : "–", label: "time in apps", icon: "screen", hint: "Time with an app open in front, across your PCs." },
+          ...(appsOn
+            ? [{ value: metrics.data ? formatHours(appSeconds) : "–", label: "time in apps", icon: "screen" as const, hint: "Time with an app open in front, across your PCs." }]
+            : []),
           { value: metrics.data ? String(detections) : "–", label: "remote sessions seen", tone: detections > 0 ? "warn" : "good", icon: "alert", hint: "Times a remote-control tool like AnyDesk ran on a PC." },
           { value: String(installs), label: "software installs", icon: "plus", hint: "New programs installed on your PCs." },
         ]}
@@ -90,7 +109,12 @@ export default function RemotePage(): ReactElement {
         </section>
       ) : null}
 
-      <section className="dash-card" aria-labelledby="apps-top-title">
+      {appsOn ? null : (
+        <PlanLock module="app_usage" compact title="Most-used apps">
+          See which apps your team works in and for how long, per person and across the company.
+        </PlanLock>
+      )}
+      <section className="dash-card" aria-labelledby="apps-top-title" hidden={!appsOn}>
         <div className="dash-card__head dash-card__head--split">
           <div>
             <h2 className="dash-card__title" id="apps-top-title">

@@ -11,6 +11,17 @@ export function formatInr(amount: string | number): string {
   return Number.isInteger(value) ? inrWhole.format(value) : inr.format(value);
 }
 
+const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+const usdWhole = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+/** "1145.78" + INR -> "₹1,145.78"; "144.00" + USD -> "$144". Unknown/absent currency = INR. */
+export function formatMoney(amount: string | number, currency: string | undefined = "INR"): string {
+  if (currency !== "USD") return formatInr(amount);
+  const value = typeof amount === "number" ? amount : Number(amount);
+  if (!Number.isFinite(value)) return String(amount);
+  return Number.isInteger(value) ? usdWhole.format(value) : usd.format(value);
+}
+
 export function isZero(amount: string): boolean {
   return Number(amount) === 0;
 }

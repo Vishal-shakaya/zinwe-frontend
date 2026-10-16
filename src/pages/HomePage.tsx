@@ -1,20 +1,18 @@
 import type { ReactElement } from "react";
 import { ConsentFacts } from "../components/home/ConsentFacts";
+import { Faq } from "../components/home/Faq";
 import { Hero } from "../components/home/Hero";
 import { OfferBand } from "../components/home/OfferBand";
 import { Platforms } from "../components/home/Platforms";
 import { SetupWizard } from "../components/home/SetupWizard";
 import { WatchPanel } from "../components/home/WatchPanel";
+import { JsonLd } from "../components/ui/JsonLd";
 import { Reveal } from "../components/ui/Reveal";
+import { SOFTWARE_LD, seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 
 export default function HomePage(): ReactElement {
-  usePageMeta({
-    title: "Zinwe — Security, simplified",
-    description:
-      "Zinwe watches data transfers, remote access, software installs and email across your team's PCs, and tells you what matters in plain language. Built for businesses of 5–50 people without an IT department.",
-    ogDescription: "Know what's happening to your company's data. In plain English. No IT department needed.",
-  });
+  usePageMeta(seoFor("/"));
 
   return (
     <>
@@ -26,10 +24,10 @@ export default function HomePage(): ReactElement {
           <SetupWizard />
           <Reveal>
             <p className="eyebrow">Setup</p>
-            <h2 className="h-section">Answer questions. Zinwe writes the rules.</h2>
+            <h2 className="h-section">Answer three questions. Zinwe sets the rules.</h2>
             <p className="lede">
-              No policies to configure, no logs to decode. Pick an answer and the matching rule is applied to every
-              PC.
+              No policies to write and no logs to read. Pick an answer and the rule reaches every PC within about a
+              minute. Change your mind any time.
             </p>
           </Reveal>
         </div>
@@ -37,11 +35,13 @@ export default function HomePage(): ReactElement {
 
       <ConsentFacts />
       <Platforms />
+      <Faq />
       <OfferBand
-        title="Start with Zinwe, free forever."
-        sub="Protect up to 3 PCs at no cost, for as long as you like. Set up in minutes, and tell us what to build next."
-        note="No card needed. Upgrade only when you grow."
+        title="IT is OK. Start free, today."
+        sub="Protect up to 3 PCs at no cost, for as long as you like. Set up in an afternoon and upgrade only when you grow."
+        note="No card needed."
       />
+      <JsonLd data={SOFTWARE_LD} />
     </>
   );
 }

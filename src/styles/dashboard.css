@@ -31,6 +31,11 @@
   border: 0 !important;
 }
 
+/* A table ignores width: 1px under auto layout, so a screen-reader table still widened phone pages. */
+table.dash-sr {
+  table-layout: fixed !important;
+}
+
 .dash-ico {
   width: 18px;
   height: 18px;
@@ -693,7 +698,7 @@
   color: var(--orange-ink);
 }
 
-/* ---------- Notification bar (M11: version / offer / upgrade) ---------- */
+/* ---------- Notification bars (pushed messages from the admin panel + the upgrade bar) ---------- */
 
 .dash-notices {
   display: flex;
@@ -780,6 +785,29 @@
   background: var(--paper);
 }
 
+.dash-notice--discount {
+  background: var(--orange-tint);
+  border-color: #ffd5bf;
+}
+
+.dash-notice--discount .dash-notice__ico {
+  background: var(--ink);
+  color: #fff;
+}
+
+.dash-notice--news {
+  background: #fff;
+}
+
+.dash-notice--maintenance {
+  background: var(--dash-amber-tint);
+  border-color: #f3dda9;
+}
+
+.dash-notice--maintenance .dash-notice__ico {
+  color: var(--dash-amber);
+}
+
 /* The persistent upgrade entry point in the sidebar. */
 .dash__upgrade {
   margin: 10px 0 2px;
@@ -841,6 +869,40 @@
 
 .dash-state .btn {
   margin-top: 8px;
+}
+
+/* `hidden` must win over component display rules (e.g. .dash-card's), so a locked section stays hidden. */
+.dash [hidden] {
+  display: none !important;
+}
+
+/* A feature the owner's plan doesn't include (PlanLock), and its sidebar marker. */
+.dash__lock {
+  display: inline-flex;
+  margin-left: auto;
+  color: var(--mute);
+}
+
+.dash__lock .dash-ico {
+  width: 14px;
+  height: 14px;
+}
+
+.dash-state--lock {
+  padding: 40px 20px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.dash-state--lock-compact {
+  padding: 24px 16px;
+}
+
+.dash-lock__plan {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-2);
 }
 
 .dash-state--loading {
@@ -1467,6 +1529,8 @@
 }
 
 .dash-set__group {
+  /* A fieldset is min-width: min-content by default, which pushed long settings past a phone's edge. */
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -4974,11 +5038,18 @@ button.wd-row:hover {
 /* ---------- Invoice ---------- */
 
 .pay-hist__row {
-  grid-template-columns: 1fr 1.2fr 0.8fr 1.6fr 1fr 70px;
+  grid-template-columns: 1fr 1.2fr 0.8fr 1.6fr 1fr 96px;
 }
 
 .pay-hist__inv {
   justify-self: end;
+}
+
+/* Phones: the two-column payment rows again (the six-column rule above came later and won). */
+@media (max-width: 720px) {
+  .pay-hist__row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .inv-bar {
@@ -6026,4 +6097,36 @@ button.wd-row:hover {
 .terms-prompt .dash-modal__text,
 .terms-prompt .dash-confirm__actions {
   margin: 0;
+}
+
+/* Invoice actions (billing history + invoice page). */
+.inv-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inv-links .dash-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.inv-links__err {
+  color: var(--dash-red);
+}
+
+.inv-bar__actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.inv__lines tfoot .inv__sub td {
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }

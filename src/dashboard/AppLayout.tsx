@@ -2,7 +2,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState, type ReactElement 
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { Brand } from "../components/ui/Brand";
-import { getAnnouncements, listMembers, type Announcement } from "../lib/api";
+import { getAnnouncements, listMembers, type Announcement, type PlanModule } from "../lib/api";
 import { DashIcon, type DashIconName } from "./components/DashIcon";
 import { FeedbackForm } from "./components/FeedbackForm";
 import { Modal } from "./components/Modal";
@@ -14,6 +14,7 @@ import { ChatBubbleContext, type ChatBubbleRequest } from "./features/chatBubble
 import { Tour } from "./components/Tour";
 import { UpdatedTermsDialog } from "./components/UpdatedTermsDialog";
 import { CHAT_READ_EVENT } from "./features/chatEvents";
+import { useEntitlements } from "./features/entitlements";
 import { DASHBOARD_TOUR, tourDone } from "./features/tour";
 import { higherPlans, isUpgradeDone, UpgradeContext } from "./features/upgrade";
 import { useResource } from "./useResource";
@@ -32,6 +33,8 @@ interface NavItem {
   badge?: "unread";
   /** Hook for the first-visit tour. */
   tour?: string;
+  /** The page is one plan module: a lock shows beside it when the plan doesn't include it. */
+  module?: PlanModule;
 }
 
 /**
@@ -50,17 +53,17 @@ const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
   {
     group: "Protection",
     items: [
-      { to: "/app/internet", label: "Online protection", icon: "globe" },
+      { to: "/app/internet", label: "Online protection", icon: "globe", module: "web" },
       { to: "/app/data", label: "Data safety", icon: "usb" },
-      { to: "/app/remote", label: "App monitoring", icon: "screen" },
+      { to: "/app/remote", label: "App monitoring", icon: "screen", module: "remote_access" },
     ],
   },
   {
     group: "People",
     items: [
       { to: "/app/team", label: "Team & devices", icon: "team", tour: "team" },
-      { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread", tour: "chat" },
-      { to: "/app/activity", label: "Activity", icon: "activity", tour: "activity" },
+      { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread", tour: "chat", module: "team_chat" },
+      { to: "/app/activity", label: "Activity", icon: "activity", tour: "activity", module: "work_time" },
     ],
   },
   {
@@ -127,6 +130,7 @@ export default function AppLayout(): ReactElement {
     return () => controller.abort();
   }, []);
 
+  const entitlements = useEntitlements();
   const plans = usePlans();
   const subscription = account?.subscription ?? null;
   const currentPlan = subscription?.plan ?? null;
@@ -219,6 +223,11 @@ export default function AppLayout(): ReactElement {
                   <NavLink to={item.to} end={item.end} className="dash__link" data-tour={item.tour}>
                     <DashIcon name={item.icon} />
                     <span>{item.label}</span>
+                    {item.module && !entitlements.has(item.module) ? (
+                      <span className="dash__lock" aria-label="Not on your plan">
+                        <DashIcon name="lock" />
+                      </span>
+                    ) : null}
                     {item.badge === "unread" && unread > 0 ? (
                       <span className="dash__badge" aria-label={`${unread} unread`}>
                         {unread}
@@ -335,15 +344,17 @@ export default function AppLayout(): ReactElement {
         <FeedbackForm page={`modal:${pathname}`.slice(0, 120)} onDone={() => setFeedbackOpen(false)} />
       </Modal>
 
-      <ChatLauncher
-        members={members.data}
-        onPick={(m) =>
-          setBubble({
-            person: { id: m.id, name: m.name, email: m.email, hostname: m.device?.hostname },
-            onSent: () => members.reload(),
-          })
-        }
-      />
+      {entitlements.has("team_chat") ? (
+        <ChatLauncher
+          members={members.data}
+          onPick={(m) =>
+            setBubble({
+              person: { id: m.id, name: m.name, email: m.email, hostname: m.device?.hostname },
+              onSent: () => members.reload(),
+            })
+          }
+        />
+      ) : null}
       <SupportWidget />
       {bubble ? (
         <ChatBubble

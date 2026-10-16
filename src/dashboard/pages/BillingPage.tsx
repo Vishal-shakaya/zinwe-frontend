@@ -1,13 +1,14 @@
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useState, type ReactElement, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { errorMessage, getPaymentHistory, type Payment, type Subscription } from "../../lib/api";
-import { formatDate, formatInr } from "../../lib/format";
+import { downloadInvoicePdf, errorMessage, getPaymentHistory, type Payment, type Subscription } from "../../lib/api";
+import { formatDate, formatInr, formatMoney } from "../../lib/format";
 import { formatDateTime } from "../time";
 import { PaymentDetails, PaymentStatusPill } from "../../portal/components/PaymentDetails";
 import { PaymentForm } from "../../portal/components/PaymentForm";
 import { PaymentInstructionsCard } from "../../portal/components/PaymentInstructionsCard";
+import { QuoteSummary } from "../../portal/components/QuoteSummary";
 import { RejectedBanner } from "../../portal/components/RejectedBanner";
 import { SubscriptionSummary } from "../../portal/components/SubscriptionSummary";
 import { useSubscriptionInfo } from "../../portal/useSubscriptionInfo";
@@ -52,9 +53,11 @@ function RenewCard({
   subscription: Subscription;
   open: boolean;
   onOpen: () => void;
-  children: ReactElement[];
+  children: ReactNode;
 }): ReactElement {
   const days = subscription.days_left;
+  const period = subscription.billing_cycle === "yearly" ? "year" : "month";
+  const due = subscription.amount_due;
   const soon = days !== null && days <= 7;
   const next = subscription.renewal_period;
   return (
@@ -65,13 +68,14 @@ function RenewCard({
             Renew {subscription.plan.name}
           </h2>
           <p className="dash-card__sub">
-            {formatInr(subscription.amount_inr)} for one more month
+            {due ? formatMoney(due.total, due.currency) : formatInr(subscription.amount_inr)}
+            {due?.taxes.length ? " incl. GST" : ""} for one more {period}
             {next ? `: ${formatDate(next.from)} to ${formatDate(next.until)}` : ""}
           </p>
         </div>
         {!open ? (
           <button type="button" className="btn btn--primary dash-btn-sm" onClick={onOpen}>
-            Pay for next month
+            Pay for next {period}
           </button>
         ) : null}
       </div>
@@ -85,7 +89,7 @@ function RenewCard({
         </p>
       ) : (
         <p className="dash-note renew__note">
-          You can pay early: the new month starts when the current one ends, so you never lose days.
+          You can pay early: the new {period} starts when the current one ends, so you never lose days.
         </p>
       )}
       {open ? <div className="renew__pay">{children}</div> : null}
@@ -118,7 +122,7 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
               {p.upgrade_plan_name ?? p.plan_name}
               <small>{p.upgrade_plan_name ? "Upgrade" : p.is_renewal ? "Renewal" : "New plan"}</small>
             </span>
-            <span role="cell">{formatInr(p.amount_inr)}</span>
+            <span role="cell">{formatMoney(p.amount_inr, p.currency)}</span>
             <span role="cell">
               {p.covers_from && p.covers_until
                 ? `${formatDate(p.covers_from)} – ${formatDate(p.covers_until)}`
@@ -130,16 +134,40 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
               <PaymentStatusPill payment={p} />
             </span>
             <span role="cell" className="pay-hist__inv">
-              {p.status === "verified" ? (
-                <Link className="dash-link" to={`/app/invoice/${p.id}`}>
-                  Invoice
-                </Link>
-              ) : null}
+              {p.status === "verified" ? <InvoiceLinks payment={p} /> : null}
             </span>
           </div>
         ))}
       </div>
     </section>
+  );
+}
+
+/** "View" opens the printable invoice; "PDF" downloads the GST invoice file. */
+function InvoiceLinks({ payment }: { payment: Payment }): ReactElement {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const download = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await downloadInvoicePdf(payment.id, payment.invoice_number);
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <span className="inv-links">
+      <Link className="dash-link" to={`/app/invoice/${payment.id}`}>
+        View
+      </Link>
+      <button type="button" className="dash-link" onClick={() => void download()} disabled={busy}>
+        {busy ? "Downloading…" : "PDF"}
+      </button>
+      {error ? <small className="inv-links__err">{error}</small> : null}
+    </span>
   );
 }
 
@@ -186,9 +214,17 @@ export default function BillingPage(): ReactElement {
           />
           {canRenew ? (
             <RenewCard subscription={subscription} open={renewing} onOpen={() => setRenewing(true)}>
-              <PaymentInstructionsCard instructions={info.data.instructions} amount={subscription.amount_inr} />
-              <PaymentForm
+              {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} title="Renewal" /> : null}
+              <PaymentInstructionsCard
+                instructions={info.data.instructions}
+                quote={subscription.amount_due}
                 amount={subscription.amount_inr}
+              />
+              <PaymentForm
+                amount={subscription.amount_due?.total ?? subscription.amount_inr}
+                currency={subscription.amount_due?.currency ?? subscription.currency}
+                region={info.data.instructions.region}
+                allowPaypal={Boolean(info.data.instructions.paypal_url)}
                 payerName={payment?.payer_name || user?.full_name || ""}
                 onSubmitted={async (next) => {
                   setRenewing(false);
@@ -202,9 +238,17 @@ export default function BillingPage(): ReactElement {
           {needsPayment ? (
             <>
               {payment?.status === "rejected" ? <RejectedBanner payment={payment} /> : null}
-              <PaymentInstructionsCard instructions={info.data.instructions} amount={subscription.amount_inr} />
-              <PaymentForm
+              {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} /> : null}
+              <PaymentInstructionsCard
+                instructions={info.data.instructions}
+                quote={subscription.amount_due}
                 amount={subscription.amount_inr}
+              />
+              <PaymentForm
+                amount={subscription.amount_due?.total ?? subscription.amount_inr}
+                currency={subscription.amount_due?.currency ?? subscription.currency}
+                region={info.data.instructions.region}
+                allowPaypal={Boolean(info.data.instructions.paypal_url)}
                 payerName={payment?.payer_name || user?.full_name || ""}
                 onSubmitted={async (next) => {
                   await info.submitted(subscription, next);
@@ -215,7 +259,8 @@ export default function BillingPage(): ReactElement {
           ) : null}
           {history.data && history.data.length > 0 ? <PaymentHistory payments={history.data} /> : null}
           <p className="dash-note">
-            Want to change your plan or need a receipt? Email <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>.
+            Want to change your plan, or need your GSTIN on an invoice? Add it in Company settings before you pay, or
+            email <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>.
           </p>
         </>
       ) : (

@@ -1633,3 +1633,242 @@ textarea {
     transition: none;
   }
 }
+
+/* ---------- Text link with an arrow (e.g. "See plans and prices →") ---------- */
+
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  font-weight: 600;
+  color: var(--orange-text);
+}
+
+.link-arrow .arr {
+  transition: transform 0.25s var(--ease);
+}
+
+.link-arrow:hover .arr {
+  transform: translateX(3px);
+}
+
+.footer__line {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- FAQ (home) ---------- */
+
+.faq {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(32px, 6vw, 80px);
+  align-items: start;
+}
+
+.faq .sec-head {
+  margin-bottom: 0;
+}
+
+.faq__list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line-strong);
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 2px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq__q:hover {
+  color: var(--orange-text);
+}
+
+/* A plus that turns into a minus when the answer is open. */
+.faq__mark {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--orange-tint);
+}
+
+.faq__mark::before,
+.faq__mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--orange-ink);
+  transition: transform 0.25s var(--ease);
+}
+
+.faq__mark::after {
+  transform: rotate(90deg);
+}
+
+.faq__item[open] .faq__mark::after {
+  transform: rotate(0deg);
+}
+
+.faq__a {
+  margin: 0;
+  padding: 0 40px 22px 2px;
+  max-width: 44em;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+@media (max-width: 860px) {
+  .faq {
+    grid-template-columns: 1fr;
+  }
+  .faq__a {
+    padding-right: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq__mark::before,
+  .faq__mark::after,
+  .link-arrow .arr {
+    transition: none;
+  }
+}
+
+/* ---------- Static copy of a page for search engines (build/seoPages.ts) ----------
+   Only crawlers and visitors without JavaScript see it; the app draws the real page. */
+
+.seo-static {
+  padding: 48px 0;
+  line-height: 1.65;
+}
+
+.seo-static h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.seo-static nav {
+  margin-top: 24px;
+  font-size: 0.92rem;
+}
+
+/* ---------- Announcement bar (offers / news pushed from the admin panel; components/ui/AnnouncementBar) ---------- */
+
+.abar {
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.abar--offer,
+.abar--discount {
+  background: var(--orange);
+  color: var(--ink);
+}
+
+.abar--maintenance {
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+}
+
+.abar__inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 9px var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.abar__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.abar__text b {
+  font-weight: 600;
+}
+
+.abar__cta {
+  margin-left: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.abar__cta:hover .arr {
+  display: inline-block;
+  transform: translateX(2px);
+}
+
+.abar__x {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.abar__x:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Inside the sign-up / log-in column: no outer gutter, left-aligned. */
+.abar--flush .abar__inner {
+  padding-inline: 20px;
+}
+
+.abar--flush .abar__text {
+  text-align: left;
+}
+
+@media (max-width: 560px) {
+  .abar__text {
+    text-align: left;
+  }
+  .abar__cta {
+    display: inline-block;
+    margin-left: 0;
+  }
+}

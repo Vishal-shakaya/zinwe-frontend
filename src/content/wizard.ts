@@ -11,33 +11,36 @@ export interface WizardQuestion {
   pick: number;
 }
 
-/** The three-question setup-wizard demo on the home page (#how). */
+/**
+ * The three-question setup demo on the home page (#how). Every answer is a real setting in the
+ * dashboard (USB mode, remote-tool blocking, website blocking), so the demo never promises more.
+ */
 export const wizardQuestions: WizardQuestion[] = [
   {
-    question: "Can your team copy files to USB drives?",
+    question: "Can your team use USB drives?",
     options: [
-      { label: "Yes", rule: "USB copies allowed, but logged" },
-      { label: "Only with approval", rule: "USB copies need your approval" },
+      { label: "Yes", rule: "USB drives allowed, every copy recorded" },
+      { label: "Open files only", rule: "USB drives read-only on every PC" },
       { label: "No", rule: "USB drives blocked on every PC" },
     ],
     pick: 1,
   },
   {
-    question: "Who may connect to your PCs remotely?",
+    question: "Remote-access tools like AnyDesk?",
     options: [
-      { label: "Anyone", rule: "Remote sessions allowed, but logged" },
-      { label: "Our IT vendor", rule: "Only your IT vendor can connect remotely" },
-      { label: "No one", rule: "All remote sessions blocked" },
+      { label: "Allowed", rule: "Allowed, and recorded whenever one runs" },
+      { label: "Only the one we use", rule: "Every other remote tool is blocked" },
+      { label: "None", rule: "Remote-access tools blocked on every PC" },
     ],
     pick: 1,
   },
   {
-    question: "How should we tell you?",
+    question: "Risky websites?",
     options: [
-      { label: "Instantly", rule: "Alerts sent the moment something happens" },
-      { label: "Daily summary", rule: "One summary every evening" },
-      { label: "Both", rule: "Urgent alerts now, everything else at 6 PM" },
+      { label: "Just show me", rule: "Sites visited are listed, nothing blocked" },
+      { label: "Block risky ones", rule: "Malware, phishing, gambling and adult sites blocked" },
+      { label: "Block my list", rule: "Only the sites you list are blocked" },
     ],
-    pick: 2,
+    pick: 1,
   },
 ];

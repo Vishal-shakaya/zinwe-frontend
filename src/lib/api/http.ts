@@ -291,7 +291,43 @@ export async function authedRequest<T>(path: string, options: RequestOptions = {
     const retryAfter = retryAfterOf(response, parsed);
     throw new ApiError(kind, response.status, bodyString(parsed, "detail") ?? ERROR_COPY.rate_limited, {}, retryAfter);
   }
-  // 409 bodies carry a plain sentence ("Your company is already registered.").
-  const detail = kind === "conflict" ? bodyString(parsed, "detail") : undefined;
+  // 409 bodies carry a plain sentence ("Your company is already registered."), and so does a 403
+  // for a feature the plan doesn't include ("Blocking USB drives is on the Startups plan. …").
+  const planFeature = kind === "forbidden" && bodyString(parsed, "code") === "plan_feature";
+  const detail = kind === "conflict" || planFeature ? bodyString(parsed, "detail") : undefined;
   throw new ApiError(kind, response.status, detail ?? ERROR_COPY[kind]);
+}
+
+/**
+ * Download a file the API serves (e.g. an invoice PDF) with the owner's token, and hand it to the
+ * browser as a download named `fallbackName` (or the server's Content-Disposition name).
+ */
+export async function authedDownload(path: string, fallbackName: string): Promise<void> {
+  const token = getToken();
+  if (!token) throw new ApiError("unauthorized", 401, ERROR_COPY.unauthorized);
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path, undefined), {
+      headers: { Authorization: `Token ${token}` },
+      credentials: "omit",
+    });
+  } catch {
+    throw new ApiError("network", 0, ERROR_COPY.network);
+  }
+  if (!response.ok) {
+    const kind = kindForStatus(response.status);
+    if (kind === "unauthorized" && getToken() === token) clearToken();
+    const body = await readJson(response).catch(() => null);
+    const detail = response.status === 409 ? bodyString(body, "detail") : undefined;
+    throw new ApiError(kind, response.status, detail ?? ERROR_COPY[kind]);
+  }
+  const named = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") ?? "")?.[1];
+  const url = URL.createObjectURL(await response.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = named ?? fallbackName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }

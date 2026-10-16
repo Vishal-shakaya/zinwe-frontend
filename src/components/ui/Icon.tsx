@@ -7,6 +7,9 @@ export type IconName =
   | "install"
   | "lan"
   | "email"
+  | "usb"
+  | "globe"
+  | "clock"
   | "check"
   | "windows"
   | "linux"
@@ -66,6 +69,27 @@ export function Icon({ name, strokeWidth }: IconProps): ReactElement {
         <svg viewBox="0 0 24 24" {...strokeProps} strokeWidth={sw}>
           <rect x="3" y="5" width="18" height="14" rx="2" />
           <path d="m3 7 9 6 9-6" />
+        </svg>
+      );
+    case "usb":
+      return (
+        <svg viewBox="0 0 24 24" {...strokeProps} strokeWidth={sw}>
+          <rect x="7" y="9" width="10" height="13" rx="2" />
+          <path d="M9 9V3h6v6M11 5.5h.01M13 5.5h.01" />
+        </svg>
+      );
+    case "globe":
+      return (
+        <svg viewBox="0 0 24 24" {...strokeProps} strokeWidth={sw}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </svg>
+      );
+    case "clock":
+      return (
+        <svg viewBox="0 0 24 24" {...strokeProps} strokeWidth={sw}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
         </svg>
       );
     case "check":

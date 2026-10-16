@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from "react";
 import { Icon } from "../../components/ui/Icon";
 import type { Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { hasTrial, planDevices, planFeatures, planPrice, trialBadge } from "../plan";
+import { hasTrial, planAltPrice, planDevices, planDiscount, planFeatures, planPrice, trialBadge } from "../plan";
 
 interface PlanCardsProps {
   plans: Plan[];
@@ -23,6 +23,7 @@ export function PlanCards({ plans, selected, selectedNote = "Your pick", renderA
     <ul className="plans">
       {plans.map((plan) => {
         const price = planPrice(plan);
+        const discount = planDiscount(plan);
         const isSelected = selected === plan.code;
         const highlighted = isSelected || (!selected && plan.is_recommended);
         return (
@@ -39,9 +40,16 @@ export function PlanCards({ plans, selected, selectedNote = "Your pick", renderA
             {hasTrial(plan) ? (
               <p className="plan__trial">{trialBadge(plan)}</p>
             ) : null}
+            {discount ? (
+              <p className="plan__was">
+                <s aria-label={`was ${discount.was}`}>{discount.was}</s>
+                <span className="plan__off">{discount.percent}% off</span>
+              </p>
+            ) : null}
             <p className="plan__price">
               <b>{price.big}</b> <span>{price.small}</span>
             </p>
+            {planAltPrice(plan) ? <p className="plan__alt">{planAltPrice(plan)}</p> : null}
             <p className="plan__devices">{planDevices(plan)}</p>
             <ul className="plan__features">
               {planFeatures(plan).map((feature) => (

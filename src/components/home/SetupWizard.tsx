@@ -118,7 +118,7 @@ export function SetupWizard(): ReactElement {
       </div>
       <div className="wiz__done">
         <span>
-          <b>{COUNT} rules</b> active on 12 PCs. Setup took 2 minutes.
+          <b>{COUNT} rules</b> active on 12 PCs, each within a minute.
         </span>
         <button className="wiz__replay" type="button" onClick={() => setReplays((r) => r + 1)}>
           Replay

@@ -5,13 +5,11 @@ import { SocialLinks } from "../components/ui/SocialLinks";
 import { COMPANY_EMAIL } from "../content/company";
 import { Smoke } from "../components/ui/Smoke";
 import { StaggerTitle } from "../components/ui/StaggerTitle";
+import { seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 
 export default function ContactPage(): ReactElement {
-  usePageMeta({
-    title: "Contact — Zinwe",
-    description: "Talk to the Zinwe team about data protection and activity monitoring for your business.",
-  });
+  usePageMeta(seoFor("/contact"));
 
   return (
     <>

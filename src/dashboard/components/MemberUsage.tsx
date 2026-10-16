@@ -1,5 +1,6 @@
 import { useCallback, type ReactElement } from "react";
 import { getMetrics } from "../../lib/api";
+import { useEntitlements } from "../features/entitlements";
 import { formatHours, toChartRows, type SeriesSpec } from "../features/metrics";
 import { useResource } from "../useResource";
 
@@ -13,7 +14,22 @@ const LABEL = SPECS[0].label;
  * legend: the caption names it. Each bar has a hover/focus tooltip, and the
  * same numbers sit in a screen-reader list.
  */
+/** Plan enforcement: app usage (active time) is a Businesses feature; other plans get a one-line note. */
 export function MemberUsage({ memberId, connected }: { memberId: number; connected: boolean }): ReactElement {
+  const { has, upgradeFor } = useEntitlements();
+  if (!has("app_usage")) {
+    const plan = upgradeFor("app_usage");
+    return (
+      <div className="mu mu--empty">
+        <span className="mu__cap">Active time · last 7 days</span>
+        <span className="mu__none">Active time and app usage are on the {plan?.name ?? "next"} plan.</span>
+      </div>
+    );
+  }
+  return <MemberUsageChart memberId={memberId} connected={connected} />;
+}
+
+function MemberUsageChart({ memberId, connected }: { memberId: number; connected: boolean }): ReactElement {
   const load = useCallback(
     (signal: AbortSignal) => getMetrics({ member: memberId, days: DAYS, category: "app.foreground" }, signal),
     [memberId],

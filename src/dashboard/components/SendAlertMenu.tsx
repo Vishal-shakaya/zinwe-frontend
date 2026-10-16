@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { DeviceEvent } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { useChatBubble } from "../features/chatBubble";
+import { useEntitlements } from "../features/entitlements";
 import { eventDomain, eventMeta, severityOf } from "../features/events";
 import { contextOf, tagsFor, URGENCY, type Urgency } from "../features/messageTags";
 import type { ComposerPerson } from "./TaggedComposer";
@@ -14,18 +15,32 @@ import { DashIcon } from "./DashIcon";
  * it to their PC, by email, or both from there. The menu also offers the next
  * step: block the site, or review the rule.
  */
-export function SendAlertMenu({
-  event,
-  person,
-  hostname,
-  compact = false,
-}: {
+interface SendAlertMenuProps {
   event: DeviceEvent;
   person: ComposerPerson | undefined;
   hostname?: string;
   /** Smaller button for dense tables. */
   compact?: boolean;
-}): ReactElement {
+}
+
+/** Plan enforcement: alerting the employee (their PC + email) is a Businesses feature. */
+export function SendAlertMenu(props: SendAlertMenuProps): ReactElement {
+  const { has, upgradeFor } = useEntitlements();
+  if (has("alert_to_employee")) return <SendAlertMenuInner {...props} />;
+  const plan = upgradeFor("alert_to_employee");
+  return (
+    <Link
+      className={cx("btn btn--ghost dash-btn-sm sam__btn", props.compact && "sam__btn--compact")}
+      to={plan ? `/app/upgrade?plan=${encodeURIComponent(plan.code)}` : "/app/upgrade"}
+      data-tip={`Emailing an alert to the employee is on the ${plan?.name ?? "next"} plan`}
+    >
+      <DashIcon name="lock" />
+      <span>Send alert</span>
+    </Link>
+  );
+}
+
+function SendAlertMenuInner({ event, person, hostname, compact = false }: SendAlertMenuProps): ReactElement {
   const meta = eventMeta(event.type);
   const domain = eventDomain(event);
   const bubble = useChatBubble();

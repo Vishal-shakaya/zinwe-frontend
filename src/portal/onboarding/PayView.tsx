@@ -5,6 +5,7 @@ import { EmptyState, ErrorState, LoadingState } from "../../dashboard/components
 import { errorMessage } from "../../lib/api";
 import { PaymentInstructionsCard } from "../components/PaymentInstructionsCard";
 import { PaymentForm } from "../components/PaymentForm";
+import { QuoteSummary } from "../components/QuoteSummary";
 import { RejectedBanner } from "../components/RejectedBanner";
 import { SubscriptionSummary } from "../components/SubscriptionSummary";
 import { useSubscriptionInfo } from "../useSubscriptionInfo";
@@ -21,7 +22,8 @@ export function PayView(): ReactElement {
         <p className="sub-kicker">Step 3 of 3 · Payment</p>
         <h1 className="onb__title">Pay for your plan</h1>
         <p className="onb__lede">
-          Pay by UPI or bank transfer (or PayPal from outside India), then tell us the reference so we can match it.
+          Here's exactly what to pay and how. In India: UPI or bank transfer. Outside India: card or US bank through
+          Skydo. Then tell us the reference so we can match it.
         </p>
       </div>
 
@@ -50,9 +52,17 @@ export function PayView(): ReactElement {
           {subscription.latest_payment?.status === "rejected" ? (
             <RejectedBanner payment={subscription.latest_payment} />
           ) : null}
-          <PaymentInstructionsCard instructions={info.data.instructions} amount={subscription.amount_inr} />
-          <PaymentForm
+          {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} /> : null}
+          <PaymentInstructionsCard
+            instructions={info.data.instructions}
+            quote={subscription.amount_due}
             amount={subscription.amount_inr}
+          />
+          <PaymentForm
+            amount={subscription.amount_due?.total ?? subscription.amount_inr}
+            currency={subscription.amount_due?.currency ?? subscription.currency}
+            region={info.data.instructions.region}
+                allowPaypal={Boolean(info.data.instructions.paypal_url)}
             payerName={user?.full_name ?? ""}
             onSubmitted={(payment) => info.submitted(subscription, payment)}
           />

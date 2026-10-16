@@ -4,7 +4,7 @@ import { cx } from "../../lib/cx";
 import { Icon } from "../ui/Icon";
 import { Reveal } from "../ui/Reveal";
 
-/** "What it watches" section: five live on/off switches with an active count. */
+/** "What Zinwe covers" section: one live on/off switch per protection, with an "on" count. */
 export function WatchPanel(): ReactElement {
   const [enabled, setEnabled] = useState<boolean[]>(() => watchItems.map(() => true));
   const activeCount = enabled.filter(Boolean).length;
@@ -15,9 +15,12 @@ export function WatchPanel(): ReactElement {
     <section className="sec sec--paper" id="watch">
       <div className="wrap split">
         <Reveal>
-          <p className="eyebrow">What it watches</p>
-          <h2 className="h-section">Five doors your data can leave through. All covered.</h2>
-          <p className="lede">One switch each. Turn on what matters to your business, leave the rest.</p>
+          <p className="eyebrow">What Zinwe covers</p>
+          <h2 className="h-section">The everyday ways data leaves a small office. Covered.</h2>
+          <p className="lede">
+            One switch for each. Keep what matters to your business and turn off the rest. Your team sees what's on,
+            right on their own PC.
+          </p>
         </Reveal>
         <Reveal className="panel" delay={1}>
           <div className="panel__bar">
@@ -25,7 +28,7 @@ export function WatchPanel(): ReactElement {
               <b>Acme Interiors</b> · 12 PCs
             </span>
             <span className="panel__status" data-watch-count="">
-              {`${activeCount} of ${watchItems.length} active`}
+              {`${activeCount} of ${watchItems.length} on`}
             </span>
           </div>
           <ul className="watch">

@@ -5,8 +5,9 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { listDevices, listEvents, listMembers, type DeviceEvent, type Member } from "../../lib/api";
 import { AlertsTable } from "../components/AlertsTable";
 import { StatTiles } from "../components/StatTiles";
-import { useUpgrade } from "../features/upgrade";
 import { DashIcon } from "../components/DashIcon";
+import { PlanLock } from "../components/PlanLock";
+import { useEntitlements } from "../features/entitlements";
 import { LoadingState, PageHeader } from "../components/States";
 import { makeMemberResolver, severityOf } from "../features/events";
 import { formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
@@ -45,9 +46,9 @@ export default function OverviewPage(): ReactElement {
   const events = useResource(loadEvents, { pollMs: 60_000 });
   const now = useNow(60_000);
 
+  const workOn = useEntitlements().has("work_time");
   const firstName = account?.user.full_name.trim().split(/\s+/)[0];
   const company = account?.company;
-  const upgrade = useUpgrade();
 
   const activeMembers = useMemo(() => (members.data ?? []).filter((m) => m.is_active), [members.data]);
   const presence = useMemo(() => activeMembers.map((m) => presenceOf(m.device)), [activeMembers]);
@@ -67,14 +68,6 @@ export default function OverviewPage(): ReactElement {
       <PageHeader
         title={firstName ? `Welcome, ${firstName}` : "Welcome"}
         lede={company ? `${company.name} · Here's your team today.` : "Here's your team today."}
-        actions={
-          upgrade.canUpgrade ? (
-            <button type="button" className="btn btn--primary dash-btn-sm" onClick={upgrade.open}>
-              <DashIcon name="arrow" />
-              Upgrade plan
-            </button>
-          ) : null
-        }
       />
 
       <StatTiles
@@ -87,20 +80,25 @@ export default function OverviewPage(): ReactElement {
             icon: "team",
             hint: "Everyone you've added whose PC Zinwe protects.",
           },
-          {
-            value: num(working),
-            label: "working now",
-            tone: working > 0 ? "good" : undefined,
-            icon: "activity",
-            hint: "Pressed Start in their Zinwe widget and aren't on a break.",
-          },
-          {
-            value: num(onBreak),
-            label: "on break",
-            tone: onBreak > 0 ? "warn" : undefined,
-            icon: "clock",
-            hint: "On a break right now. See why on the Activity page.",
-          },
+          // Plan enforcement: working / on-break come from work hours (Businesses).
+          ...(workOn
+            ? [
+                {
+                  value: num(working),
+                  label: "working now",
+                  tone: working > 0 ? ("good" as const) : undefined,
+                  icon: "activity" as const,
+                  hint: "Pressed Start in their Zinwe widget and aren't on a break.",
+                },
+                {
+                  value: num(onBreak),
+                  label: "on break",
+                  tone: onBreak > 0 ? ("warn" as const) : undefined,
+                  icon: "clock" as const,
+                  hint: "On a break right now. See why on the Activity page.",
+                },
+              ]
+            : []),
           {
             value: num(offline),
             label: "offline",
@@ -117,7 +115,12 @@ export default function OverviewPage(): ReactElement {
         ]}
       />
 
-      <section className="dash-card" aria-labelledby="ov-team-title">
+      {workOn ? null : (
+        <PlanLock module="work_time" compact title="Who's working">
+          See who's working, who's on a break and why, and when each person started and finished their day.
+        </PlanLock>
+      )}
+      <section className="dash-card" aria-labelledby="ov-team-title" hidden={!workOn}>
         <div className="dash-card__head dash-card__head--split">
           <h2 className="dash-card__title" id="ov-team-title">
             Who's working

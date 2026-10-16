@@ -1,9 +1,12 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { seoFor } from "../../content/seo";
 import { useHeroCtaRef } from "../layout/heroCtaContext";
 import { Smoke } from "../ui/Smoke";
 import { StaggerTitle } from "../ui/StaggerTitle";
 import { Translator } from "./Translator";
+
+const HOME = seoFor("/");
 
 export function Hero(): ReactElement {
   const ctaRef = useHeroCtaRef();
@@ -13,12 +16,12 @@ export function Hero(): ReactElement {
       <Smoke />
       <div className="wrap">
         <div className="hero__pill fade">
-          <b>EARLY ACCESS</b> For teams of 5–50 · Windows
+          <b>IT IS OK.</b> Security, simplified for teams of 5–50
         </div>
-        <StaggerTitle text="Know what's happening to your data. In plain English." />
+        <StaggerTitle text={HOME.h1} />
         <p className="lede fade" style={{ animationDelay: ".5s" }}>
-          Zinwe watches USB copies, remote access, software installs and email across your team's PCs, then tells
-          you what matters in words anyone can read. No IT department needed.
+          Zinwe is data protection for small businesses without an IT team. It flags USB copies, files leaving the
+          office, remote-access tools and new software on your team's PCs, and tells you what each one means.
         </p>
         <div className="hero__cta fade" style={{ animationDelay: ".65s" }} ref={ctaRef}>
           <Link className="btn btn--primary btn--lg" to="/signup?plan=free">
@@ -29,10 +32,10 @@ export function Hero(): ReactElement {
           </Link>
         </div>
         <p className="hero__note fade" style={{ animationDelay: ".8s" }}>
-          Free forever for up to 3 PCs. No card needed.
+          Free forever for up to 3 PCs · No card needed · Windows · India &amp; US
         </p>
 
-        {/* Signature: raw log → plain-language alert */}
+        {/* Signature: raw event → plain-language alert */}
         <Translator />
       </div>
     </section>

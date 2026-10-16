@@ -1,5 +1,5 @@
 /** Company, plans, subscription and manual payment. */
-import { ApiError, authedRequest } from "./http";
+import { ApiError, authedDownload, authedRequest } from "./http";
 import type {
   Company,
   CompanyPayload,
@@ -51,17 +51,43 @@ export function createSubscription(plan: string): Promise<Subscription> {
   return authedRequest<Subscription>("/api/auth/subscription/", { method: "POST", body: { plan } });
 }
 
+/** A frozen tax invoice (backend z_auth/invoices.py). Amounts are in `currency`. */
 export interface Invoice {
   number: string;
+  title?: string;
   issued_on: string;
   paid_on: string;
   status: "paid";
-  seller: { name: string; address: string; email: string; gstin: string };
-  customer: { name: string; contact: string; email: string; address: string; gstin: string };
-  lines: Array<{ description: string; period_from: string | null; period_until: string | null; amount_inr: string }>;
+  currency?: "INR" | "USD";
+  seller: { name: string; address: string; email: string; gstin: string; state?: string };
+  customer: { name: string; contact: string; email: string; address: string; gstin: string; state?: string; country?: string };
+  place_of_supply?: string;
+  export?: boolean;
+  lines: Array<{
+    description: string;
+    sac?: string;
+    period_from: string | null;
+    period_until: string | null;
+    list_amount?: string;
+    discount_amount?: string;
+    amount?: string;
+    amount_inr: string;
+  }>;
+  taxable_amount?: string;
+  taxes?: Array<{ label: string; rate: string; amount: string }>;
+  tax_total?: string;
+  total?: string;
   total_inr: string;
-  payment: { method: string; reference: string; payer: string };
+  total_in_words?: string;
+  payment: { method: string; reference: string; payer: string; amount_paid?: string };
+  notes?: string[];
   note: string;
+}
+
+/** Download the invoice PDF of a confirmed payment. */
+export function downloadInvoicePdf(paymentId: number, number?: string | null): Promise<void> {
+  const name = `Zinwe-invoice-${(number ?? String(paymentId)).replace(/\//g, "-")}.pdf`;
+  return authedDownload(`/api/auth/subscription/payments/${paymentId}/invoice/pdf/`, name);
 }
 
 /** GET subscription/payments/<id>/invoice/ — only for confirmed payments (409 before). */

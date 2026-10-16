@@ -4,6 +4,7 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { decideBreak, errorMessage, getWorkLog, listMembers, type Member } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { DashIcon } from "../components/DashIcon";
+import { PagePlanGate } from "../components/PlanLock";
 import { StatTiles } from "../components/StatTiles";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
 import { formatDuration } from "../features/memberStatus";
@@ -28,7 +29,21 @@ function parseDay(raw: string | null, today: string): string {
  * (with the reason they picked in the Zinwe widget) and when they finished.
  * One day at a time; today refreshes every minute.
  */
+/** Plan enforcement: the whole page is work_time; without it, a lock card shows instead. */
 export default function ActivityPage(): ReactElement {
+  return (
+    <PagePlanGate
+      module="work_time"
+      title="Activity"
+      lede="When your team logged in, took breaks and logged out, from their Zinwe widget."
+      lock="See when each person started, every break and why, and when they finished. Approve or question breaks from one page."
+    >
+      <ActivityPageContent />
+    </PagePlanGate>
+  );
+}
+
+function ActivityPageContent(): ReactElement {
   usePageMeta({ title: "Activity — Zinwe", description: "When your team started, took breaks and finished work." });
 
   const now = useNow(60_000);

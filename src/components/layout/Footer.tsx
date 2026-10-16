@@ -14,7 +14,9 @@ export function Footer(): ReactElement {
         <div>
           <Brand ariaLabel="Zinwe home" height={26} />
           <p className="footer__meta">
-            Monitor. Team. Data. Privacy.
+            <b className="footer__line">IT Is OK. Security, simplified.</b>
+            <br />
+            Data protection for small businesses in India and the US.
             <br />
             SKYTECHNO · New Delhi, India
             <br />

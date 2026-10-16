@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { AuthResponse, Company, Onboarding, Subscription, User } from "../lib/api";
+import type { AuthResponse, Company, Entitlements, Onboarding, Subscription, User } from "../lib/api";
 
 /** What the portal knows about the signed-in owner. */
 export interface Account {
@@ -8,6 +8,8 @@ export interface Account {
   /** `undefined` until GET me/ has answered (a login response doesn't carry them). */
   company?: Company | null;
   subscription?: Subscription | null;
+  /** What the plan switches on; `undefined` until GET me/ answers (or from an older backend). */
+  entitlements?: Entitlements;
 }
 
 /** Local knowledge to apply if the follow-up GET me/ fails. */

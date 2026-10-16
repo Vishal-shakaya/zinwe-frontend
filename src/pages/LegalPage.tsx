@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { LegalText } from "../components/legal/LegalText";
 import { LEGAL_CONTACT, LEGAL_DOCS, LEGAL_UPDATED, legalDoc } from "../content/legal";
+import { legalSeo, seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 import "../components/legal/legal.css";
 
@@ -9,10 +10,7 @@ import "../components/legal/legal.css";
 export default function LegalPage(): ReactElement {
   const { slug } = useParams();
   const doc = legalDoc(slug);
-  usePageMeta({
-    title: doc ? `${doc.title} — Zinwe` : "Legal — Zinwe",
-    description: doc ? doc.summary : "Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies.",
-  });
+  usePageMeta(doc ? legalSeo(doc) : seoFor("/legal"));
 
   if (slug && !doc) return <Navigate to="/legal" replace />;
 

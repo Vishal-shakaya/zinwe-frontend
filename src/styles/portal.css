@@ -433,6 +433,26 @@
   color: var(--mute);
 }
 
+/* Launch discount: the list price struck through + "28% off". */
+.plan__was {
+  margin: 0 0 -6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--mute);
+}
+
+.plan__off {
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .plan__devices {
   margin: 0;
   padding-bottom: 14px;
@@ -1171,5 +1191,125 @@
   margin-top: 6px;
   font-size: 0.8rem;
   line-height: 1.45;
+  color: var(--mute);
+}
+
+/* ---------- Billing by country: amount to pay, payment steps, UPI QR (2026-10-15) ---------- */
+
+.quote__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.quote__total {
+  margin: 0;
+  text-align: right;
+}
+
+.quote__total b {
+  display: block;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.quote__total small {
+  color: var(--mute);
+  font-size: 0.8rem;
+}
+
+.quote__lines {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.quote__lines th,
+.quote__lines td {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+  text-align: left;
+}
+
+.quote__lines td {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote__minus td {
+  color: var(--dash-green, #16794a);
+}
+
+.quote__sum th,
+.quote__sum td {
+  border-bottom: 0;
+  padding-top: 12px;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.quote__note {
+  margin: 0;
+}
+
+.pay-steps {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+.pay-way--primary {
+  background: var(--orange-tint);
+  border-color: #ffd5bf;
+}
+
+.pay-way__lead {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+
+.pay-qr {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pay-qr__img {
+  flex: none;
+  display: block;
+  width: 148px;
+  height: 148px;
+  padding: 6px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.pay-qr__img svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pay-qr figcaption {
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+
+.plan__alt {
+  margin: -6px 0 0;
+  font-size: 0.8rem;
   color: var(--mute);
 }

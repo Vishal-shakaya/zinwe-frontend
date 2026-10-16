@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, type Policy } from "../../lib/api";
 import { DashIcon } from "../components/DashIcon";
+import { PlanLock } from "../components/PlanLock";
 import { ErrorState, LoadingState, PageHeader } from "../components/States";
+import { useEntitlements } from "../features/entitlements";
 import { DataTransferCard, RemoteSoftwareCard, UsbCard, WebsiteCard } from "../features/policyControls";
 import { usePolicy, type CommitPolicy } from "../features/usePolicy";
 import { formatDateTime, formatRelative, useNow } from "../time";
@@ -61,8 +63,10 @@ export default function SetupPage(): ReactElement {
   );
 }
 
+/** Plan enforcement: each control shows only when the plan includes it; locked ones show a lock card. */
 function SetupCards({ policy, commit }: { policy: Policy; commit: CommitPolicy }): ReactElement {
   const now = useNow();
+  const { has } = useEntitlements();
   return (
     <>
       <p className="dash-set__meta" role="status">
@@ -70,10 +74,28 @@ function SetupCards({ policy, commit }: { policy: Policy; commit: CommitPolicy }
         <span title={formatDateTime(policy.updated_at)}>{formatRelative(policy.updated_at, now)}</span>. Every PC picks
         up your changes within about a minute, and keeps following them even without internet.
       </p>
-      <UsbCard block={policy.usb} commit={commit} />
-      <WebsiteCard block={policy.web} commit={commit} />
-      <DataTransferCard block={policy.data_transfer} commit={commit} />
-      <RemoteSoftwareCard block={policy.remote_software} commit={commit} />
+      {has("usb_control") ? (
+        <UsbCard block={policy.usb} commit={commit} />
+      ) : (
+        <PlanLock module="usb_control" compact>
+          Make pen drives read-only or block them on every PC.
+        </PlanLock>
+      )}
+      {has("web") ? (
+        <WebsiteCard block={policy.web} commit={commit} />
+      ) : (
+        <PlanLock module="web" compact>
+          Block risky website categories or any site you choose.
+        </PlanLock>
+      )}
+      {has("data_transfer") ? <DataTransferCard block={policy.data_transfer} commit={commit} /> : null}
+      {has("remote_access") ? (
+        <RemoteSoftwareCard block={policy.remote_software} commit={commit} />
+      ) : (
+        <PlanLock module="remote_access" compact>
+          Spot and block remote-control tools like AnyDesk, and see new software installs.
+        </PlanLock>
+      )}
     </>
   );
 }

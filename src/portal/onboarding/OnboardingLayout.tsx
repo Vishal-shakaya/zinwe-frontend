@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState, type ReactElement } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
+import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
 import { Brand } from "../../components/ui/Brand";
 import { ONBOARDING_STEPS } from "../../content/portal";
 import { cx } from "../../lib/cx";
@@ -23,6 +24,7 @@ export default function OnboardingLayout(): ReactElement {
 
   return (
     <div className="onb">
+      <AnnouncementBar />
       <header className="onb__top">
         <Brand ariaLabel="Zinwe home" height={24} />
         <div className="onb__who">

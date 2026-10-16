@@ -4,6 +4,7 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, listMembers, type Member } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { DashIcon } from "../components/DashIcon";
+import { PagePlanGate } from "../components/PlanLock";
 import { ChatComposer, MemberChatThread } from "../components/MemberChat";
 import { EmptyState, ErrorState, LoadingState, PageHeader } from "../components/States";
 import { PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
@@ -29,7 +30,21 @@ function sortForChat(members: Member[]): Member[] {
  * conversation and reply on the right. Messages land in the Zinwe widget on
  * their PC; their replies come back here.
  */
+/** Plan enforcement: the whole page is team_chat; without it, a lock card shows instead. */
 export default function TeamChatPage(): ReactElement {
+  return (
+    <PagePlanGate
+      module="team_chat"
+      title="Chat"
+      lede="Message your team on their Zinwe widget."
+      lock="Send a note straight to an employee's PC, get their reply here, and copy it to their email when it matters."
+    >
+      <TeamChatPageContent />
+    </PagePlanGate>
+  );
+}
+
+function TeamChatPageContent(): ReactElement {
   usePageMeta({ title: "Chat — Zinwe", description: "Message your team and read their replies." });
 
   const load = useCallback((signal: AbortSignal) => listMembers(signal), []);

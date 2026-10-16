@@ -1,3 +1,4 @@
+import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Brand } from "../../components/ui/Brand";
@@ -41,11 +42,12 @@ export function AuthShell({ footer, children }: AuthShellProps): ReactElement {
               ))}
             </ul>
           </div>
-          <small className="auth__small">Made in India for teams of 5–50.</small>
+          <small className="auth__small">For teams of 5–50 in India and the US.</small>
         </div>
       </aside>
 
       <div className="auth__main">
+        <AnnouncementBar className="abar--flush" />
         <div className="auth__top">
           <span className="auth__mobile-brand">
             <Brand ariaLabel="Zinwe home" height={24} />

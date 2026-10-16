@@ -8,7 +8,7 @@ import { formatInr } from "../../lib/format";
 import { clearPlanIntent } from "../../lib/planIntent";
 import { onboardingFor } from "../../auth/steps";
 import { FormAlert } from "../components/FormAlert";
-import { hasTrial, planDevices, planFeatures, planPrice, trialBadge, trialEndDate, trialSpanAdjective } from "../plan";
+import { hasTrial, planDevices, planDiscount, planFeatures, planPrice, trialBadge, trialEndDate, trialSpanAdjective } from "../plan";
 import { apiFailureMessage } from "../failure";
 import { usePlans } from "../usePlans";
 
@@ -65,6 +65,7 @@ function Confirm({ plan, onStale }: { plan: Plan; onStale: () => void }): ReactE
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const price = planPrice(plan);
+  const discount = planDiscount(plan);
   const mode = modeFor(plan);
 
   const onConfirm = async () => {
@@ -100,7 +101,7 @@ function Confirm({ plan, onStale }: { plan: Plan; onStale: () => void }): ReactE
       kicker: "Step 3 of 3 · Payment",
       title: `Subscribe to ${plan.name}`,
       lede: plan.tagline,
-      note: "Next, pay by UPI or bank transfer (or PayPal from outside India) and tell us the reference. We switch your plan on once we've checked it, usually within one working day.",
+      note: "Next you'll see exactly what to pay (with GST in India) and how: UPI or bank transfer in India, card or US bank outside India. Tell us the reference and we switch your plan on once we've checked it, usually within one working day.",
       button: "Continue to payment",
       busy: "Saving…",
     },
@@ -126,6 +127,12 @@ function Confirm({ plan, onStale }: { plan: Plan; onStale: () => void }): ReactE
 
       <div className="chosen">
         {mode === "trial" ? <p className="plan__trial">{trialBadge(plan)}</p> : null}
+        {discount ? (
+          <p className="plan__was">
+            <s aria-label={`was ${discount.was}`}>{discount.was}</s>
+            <span className="plan__off">{discount.percent}% off</span>
+          </p>
+        ) : null}
         <p className="plan__price">
           <b>{price.big}</b> <span>{price.small}</span>
         </p>

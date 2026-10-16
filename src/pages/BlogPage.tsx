@@ -1,5 +1,6 @@
 import { useCallback, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { NewsletterSignup } from "../components/blog/NewsletterSignup";
@@ -17,11 +18,7 @@ export default function BlogPage(): ReactElement {
   const type = (TYPE_KEYS as string[]).includes(params.get("type") ?? "") ? (params.get("type") as ArticleType) : "";
   const page = Math.max(1, Number(params.get("page")) || 1);
 
-  usePageMeta({
-    title: "Blog — Zinwe",
-    description:
-      "Guides, product releases, press and insights on protecting small-business data, from the team behind Zinwe.",
-  });
+  usePageMeta(seoFor("/blog"));
 
   const load = useCallback((signal: AbortSignal) => getArticles({ type, page }, signal), [type, page]);
   const list = useResource(load, { resetKey: `${type}|${page}` });

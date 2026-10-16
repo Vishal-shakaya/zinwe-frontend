@@ -65,15 +65,54 @@ export interface Company {
 export type CompanyPayload = Omit<Company, "id" | "created_at">;
 export type CompanyField = keyof CompanyPayload;
 
+export type Currency = "INR" | "USD";
+export type BillingCycle = "monthly" | "yearly";
+
+/**
+ * What a customer pays for one billing cycle (backend z_auth/pricing.py): India = INR monthly + GST
+ * (CGST + SGST in the seller's state, IGST elsewhere); outside India = USD yearly, no GST (export under LUT).
+ * Amounts are decimal strings.
+ */
+export interface Quote {
+  plan_code: string;
+  plan_name: string;
+  currency: Currency;
+  billing_cycle: BillingCycle;
+  months: number;
+  list_amount: string;
+  discount_amount: string;
+  /** Taxable value for the whole cycle. */
+  amount: string;
+  taxes: Array<{ label: string; rate: string; amount: string }>;
+  tax_total: string;
+  /** What the customer pays. */
+  total: string;
+  region: "IN" | "INTL";
+  place_of_supply: string;
+  export: boolean;
+  note: string;
+}
+
 export interface Plan {
   code: string;
   name: string;
   tagline: string;
-  /** Decimal string, e.g. "1999.00". */
+  /** What the owner pays each month (after any discount). Decimal string, e.g. "971.00". */
   price_inr_monthly: string;
+  /** The price before the discount, shown struck through; "0.00" = no discount. Absent on older backends. */
+  list_price_inr_monthly?: string;
+  /** Off the list price, e.g. 28 (0 = none). */
+  discount_percent?: number;
+  /** Outside India: per month, billed yearly ("0.00" = not sold in USD). */
+  price_usd_monthly?: string;
+  list_price_usd_monthly?: string;
+  /** What the signed-in owner would pay (their country's currency, cycle and tax); null for visitors. */
+  quote?: Quote | null;
   trial_days: number;
   max_devices: number;
   features: string[];
+  /** What the plan switches on (enforced by the backend); see `PlanModule`. */
+  modules?: PlanModule[];
   is_recommended: boolean;
   requires_payment: boolean;
   sort_order: number;
@@ -81,13 +120,19 @@ export interface Plan {
   trial_available: boolean;
 }
 
-export type PaymentMethod = "upi" | "bank_transfer" | "paypal" | "cheque" | "cash";
+export type PaymentMethod = "upi" | "bank_transfer" | "paypal" | "skydo" | "cheque" | "cash";
 export type PaymentStatus = "submitted" | "verified" | "rejected";
 
 export interface Payment {
   id: number;
   method: PaymentMethod;
+  /** Legacy name: the amount paid, in `currency`. */
   amount_inr: string;
+  currency?: Currency;
+  /** What was due when it was reported (empty object on older payments). */
+  due?: Partial<Quote>;
+  /** Set once confirmed: e.g. "ZW/2026-27/0001". */
+  invoice_number?: string | null;
   reference: string;
   paid_on: string;
   payer_name: string;
@@ -110,8 +155,14 @@ export interface Subscription {
   id: number;
   plan: Plan;
   status: SubscriptionStatus;
+  /** Legacy name: the plan price for one billing cycle, before tax, in `currency`. */
   amount_inr: string;
-  billing_cycle: string;
+  currency?: Currency;
+  billing_cycle: BillingCycle | string;
+  /** A payment link made for this customer (Skydo: card or US bank). */
+  payment_link?: string;
+  /** The next payment (plan + tax), while one can be made; null otherwise. */
+  amount_due?: Quote | null;
   starts_at: string | null;
   ends_at: string | null;
   created_at: string;
@@ -134,14 +185,68 @@ export interface PaymentInstructions {
   account_type: string;
   account_number: string;
   ifsc: string;
-  /** v1.1: PayPal link for payments from outside India; "" hides the option. */
+  /** PayPal (outside India, only until Skydo is set up); "" hides the option. */
   paypal_url: string;
   note: string;
+  /** "IN" = UPI + bank; "INTL" = Skydo link / Skydo US account. */
+  region?: "IN" | "INTL";
+  currency?: Currency;
+  /** The Skydo US account for ACH / wire (null when not set up). */
+  skydo?: SkydoAccount | null;
+  /** This customer's own payment link (card or US bank), set by the Zinwe team. */
+  payment_link?: string;
+  /** India: a UPI QR code (SVG) with the exact amount due filled in; "" when there's nothing due. */
+  upi_qr_svg?: string;
+}
+
+export interface SkydoAccount {
+  account_name?: string;
+  bank_name?: string;
+  account_number?: string;
+  routing_number?: string;
+  account_type?: string;
+  swift?: string;
 }
 
 export interface SubscriptionInfo {
   subscription: Subscription | null;
   instructions: PaymentInstructions;
+}
+
+/** A part of Zinwe a plan switches on (backend z_auth/entitlements.py). */
+export type PlanModule =
+  | "usb_alerts"
+  | "usb_control"
+  | "data_transfer"
+  | "remote_access"
+  | "software_installs"
+  | "web"
+  | "work_time"
+  | "app_usage"
+  | "team_chat"
+  | "alert_to_employee";
+
+/** GET me/ `entitlements`: what the owner's plan switches on right now, and the PC limit. */
+export interface Entitlements {
+  plan_code: string | null;
+  plan_name: string | null;
+  /** False when no plan is active (none yet, waiting for payment, expired): Free forever applies. */
+  on_active_plan: boolean;
+  modules: PlanModule[];
+  /** 0 = no limit. */
+  max_devices: number;
+  devices_used: number;
+  /** For each locked module, the cheapest plan that has it. */
+  upgrade_for: Partial<Record<PlanModule, { code: string; name: string }>>;
+}
+
+/** 403 body when a call needs a module the plan doesn't include. */
+export interface PlanFeatureError {
+  detail: string;
+  code: "plan_feature";
+  module: PlanModule;
+  upgrade_plan: string;
+  upgrade_plan_name: string;
 }
 
 /** GET me/ — the user plus everything the portal routes and greets with. */
@@ -151,10 +256,15 @@ export interface Me extends User {
   subscription: Subscription | null;
   /** Unchanged legacy field; the portal reads `subscription` instead. */
   active_plan?: unknown;
+  /** Absent from an older backend: the dashboard then locks nothing. */
+  entitlements?: Entitlements;
 }
 
-/** A dashboard notification-bar item (M11): a version note, an offer, or an upgrade nudge. */
-export type AnnouncementKind = "version" | "offer" | "upgrade";
+/**
+ * A notification-bar item: a message pushed from the admin panel (offer, discount, news, new version,
+ * maintenance) or, on the dashboard only, the upgrade bar derived from the owner's plan.
+ */
+export type AnnouncementKind = "version" | "offer" | "discount" | "news" | "maintenance" | "upgrade";
 
 export interface Announcement {
   /** Stable id used to remember a dismissal; changes when the message changes. */

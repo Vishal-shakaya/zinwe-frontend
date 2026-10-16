@@ -1,43 +1,23 @@
 import { useCallback, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import type { Announcement, AnnouncementKind } from "../../lib/api";
+import { isInternalHref as isInternal, readDismissed, writeDismissed } from "../../lib/announcementDismissals";
 import { DashIcon, type DashIconName } from "./DashIcon";
-
-const STORAGE_KEY = "zinwe.dismissed-announcements";
 
 const ICON: Record<AnnouncementKind, DashIconName> = {
   version: "refresh",
   offer: "card",
+  discount: "card",
+  news: "book",
+  maintenance: "settings",
   upgrade: "arrow",
 };
 
-/** Per-viewer dismissals; survives reloads, never required for correctness. */
-function readDismissed(): Set<string> {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const ids = raw ? (JSON.parse(raw) as unknown) : [];
-    return new Set(Array.isArray(ids) ? ids.map(String) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function writeDismissed(ids: Set<string>): void {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
-  } catch {
-    // Private mode / blocked storage: the bar simply won't remember the dismissal.
-  }
-}
-
-function isInternal(href: string): boolean {
-  return href.startsWith("/");
-}
-
 /**
- * The dismissible notification bar under the nav (M11): version notes, offers
- * and the upgrade nudge. Dismissals are remembered per-browser by announcement
- * id, so a new message (new id) shows again.
+ * The dismissible bars at the top of the dashboard: messages the Zinwe team pushes from the admin
+ * panel (offers, discounts, news, updates, maintenance) and the upgrade bar (what the next plan
+ * adds, or that every PC slot is taken). Closing one is remembered per browser by its id, so a new
+ * or edited message shows again.
  */
 export function NotificationBar({ items }: { items: Announcement[] }): ReactElement | null {
   const [dismissed, setDismissed] = useState<Set<string>>(readDismissed);

@@ -3,11 +3,13 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, getTopMetrics } from "../../lib/api";
 import { AlertsTable } from "../components/AlertsTable";
 import { MetricsDisclosure } from "../components/MetricsDisclosure";
+import { PlanLock } from "../components/PlanLock";
 import { RangeTabs } from "../components/RangeTabs";
 import { StatTiles } from "../components/StatTiles";
 import { ErrorState, PageHeader } from "../components/States";
 import { TopUsageTable } from "../components/TopUsageTable";
 import { UsageChart } from "../components/UsageChart";
+import { useEntitlements } from "../features/entitlements";
 import { FEATURE_EVENT_TYPES } from "../features/events";
 import { formatBytes, toChartRows, totalFor, type SeriesSpec } from "../features/metrics";
 import { DataTransferCard, UsbCard } from "../features/policyControls";
@@ -37,7 +39,14 @@ const SPECS: SeriesSpec[] = [
 
 const TRANSFER_CATEGORIES = ["transfer.usb", "transfer.lan", "transfer.email"];
 
+/**
+ * USB drive and file-copy alerts are on every plan. Plan enforcement: blocking USB drives
+ * (usb_control) and files leaving by network, Outlook or upload (data_transfer) are Startups.
+ */
 export default function DataPage(): ReactElement {
+  const { has } = useEntitlements();
+  const usbControl = has("usb_control");
+  const transfersOn = has("data_transfer");
   usePageMeta({ title: "Data safety — Zinwe", description: "Where data is going, large-transfer alerts, and USB controls." });
 
   const [days, setDays] = useState(7);
@@ -88,10 +97,21 @@ export default function DataPage(): ReactElement {
         />
       </section>
 
+      {!usbControl ? (
+        <PlanLock module="usb_control" compact title="Block USB drives">
+          Make pen drives read-only or block them completely on every PC, and lock a PC's USB ports after a large copy.
+        </PlanLock>
+      ) : null}
+      {!transfersOn ? (
+        <PlanLock module="data_transfer" compact title="Files leaving by network, Outlook or upload">
+          Get flagged when large amounts of data go to another PC or shared folder, leave as Outlook attachments, or are
+          uploaded to websites and webmail.
+        </PlanLock>
+      ) : null}
       {policy.data ? (
         <>
-          <UsbCard block={policy.data.usb} commit={commit} />
-          <DataTransferCard block={policy.data.data_transfer} commit={commit} />
+          {usbControl ? <UsbCard block={policy.data.usb} commit={commit} /> : null}
+          {transfersOn ? <DataTransferCard block={policy.data.data_transfer} commit={commit} /> : null}
         </>
       ) : policy.error ? (
         <section className="dash-card">
@@ -145,7 +165,7 @@ export default function DataPage(): ReactElement {
               />
             )}
           </div>
-          <div>
+          <div hidden={!transfersOn}>
             <h3 className="dash-subhead">Network shares</h3>
             {lanTop.error ? (
               <ErrorState message={errorMessage(lanTop.error)} onRetry={lanTop.reload} retrying={lanTop.pending} />
@@ -165,7 +185,7 @@ export default function DataPage(): ReactElement {
         </div>
       </section>
 
-      <section className="dash-card" aria-labelledby="data-uploads-title">
+      <section className="dash-card" aria-labelledby="data-uploads-title" hidden={!transfersOn}>
         <div className="dash-card__head">
           <h2 className="dash-card__title" id="data-uploads-title">
             Uploads to the web

@@ -4,8 +4,9 @@ import { clearToken, getToken, setToken, subscribeToken } from "../lib/session";
 import { AuthContext, type Account, type AccountPatch, type AuthValue } from "./authContext";
 
 function accountFromMe(me: Me): Account {
-  const { onboarding, company, subscription, ...user } = me;
-  return { user, onboarding, company, subscription };
+  // active_plan is a legacy field nothing reads; keep it (and entitlements) off `user`.
+  const { onboarding, company, subscription, entitlements, active_plan: _legacy, ...user } = me;
+  return { user, onboarding, company, subscription, entitlements };
 }
 
 function isUnauthorized(error: unknown): boolean {

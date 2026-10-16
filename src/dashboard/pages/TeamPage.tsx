@@ -26,6 +26,7 @@ import { MemberChatThread, SendMessageForm } from "../components/MemberChat";
 import { MemberUsage } from "../components/MemberUsage";
 import { Modal } from "../components/Modal";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
+import { useEntitlements } from "../features/entitlements";
 import { formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
 import { formatDateTime, formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
@@ -50,6 +51,7 @@ export default function TeamPage(): ReactElement {
 
   const { account } = useAuth();
   const companyName = account?.company?.name ?? null;
+  const { maxDevices, planName, upgradeFor } = useEntitlements();
 
   const load = useCallback((signal: AbortSignal) => listMembers(signal), []);
   const members = useResource(load, { pollMs: 60_000 });
@@ -89,10 +91,15 @@ export default function TeamPage(): ReactElement {
   const online = active.filter((m) => m.device?.is_online).length;
   const notConnected = active.filter((m) => !m.device).length;
 
+  // Plan enforcement: a new PC is refused once every slot on the plan is taken (existing PCs keep working).
+  const pcsUsed = live.length;
+  const pcsFull = maxDevices > 0 && devices.data !== undefined && pcsUsed >= maxDevices;
+  const biggerPlan = upgradeFor("work_time") ?? upgradeFor("usb_control");
   const summary = [
     `${active.length} ${active.length === 1 ? "person" : "people"}`,
     `${online} online now`,
     notConnected > 0 ? `${notConnected} not connected yet` : null,
+    maxDevices > 0 ? `${pcsUsed} of ${maxDevices} PCs on your plan` : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -131,6 +138,24 @@ export default function TeamPage(): ReactElement {
           <AddMemberForm onCreated={onCreated} />
         )}
       </Modal>
+
+      {pcsFull ? (
+        <div className="dash-banner dash-banner--info" role="status">
+          <DashIcon name="pc" />
+          <span>
+            <b>
+              All {maxDevices} PCs on your {planName ?? "current"} plan are in use.
+            </b>{" "}
+            A new PC won't connect until you upgrade or remove one. PCs already connected keep working.
+          </span>
+          <Link
+            className="dash-link"
+            to={biggerPlan ? `/app/upgrade?plan=${encodeURIComponent(biggerPlan.code)}` : "/app/upgrade"}
+          >
+            Upgrade
+          </Link>
+        </div>
+      ) : null}
 
       {members.data === undefined ? (
         <section className="dash-card">
@@ -401,6 +426,7 @@ function MemberTile({
   onUpdated: (member: Member) => void;
 }): ReactElement {
   const now = useNow();
+  const chatOn = useEntitlements().has("team_chat");
   const [confirm, setConfirm] = useState<null | "rotate" | "deactivate">(null);
   const [messaging, setMessaging] = useState(false);
   const [threadKey, setThreadKey] = useState(0);
@@ -515,19 +541,21 @@ function MemberTile({
 
       <footer className="team-tile__actions">
         <ShareDetails member={member} companyName={companyName} small shareOnly />
-        <button
-          type="button"
-          className="btn btn--ghost dash-btn-sm"
-          onClick={() => {
-            setMessaging(true);
-            if ((member.unread ?? 0) > 0) onUpdated({ ...member, unread: 0 }); // opening the chat reads the replies
-          }}
-          disabled={busy}
-        >
-          <DashIcon name="chat" />
-          Chat
-          {(member.unread ?? 0) > 0 ? <span className="team-unread" aria-label={`${member.unread} unread`}>{member.unread}</span> : null}
-        </button>
+        {chatOn ? (
+          <button
+            type="button"
+            className="btn btn--ghost dash-btn-sm"
+            onClick={() => {
+              setMessaging(true);
+              if ((member.unread ?? 0) > 0) onUpdated({ ...member, unread: 0 }); // opening the chat reads the replies
+            }}
+            disabled={busy}
+          >
+            <DashIcon name="chat" />
+            Chat
+            {(member.unread ?? 0) > 0 ? <span className="team-unread" aria-label={`${member.unread} unread`}>{member.unread}</span> : null}
+          </button>
+        ) : null}
         <details className="dash-menu" ref={more}>
           <summary className="btn btn--ghost dash-btn-sm" aria-label={`More actions for ${member.name}`}>
             <DashIcon name="more" />

@@ -62,8 +62,8 @@ const TERMS: LegalDoc = {
       heading: "Accounts, Subscriptions & Billing",
       blocks: [
         "You're responsible for keeping your login credentials confidential and for all activity under your account. Tell us promptly about any unauthorized use.",
-        "Zinwe is priced flat by the number of PCs you protect — not per seat. Plans currently are: Free forever (up to 3 PCs, with USB and file-copy alerts only), Startups (up to 10 PCs, every monitoring module, ₹999 a month) and Businesses (up to 50 PCs, everything in Startups plus DPDP-ready consent and activity logs, ₹2,999 a month), with custom pricing above 50 PCs. Prices are in Indian rupees; current plans and prices are on our pricing page and may change with notice; continued use after a change means you accept the new price for future billing cycles.",
-        "Paid plans are billed one month at a time. Payment is currently handled manually: you pay by UPI or bank transfer (India) or PayPal (international customers) and submit the payment reference in your Zinwe dashboard, and we activate or renew your plan once we've confirmed it — this is not an automatic recurring card charge. We'll email a reminder before your paid month ends; if you don't renew, the plan expires at the end of the paid period and you can move to the Free forever plan or renew at any time.",
+        "Zinwe is priced flat by the number of PCs you protect — not per seat. Plans currently are: Free forever (up to 3 PCs, with USB drive and file-copy alerts only), Startups (up to 10 PCs, every data-protection module, ₹971 a month: 28% off the ₹1,349 list price) and Businesses (up to 50 PCs, everything in Startups plus work hours, app usage, team chat and priority support, ₹2,834 a month: 30% off the ₹4,049 list price), with custom pricing above 50 PCs. Prices are in Indian rupees. Discounts are offered at our discretion and may end with notice; you keep the price you signed up at until we tell you otherwise. Current plans and prices are on our pricing page and may change with notice; continued use after a change means you accept the new price for future billing cycles.",
+        "Customers in India are billed in Indian rupees one month at a time, with GST added at the applicable rate, and pay by UPI or bank transfer. Customers outside India are billed in US dollars one year at a time, without Indian GST (an export of services), and pay by card or US bank transfer through our payment partner Skydo. Payment is currently confirmed manually: you submit the payment reference in your Zinwe dashboard, and we activate or renew your plan once we've confirmed it, then issue a GST invoice — this is not an automatic recurring card charge. We'll email a reminder before your paid period ends; if you don't renew, the plan expires at the end of the paid period and you can move to the Free forever plan or renew at any time.",
       ],
     },
     {
@@ -120,7 +120,7 @@ const PRIVACY: LegalDoc = {
     {
       heading: "Retention & Security",
       blocks: [
-        "Customer Account Data is kept while your account is active, plus up to 7 years after for legal, tax, and accounting purposes. Monitored User Data is kept for the retention period you configure, defaulting to 90 days unless you choose otherwise.",
+        "Customer Account Data is kept while your account is active, plus up to 7 years after for legal, tax, and accounting purposes. Monitored User Data is kept while your account is active. You can ask us to delete it at any time by writing to hello@zinwe.io. A setting to choose your own retention period is planned; this policy will be updated when it is available.",
         "We use encryption in transit, role-based access controls on monitoring logs, and access limited to your designated administrators. No system can guarantee absolute security. If a data breach affecting your personal data occurs, we'll notify you and the relevant authorities as required under the DPDP Act or applicable US state law.",
       ],
     },
@@ -152,14 +152,14 @@ const REFUND: LegalDoc = {
       heading: "Policy Summary",
       blocks: [
         "Subscription fees for Zinwe are final and non-refundable, except as set out below or where the law requires otherwise. Zinwe is a digital service — access to paid features is granted as soon as payment is confirmed, so there's nothing physical to return.",
-        "Before paying, try Zinwe on the Free forever plan (up to 3 PCs, USB and file-copy alerts) to confirm it's a fit.",
+        "Before paying, try Zinwe on the Free forever plan (up to 3 PCs, USB drive and file-copy alerts) to confirm it's a fit.",
       ],
     },
     {
       heading: "Cancellations & Billing",
       blocks: [
         "There's nothing to cancel: paid plans run one month at a time and only continue when you pay for the next month. To stop, simply don't renew (or tell us at hello@zinwe.io). Stopping doesn't refund the month you've already paid for — you keep paid features until the end of that month; after that, the plan expires and you can move to the Free forever plan.",
-        "Billing is currently handled manually: you pay by UPI/bank transfer (India) or PayPal (international, including US customers) and submit the payment in your dashboard; nothing is auto-charged to a stored card. We'll email a renewal reminder before each paid month ends.",
+        "Billing is currently handled manually: you pay by UPI/bank transfer (India, monthly) or by card/US bank transfer through Skydo (outside India, yearly) and submit the payment in your dashboard; nothing is auto-charged to a stored card. We'll email a renewal reminder before each paid period ends.",
       ],
     },
     {
@@ -256,7 +256,7 @@ const ACCEPTABLE_USE: LegalDoc = {
             "Monitor company-owned or company-managed devices used by your own employees or contractors for business purposes",
             "Control USB and file-transfer activity, track LAN and remote-access activity, manage approved software, and review email metadata on those devices",
             "Give the people you monitor clear, upfront notice and, where required, capture their consent through Zinwe's built-in consent screen before monitoring begins",
-            "Set retention periods and access permissions so only designated administrators see monitoring data",
+            "Set access permissions so only designated administrators see monitoring data, and ask us to delete monitoring data you no longer need",
           ],
         },
       ],

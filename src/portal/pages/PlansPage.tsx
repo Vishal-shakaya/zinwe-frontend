@@ -4,6 +4,7 @@ import { useAuth } from "../../auth/authContext";
 import { canUseApp } from "../../auth/steps";
 import { Smoke } from "../../components/ui/Smoke";
 import { ErrorState } from "../../dashboard/components/States";
+import { seoFor } from "../../content/seo";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, type Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
@@ -15,10 +16,7 @@ import "../../styles/portal.css";
 
 /** Public /plans (marketing layout). Signed-out CTAs go to /signup?plan=<code>. */
 export default function PlansPage(): ReactElement {
-  usePageMeta({
-    title: "Plans and pricing — Zinwe",
-    description: "Start free forever for up to 3 PCs, and upgrade as you grow. Simple pricing in rupees.",
-  });
+  usePageMeta(seoFor("/plans"));
   const { token, onboarding } = useAuth();
   const plans = usePlans();
 
@@ -47,7 +45,10 @@ export default function PlansPage(): ReactElement {
         <div className="wrap">
           <p className="eyebrow">Plans</p>
           <h1 className="h-display">Simple plans. Start free.</h1>
-          <p className="lede">Every plan has plain-English alerts and a setup you can finish in an afternoon.</p>
+          <p className="lede">
+            Every plan has plain-English alerts, employee consent on every PC and a setup you can finish in an
+            afternoon. Priced by the number of PCs, not per person.
+          </p>
         </div>
       </section>
 
@@ -68,7 +69,9 @@ export default function PlansPage(): ReactElement {
             <PlanCardsLoading />
           )}
           <p className="plans-note">
-            Prices in Indian rupees. Pay by UPI or bank transfer, or PayPal from outside India. Questions?{" "}
+            In India: rupees, billed monthly, plus 18% GST; pay by UPI or bank transfer. Outside India: US dollars,
+            billed yearly, no Indian GST; pay by card or US bank transfer. You get a GST invoice for every payment.
+            Questions?{" "}
             <Link to="/contact">Talk to us</Link>
           </p>
         </div>

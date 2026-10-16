@@ -2,6 +2,7 @@ import { useCallback, useState, type ReactElement } from "react";
 import { useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, getTopMetrics } from "../../lib/api";
+import { PagePlanGate } from "../components/PlanLock";
 import { AlertsTable } from "../components/AlertsTable";
 import { MetricsDisclosure } from "../components/MetricsDisclosure";
 import { RangeTabs } from "../components/RangeTabs";
@@ -19,7 +20,21 @@ import { StatTiles } from "../components/StatTiles";
 
 const SPECS: SeriesSpec[] = [{ category: "web.domain", field: "count", label: "Websites visited" }];
 
+/** Plan enforcement: the whole page is web; without it, a lock card shows instead. */
 export default function InternetPage(): ReactElement {
+  return (
+    <PagePlanGate
+      module="web"
+      title="Online protection"
+      lede="Keep your team away from risky websites."
+      lock="See which websites your team visits, block risky categories or any site you choose, and review blocked attempts."
+    >
+      <InternetPageContent />
+    </PagePlanGate>
+  );
+}
+
+function InternetPageContent(): ReactElement {
   usePageMeta({ title: "Online protection — Zinwe", description: "Website usage, blocked attempts, and website controls." });
 
   const [params] = useSearchParams();

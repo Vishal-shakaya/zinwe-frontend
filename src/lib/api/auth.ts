@@ -106,8 +106,17 @@ export function getMe(signal?: AbortSignal): Promise<Me> {
   return authedRequest<Me>("/api/auth/me/", { signal });
 }
 
-/** GET announcements/ — the dashboard notification-bar items (version/offer/upgrade). */
+/** GET announcements/ — the dashboard's bars: pushed messages for this owner, then the upgrade bar. */
 export async function getAnnouncements(signal?: AbortSignal): Promise<Announcement[]> {
   const data = await authedRequest<{ announcements: Announcement[] }>("/api/auth/announcements/", { signal });
+  return data.announcements ?? [];
+}
+
+/** GET announcements/public/ — the bars for the public website, sign-up and onboarding (no sign-in). */
+export async function getWebsiteAnnouncements(signal?: AbortSignal): Promise<Announcement[]> {
+  const data = await authedRequest<{ announcements: Announcement[] }>("/api/auth/announcements/public/", {
+    signal,
+    anonymous: true,
+  });
   return data.announcements ?? [];
 }

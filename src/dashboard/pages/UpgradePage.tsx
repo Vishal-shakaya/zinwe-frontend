@@ -4,9 +4,10 @@ import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, type Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { formatInr } from "../../lib/format";
+import { formatInr, formatMoney } from "../../lib/format";
 import { PaymentForm } from "../../portal/components/PaymentForm";
 import { PaymentInstructionsCard } from "../../portal/components/PaymentInstructionsCard";
+import { QuoteSummary } from "../../portal/components/QuoteSummary";
 import { PlanCards, PlanCardsLoading } from "../../portal/components/PlanCards";
 import { planDevices } from "../../portal/plan";
 import { usePlans } from "../../portal/usePlans";
@@ -141,15 +142,19 @@ export default function UpgradePage(): ReactElement {
               </span>
             </div>
             <div className="up-summary__price">
-              <b>{formatInr(chosen.price_inr_monthly)}</b>
-              <small>a month · {planDevices(chosen)}</small>
+              <b>{chosen.quote ? formatMoney(chosen.quote.total, chosen.quote.currency) : formatInr(chosen.price_inr_monthly)}</b>
+              <small>
+                {chosen.quote?.months === 12 ? "a year" : "a month"}
+                {chosen.quote?.taxes.length ? " incl. GST" : ""} · {planDevices(chosen)}
+              </small>
             </div>
             <button type="button" className="dash-link up-summary__change" onClick={() => choose(null)}>
               Change plan
             </button>
             <p className="dash-note up-summary__note">
-              Your current plan keeps running until we confirm the payment. Then {chosen.name} starts for a month, and
-              any paid days left on your current plan are added on top.
+              Your current plan keeps running until we confirm the payment. Then {chosen.name} starts for{" "}
+              {chosen.quote?.months === 12 ? "a year" : "a month"}, and any paid days left on your current plan are
+              added on top.
             </p>
           </section>
 
@@ -165,10 +170,18 @@ export default function UpgradePage(): ReactElement {
             )
           ) : (
             <>
-              <PaymentInstructionsCard instructions={info.data.instructions} amount={chosen.price_inr_monthly} />
+              {chosen.quote ? <QuoteSummary quote={chosen.quote} title="Upgrade" /> : null}
+              <PaymentInstructionsCard
+                instructions={info.data.instructions}
+                quote={chosen.quote}
+                amount={chosen.price_inr_monthly}
+              />
               <PaymentForm
                 key={chosen.code}
-                amount={chosen.price_inr_monthly}
+                amount={chosen.quote?.total ?? chosen.price_inr_monthly}
+                currency={chosen.quote?.currency}
+                region={info.data.instructions.region}
+                allowPaypal={Boolean(info.data.instructions.paypal_url)}
                 payerName={account?.user.full_name ?? ""}
                 upgradePlan={chosen.code}
                 onSubmitted={async () => {

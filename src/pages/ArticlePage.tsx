@@ -40,11 +40,7 @@ function useArticleHead(article: Article | undefined): void {
       meta("property", "og:image:alt", article.cover_alt || article.title);
     }
 
-    const canonical = document.createElement("link");
-    canonical.rel = "canonical";
-    canonical.href = url;
-    document.head.appendChild(canonical);
-    added.push(canonical);
+    // The canonical link is set by usePageMeta (from the route): one per page.
 
     // schema.org Article: lets search engines show date, author and image.
     const ld = document.createElement("script");

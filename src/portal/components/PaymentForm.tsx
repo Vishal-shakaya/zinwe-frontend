@@ -2,7 +2,7 @@ import { useRef, useState, type ChangeEvent, type FormEvent, type ReactElement }
 import { ChipGroup } from "../../components/forms/ChipGroup";
 import { Field } from "../../components/forms/Field";
 import { paymentMethodOptions, REFERENCE_LABEL } from "../../content/portal";
-import { submitPayment, type Payment, type PaymentField, type PaymentMethod } from "../../lib/api";
+import { submitPayment, type Currency, type Payment, type PaymentField, type PaymentMethod } from "../../lib/api";
 import { todayIso } from "../../lib/format";
 import { compactErrors, focusFirstInvalid, requiredError, type FieldErrorMap } from "../../lib/validation";
 import { apiFieldErrors, apiFormError } from "../failure";
@@ -30,11 +30,18 @@ function proofError(file: File | null): string | undefined {
   return undefined;
 }
 
-function amountError(value: string): string | undefined {
+function amountError(value: string, currency: Currency): string | undefined {
   if (value.trim() === "") return "Enter the amount you paid.";
   const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? undefined : "Enter the amount in rupees, like 1999.";
+  if (Number.isFinite(n) && n > 0) return undefined;
+  return currency === "USD" ? "Enter the amount in US dollars, like 144." : "Enter the amount in rupees, like 1145.78.";
 }
+
+/** India: UPI / bank (cheque and cash for the odd case). Outside India: Skydo, or PayPal as a fallback. */
+const METHODS_BY_REGION: Record<"IN" | "INTL", readonly PaymentMethod[]> = {
+  IN: ["upi", "bank_transfer", "cheque", "cash"],
+  INTL: ["skydo", "paypal"],
+};
 
 function paidOnError(value: string): string | undefined {
   if (value === "") return "Enter the date you paid.";
@@ -46,8 +53,14 @@ function fileSize(bytes: number): string {
 }
 
 interface PaymentFormProps {
-  /** Prefilled from the subscription, e.g. "1999.00". */
+  /** The total due, prefilled, e.g. "1145.78". */
   amount: string;
+  /** The amount's currency (default INR). */
+  currency?: Currency;
+  /** Which payment methods to offer (default India). */
+  region?: "IN" | "INTL";
+  /** Outside India: also offer PayPal (only while it's shown on the payment page). */
+  allowPaypal?: boolean;
   payerName: string;
   onSubmitted: (payment: Payment) => void | Promise<void>;
   /** Dashboard upgrade: the plan code this payment is for. */
@@ -55,8 +68,19 @@ interface PaymentFormProps {
 }
 
 /** "I've paid" form: method, amount, reference/UTR, date, payer, optional proof. */
-export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: PaymentFormProps): ReactElement {
-  const [method, setMethod] = useState<PaymentMethod>("upi");
+export function PaymentForm({
+  amount,
+  currency = "INR",
+  region = "IN",
+  allowPaypal = false,
+  payerName,
+  onSubmitted,
+  upgradePlan,
+}: PaymentFormProps): ReactElement {
+  const methods = METHODS_BY_REGION[region].filter((m) => m !== "paypal" || allowPaypal);
+  // In the order above (Skydo first abroad, UPI first in India).
+  const methodChoices = methods.flatMap((m) => paymentMethodOptions.filter((o) => o.value === m));
+  const [method, setMethod] = useState<PaymentMethod>(methods[0]);
   const [amountInr, setAmountInr] = useState(() => String(Number(amount) || ""));
   const [reference, setReference] = useState("");
   const [paidOn, setPaidOn] = useState(todayIso);
@@ -93,7 +117,7 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
     event.preventDefault();
     if (pending) return;
     const clientErrors = compactErrors<PaymentField>({
-      amount_inr: amountError(amountInr),
+      amount_inr: amountError(amountInr, currency),
       reference: requiredError(reference),
       paid_on: paidOnError(paidOn),
       payer_name: requiredError(payer),
@@ -132,7 +156,10 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
         <h2 className="dash-card__title" id="pay-form-title">
           Tell us about your payment
         </h2>
-        <p className="dash-card__sub">We match it with our bank statement, then switch your plan on.</p>
+        <p className="dash-card__sub">
+          We match it with {region === "INTL" ? "Skydo" : "our bank statement"}, then switch your plan on and email
+          you the invoice.
+        </p>
       </div>
 
       <div className="form__grid">
@@ -143,7 +170,7 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
           <ChipGroup
             type="radio"
             name="method"
-            options={paymentMethodOptions}
+            options={methodChoices}
             selected={[method]}
             onToggle={(value) => setMethod(value)}
             labelledBy="pay-method-label"
@@ -152,7 +179,7 @@ export function PaymentForm({ amount, payerName, onSubmitted, upgradePlan }: Pay
         </Field>
 
         <Field error={errors.amount_inr}>
-          <label htmlFor="pay-amount">Amount paid (₹)</label>
+          <label htmlFor="pay-amount">Amount paid ({currency === "USD" ? "US$" : "₹"})</label>
           <input
             ref={reg("amount_inr")}
             id="pay-amount"

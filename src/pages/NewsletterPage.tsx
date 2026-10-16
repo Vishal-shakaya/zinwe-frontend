@@ -28,14 +28,7 @@ export default function NewsletterPage(): ReactElement {
 
   usePageMeta({ title: "Newsletter — Zinwe", description: "Manage your Zinwe blog subscription." });
 
-  useEffect(() => {
-    // Inject <meta name="robots" content="noindex">: these pages are personal links.
-    const robots = document.createElement("meta");
-    robots.name = "robots";
-    robots.content = "noindex";
-    document.head.appendChild(robots);
-    return () => robots.remove();
-  }, []);
+  // noindex: usePageMeta marks /newsletter (personal links) as private (content/seo.ts NOINDEX_PREFIXES).
 
   useEffect(() => {
     if (!confirmToken || started.current) return;

@@ -4,6 +4,7 @@ import { EarlyAccessForm } from "../components/forms/EarlyAccessForm";
 import { Icon } from "../components/ui/Icon";
 import { Smoke } from "../components/ui/Smoke";
 import { StaggerTitle } from "../components/ui/StaggerTitle";
+import { seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 
 const perks: Array<{ title: string; detail: string }> = [
@@ -13,10 +14,7 @@ const perks: Array<{ title: string; detail: string }> = [
 ];
 
 export default function EarlyAccessPage(): ReactElement {
-  usePageMeta({
-    title: "Early access — Zinwe",
-    description: "Reserve early access to Zinwe: free forever for up to 3 PCs, with setup done with you.",
-  });
+  usePageMeta(seoFor("/early-access"));
 
   return (
     <>

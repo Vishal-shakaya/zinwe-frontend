@@ -1,0 +1,13 @@
+# zinwe.io — public pages are open to search engines; the app, sign-in and the API are not.
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /onboarding
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /newsletter
+Disallow: /api/
+Allow: /api/blog/
+
+Sitemap: https://zinwe.io/sitemap.xml
+Sitemap: https://zinwe.io/api/blog/sitemap.xml

@@ -1,5 +1,5 @@
 import type { Subscription } from "../lib/api";
-import { daysUntil, formatInr, isZero } from "../lib/format";
+import { daysUntil, formatInr, formatMoney, isZero } from "../lib/format";
 
 /**
  * A built-in free trial (v1.1 `is_trial`). Legacy zero-price trial plans
@@ -16,12 +16,13 @@ export function priceAfterTrial(subscription: Subscription): string | null {
   return isZero(price) ? null : `${formatInr(price)}/month`;
 }
 
-/** "₹1,999 a month" / "Free" / "Free trial". */
+/** "₹971 a month + GST" / "$144 a year" / "Free" / "Free trial". */
 export function subscriptionPrice(subscription: Subscription): string {
   if (isTrialSubscription(subscription)) return "Free trial";
   if (isZero(subscription.amount_inr)) return "Free";
-  const cycle = subscription.billing_cycle === "monthly" ? "a month" : subscription.billing_cycle;
-  return `${formatInr(subscription.amount_inr)} ${cycle}`;
+  const cycle = subscription.billing_cycle === "yearly" ? "a year" : "a month";
+  const gst = subscription.currency !== "USD" && (subscription.amount_due?.taxes.length ?? 0) > 0 ? " + GST" : "";
+  return `${formatMoney(subscription.amount_inr, subscription.currency)} ${cycle}${gst}`;
 }
 
 /** "23 days left" for an active plan with an end date. */
