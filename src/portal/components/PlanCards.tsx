@@ -14,7 +14,7 @@ interface PlanCardsProps {
   renderAction: (plan: Plan, highlighted: boolean) => ReactNode;
   /** The owner's current plan: flagged "Your plan" (upgrades). */
   current?: string | null;
-  /** Plans that can't be picked right now (e.g. below the current plan): shown dimmed. */
+  /** Plans that can't be picked right now (e.g. below the current plan): shown in full, never highlighted. */
   unavailable?: readonly string[];
 }
 

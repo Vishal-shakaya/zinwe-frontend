@@ -21,8 +21,9 @@ import { useSubscriptionInfo } from "../useSubscriptionInfo";
  * /onboarding/plan — the one place to choose a plan (2026-10-16), outside the dashboard:
  * - first time (step `plan`) or waiting for payment (`payment`): every plan; free plans and trials start at
  *   once, a paid plan opens the checkout modal (`?checkout=1` opens it for the plan waiting for payment);
- * - on a plan (`complete`): an upgrade. Every plan is shown; the current one is flagged, lower ones are
- *   dimmed, and the first plan above it is preselected. Paying opens the same checkout modal;
+ * - on a plan (`complete`): an upgrade. Every plan is shown in full; the current one is flagged, it and the
+ *   lower ones only have their button disabled, and the first plan above it is preselected. Paying opens
+ *   the same checkout modal;
  * - payment being checked (`payment_review`): the plans, read only.
  * `?plan=<code>` preselects a plan (links from the dashboard, the website and emails).
  */

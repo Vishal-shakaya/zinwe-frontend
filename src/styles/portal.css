@@ -2168,10 +2168,6 @@
   color: var(--white);
 }
 
-.plan--off > :not(.plan__flag):not(.plan__cta) {
-  opacity: 0.55;
-}
-
 /* Checkout: a dark summary on the left, the steps on the right (Razorpay-style) */
 .checkout {
   width: min(880px, calc(100vw - 32px));
