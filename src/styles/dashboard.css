@@ -675,9 +675,14 @@ table.dash-sr {
   margin-top: 2px;
 }
 
-.dash-banner .dash-link {
+.dash-banner .dash-link,
+.dash-banner > .btn {
   margin-left: auto;
   flex: none;
+}
+
+.dash-banner > .btn {
+  margin-block: -3px;
 }
 
 .dash-banner--warn {

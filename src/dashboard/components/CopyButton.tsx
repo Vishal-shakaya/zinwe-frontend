@@ -10,9 +10,11 @@ interface CopyButtonProps {
   /** What is being copied, for screen readers ("enrollment key"). */
   what: string;
   className?: string;
+  /** A small square icon button (the status is still announced to screen readers). */
+  iconOnly?: boolean;
 }
 
-export function CopyButton({ text, label = "Copy", what, className }: CopyButtonProps): ReactElement {
+export function CopyButton({ text, label = "Copy", what, className, iconOnly = false }: CopyButtonProps): ReactElement {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
 
   useEffect(() => {
@@ -28,12 +30,18 @@ export function CopyButton({ text, label = "Copy", what, className }: CopyButton
   return (
     <button
       type="button"
-      className={cx("btn btn--ghost dash-btn-sm", status === "copied" && "is-copied", className)}
+      className={cx(
+        "btn btn--ghost dash-btn-sm",
+        iconOnly && "copy-btn--icon",
+        status === "copied" && "is-copied",
+        className,
+      )}
       onClick={onClick}
       aria-label={`${label}: ${what}`}
+      title={iconOnly ? `${label} ${what}` : undefined}
     >
       <DashIcon name={status === "copied" ? "check" : "copy"} />
-      <span aria-live="polite">
+      <span aria-live="polite" className={iconOnly ? "dash-sr" : undefined}>
         {status === "copied" ? "Copied" : status === "failed" ? "Select and copy it instead" : label}
       </span>
     </button>

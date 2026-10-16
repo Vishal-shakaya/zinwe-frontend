@@ -97,7 +97,11 @@ export default function AppLayout(): ReactElement {
   const { account, signOut, refresh } = useAuth();
   const user = account?.user ?? null;
   const companyName = account?.company?.name || user?.email || " ";
-  const inReview = account?.onboarding.step === "payment_review";
+  const step = account?.onboarding.step;
+  const inReview = step === "payment_review";
+  // In the dashboard before paying (2026-10-16): a plan waiting for payment, or no plan chosen yet.
+  const awaitingPayment = step === "payment";
+  const noPlanYet = step === "plan";
   // Owners who haven't accepted the current Terms (signed up earlier, or the Terms changed) are asked once.
   const terms = user?.terms;
   const needsTerms = terms?.needs_acceptance === true;
@@ -135,7 +139,7 @@ export default function AppLayout(): ReactElement {
   const subscription = account?.subscription ?? null;
   const currentPlan = subscription?.plan ?? null;
   const canUpgrade = plans.data ? higherPlans(plans.data, currentPlan?.code).length > 0 : true;
-  const upgrade = useMemo(() => ({ open: () => navigate("/app/upgrade"), canUpgrade }), [canUpgrade, navigate]);
+  const upgrade = useMemo(() => ({ open: () => navigate("/onboarding/plan"), canUpgrade }), [canUpgrade, navigate]);
 
   // Unread member replies, for the Chat badge (non-critical: failures just hide it).
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
@@ -305,6 +309,29 @@ export default function AppLayout(): ReactElement {
       <main className="dash__main" id="dash-main" tabIndex={-1}>
         <div className="dash__inner">
           <NotificationBar items={announcements} />
+          {awaitingPayment ? (
+            <div className="dash-banner dash-banner--warn" role="status">
+              <DashIcon name="card" />
+              <span>
+                <b>Your {account?.subscription?.plan.name ?? "new"} plan is waiting for payment.</b> You're on the Free
+                features until it's paid.
+              </span>
+              <Link className="btn btn--primary dash-btn-sm" to="/onboarding/subscribe">
+                Pay now
+              </Link>
+            </div>
+          ) : null}
+          {noPlanYet ? (
+            <div className="dash-banner dash-banner--info" role="status">
+              <DashIcon name="shield" />
+              <span>
+                <b>You're on the Free features.</b> Choose a plan to switch on full protection.
+              </span>
+              <Link className="btn btn--primary dash-btn-sm" to="/onboarding/plan">
+                Choose a plan
+              </Link>
+            </div>
+          ) : null}
           {inReview ? (
             <div className="dash-banner dash-banner--info" role="status">
               <DashIcon name="clock" />

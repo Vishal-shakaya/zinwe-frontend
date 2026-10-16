@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import { PAYMENT_METHOD_LABEL, PAYMENT_STATUS_LABEL } from "../../content/portal";
 import type { Payment } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { formatDate, formatInr } from "../../lib/format";
+import { formatDate, formatMoney } from "../../lib/format";
 
 const STATUS_TONE = { submitted: "warn", verified: "good", rejected: "bad" } as const;
 
@@ -20,7 +20,7 @@ export function PaymentDetails({ payment }: { payment: Payment }): ReactElement 
     <dl className="facts-list">
       <div>
         <dt>Amount</dt>
-        <dd>{formatInr(payment.amount_inr)}</dd>
+        <dd>{formatMoney(payment.amount_inr, payment.currency)}</dd>
       </div>
       <div>
         <dt>Method</dt>
@@ -39,8 +39,8 @@ export function PaymentDetails({ payment }: { payment: Payment }): ReactElement 
         <dd>{payment.payer_name}</dd>
       </div>
       <div>
-        <dt>Proof</dt>
-        <dd>{payment.has_proof ? "Attached" : "None"}</dd>
+        <dt>Receipt</dt>
+        <dd>{payment.has_proof ? "Uploaded" : "None"}</dd>
       </div>
     </dl>
   );

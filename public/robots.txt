@@ -6,6 +6,7 @@ Disallow: /onboarding
 Disallow: /login
 Disallow: /forgot-password
 Disallow: /newsletter
+Disallow: /quote
 Disallow: /api/
 Allow: /api/blog/
 

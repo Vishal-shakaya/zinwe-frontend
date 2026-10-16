@@ -6,9 +6,12 @@ import type {
   Payment,
   PaymentPayload,
   Plan,
+  SharedQuote,
   Subscription,
   SubscriptionInfo,
 } from "./types";
+
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
 
 /** GET company/ — throws ApiError `not_found` before the company is registered. */
 export function getCompany(signal?: AbortSignal): Promise<Company> {
@@ -104,13 +107,37 @@ export function getPaymentHistory(signal?: AbortSignal): Promise<Payment[]> {
  * while a paid plan is active is a renewal: it adds a month once confirmed. */
 export function submitPayment(payload: PaymentPayload): Promise<Payment> {
   const form = new FormData();
-  form.append("method", payload.method);
-  form.append("amount_inr", payload.amount_inr);
-  form.append("reference", payload.reference);
-  form.append("paid_on", payload.paid_on);
-  form.append("payer_name", payload.payer_name);
+  for (const key of ["method", "amount_inr", "reference", "paid_on", "payer_name"] as const) {
+    const value = payload[key];
+    if (value) form.append(key, value);
+  }
   if (payload.proof) form.append("proof", payload.proof, payload.proof.name);
   if (payload.upgrade_plan) form.append("upgrade_plan", payload.upgrade_plan);
   form.append("accept_terms", payload.accept_terms ? "true" : "false");
   return authedRequest<Payment>("/api/auth/subscription/payment/", { method: "POST", form });
+}
+
+/** GET subscription/quote/ — the owner's quote and its public link (409 when nothing is due). */
+export function getMyQuote(signal?: AbortSignal): Promise<SharedQuote> {
+  return authedRequest<SharedQuote>("/api/auth/subscription/quote/", { signal });
+}
+
+/** POST subscription/quote/email/ — email the quote PDF (attached) to the owner, or to `email`. */
+export function emailQuote(email = ""): Promise<{ sent_to: string; public_url: string }> {
+  return authedRequest("/api/auth/subscription/quote/email/", { method: "POST", body: email ? { email } : {} });
+}
+
+/** Download the owner's quote as a PDF. */
+export function downloadQuotePdf(): Promise<void> {
+  return authedDownload("/api/auth/subscription/quote/pdf/", "Zinwe-quote.pdf");
+}
+
+/** GET quotes/<token>/ — a shared quote, for anyone with the link (404 once nothing is due). */
+export function getPublicQuote(token: string, signal?: AbortSignal): Promise<SharedQuote> {
+  return authedRequest<SharedQuote>(`/api/auth/quotes/${encodeURIComponent(token)}/`, { anonymous: true, signal });
+}
+
+/** The shared quote's PDF, as a plain link (no sign-in needed). */
+export function publicQuotePdfUrl(token: string): string {
+  return `${API_BASE}/api/auth/quotes/${encodeURIComponent(token)}/pdf/`;
 }

@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
-import { canUseApp } from "../../auth/steps";
+import { hasSettledPlan } from "../../auth/steps";
 import { Smoke } from "../../components/ui/Smoke";
 import { ErrorState } from "../../dashboard/components/States";
 import { seoFor } from "../../content/seo";
@@ -23,7 +23,7 @@ export default function PlansPage(): ReactElement {
   const ctaFor = (plan: Plan, highlighted: boolean): ReactElement => {
     const className = cx("btn btn--block", highlighted ? "btn--primary" : "btn--ghost");
     if (token) {
-      const inApp = onboarding ? canUseApp(onboarding.step) : false;
+      const inApp = onboarding ? hasSettledPlan(onboarding.step) : false;
       return (
         <Link className={className} to={inApp ? "/app/settings/billing" : "/onboarding/plan"}>
           {inApp ? "See your plan" : planCtaLabel(plan)}

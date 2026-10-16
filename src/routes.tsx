@@ -14,6 +14,7 @@ const LegalPage = lazyPage(() => import("./pages/LegalPage"));
 const BlogPage = lazyPage(() => import("./pages/BlogPage"));
 const ArticlePage = lazyPage(() => import("./pages/ArticlePage"));
 const NewsletterPage = lazyPage(() => import("./pages/NewsletterPage"));
+const QuotePage = lazyPage(() => import("./pages/QuotePage"));
 
 // The portal (sign up, log in, onboarding, dashboard) ships as separate
 // chunks, so marketing visitors never download it.
@@ -29,7 +30,6 @@ const AppLayout = lazyPage(() => import("./dashboard/AppLayout"));
 const OverviewPage = lazyPage(() => import("./dashboard/pages/OverviewPage"));
 const TeamPage = lazyPage(() => import("./dashboard/pages/TeamPage"));
 const TeamChatPage = lazyPage(() => import("./dashboard/pages/TeamChatPage"));
-const UpgradePage = lazyPage(() => import("./dashboard/pages/UpgradePage"));
 const InvoicePage = lazyPage(() => import("./dashboard/pages/InvoicePage"));
 const SetupPage = lazyPage(() => import("./dashboard/pages/SetupPage"));
 const InternetPage = lazyPage(() => import("./dashboard/pages/InternetPage"));
@@ -47,6 +47,12 @@ const HelpGuidePage = lazyPage(() => import("./dashboard/pages/HelpGuidePage"));
 const HelpPoliciesPage = lazyPage(() => import("./dashboard/pages/HelpPoliciesPage"));
 const HelpFeedbackPage = lazyPage(() => import("./dashboard/pages/HelpFeedbackPage"));
 
+/** /app/upgrade?plan=x -> /onboarding/plan?plan=x */
+function ToPlanPage(): ReactElement {
+  const { search } = useLocation();
+  return <Navigate to={`/onboarding/plan${search}`} replace />;
+}
+
 function ChunkFallback(): ReactElement {
   return (
     <div className="dash-boot" role="status" aria-live="polite">
@@ -57,7 +63,7 @@ function ChunkFallback(): ReactElement {
 
 /**
  * Site map (contract §5):
- * - marketing (shared Layout): /  /plans  /early-access  /contact, and the 404
+ * - marketing (shared Layout): /  /plans  /early-access  /contact  /quote/:token (shared quote), and the 404
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
  * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
@@ -81,6 +87,8 @@ export function AppRoutes(): ReactElement {
           <Route path="blog" element={<BlogPage />} />
           <Route path="blog/:slug" element={<ArticlePage />} />
           <Route path="newsletter" element={<NewsletterPage />} />
+          {/* A shared quote (public link from the payment page or the quote email; not indexed). */}
+          <Route path="quote/:token" element={<QuotePage />} />
           <Route path="legal" element={<LegalPage />} />
           <Route path="legal/:slug" element={<LegalPage />} />
           <Route path="*" element={<NotFoundPage />} />
@@ -98,7 +106,8 @@ export function AppRoutes(): ReactElement {
             <Route element={<StepGate allow={["company"]} />}>
               <Route path="company" element={<CompanyStep />} />
             </Route>
-            <Route element={<StepGate allow={["plan", "payment"]} />}>
+            {/* The one plan page: choosing, paying (checkout modal) and upgrading (2026-10-16). */}
+            <Route element={<StepGate allow={["plan", "payment", "payment_review", "complete"]} />}>
               <Route path="plan" element={<PlanStep />} />
             </Route>
             <Route element={<StepGate allow={["plan", "payment", "payment_review"]} />}>
@@ -118,7 +127,8 @@ export function AppRoutes(): ReactElement {
               <Route path="team" element={<TeamPage />} />
               <Route path="chat" element={<TeamChatPage />} />
               <Route path="team/chat" element={<Navigate to="/app/chat" replace />} />
-              <Route path="upgrade" element={<UpgradePage />} />
+              {/* Upgrades happen on the plan page; old links (emails, announcements) keep working. */}
+              <Route path="upgrade" element={<ToPlanPage />} />
               <Route path="invoice/:id" element={<InvoicePage />} />
               <Route path="setup" element={<SetupPage />} />
               <Route path="alerts" element={<AlertsPage />} />

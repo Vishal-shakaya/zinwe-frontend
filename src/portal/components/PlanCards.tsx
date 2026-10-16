@@ -12,25 +12,40 @@ interface PlanCardsProps {
   selectedNote?: string;
   /** The button (or link) for each card. */
   renderAction: (plan: Plan, highlighted: boolean) => ReactNode;
+  /** The owner's current plan: flagged "Your plan" (upgrades). */
+  current?: string | null;
+  /** Plans that can't be picked right now (e.g. below the current plan): shown dimmed. */
+  unavailable?: readonly string[];
 }
 
 /**
  * Plan cards from GET plans/, shared by /plans and /onboarding/plan.
  * A plan whose trial this caller can still start gets a "First 3 months free" badge.
  */
-export function PlanCards({ plans, selected, selectedNote = "Your pick", renderAction }: PlanCardsProps): ReactElement {
+export function PlanCards({
+  plans,
+  selected,
+  selectedNote = "Your pick",
+  renderAction,
+  current = null,
+  unavailable = [],
+}: PlanCardsProps): ReactElement {
   return (
     <ul className="plans">
       {plans.map((plan) => {
         const price = planPrice(plan);
         const discount = planDiscount(plan);
         const isSelected = selected === plan.code;
-        const highlighted = isSelected || (!selected && plan.is_recommended);
+        const isCurrent = current === plan.code;
+        const off = unavailable.includes(plan.code);
+        const highlighted = !off && (isSelected || (!selected && plan.is_recommended));
         return (
-          <li key={plan.code} className={cx("plan", highlighted && "plan--hi")}>
-            {isSelected ? (
+          <li key={plan.code} className={cx("plan", highlighted && "plan--hi", off && "plan--off", isCurrent && "plan--current")}>
+            {isCurrent ? (
+              <span className="plan__flag plan__flag--current">Your plan</span>
+            ) : isSelected && !off ? (
               <span className="plan__flag">{selectedNote}</span>
-            ) : plan.is_recommended ? (
+            ) : plan.is_recommended && !off && !selected ? (
               <span className="plan__flag">Recommended</span>
             ) : null}
             <div className="plan__head">

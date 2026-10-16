@@ -29,7 +29,13 @@ export type DashIconName =
   | "lock"
   | "more"
   | "plus"
-  | "book";
+  | "book"
+  | "back"
+  | "phone"
+  | "upload"
+  | "download"
+  | "mail"
+  | "file";
 
 const strokeProps = {
   fill: "none",
@@ -208,6 +214,33 @@ function paths(name: DashIconName): ReactElement {
         <>
           <path d="M4.5 5.5A2 2 0 0 1 6.5 4H19v13H6.5a2 2 0 0 0-2 2V5.5z" />
           <path d="M4.5 19a2 2 0 0 0 2 2H19v-4M9 8h6" />
+        </>
+      );
+    case "back":
+      return <path d="M19 12H5M11 6l-6 6 6 6" />;
+    case "phone":
+      return (
+        <>
+          <rect x="6.5" y="2.5" width="11" height="19" rx="2.5" />
+          <path d="M11 18.5h2" />
+        </>
+      );
+    case "upload":
+      return <path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" />;
+    case "download":
+      return <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" />;
+    case "mail":
+      return (
+        <>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m4 7 8 6 8-6" />
+        </>
+      );
+    case "file":
+      return (
+        <>
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+          <path d="M14 3v5h5M9 13h6M9 17h4" />
         </>
       );
   }

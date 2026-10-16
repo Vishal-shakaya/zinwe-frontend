@@ -213,6 +213,27 @@ export interface SubscriptionInfo {
   instructions: PaymentInstructions;
 }
 
+/**
+ * A shared quote (backend z_auth/quotes.py): what's due next and every way to pay. The owner's own
+ * (GET subscription/quote/) and the public page /quote/<token> (GET quotes/<token>/) have the same shape.
+ */
+export interface SharedQuote {
+  /** e.g. "ZWQ/2026-27/00007" */
+  number: string;
+  issued_on: string;
+  valid_until: string;
+  kind: "subscription" | "renewal";
+  seller: { name: string; address: string; email: string; gstin: string };
+  customer: { name: string; contact: string; address: string; gstin: string };
+  plan: { code: string; name: string; max_devices: number };
+  description: string;
+  quote: Quote;
+  total_in_words: string;
+  instructions: PaymentInstructions;
+  /** The website page anyone with the link can open. */
+  public_url: string;
+}
+
 /** A part of Zinwe a plan switches on (backend z_auth/entitlements.py). */
 export type PlanModule =
   | "usb_alerts"
@@ -278,13 +299,18 @@ export interface Announcement {
   dismissible: boolean;
 }
 
+/**
+ * POST subscription/payment/. The payment page sends only the receipt, the way the owner paid and the
+ * terms tick (2026-10-16); the server fills in the amount due, today and the owner's name. Without a
+ * receipt, `reference` is required instead.
+ */
 export interface PaymentPayload {
-  method: PaymentMethod;
-  amount_inr: string;
-  reference: string;
+  method?: PaymentMethod;
+  amount_inr?: string;
+  reference?: string;
   /** yyyy-mm-dd */
-  paid_on: string;
-  payer_name: string;
+  paid_on?: string;
+  payer_name?: string;
   proof: File | null;
   /** Dashboard upgrade: the plan code this payment moves the owner up to. */
   upgrade_plan?: string;

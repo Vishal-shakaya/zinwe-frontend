@@ -1,6 +1,6 @@
 import type { Onboarding, OnboardingStep, Subscription } from "../lib/api";
 
-/** Where each onboarding step lives (contract §5 guards). */
+/** Where each onboarding step lives (contract §5 guards). Signing in lands here. */
 export function stepPath(step: OnboardingStep): string {
   switch (step) {
     case "company":
@@ -15,11 +15,19 @@ export function stepPath(step: OnboardingStep): string {
   }
 }
 
-/** Steps that may use the dashboard (a banner shows while a payment is under review). */
-export const APP_STEPS: readonly OnboardingStep[] = ["payment_review", "complete"];
+/**
+ * Steps that may use the dashboard: everyone with a company (2026-10-16). Before a paid plan is
+ * active the dashboard runs on the Free plan's features, with a bar linking back to the plan or payment.
+ */
+export const APP_STEPS: readonly OnboardingStep[] = ["plan", "payment", "payment_review", "complete"];
 
 export function canUseApp(step: OnboardingStep): boolean {
   return APP_STEPS.includes(step);
+}
+
+/** A plan is chosen and paid for (or its payment is being checked): plan pages point to Billing. */
+export function hasSettledPlan(step: OnboardingStep): boolean {
+  return step === "payment_review" || step === "complete";
 }
 
 /**

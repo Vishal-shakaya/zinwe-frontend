@@ -6,8 +6,8 @@ import { downloadInvoicePdf, errorMessage, getPaymentHistory, type Payment, type
 import { formatDate, formatInr, formatMoney } from "../../lib/format";
 import { formatDateTime } from "../time";
 import { PaymentDetails, PaymentStatusPill } from "../../portal/components/PaymentDetails";
-import { PaymentForm } from "../../portal/components/PaymentForm";
-import { PaymentInstructionsCard } from "../../portal/components/PaymentInstructionsCard";
+import { PayPanel } from "../../portal/components/PayPanel";
+import { QuoteShare } from "../../portal/components/QuoteShare";
 import { QuoteSummary } from "../../portal/components/QuoteSummary";
 import { RejectedBanner } from "../../portal/components/RejectedBanner";
 import { SubscriptionSummary } from "../../portal/components/SubscriptionSummary";
@@ -181,6 +181,9 @@ export default function BillingPage(): ReactElement {
     subscription?.status === "pending_payment" && (payment === null || payment.status === "rejected");
   // Renewal: an active paid plan, nothing under review (the local copy updates right after a submit).
   const canRenew = Boolean(subscription?.can_renew) && payment?.status !== "submitted";
+  const dueTotal = subscription
+    ? formatMoney(subscription.amount_due?.total ?? subscription.amount_inr, subscription.amount_due?.currency ?? subscription.currency)
+    : "";
   const [renewing, setRenewing] = useState(false);
   const loadHistory = useCallback((signal: AbortSignal) => getPaymentHistory(signal), []);
   const history = useResource(loadHistory);
@@ -215,23 +218,16 @@ export default function BillingPage(): ReactElement {
           {canRenew ? (
             <RenewCard subscription={subscription} open={renewing} onOpen={() => setRenewing(true)}>
               {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} title="Renewal" /> : null}
-              <PaymentInstructionsCard
+              <PayPanel
                 instructions={info.data.instructions}
-                quote={subscription.amount_due}
-                amount={subscription.amount_inr}
-              />
-              <PaymentForm
-                amount={subscription.amount_due?.total ?? subscription.amount_inr}
-                currency={subscription.amount_due?.currency ?? subscription.currency}
-                region={info.data.instructions.region}
-                allowPaypal={Boolean(info.data.instructions.paypal_url)}
-                payerName={payment?.payer_name || user?.full_name || ""}
+                total={dueTotal}
                 onSubmitted={async (next) => {
                   setRenewing(false);
                   await info.submitted(subscription, next);
                   history.reload();
                 }}
               />
+              <QuoteShare ownerEmail={user?.email ?? "your email"} />
             </RenewCard>
           ) : null}
           {payment ? <LatestPayment payment={payment} /> : null}
@@ -239,22 +235,17 @@ export default function BillingPage(): ReactElement {
             <>
               {payment?.status === "rejected" ? <RejectedBanner payment={payment} /> : null}
               {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} /> : null}
-              <PaymentInstructionsCard
+              <PayPanel
                 instructions={info.data.instructions}
-                quote={subscription.amount_due}
-                amount={subscription.amount_inr}
-              />
-              <PaymentForm
-                amount={subscription.amount_due?.total ?? subscription.amount_inr}
-                currency={subscription.amount_due?.currency ?? subscription.currency}
-                region={info.data.instructions.region}
-                allowPaypal={Boolean(info.data.instructions.paypal_url)}
-                payerName={payment?.payer_name || user?.full_name || ""}
+                total={dueTotal}
                 onSubmitted={async (next) => {
                   await info.submitted(subscription, next);
                   history.reload();
                 }}
               />
+              <section className="dash-card">
+                <QuoteShare ownerEmail={user?.email ?? "your email"} />
+              </section>
             </>
           ) : null}
           {history.data && history.data.length > 0 ? <PaymentHistory payments={history.data} /> : null}

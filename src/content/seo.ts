@@ -16,7 +16,7 @@ export const BRAND_LINE = "IT Is OK.";
 export const OG_IMAGE = `${SITE_URL}/brand/og-image.png`;
 
 /** Routes that must never be indexed (signed-in app, onboarding, sign-in, personal links). */
-export const NOINDEX_PREFIXES = ["/app", "/onboarding", "/login", "/signup", "/forgot-password", "/newsletter"];
+export const NOINDEX_PREFIXES = ["/app", "/onboarding", "/login", "/signup", "/forgot-password", "/newsletter", "/quote"];
 
 export interface SeoPage {
   path: string;
