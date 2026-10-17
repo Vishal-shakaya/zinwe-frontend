@@ -6,9 +6,10 @@
  *
  *   dist/index.html            "/"   (home tags + a plain-HTML version of the page)
  *   dist/<path>.html           every other public page (plans.html, contact.html, legal/privacy.html…)
- *   dist/sitemap-pages.xml     the public pages, with the build date as lastmod. The backend serves it (on
- *                              this environment's address) and lists it in /sitemap.xml next to the blog's
- *                              /api/blog/sitemap.xml; it also serves /robots.txt (zinwe-backend z_main/seo.py).
+ *   dist/sitemap-pages.xml     the public pages, with the build date as lastmod. The backend's /sitemap.xml
+ *                              lists every one of them (on this environment's address) plus each published
+ *                              blog article, in ONE file; it also serves /robots.txt (zinwe-backend z_main/seo.py).
+ *                              checkRouteCoverage fails the build if a public route in src/routes.tsx is missing.
  *
  * Serving: the web server must try `<path>.html` before falling back to index.html, e.g. nginx
  * `try_files $uri $uri.html /index.html;` (a folder + index.html would make nginx redirect /plans to
@@ -28,6 +29,7 @@ import {
   FAQ_LD,
   HOME_FAQ,
   legalSeo,
+  isNoindex,
   OG_IMAGE,
   ORGANIZATION_LD,
   SEO_PAGES,
@@ -117,14 +119,48 @@ export function sitemap(pages: readonly SeoPage[], lastmod = new Date().toISOStr
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
+/**
+ * Every public page must be in the sitemap. Reads the public site's routes (the <Route element={<Layout />}>
+ * block of src/routes.tsx) and fails the build when a static route has no SEO entry and isn't a no-index
+ * area, or when an SEO entry points at a route that no longer exists. Routes with a parameter are covered
+ * elsewhere: legal/:slug by content/legal.ts, blog/:slug by the backend (published articles), quote/:token
+ * is private. Returns the public paths it found.
+ */
+export function checkRouteCoverage(routesSource: string, pages: readonly SeoPage[]): string[] {
+  const start = routesSource.indexOf("<Route element={<Layout />}>");
+  const end = start < 0 ? -1 : routesSource.indexOf("</Route>", start);
+  if (start < 0 || end < 0) throw new Error("seoPages: can't find the <Route element={<Layout />}> block in src/routes.tsx");
+  const block = routesSource.slice(start, end);
+  const paths = new Set<string>();
+  if (/<Route\s+index\b/.test(block)) paths.add("/");
+  for (const [, path] of block.matchAll(/<Route\s+path="([^"]+)"/g)) {
+    if (!path.includes(":") && !path.includes("*")) paths.add(`/${path.replace(/^\/+/, "")}`);
+  }
+  const listed = new Set(pages.filter((p) => p.sitemap).map((p) => p.path));
+  const missing = [...paths].filter((p) => !listed.has(p) && !isNoindex(p));
+  if (missing.length) {
+    throw new Error(
+      `seoPages: public page(s) missing from the sitemap: ${missing.join(", ")}. Add each to PAGES in ` +
+        "src/content/seo.ts (sitemap: true), or to NOINDEX_PREFIXES if search engines shouldn't list it.",
+    );
+  }
+  const stale = pages
+    .filter((p) => !p.path.startsWith("/legal/") && !paths.has(p.path))
+    .map((p) => p.path);
+  if (stale.length) throw new Error(`seoPages: SEO entries for routes that don't exist: ${stale.join(", ")} (src/content/seo.ts)`);
+  return [...paths];
+}
+
 /** Vite plugin: runs once after the client build has written dist/. */
 export function seoPages(): Plugin {
   let outDir = "dist";
+  let root = ".";
   let building = false;
   return {
     name: "zinwe-seo-pages",
     configResolved(config) {
       outDir = config.build.outDir;
+      root = config.root;
       building = config.command === "build";
     },
     // Who we are, on every page (dev and build): kept for good, the app never removes it.
@@ -152,6 +188,7 @@ export function seoPages(): Plugin {
       const template = readFileSync(indexPath, "utf8");
       if (!template.includes(OG_IMAGE)) throw new Error("index.html og:image changed: update OG_IMAGE in seo.ts");
       const pages = [...SEO_PAGES, ...LEGAL_DOCS.map(legalSeo)];
+      checkRouteCoverage(readFileSync(join(root, "src", "routes.tsx"), "utf8"), pages);
       for (const page of pages) {
         const file = page.path === "/" ? indexPath : join(outDir, `${page.path.slice(1)}.html`);
         mkdirSync(dirname(file), { recursive: true });

@@ -49,7 +49,7 @@ export default function NewsletterPage(): ReactElement {
   };
 
   return (
-    <div className="wrap nl-page">
+    <div className="wrap nl-page" data-clarity-mask="true">
       <div className="nl-page__card" aria-live="polite">
         {view.kind === "working" ? (
           <p className="muted">One moment…</p>

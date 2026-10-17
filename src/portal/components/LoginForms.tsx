@@ -8,6 +8,7 @@ import { failureMessage } from "../failure";
 import { rememberSignIn } from "../lastLogin";
 import { FormAlert } from "./FormAlert";
 import { PasswordField } from "./PasswordField";
+import { trackEvent } from "../../lib/analytics";
 
 interface EmailProps {
   email: string;
@@ -66,6 +67,7 @@ export function PasswordLoginForm({
     setPending(true);
     const result = await login(email.trim(), password);
     if (result.ok) {
+      trackEvent("login", { method: "password" });
       rememberSignIn(result.data.user.email || email);
       signIn(result.data);
       return; // The guard redirects by onboarding step.

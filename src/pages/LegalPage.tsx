@@ -31,7 +31,7 @@ export default function LegalPage(): ReactElement {
         <article className="legal-doc">
           <h1>Zinwe {doc.title}</h1>
           <p className="legal-doc__meta">
-            Last updated {LEGAL_UPDATED} · Operated by SKYTECHNO, New Delhi, India ·{" "}
+            Last updated {doc.updated ?? LEGAL_UPDATED} · Operated by SKYTECHNO, New Delhi, India ·{" "}
             <a href={`mailto:${LEGAL_CONTACT}`}>{LEGAL_CONTACT}</a>
           </p>
           <LegalText doc={doc} />

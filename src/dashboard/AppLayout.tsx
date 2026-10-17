@@ -325,7 +325,8 @@ export default function AppLayout(): ReactElement {
   }, [pathname, hash]);
 
   return (
-    <div className={`dash${menuOpen ? " is-menu-open" : ""}`}>
+    // data-clarity-mask: private screens are masked if Microsoft Clarity ever records here (lib/clarity.ts).
+    <div className={`dash${menuOpen ? " is-menu-open" : ""}`} data-clarity-mask="true">
       <a className="dash-skip" href="#dash-main">
         Skip to content
       </a>

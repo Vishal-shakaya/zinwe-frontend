@@ -22,6 +22,7 @@ import { Reveal } from "../ui/Reveal";
 import { ChipGroup } from "./ChipGroup";
 import { Field } from "./Field";
 import { FormSuccess } from "./FormSuccess";
+import { trackEvent } from "../../lib/analytics";
 
 interface Values {
   name: string;
@@ -156,6 +157,7 @@ export function EarlyAccessForm(): ReactElement {
     setPending(false);
 
     if (result.ok) {
+      if (!result.data.already_registered) trackEvent("generate_lead", { lead_source: "setup_call" });
       setSent(result.data.already_registered ? "existing" : "new");
       setValues(INITIAL);
       return;

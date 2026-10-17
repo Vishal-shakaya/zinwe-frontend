@@ -6,6 +6,8 @@ interface ImportMetaEnv {
    * Leave empty in development: /api is proxied to the Django dev server.
    */
   readonly VITE_API_BASE_URL?: string;
+  /** "1": load Google Analytics on any host (testing the tag); normally only zinwe.io does (lib/analytics.ts). */
+  readonly VITE_GA_DEBUG?: string;
 }
 
 interface ImportMeta {

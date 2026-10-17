@@ -11,7 +11,8 @@
 
 export const LEGAL_VERSION = "2026-10-17";
 export const LEGAL_UPDATED = "15 October 2026";
-export const COOKIE_POLICY_VERSION = "2026-10-14";
+// 2026-10-17: names the analytics tools (Google Analytics 4, PostHog, Microsoft Clarity), so everyone chooses again, informed.
+export const COOKIE_POLICY_VERSION = "2026-10-17";
 export const LEGAL_CONTACT = "hello@zinwe.io";
 
 export type LegalBlock = string | { list: string[] };
@@ -27,6 +28,8 @@ export interface LegalDoc {
   /** One line for the index page and links. */
   summary: string;
   sections: LegalSection[];
+  /** "Last updated" when this document changed after LEGAL_UPDATED (e.g. the Cookie Policy alone). */
+  updated?: string;
 }
 
 export type LegalSlug = "terms" | "privacy" | "refund" | "cookies" | "acceptable-use" | "disclaimer";
@@ -203,6 +206,7 @@ const COOKIES: LegalDoc = {
   slug: "cookies",
   title: "Cookie Policy",
   summary: "Essential cookies keep you signed in; optional analytics cookies help us improve the site.",
+  updated: "17 October 2026",
   sections: [
     {
       heading: "Cookies We Use",
@@ -211,9 +215,10 @@ const COOKIES: LegalDoc = {
         {
           list: [
             "Essential cookies — needed for the site and your account to function (login sessions, security, load balancing). These can't be switched off.",
-            "Analytics cookies — help us see which pages are useful and how visitors navigate, so we can improve the site. We use these in aggregate; they aren't used to build advertising profiles.",
+            "Analytics cookies — only if you allow them (\"Accept all\", or the Analytics switch in \"Manage\"). They help us see which pages are useful and how visitors find and move through the site, so we can improve it. We use these in aggregate; they aren't used to build advertising profiles.",
           ],
         },
+        "For analytics we use three tools, all only with your OK. Google Analytics 4 (Google LLC) shows us how visitors find and use the website; it sets the cookies _ga and _ga_8ZH4TZ3NTG, kept for up to 13 months, with Google signals, advertising features and ad personalisation switched off. PostHog (PostHog Inc.) shows us which steps of sign-up and setup work and where people get stuck; it sets a cookie and a browser-storage entry whose names start with ph_, kept for up to a year, with session recording switched off, and if you have an account it knows you only by an internal account number, never by your name or email. Microsoft Clarity (Microsoft Corporation) shows us how visitors use our public pages — where they click and scroll — as heatmaps and session replays, with the text you type masked; it sets the cookies _clck (up to a year) and _clsk (one day). Clarity never runs on your dashboard, sign-in and sign-up pages, shared quotes or newsletter links. These providers process this data on our behalf and may do so outside India. We never send your name, email address or anything you type into forms, and private links (such as a shared quote) are shortened before anything is measured.",
         "We don't currently use third-party advertising or cross-site tracking cookies.",
       ],
     },
@@ -221,7 +226,7 @@ const COOKIES: LegalDoc = {
       heading: "Managing Cookies",
       blocks: [
         "Most browsers let you block or delete cookies through their settings. Blocking essential cookies may stop parts of the site or your account from working correctly; blocking analytics cookies won't affect your ability to use Zinwe.",
-        'You can change your choice on this site at any time with "Cookie settings" in the footer.',
+        'You can change your choice on this site at any time with "Cookie settings" in the footer. If you switch analytics off, we stop measuring straight away and delete the analytics cookies from your browser.',
       ],
     },
     {

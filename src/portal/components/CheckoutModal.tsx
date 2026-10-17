@@ -9,6 +9,7 @@ import { PlanSteps } from "./PlanSteps";
 import { QuoteShare } from "./QuoteShare";
 import { ReceiptForm } from "./ReceiptForm";
 import { RejectedBanner } from "./RejectedBanner";
+import { trackEvent } from "../../lib/analytics";
 
 type Screen = "methods" | "details" | "receipt" | "done";
 
@@ -101,6 +102,12 @@ export function CheckoutModal({
 }: CheckoutModalProps): ReactElement {
   const ref = useRef<HTMLDialogElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  // Funnel step (GA4 recommended name): the owner opened checkout for a plan.
+  useEffect(() => {
+    trackEvent("begin_checkout", { plan: quote.plan_code, currency: quote.currency, upgrade: Boolean(upgradePlan) });
+    // Once per opening of the modal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const ways = payWayOptions(instructions, quote.currency);
   const [screen, setScreen] = useState<Screen>("methods");
   const [way, setWay] = useState<PayWay>(() => {

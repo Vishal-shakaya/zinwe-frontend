@@ -43,7 +43,7 @@ export function CookieConsent(): ReactElement | null {
           <h2 id="cookie-title">Cookies on Zinwe</h2>
           <p className="cookie-sheet__long">
             We use essential cookies to keep you signed in and the site secure. With your OK, we also use analytics
-            cookies to see which pages help — never for ads or cross-site tracking.{" "}
+            cookies (Google Analytics, PostHog, Microsoft Clarity) to see which pages help — never for ads or cross-site tracking.{" "}
             <Link to="/legal/cookies">Cookie Policy</Link>
           </p>
           {/* Phones: one short line, so the page's own promise stays visible behind the bar. */}
@@ -64,7 +64,7 @@ export function CookieConsent(): ReactElement | null {
                 <input type="checkbox" checked={analytics} onChange={(e) => setAnalytics(e.target.checked)} />
                 <span>
                   <b>Analytics</b>
-                  <small>Anonymous page statistics so we can improve the site.</small>
+                  <small>Page and sign-up statistics, heatmaps of public pages (Google Analytics, PostHog, Microsoft Clarity). No ads.</small>
                 </span>
               </label>
             </div>

@@ -41,7 +41,7 @@ export default function QuotePage(): ReactElement {
 
   if (load.state !== "ready") {
     return (
-      <section className="qpage">
+      <section className="qpage" data-clarity-mask="true">
         <div className="qpage__wrap qpage__wrap--narrow">
           {load.state === "loading" ? (
             <div className="dash-boot" role="status" aria-live="polite">
@@ -96,7 +96,7 @@ export default function QuotePage(): ReactElement {
   )}`;
 
   return (
-    <section className="qpage" aria-labelledby="qpage-title">
+    <section className="qpage" data-clarity-mask="true" aria-labelledby="qpage-title">
       <div className="qpage__wrap">
         <header className="qpage__head">
           <div>

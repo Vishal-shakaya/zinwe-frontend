@@ -9,6 +9,7 @@ import { FormAlert, FormStatus } from "./FormAlert";
 import { otpDigits } from "../otp";
 import { OtpInput } from "./OtpInput";
 import { ResendButton } from "./ResendButton";
+import { trackEvent } from "../../lib/analytics";
 
 interface CodeStepProps {
   email: string;
@@ -68,6 +69,7 @@ export function CodeStep({
     const result = await verify(email, digits);
     inFlight.current = false;
     if (result.ok) {
+      trackEvent(purpose === "signup" ? "sign_up" : "login", { method: "email_code" });
       rememberSignIn(result.data.user.email || email);
       onSignedIn?.();
       signIn(result.data);

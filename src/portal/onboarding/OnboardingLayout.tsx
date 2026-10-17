@@ -32,7 +32,7 @@ export default function OnboardingLayout(): ReactElement {
   }, [pathname]);
 
   return (
-    <div className="onb">
+    <div className="onb" data-clarity-mask="true">
       <AnnouncementBar />
       {/* One way back (left, beside the logo) and the account on the right: who's signed in + Log out. */}
       <header className="onb__top">

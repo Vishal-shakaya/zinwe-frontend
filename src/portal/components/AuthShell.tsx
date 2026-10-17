@@ -20,7 +20,7 @@ interface AuthShellProps {
  */
 export function AuthShell({ footer, children }: AuthShellProps): ReactElement {
   return (
-    <div className="auth">
+    <div className="auth" data-clarity-mask="true">
       <aside className="auth__side zin-host" aria-hidden="true">
         <Smoke className="auth__smoke" />
         <div className="auth__side-inner">

@@ -7,6 +7,8 @@ import { COOKIE_POLICY_VERSION } from "../content/legal";
 
 const KEY = "zinwe.cookies";
 export const COOKIE_SETTINGS_EVENT = "zinwe:cookie-settings";
+/** Fired after the visitor saves a choice (AnalyticsTracker starts or stops Google Analytics on it). */
+export const COOKIE_CHOICE_EVENT = "zinwe:cookie-choice";
 
 export interface CookieChoice {
   analytics: boolean;
@@ -33,6 +35,7 @@ export function saveCookieChoice(analytics: boolean): CookieChoice {
   } catch {
     /* storage blocked: the sheet just asks again next visit */
   }
+  window.dispatchEvent(new Event(COOKIE_CHOICE_EVENT));
   return choice;
 }
 

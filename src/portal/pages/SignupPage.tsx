@@ -21,6 +21,7 @@ import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
 import { SIGNUP_DOCS } from "../../content/legal";
 import { failureMessage } from "../failure";
 import { clearSignupCode, readSignupCode, saveSignupCode } from "../lastLogin";
+import { trackEvent } from "../../lib/analytics";
 
 const ORDER: readonly SignupField[] = ["full_name", "email", "password", "accept_terms"];
 
@@ -81,6 +82,7 @@ export default function SignupPage(): ReactElement {
     const result = await signup({ full_name: fullName.trim(), email: email.trim(), password, accept_terms: accepted });
     setPending(false);
     if (result.ok) {
+      trackEvent("signup_started");
       setCodeSent({ email: result.data.email || email.trim(), resendIn: result.data.resend_in });
       return;
     }

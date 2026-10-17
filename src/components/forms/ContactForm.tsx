@@ -15,6 +15,7 @@ import { Reveal } from "../ui/Reveal";
 import { ChipGroup } from "./ChipGroup";
 import { Field } from "./Field";
 import { FormSuccess } from "./FormSuccess";
+import { trackEvent } from "../../lib/analytics";
 
 interface Values {
   name: string;
@@ -104,6 +105,7 @@ export function ContactForm(): ReactElement {
     setPending(false);
 
     if (result.ok) {
+      trackEvent("generate_lead", { lead_source: "contact_form", topic: values.topic });
       setSent(email);
       setValues(INITIAL);
       return;

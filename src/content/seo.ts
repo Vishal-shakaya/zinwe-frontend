@@ -30,7 +30,8 @@ export interface SeoPage {
   /** The static (pre-JavaScript) page body: its h1 and a few short paragraphs. */
   h1: string;
   intro: readonly string[];
-  /** Put in sitemap.xml (public, indexable, not a duplicate). */
+  /** Put in sitemap.xml (public, indexable, not a duplicate). The build fails if a public route in
+   *  src/routes.tsx has no entry here (build/seoPages.ts checkRouteCoverage). */
   sitemap: boolean;
 }
 
@@ -138,7 +139,8 @@ const PAGES: readonly SeoPage[] = [
     intro: [
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos, product releases and news.",
     ],
-    sitemap: false, // the backend's /api/blog/sitemap.xml lists /blog once an article is published
+    // Listed even before the first article; the backend's /sitemap.xml adds every published article.
+    sitemap: true,
   },
   {
     path: "/legal",
