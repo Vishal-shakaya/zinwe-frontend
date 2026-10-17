@@ -2021,6 +2021,17 @@ table.dash-sr {
   outline: 2px solid var(--orange-strong);
   outline-offset: 2px;
 }
+/* A range longer than the plan's history: locked, opens the plan page. */
+.dash-range__btn.is-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--mute);
+}
+.dash-range__btn.is-locked .dash-ico {
+  width: 13px;
+  height: 13px;
+}
 
 /* ---------- Jump nav (Setup → feature pages) ---------- */
 
@@ -3336,6 +3347,11 @@ table.dash-sr {
   background: var(--paper);
   border: 1px solid var(--line);
   border-bottom-left-radius: 4px;
+}
+/* Email-only notes never reached the PC: white with a dashed edge (2026-10-17). */
+.team-chat__msg--out.team-chat__msg--email {
+  background: var(--white);
+  border-style: dashed;
 }
 .team-chat__title { font-size: 0.88rem; }
 .team-chat__body { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -5547,88 +5563,272 @@ button.wd-row:hover {
   gap: 8px;
 }
 
-.tc__tags {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: thin;
+/* v8 (2026-10-17): one message box with a toolbar inside it — Suggestions, Priority and Send via are
+   dropdowns that open upwards, Send sits on the right. No helper line underneath. */
+.tc__box {
+  border: 1.5px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--white);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.tc__tag {
-  flex: none;
+.tc__box:focus-within {
+  border-color: var(--orange-strong);
+  box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.16);
+}
+
+.tc__box .tc__text {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 11px 12px 4px;
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  resize: none;
+  box-shadow: none;
+}
+
+.tc__box .tc__text:focus {
+  outline: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.tc__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 8px;
+}
+
+/* ---- Toolbar dropdown ---- */
+.tc-dd {
+  position: relative;
+  min-width: 0;
+}
+
+.tc-dd__btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  background: var(--white);
+  gap: 6px;
+  max-width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--ink-2);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.tc__tag .dash-ico {
-  width: 13px;
-  height: 13px;
-}
-
-.tc__tag:hover {
-  border-color: var(--ink);
+.tc-dd__btn:hover,
+.tc-dd.is-open .tc-dd__btn {
+  background: var(--paper);
+  border-color: var(--line);
   color: var(--ink);
 }
 
-.tc__tag.is-on {
-  border-color: var(--orange-strong);
-  background: var(--orange-tint);
-  color: var(--orange-ink);
+.tc-dd__btn .dash-ico {
+  flex: none;
+  width: 15px;
+  height: 15px;
 }
 
-.tc__tag--critical .dash-ico {
-  color: var(--dash-red);
+.tc-dd__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tc__tag--warning .dash-ico {
-  color: var(--dash-amber);
+/* A small chevron drawn with borders (no extra icon). */
+.tc-dd__caret {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin: -3px 1px 0 1px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.6;
+  transition: transform 0.15s;
 }
 
-.tc__text {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  font: inherit;
-  font-size: 0.92rem;
-  resize: none;
+.tc-dd.is-open .tc-dd__caret {
+  margin-top: 3px;
+  transform: rotate(-135deg);
 }
 
-.tc__text:focus {
-  outline: 0;
-  border-color: var(--orange-strong);
-  box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.18);
-}
-
-.tc__bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tc__seg {
-  display: inline-flex;
-  padding: 2px;
+.tc-dd__menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 5;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 48px));
+  max-height: min(360px, 55vh);
+  overflow-y: auto;
+  padding: 6px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: 0 18px 48px -18px rgba(13, 13, 14, 0.35);
+  animation: dash-rise 0.14s ease-out;
+}
+
+.tc-dd__menu--end {
+  left: auto;
+  right: 0;
+}
+
+.tc-dd__head {
+  margin: 2px 8px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.tc-dd__opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.tc-dd__opt:hover,
+.tc-dd__opt:focus-visible {
+  outline: 0;
   background: var(--paper);
 }
 
+.tc-dd__opt.is-on {
+  background: var(--orange-tint);
+}
+
+.tc-dd__opt > .dash-ico,
+.tc-dd__opt > .tc-dot {
+  flex: none;
+  margin-top: 2px;
+}
+
+.tc-dd__opt > .dash-ico {
+  width: 16px;
+  height: 16px;
+  color: var(--ink-2);
+}
+
+.tc-dd__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.tc-dd__text b {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.tc-dd__text small {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--mute);
+}
+
+.tc-dd__tick {
+  flex: none;
+  width: 16px;
+  color: var(--orange-strong);
+}
+
+.tc-dd__tick .dash-ico {
+  width: 16px;
+  height: 16px;
+}
+
+/* Priority dots: grey = normal, amber = important, red = urgent. */
+.tc-dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.tc-dd__opt > .tc-dot {
+  margin: 5px 3px 0;
+}
+
+.tc-dot--warning {
+  background: var(--dash-amber);
+}
+
+.tc-dot--critical {
+  background: var(--dash-red);
+  box-shadow: 0 0 0 3px var(--dash-red-tint);
+}
+
+.tc__send {
+  flex: none;
+  margin-left: auto;
+}
+
+.tc__send .dash-ico {
+  width: 15px;
+  height: 15px;
+}
+
+/* The bubble is narrow: Send becomes a square icon button, labels may shorten. */
+.tc--compact .tc__send {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+}
+
+.tc--compact .tc__send-label {
+  display: none;
+}
+
+.tc--compact .tc-dd {
+  flex: none;
+}
+
+.tc--compact .tc-dd__btn {
+  padding: 0 6px;
+  gap: 5px;
+}
+
+/* Kept for the "Send alert" menu's urgency picker. */
 .tc__seg-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   padding: 4px 9px;
   border: 0;
   border-radius: 6px;
@@ -5656,10 +5856,6 @@ button.wd-row:hover {
   color: var(--dash-red);
 }
 
-.tc__send {
-  margin-left: auto;
-}
-
 .tc__notice {
   display: flex;
   align-items: center;
@@ -5672,6 +5868,14 @@ button.wd-row:hover {
 .tc__notice .dash-ico {
   width: 14px;
   height: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-dd__menu,
+  .tc-dd__caret {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* ---------- Floating chat bubble ---------- */
@@ -6134,4 +6338,1254 @@ button.wd-row:hover {
   font-weight: 400;
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+/* ==========================================================================
+   v9 (2026-10-17): protection pages — analytics scope (everyone / one person + range),
+   section labels (Trends · Alerts · Manage · Details), and the person picker.
+   ========================================================================== */
+
+.scope {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---- Person picker ---- */
+.mp {
+  position: relative;
+}
+
+.mp__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  max-width: 240px;
+  padding: 0 12px 0 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mp__btn:hover,
+.mp.is-open .mp__btn {
+  border-color: var(--ink);
+}
+
+.mp__btn.has-person {
+  border-color: var(--orange-strong);
+  background: var(--orange-tint);
+}
+
+.mp__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp__avatar {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.mp__btn .mp__avatar {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.mp__avatar .dash-ico {
+  width: 15px;
+  height: 15px;
+}
+
+.mp__avatar .tchat__dot {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+}
+
+.mp__avatar--all {
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+}
+
+.mp__caret {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.6;
+}
+
+.mp.is-open .mp__caret {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+
+.mp__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 40;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  max-height: min(420px, 60vh);
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: 0 18px 48px -18px rgba(13, 13, 14, 0.35);
+  animation: dash-rise 0.14s ease-out;
+}
+
+.mp__head {
+  margin: 2px 8px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.mp__opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.mp__opt:hover,
+.mp__opt:focus-visible {
+  outline: 0;
+  background: var(--paper);
+}
+
+.mp__opt.is-on {
+  background: var(--orange-tint);
+}
+
+.mp__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.mp__text b {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.mp__text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.76rem;
+  color: var(--mute);
+}
+
+.mp__tick {
+  flex: none;
+  width: 16px;
+  color: var(--orange-strong);
+}
+
+.mp__tick .dash-ico {
+  width: 16px;
+  height: 16px;
+}
+
+.mp__note {
+  margin: 6px 8px;
+  font-size: 0.82rem;
+  color: var(--mute);
+}
+
+/* ---- "Showing Asha only" banner ---- */
+.scope-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #f3cfae;
+  border-radius: var(--radius-sm);
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+  font-size: 0.88rem;
+}
+
+.scope-banner__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.scope-banner__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.scope-banner__clear {
+  flex: none;
+  font-weight: 600;
+}
+
+/* ---- Section labels between card groups ---- */
+.dash-section {
+  display: flex;
+  align-items: baseline;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+  margin: 10px 0 -6px;
+}
+
+.dash-section__title {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.dash-section__note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+
+@media (max-width: 760px) {
+  .scope {
+    width: 100%;
+  }
+  /* Phones: the person picker gets its own full-width row above the range. */
+  .mp {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .mp__btn {
+    width: 100%;
+    max-width: none;
+  }
+  .mp__menu {
+    left: 0;
+    right: auto;
+  }
+  .scope-banner {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp__menu {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   v10 (2026-10-17): phones. The sidebar becomes a slide-in menu (☰ in a slim top bar) instead of a
+   sideways tab strip; notices, page headers, alert cards, the day switcher and the chat composer are
+   reflowed for 360–430 px; the floating Chat/Support buttons no longer cover the last card.
+   Comes last in the file so it wins over the older phone rules above.
+   ========================================================================== */
+
+/* Desktop: the menu wrapper is invisible (its children stay sidebar items); phone-only bits hidden. */
+.dash__panel {
+  display: contents;
+}
+
+.dash__panel-head,
+.dash__menu-btn,
+.dash__scrim,
+.dash__logout--top,
+.dash-phone-only {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .dash-phone-only {
+    display: block;
+  }
+
+  /* ---- Slim top bar: ☰ · logo · refresh ---- */
+  /* No backdrop-filter here: it would make the fixed menu panel position against this bar, not the screen. */
+  .dash__side {
+    position: sticky;
+    top: 0;
+    height: auto;
+    overflow: visible;
+    background: var(--white);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .dash__top {
+    height: 56px;
+    gap: 6px;
+    padding: 0 12px 0 8px;
+  }
+  .dash__menu-btn {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 40px;
+    height: 40px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+  }
+  .dash__menu-btn > span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--ink);
+  }
+  .dash__menu-btn > span:nth-child(2) {
+    width: 70%;
+  }
+  .dash__menu-btn:hover {
+    background: var(--paper);
+  }
+  .dash__menu-dot {
+    position: absolute;
+    top: 7px;
+    right: 6px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--white);
+    border-radius: 50%;
+    background: var(--orange-strong);
+  }
+  .dash__refresh {
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+  }
+
+  /* ---- The menu: a panel sliding in from the left ---- */
+  .dash__panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: min(320px, 86vw);
+    padding: 12px 14px 18px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--white);
+    box-shadow: 0 0 60px -10px rgba(13, 13, 14, 0.35);
+    transform: translateX(-104%);
+    visibility: hidden;
+    transition: transform 0.24s var(--ease), visibility 0s linear 0.24s;
+  }
+  .dash.is-menu-open .dash__panel {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.24s var(--ease), visibility 0s;
+  }
+  .dash__panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 4px 10px;
+  }
+  .dash__panel-close {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .dash__panel-close:hover {
+    background: var(--paper);
+  }
+  /* Scrim and panel live inside the top bar's stacking context, which rises above everything while open. */
+  .dash.is-menu-open .dash__side {
+    z-index: 90;
+  }
+  .dash__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    border: 0;
+    background: rgba(13, 13, 14, 0.42);
+    animation: dash-fade 0.2s ease-out;
+  }
+  :root.dash-menu-open,
+  :root.dash-menu-open body {
+    overflow: hidden;
+  }
+
+  /* Inside the menu: the desktop sidebar layout again (groups, labels, sub-links, plan, account). */
+  .dash__nav {
+    flex-direction: column;
+    gap: 14px;
+    padding: 0;
+    overflow: visible;
+  }
+  .dash__group {
+    display: flex;
+  }
+  .dash__group-label {
+    display: block;
+  }
+  .dash__item {
+    display: block;
+  }
+  .dash__link {
+    flex: none;
+    min-width: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: var(--radius-sm);
+    border-bottom: 0;
+    font-size: 0.98rem;
+  }
+  .dash__link:hover {
+    background: var(--paper);
+  }
+  .dash__link.active {
+    background: var(--orange-tint);
+    color: var(--orange-ink);
+    border-bottom: 0;
+  }
+  .dash__sub {
+    display: flex;
+  }
+  .dash__link--phone {
+    display: none;
+  }
+  .dash__util {
+    display: flex;
+    margin-top: auto;
+  }
+  .dash__me {
+    display: grid;
+  }
+
+  /* ---- Page body: room for the floating buttons at the bottom ---- */
+  .dash__main {
+    padding: 16px 16px 96px;
+  }
+
+  /* Header actions wrap instead of running off the screen. */
+  .dash-head {
+    align-items: stretch;
+  }
+  .dash-head__actions {
+    flex-wrap: wrap;
+  }
+
+  /* Activity day switcher: ‹ Previous · day · Next › on one row, the date picker under it. */
+  .wd-days {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .wd-days__label {
+    min-width: 0;
+  }
+  .wd-days > .dash-filter {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .wd-days > .dash-filter input {
+    width: 100%;
+  }
+  .wd-days > button:nth-of-type(2) {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .wd-days > .dash-link {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 560px) {
+  /* Notices: text on top, the button underneath (no more 4-word lines beside it). */
+  .dash-notice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px 10px;
+  }
+  .dash-notice__x {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .dash-notice__cta {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+
+  .dash-head__actions > .btn,
+  .dash-head__actions > a.btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Alert cards (feature pages + Overview): no column labels; severity and "Send alert" share a row. */
+  .dash-alerts__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding-block: 14px;
+  }
+  .dash-alerts__row [data-label]::before {
+    content: none;
+  }
+  .dash-alerts__row > [data-label="Status"] {
+    align-self: center;
+  }
+  .dash-alerts__row > [data-label="Action"] {
+    justify-self: end;
+  }
+  .dash-alerts__suggest {
+    font-size: 0.84rem;
+    color: var(--mute);
+  }
+
+  /* Alerts page: When and "Send alert" share the last row. */
+  .act-row {
+    gap: 8px 12px;
+    padding-block: 14px;
+  }
+  .act-action {
+    grid-column: auto;
+    justify-self: end;
+    align-self: end;
+  }
+
+  /* Chat page composer: Suggestions as an icon, a square Send — the three dropdowns keep their words. */
+  .tc-dd__label--suggest,
+  .tc__send-label {
+    display: none;
+  }
+  .tc__send {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+  .tc-dd {
+    flex: none;
+  }
+  .tc-dd__btn {
+    padding: 0 6px;
+    gap: 5px;
+  }
+
+  /* Filters (Alerts page PC / Type): the select takes the rest of the row. */
+  .dash-filter {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  .dash-filter select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Modals use the full width. */
+  .dash-modal {
+    width: calc(100vw - 16px);
+    max-width: none;
+  }
+}
+
+@keyframes dash-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash__panel,
+  .dash.is-menu-open .dash__panel {
+    transition: none;
+  }
+  .dash__scrim {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Fix round 2026-10-17 (owner test J5 / J3): first run, alerts that explain
+   themselves, handled alerts, USB restore, consent states, floating buttons.
+   ========================================================================== */
+
+/* ---- Floating Chat / Support never cover content or open menus (J5-13, J3-22) ---- */
+@media screen {
+  .dash__main {
+    padding-bottom: 128px;
+  }
+}
+
+.sam.is-open,
+.al-row:has(.sam.is-open),
+.dash-alerts__row:has(.sam.is-open),
+.dash-menu[open] {
+  position: relative;
+  z-index: 70;
+}
+
+.dash:has(.sam.is-open) .cl,
+.dash:has(.sam.is-open) .sup,
+.dash:has(.dash-menu[open]) .cl,
+.dash:has(.dash-menu[open]) .sup {
+  visibility: hidden;
+}
+
+@media screen and (max-width: 860px) {
+  .dash__main {
+    padding-bottom: 104px;
+  }
+}
+
+/* ---- Banners: dismiss button, and one compact line on phones (J5-20) ---- */
+.dash-banner__x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin: -3px -4px -3px auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dash-banner__x:hover {
+  background: var(--line);
+}
+
+@media (max-width: 560px) {
+  .dash-banner--compact {
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+  }
+  .dash-banner--compact > span {
+    flex: 1 1 calc(100% - 60px);
+    min-width: 0;
+  }
+  .dash-banner--compact > .btn,
+  .dash-banner--compact > .dash-link {
+    margin-left: 26px;
+  }
+  .dash-notice__text > span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* ---- Toast ---- */
+.dash-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(460px, calc(100vw - 32px));
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+  animation: dash-fade 0.18s ease;
+}
+
+.dash-toast .dash-ico {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.dash-toast__x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .dash-toast {
+    bottom: 76px;
+  }
+}
+
+/* ---- Overview first run: "Get protected in four steps" (J5-06) ---- */
+.gp {
+  border-color: var(--orange-strong);
+}
+
+.gp__count {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+
+.gp__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gp__step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+}
+
+.gp__step.is-next {
+  border-color: var(--orange-strong);
+  background: var(--orange-tint);
+}
+
+.gp__step.is-done {
+  background: var(--paper);
+}
+
+.gp__num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.gp__step.is-done .gp__num {
+  background: var(--dash-green);
+}
+
+.gp__num .dash-ico {
+  width: 14px;
+  height: 14px;
+}
+
+.gp__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.gp__text b {
+  font-size: 0.92rem;
+}
+
+.gp__step.is-done .gp__text b {
+  color: var(--mute);
+  text-decoration: line-through;
+}
+
+.gp__text small {
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+
+.gp__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .gp__steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .gp__steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .gp__actions .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
+/* ---- Stat tiles: linked tile; numbers never clipped on phones (J5-20) ---- */
+.dash-stats li.is-link {
+  padding: 0;
+}
+
+.dash-stats__link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  padding: 16px 18px;
+  border-radius: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dash-stats__link:focus-visible {
+  outline: 2px solid var(--orange-strong);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .dash-stats b {
+    font-size: clamp(1.1rem, 5.4vw, 1.4rem);
+    white-space: nowrap;
+  }
+  .dash-stats li.has-icon {
+    padding-top: 10px;
+  }
+  .dash-stats__link {
+    padding: 12px;
+  }
+  .dash-stats__ico {
+    position: static;
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+  }
+  .dash-stats__ico .dash-ico {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ---- Alert rows that open: full sentence, what it means, actions (J5-12) ---- */
+.dash-alerts__toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-alerts__toggle:focus-visible,
+.al-toggle:focus-visible {
+  outline: 2px solid var(--orange-strong);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.dash-alerts__chev {
+  flex: none;
+  margin-left: auto;
+  color: var(--mute);
+  transition: transform 0.15s ease;
+}
+
+.dash-alerts__chev .dash-ico {
+  width: 14px;
+  height: 14px;
+  transform: rotate(90deg);
+}
+
+.dash-alerts__group.is-open .dash-alerts__chev {
+  transform: rotate(180deg);
+}
+
+.dash-alerts__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.dash-alerts__handled {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--dash-green);
+}
+
+.dash-alerts__handled .dash-ico {
+  width: 12px;
+  height: 12px;
+}
+
+.dash-alerts__group.is-handled .dash-alerts__typetext b,
+.al-item.is-handled .al-toggle b {
+  color: var(--mute);
+}
+
+.dash-alerts__usb {
+  grid-column: 1 / -1;
+}
+
+.dash-alerts__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 14px 46px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.dash-alerts__detail p {
+  margin: 0;
+}
+
+.dash-alerts__full {
+  font-weight: 600;
+}
+
+.dash-alerts__meaning b {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.dash-alerts__when {
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+
+.dash-alerts__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.al-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.al-toggle > b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.al-toggle:hover > b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.al-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.al-usb {
+  padding: 0 10px 12px 58px;
+}
+
+.al-more {
+  margin: 0 10px 14px 58px;
+}
+
+/* Phones: the alert's sentence wraps to two lines instead of being cut off. */
+@media (max-width: 900px) {
+  .al-detail,
+  .dash-alerts__typetext small {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    overflow: hidden;
+  }
+  .dash-alerts__typetext b {
+    white-space: normal;
+  }
+  .dash-alerts__detail,
+  .al-more {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .al-usb {
+    padding-left: 12px;
+  }
+}
+
+/* ---- Send alert menu: inline error ---- */
+.sam__err {
+  margin: 6px 8px 2px;
+}
+
+/* ---- USB lock + consent states on Team cards (J5-02, J5-16) ---- */
+.usb-lock,
+.team-consent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.usb-lock small {
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+
+.team-consent--no {
+  background: var(--dash-red-tint);
+  color: var(--dash-red);
+}
+
+.team-new__actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---- Protection pages: who hasn't agreed (J5-16) ---- */
+.scope-consent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.scope-consent > span {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+/* ---- Rules: pick a known remote tool (J5-24); one save-state line (J5-26) ---- */
+.dash-list__picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.dash-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.dash-pick:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--ink);
+}
+
+.dash-pick:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dash-pick .dash-ico {
+  width: 12px;
+  height: 12px;
+}
+
+.dash-savebar__meta .dash-ico {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  color: var(--dash-green);
+}
+
+/* ---- Chat: Enter-to-send hint (J5-14); readable picker names on phones (J5-20) ---- */
+.tc__hint {
+  margin: 6px 2px 0;
+  font-size: 0.74rem;
+  color: var(--mute);
+}
+
+.tc__hint kbd {
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--white);
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 560px) {
+  .tc__hint {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .tchat__people {
+    gap: 6px;
+    padding: 6px;
+  }
+  .tchat__person {
+    flex: none;
+    width: 88px;
+    min-width: 0;
+    padding: 8px 4px;
+  }
+  .tchat__person .tchat__who {
+    width: 100%;
+    min-width: 0;
+  }
+  .tchat__person .tchat__who b {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+}
+
+/* ---- Activity: break decided and sent (J5-03) ---- */
+.wd-sent {
+  font-size: 0.78rem;
+  color: var(--mute);
+}
+
+/* ---- Sidebar: the plan name wraps instead of "Free for…" (J5-26) ---- */
+.dash__plan-text b {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+/* Alerts page: room for "Needs attention" / "Worth a look" on one line. */
+@media (min-width: 901px) {
+  .al-row {
+    grid-template-columns: minmax(0, 2.6fr) minmax(0, 1.2fr) 132px minmax(0, 0.9fr) 150px;
+  }
+}
+
+.act-pri {
+  white-space: nowrap;
+}
+
+/* Alerts filter chips: wrap to a second line on phones instead of squeezing each label (J5-20). */
+@media (max-width: 560px) {
+  .act-filters .dash-range {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .act-filters .dash-range__btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+}
+
+/* Phones: banners keep the headline and the button; the extra sentence goes (J5-20). */
+@media (max-width: 560px) {
+  .dash-banner--compact .dash-banner__more {
+    display: none;
+  }
 }

@@ -28,6 +28,8 @@ export interface UsageChartProps {
   specs: SeriesSpec[];
   /** Formats a value for the tooltip and y-axis (bytes, hours, plain count). */
   format: (value: number) => string;
+  /** A shorter y-axis label, when the tooltip's is too long (e.g. whole MB / GB). */
+  axisFormat?: (value: number) => string;
   /** Visible, describes what the chart shows (also the accessible name). */
   caption: string;
   height?: number;
@@ -40,6 +42,7 @@ export function UsageChart({
   rows,
   specs,
   format,
+  axisFormat,
   caption,
   height = 220,
   loading = false,
@@ -98,7 +101,7 @@ export function UsageChart({
               tick={{ fontSize: 12, fill: "#6e6e6b" }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v: number) => format(v)}
+              tickFormatter={(v: number) => (axisFormat ?? format)(v)}
               allowDecimals={false}
             />
             <Tooltip

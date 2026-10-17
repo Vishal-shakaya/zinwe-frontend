@@ -27,6 +27,9 @@ export const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus, string> = {
   cancelled: "Cancelled",
 };
 
+/** The plan card while a payment for it is being checked (instead of "Waiting for payment"). */
+export const PAYMENT_CHECKED_LABEL = "Payment being checked";
+
 export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
   submitted: "Being checked",
   verified: "Verified",
@@ -35,15 +38,16 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
 
 /** Shown on /signup when the visitor came from a plan CTA (`?plan=`; `early-access` arrives as `businesses`). */
 export const PLAN_INTENT_COPY: Record<string, string> = {
-  free: "Free forever: up to 3 PCs, no payment ever.",
-  startups: "Startups plan: full data protection for up to 10 PCs.",
-  businesses: "Businesses plan: data protection plus work hours and team chat, for up to 50 PCs.",
+  free: "Free forever: every feature for up to 3 PCs, no payment ever.",
+  startups: "Startups plan: every feature for up to 10 PCs, with 90 days of history.",
+  teams: "Teams plan: every feature for up to 25 PCs, with 180 days of history.",
+  businesses: "Businesses plan: every feature for up to 50 PCs, with a year of history.",
 };
 
 /** Side panel on the sign-up, login and reset pages. */
 export const AUTH_POINTS: ReadonlyArray<{ title: string; detail: string }> = [
   { title: "Plain-English alerts", detail: "Know when files go to a USB drive or a remote-access tool runs." },
-  { title: "Set up in minutes", detail: "Install the agent on each PC with one key. No IT team needed." },
+  { title: "Set up in minutes", detail: "Install Zinwe on each PC and connect it with the person's Member ID. No IT team needed." },
   { title: "Fair to your team", detail: "Each person agrees on their own PC. Built around India's DPDP Act and US notice laws." },
 ];
 

@@ -9,6 +9,8 @@ export interface PageMeta {
   ogTitle?: string;
   /** og:description / twitter:description, defaults to `description`. */
   ogDescription?: string;
+  /** Keep this page out of search results even on a public path (the 404 page). */
+  noindex?: boolean;
 }
 
 /** Set (or create) one `<meta>` by name/property. */
@@ -38,7 +40,7 @@ function setCanonical(href: string): void {
  * page. Private routes (the app, onboarding, sign-in, personal links) get `noindex` automatically.
  * Public pages take their copy from content/seo.ts, the same source the build pre-renders from.
  */
-export function usePageMeta({ title, description, ogTitle, ogDescription }: PageMeta): void {
+export function usePageMeta({ title, description, ogTitle, ogDescription, noindex = false }: PageMeta): void {
   const { pathname } = useLocation();
   useEffect(() => {
     const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : "/";
@@ -50,7 +52,7 @@ export function usePageMeta({ title, description, ogTitle, ogDescription }: Page
     setMeta("property", "og:url", url);
     setMeta("name", "twitter:title", ogTitle ?? title);
     setMeta("name", "twitter:description", ogDescription ?? description);
-    setMeta("name", "robots", isNoindex(path) ? "noindex, nofollow" : "index, follow");
+    setMeta("name", "robots", noindex || isNoindex(path) ? "noindex, nofollow" : "index, follow");
     setCanonical(url);
-  }, [pathname, title, description, ogTitle, ogDescription]);
+  }, [pathname, title, description, ogTitle, ogDescription, noindex]);
 }

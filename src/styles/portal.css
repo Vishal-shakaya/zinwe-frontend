@@ -563,19 +563,66 @@
   border-bottom: 1px solid var(--line);
 }
 
+.onb__lead {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Header "Back to dashboard": a quiet link after a divider, not a second button (2026-10-17). */
+.onb__back--top {
+  align-self: center;
+  padding-left: 20px;
+  border-left: 1px solid var(--line);
+  line-height: 24px;
+  white-space: nowrap;
+}
+
 .onb__who {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
+}
+
+/* The signed-in account: initial + email, one quiet chip. */
+.onb__acct {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.onb__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .onb__email {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 240px;
   font-size: 0.86rem;
-  color: var(--mute);
+  color: var(--ink-2);
+}
+
+.onb__out .dash-ico {
+  width: 15px;
+  height: 15px;
 }
 
 .onb__main {
@@ -709,8 +756,19 @@
 }
 
 @media (max-width: 560px) {
-  .onb__email {
+  .onb__email,
+  .onb__back-long,
+  .onb__out-label {
     display: none;
+  }
+  .onb__acct {
+    padding-right: 4px;
+  }
+  .onb__lead {
+    gap: 12px;
+  }
+  .onb__back--top {
+    padding-left: 12px;
   }
   .onb__step > span:last-child {
     font-size: 0.82rem;
@@ -1315,11 +1373,6 @@
 }
 
 /* ---------- Activation page: pay + upload receipt beside a payment slip, shared quote (2026-10-16) ---------- */
-
-.onb__dash .dash-ico {
-  width: 16px;
-  height: 16px;
-}
 
 .onb__back {
   align-self: flex-start;
@@ -2658,4 +2711,284 @@
   .checkout__steps .onb__step > span:last-child {
     font-size: 0.74rem;
   }
+}
+
+/* Activity: the day picker reached the plan's history limit */
+.wd-days__limit {
+  margin: -8px 0 0;
+}
+
+/* ========== Fix round 2026-10-17 (website + money UI) ========== */
+
+/* A plan whose payment is being checked: the same words as the banner and the payment row. */
+.st-pill--info {
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+}
+
+/* "How many PCs?" above the plan cards */
+.pc-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 16px;
+  margin: 0 auto 28px;
+  max-width: 760px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.pc-pick__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.pc-pick__ctl {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-btn);
+  overflow: hidden;
+}
+
+.pc-pick__btn {
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.pc-pick__btn:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.pc-pick__btn:disabled {
+  color: var(--mute);
+  cursor: default;
+}
+
+.pc-pick__btn:focus-visible,
+.pc-pick__input:focus-visible {
+  outline: 2px solid var(--orange-strong);
+  outline-offset: -2px;
+}
+
+.pc-pick__input {
+  width: 72px;
+  min-height: 44px;
+  border: 0;
+  border-inline: 1px solid var(--line-strong);
+  text-align: center;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pc-pick__input::-webkit-outer-spin-button,
+.pc-pick__input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.pc-pick__out {
+  flex: 1 1 260px;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.pc-pick__out a {
+  color: var(--orange-text);
+  font-weight: 600;
+}
+
+.onb__wide .pc-pick {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 560px) {
+  .pc-pick {
+    justify-content: flex-start;
+  }
+  .pc-pick__out {
+    flex-basis: 100%;
+  }
+}
+
+/* Where to put the payment reference (UPI note / bank remarks / memo) */
+.pay-row__hint {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--mute);
+}
+
+.ways .pay-row--hinted dd {
+  flex-wrap: wrap;
+}
+
+.pay-rows--grid .pay-row--hinted {
+  grid-column: 1 / -1;
+}
+
+/* Phones: one tap opens the UPI app with the amount filled in */
+.pay-upi-app {
+  margin-bottom: 14px;
+}
+
+/* Checkout: tags for ways that don't suit this customer, "Price details" on phones */
+.checkout__pill--plain {
+  background: var(--paper);
+  color: var(--ink-2);
+}
+
+.checkout__price {
+  display: none;
+}
+
+.checkout__price summary {
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.checkout__price summary:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.checkout__lines--sheet {
+  margin-top: 10px;
+}
+
+@media (max-width: 720px) {
+  .checkout__summary .checkout__payee {
+    display: block;
+    grid-column: 1 / -1;
+    margin: 0 0 6px;
+  }
+  .checkout__price {
+    display: block;
+    grid-column: 1 / -1;
+    margin-top: 10px;
+  }
+  .checkout__summary .checkout__lines--sheet {
+    display: flex;
+  }
+}
+
+/* "How did you pay?" (receipt reached through "Already paid?") */
+.receipt__how {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.receipt__how legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.receipt__how-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.receipt__how-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-btn);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.receipt__how-opt.is-on {
+  border-color: var(--orange-strong);
+  background: var(--orange-tint);
+}
+
+.receipt__how-opt input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--orange-strong);
+}
+
+.receipt__how-opt span {
+  white-space: nowrap;
+}
+
+.receipt__how.is-invalid .receipt__how-opt {
+  border-color: var(--dash-red);
+}
+
+.receipt__how .field__err {
+  display: block;
+  margin-top: 6px;
+}
+
+/* Public quote: "Email the receipt" first, the login second */
+.qpage__upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.qpage__upload .btn .dash-ico {
+  width: 16px;
+  height: 16px;
+}
+
+/* Billing */
+.bill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bill-early {
+  margin: 0;
+}
+
+.pay-hist__why {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--dash-red);
+}
+
+.pay-hist__inv .inv-links {
+  justify-content: flex-end;
+}
+
+/* Room under the floating Chat / Support buttons (56px + gap), so nothing stays hidden under them. */
+.bill-end {
+  height: 72px;
+}
+
+/* Public quote that's been paid or replaced: no ways to pay */
+.qpage__closed {
+  border-left: 4px solid var(--orange-strong);
 }

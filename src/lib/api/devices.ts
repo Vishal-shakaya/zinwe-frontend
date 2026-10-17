@@ -31,7 +31,17 @@ export interface Device {
   work_state?: WorkState;
   worked_seconds?: number;
   break_seconds?: number;
+  /** When the agent switched this PC's USB to read-only after a large copy (null = not locked). */
+  usb_locked_at?: string | null;
+  /** The owner pressed "Restore USB"; the PC restores it on its next check-in. */
+  usb_restore_requested_at?: string | null;
+  /** The person's answer on the widget's consent screen. Absent on older backends. */
+  consent_state?: ConsentState;
+  consent_declined_at?: string | null;
 }
+
+/** "pending" until the person answers on their PC; "declined" = nothing is collected from that PC. */
+export type ConsentState = "pending" | "given" | "declined";
 
 /**
  * A person the owner has added. They enrol their PC with their email + the
@@ -66,6 +76,9 @@ export interface MemberDevice {
   /** The member's consent on the widget's consent screen: which policy version, and when ("" / null = not yet). */
   consent_version?: string;
   consent_at?: string | null;
+  /** Same as on Device, when the backend joins them into the member's PC. */
+  consent_state?: ConsentState;
+  usb_locked_at?: string | null;
 }
 
 export interface MemberPayload {
@@ -186,6 +199,22 @@ export interface DeviceEvent {
   data: Record<string, unknown>;
   /** When this alert was emailed to the member (via Activity → Send mail), or null. */
   emailed_at?: string | null;
+  /** "confirmation" = a rule was applied (not a risk): never shown or counted as an alert. */
+  kind?: "alert" | "confirmation";
+  /** When the owner marked it handled (or messaged the person about it); null = still open. */
+  handled_at?: string | null;
+  /** Who handled it ("" when not handled). */
+  handled_by?: string;
+}
+
+/** POST /api/devices/events/<id>/handled/ — mark an alert handled (or open again). */
+export function markEventHandled(eventId: number, handled: boolean): Promise<DeviceEvent> {
+  return authedRequest<DeviceEvent>(`/api/devices/events/${eventId}/handled/`, { method: "POST", body: { handled } });
+}
+
+/** POST /api/devices/<id>/usb/restore/ — give a PC its USB back after an automatic read-only lock. */
+export function restoreUsb(deviceId: number): Promise<Device> {
+  return authedRequest<Device>(`/api/devices/${deviceId}/usb/restore/`, { method: "POST", body: {} });
 }
 
 /** One change in a member's work day (from the widget's Start / Break / Resume / End). */
@@ -256,9 +285,15 @@ export function createMember(payload: MemberPayload): Promise<Member> {
   return authedRequest<Member>("/api/devices/members/", { method: "POST", body: payload });
 }
 
-/** POST /api/devices/members/<id>/rotate-id/ — issue a fresh id code for this member. */
-export function rotateMemberId(id: number): Promise<Member> {
-  return authedRequest<Member>(`/api/devices/members/${id}/rotate-id/`, { method: "POST", body: {} });
+/**
+ * POST /api/devices/members/<id>/rotate-id/ — issue a fresh id code for this member. With `email`
+ * (default true) the invite email is sent again with the new ID.
+ */
+export function rotateMemberId(id: number, options: { email?: boolean } = {}): Promise<Member> {
+  return authedRequest<Member>(`/api/devices/members/${id}/rotate-id/`, {
+    method: "POST",
+    body: { email: options.email ?? true },
+  });
 }
 
 /** POST /api/devices/members/<id>/deactivate/ — stop this member enrolling or checking in. */
@@ -274,6 +309,8 @@ export interface Message {
   id: number;
   /** "owner" = an admin message/alert; "member" = the member's reply. */
   sender: "owner" | "member";
+  /** Admin lines: how it went out. "email" lines never reach the PC (no receipts). */
+  channel?: MessageChannel;
   title: string;
   body: string | null;
   /** "info" | "warning" | "critical"; unknown values render as info. */
@@ -300,13 +337,18 @@ export function getMemberThread(memberPk: number, signal?: AbortSignal): Promise
 export const MESSAGE_TITLE_MAX = 120;
 export const MESSAGE_BODY_MAX = 2000;
 
+/** Where a note goes: the Zinwe widget on their PC, the widget plus their inbox, or their inbox only. */
+export type MessageChannel = "chat" | "chat_email" | "email";
+
 /** What the owner types when sending a message. */
 export interface MessagePayload {
   title: string;
   body?: string;
   severity?: EventSeverity;
-  /** Also email the note to the member (reaches them with their PC off). */
-  also_email?: boolean;
+  /** Defaults to "chat" (widget only). */
+  channel?: MessageChannel;
+  /** The alert this note is about: sending it marks that alert handled. */
+  event_id?: number;
 }
 
 export type MessageField = "title" | "body" | "severity";
@@ -337,13 +379,21 @@ export async function updatePolicy(patch: PolicyUpdate): Promise<Policy> {
 export const EVENTS_DEFAULT_LIMIT = 50;
 export const EVENTS_MAX_LIMIT = 200;
 
-/** GET /api/devices/events/ — newest first, the owner's PCs only. */
+/**
+ * GET /api/devices/events/ — newest first, the owner's PCs only. Optionally one PC, one team member's
+ * PCs, and/or only some event types (a feature page asks for its own, so other alerts can't crowd it out).
+ */
 export function listEvents(
-  params: { device?: number; limit?: number } = {},
+  params: { device?: number; member?: number; types?: readonly string[]; limit?: number } = {},
   signal?: AbortSignal,
 ): Promise<DeviceEvent[]> {
   return authedRequest<DeviceEvent[]>("/api/devices/events/", {
-    query: { device: params.device, limit: params.limit },
+    query: {
+      device: params.device,
+      member: params.member,
+      types: params.types?.length ? params.types.join(",") : undefined,
+      limit: params.limit,
+    },
     signal,
   });
 }

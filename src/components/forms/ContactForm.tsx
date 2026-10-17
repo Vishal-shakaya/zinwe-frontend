@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactElement } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent, type ReactElement } from "react";
+import { Link } from "react-router-dom";
+import { COMPANY_EMAIL } from "../../content/company";
 import { contactTopicOptions, type ContactTopic } from "../../content/forms";
+import { submitContact } from "../../lib/api/contact";
 import { cx } from "../../lib/cx";
 import {
   compactErrors,
@@ -25,7 +28,6 @@ type ContactField = keyof Values;
 
 const INITIAL: Values = { name: "", email: "", company: "", topic: "fit", message: "" };
 const FIELD_ORDER: readonly ContactField[] = ["name", "email", "company", "topic", "message"];
-const STORAGE_KEY = "zinwe.contact";
 
 function clientError(field: ContactField, v: Values): string | undefined {
   switch (field) {
@@ -44,32 +46,25 @@ function validate(v: Values): FieldErrorMap<ContactField> {
   return compactErrors<ContactField>(Object.fromEntries(FIELD_ORDER.map((f) => [f, clientError(f, v)])));
 }
 
-/**
- * Stores the message locally, exactly like the static site did.
- * TODO: wire to backend z_main contact endpoint (add `submitContact` to
- * lib/api.ts and reuse the early-access error handling) once it exists.
- */
-function saveContactLocally(values: Values): void {
-  const entry = { ...values, _form: "contact", _at: new Date().toISOString() };
-  try {
-    const list: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-    const next = Array.isArray(list) ? [...list, entry] : [entry];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    /* storage unavailable — still show thanks */
-  }
+/** A mailto: link carrying what was typed, for when the form can't reach us. */
+function mailtoFor(v: Values): string {
+  const subject = `Zinwe: message from ${v.name.trim() || "the website"}`;
+  const body = [v.message.trim(), "", v.name.trim(), v.company.trim()].filter((line, i) => i < 2 || line).join("\n");
+  return `mailto:${COMPANY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/** Contact form. No backend yet: saved to localStorage, then the thank-you shows. */
+/**
+ * Contact form, posted to POST /api/contact/: the team gets an email (reply-to = the visitor) and the
+ * visitor gets a "we got your message" email. If it can't be sent, everything typed stays and the
+ * visitor can email us instead (nothing is ever "sent" that wasn't).
+ */
 export function ContactForm(): ReactElement {
   const [values, setValues] = useState<Values>(INITIAL);
   const [errors, setErrors] = useState<FieldErrorMap<ContactField>>({});
+  const [formError, setFormError] = useState<{ text: string; mailto: string | null } | null>(null);
   const [pending, setPending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<string | null>(null);
   const controls = useRef<Partial<Record<ContactField, HTMLElement | null>>>({});
-  const timer = useRef(0);
-
-  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   const update = (field: ContactField, next: Values) => {
     setValues(next);
@@ -86,9 +81,10 @@ export function ContactForm(): ReactElement {
     (field: "name" | "email" | "company" | "message") => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       update(field, { ...values, [field]: e.target.value });
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (pending) return;
+    setFormError(null);
     const next = validate(values);
     setErrors(next);
     if (Object.keys(next).length > 0) {
@@ -96,19 +92,41 @@ export function ContactForm(): ReactElement {
       return;
     }
 
-    saveContactLocally({
-      ...values,
+    const email = values.email.trim();
+    setPending(true);
+    const result = await submitContact({
       name: values.name.trim(),
-      email: values.email.trim(),
+      email,
       company: values.company.trim(),
+      topic: values.topic,
       message: values.message.trim(),
     });
-    setPending(true);
-    timer.current = window.setTimeout(() => {
-      setPending(false);
-      setSent(true);
+    setPending(false);
+
+    if (result.ok) {
+      setSent(email);
       setValues(INITIAL);
-    }, 500);
+      return;
+    }
+    if (result.kind === "validation") {
+      const fieldErrors: FieldErrorMap<ContactField> = {};
+      for (const field of FIELD_ORDER) {
+        const messages = result.fieldErrors[field];
+        if (messages?.length) fieldErrors[field] = messages.join(" ");
+      }
+      setErrors(fieldErrors);
+      if (result.formError) setFormError({ text: result.formError, mailto: null });
+      focusFirstInvalid(FIELD_ORDER, fieldErrors, controls.current);
+      return;
+    }
+    // Keep everything typed; offer email instead.
+    setFormError({
+      text:
+        result.kind === "rate_limited"
+          ? "You've sent a few messages already. Wait a little, or email us directly:"
+          : "We couldn't send your message. Check your connection and try again, or email us directly:",
+      mailto: mailtoFor(values),
+    });
   };
 
   const bind = (field: ContactField) => (el: HTMLElement | null) => {
@@ -188,6 +206,17 @@ export function ContactForm(): ReactElement {
           </Field>
         </div>
         <div className="form__foot">
+          {formError ? (
+            <p className="form__err" role="alert">
+              {formError.text}
+              {formError.mailto ? (
+                <>
+                  {" "}
+                  <a href={formError.mailto}>{COMPANY_EMAIL}</a>
+                </>
+              ) : null}
+            </p>
+          ) : null}
           <button className="btn btn--primary btn--lg btn--block" type="submit" disabled={pending} aria-busy={pending}>
             {pending ? (
               "Sending…"
@@ -200,7 +229,16 @@ export function ContactForm(): ReactElement {
           <p className="form__fine">Replies come from hello@zinwe.io. We never share your details.</p>
         </div>
       </form>
-      <FormSuccess active={sent} heading="Message sent." body="Expect a reply within one working day." />
+      <FormSuccess
+        active={sent !== null}
+        heading="Message sent."
+        body={`We'll reply from ${COMPANY_EMAIL} within one working day. We've emailed ${sent ?? "you"} a copy, so you know it reached us.`}
+        action={
+          <Link className="btn btn--ghost" to="/plans">
+            See the plans meanwhile <span className="arr">→</span>
+          </Link>
+        }
+      />
     </Reveal>
   );
 }

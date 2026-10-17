@@ -32,13 +32,23 @@ export function CookieConsent(): ReactElement | null {
   };
 
   return (
-    <section className="cookie-sheet" role="dialog" aria-modal="false" aria-labelledby="cookie-title">
+    <section
+      className={details ? "cookie-sheet is-details" : "cookie-sheet"}
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="cookie-title"
+    >
       <div className="cookie-sheet__inner">
         <div className="cookie-sheet__text">
           <h2 id="cookie-title">Cookies on Zinwe</h2>
-          <p>
+          <p className="cookie-sheet__long">
             We use essential cookies to keep you signed in and the site secure. With your OK, we also use analytics
             cookies to see which pages help — never for ads or cross-site tracking.{" "}
+            <Link to="/legal/cookies">Cookie Policy</Link>
+          </p>
+          {/* Phones: one short line, so the page's own promise stays visible behind the bar. */}
+          <p className="cookie-sheet__short">
+            Essential cookies keep you signed in; analytics only with your OK, never ads.{" "}
             <Link to="/legal/cookies">Cookie Policy</Link>
           </p>
           {details ? (

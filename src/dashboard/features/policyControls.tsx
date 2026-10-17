@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -21,6 +22,7 @@ import {
 import { cx } from "../../lib/cx";
 import { DashIcon, type DashIconName } from "../components/DashIcon";
 import { normalizeDomain, normalizeExe } from "./policyText";
+import { KNOWN_REMOTE_TOOLS, knownTool } from "./remoteTools";
 import type { CommitPolicy } from "./usePolicy";
 
 /**
@@ -162,29 +164,31 @@ function SaveBar<T extends object>({
           {draft.error}
         </p>
       ) : null}
+      {/* One save-state line at a time: just saved, unsaved changes, or all saved (J5-26). */}
       {draft.justSaved && !draft.dirty ? (
         <p className="dash-banner dash-banner--ok" role="status">
           <DashIcon name="check" />
           <span>{savedMessage} PCs pick this up within about a minute.</span>
         </p>
-      ) : null}
-      <div className="dash-savebar">
-        <p className="dash-savebar__meta">{draft.dirty ? "You have unsaved changes." : "All changes saved."}</p>
-        <div className="dash-savebar__actions">
-          {draft.dirty ? (
+      ) : draft.dirty || draft.saving ? (
+        <div className="dash-savebar">
+          <p className="dash-savebar__meta">You have unsaved changes.</p>
+          <div className="dash-savebar__actions">
             <button type="button" className="btn btn--ghost dash-btn-sm" onClick={draft.undo} disabled={draft.saving}>
               Undo
             </button>
-          ) : null}
-          <button
-            type="submit"
-            className={cx("btn dash-btn-sm", draft.dirty ? "btn--primary" : "btn--ghost")}
-            disabled={!draft.dirty || draft.saving}
-          >
-            {draft.saving ? "Saving…" : draft.dirty ? saveVerb : "No changes to save"}
-          </button>
+            <button type="submit" className="btn btn--primary dash-btn-sm" disabled={draft.saving}>
+              {draft.saving ? "Saving…" : saveVerb}
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="dash-savebar">
+          <p className="dash-savebar__meta">
+            <DashIcon name="check" /> All changes saved.
+          </p>
+        </div>
+      )}
     </>
   );
 }
@@ -228,6 +232,7 @@ function ListEditor({
   disabled = false,
   inputMode = "text",
   seed = "",
+  suggestions,
 }: {
   legend: string;
   placeholder: string;
@@ -241,7 +246,11 @@ function ListEditor({
   inputMode?: "url" | "text";
   /** Pre-fills the add box once (e.g. a domain carried over from an alert). */
   seed?: string;
+  /** Known values to pick from with one click (those not on the list yet), and to suggest while typing. */
+  suggestions?: readonly string[];
 }): ReactElement {
+  const listId = useId();
+  const offered = (suggestions ?? []).filter((s) => !items.some((item) => item.toLowerCase() === s.toLowerCase()));
   const [value, setValue] = useState(seed);
   const [note, setNote] = useState<string | null>(null);
 
@@ -273,6 +282,7 @@ function ListEditor({
           disabled={disabled}
           autoFocus={Boolean(seed)}
           aria-label={legend}
+          list={suggestions ? listId : undefined}
           onChange={(e) => {
             setValue(e.target.value);
             setNote(null);
@@ -287,7 +297,33 @@ function ListEditor({
         <button type="button" className="btn btn--ghost dash-btn-sm" onClick={add} disabled={disabled || !value.trim()}>
           {addLabel}
         </button>
+        {suggestions ? (
+          <datalist id={listId}>
+            {offered.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+        ) : null}
       </div>
+      {offered.length > 0 ? (
+        <div className="dash-list__picks" role="group" aria-label={`${legend}: pick one`}>
+          {offered.slice(0, 6).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="dash-pick"
+              disabled={disabled}
+              onClick={() => {
+                onChange([...items, s]);
+                setNote(null);
+              }}
+            >
+              <DashIcon name="plus" />
+              {s}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {note ? (
         <p className="dash-list__note" role="alert">
           {note}
@@ -328,7 +364,7 @@ const USB_OPTIONS: ReadonlyArray<{ mode: UsbMode; label: string; summary: string
     mode: "allow",
     label: "Allow",
     summary: "USB drives work normally.",
-    detail: "Zinwe still notes every drive that's plugged in, so you can see it under Activity.",
+    detail: "Zinwe still notes every drive that's plugged in, so you can see it under Alerts.",
   },
   {
     mode: "read_only",
@@ -340,7 +376,7 @@ const USB_OPTIONS: ReadonlyArray<{ mode: UsbMode; label: string; summary: string
     mode: "block",
     label: "Block",
     summary: "USB drives don't open at all.",
-    detail: "The strictest setting. Each attempt to use a drive shows up under Activity.",
+    detail: "The strictest setting. Each attempt to use a drive shows up under Alerts.",
   },
 ];
 
@@ -395,7 +431,7 @@ export function UsbCard({ block, commit }: { block: UsbPolicy; commit: CommitPol
 // ---------------------------------------------------------------------------
 
 const WEB_MODES: ReadonlyArray<{ mode: WebMode; label: string; summary: string }> = [
-  { mode: "monitor", label: "Watch only", summary: "See which sites are visited under Activity. Nothing is blocked." },
+  { mode: "monitor", label: "Watch only", summary: "See which sites are visited, here on Online protection. Nothing is blocked." },
   { mode: "block", label: "Block & watch", summary: "Block the categories and sites you pick below, and keep a record of the rest." },
 ];
 
@@ -552,7 +588,7 @@ export function DataTransferCard({ block, commit }: { block: DataTransferPolicy;
       <CardShell
         icon="swap"
         title="Data-transfer limits"
-        sub="Set a size limit per route. A single transfer over the limit is flagged for you under Activity."
+        sub="Set a size limit per route. A single transfer over the limit is flagged for you under Alerts."
         titleId="data-title"
       >
         <Toggle
@@ -574,7 +610,7 @@ export function DataTransferCard({ block, commit }: { block: DataTransferPolicy;
             checked={usb_lockdown}
             onChange={(next) => draft.set({ usb_lockdown: next })}
             label="Lock USB to read-only when a copy goes over the limit"
-            description="When a single copy to a USB drive exceeds your USB limit above, Zinwe immediately switches that PC's USB to read-only and alerts you. It can't undo the file already copied, but it stops anything more until you restore USB. (Takes effect on PCs running the installed Zinwe service.)"
+            description="When a single copy to a USB drive goes over your USB limit above, Zinwe switches that PC's USB to read-only straight away and alerts you. It can't undo what was already copied, but it stops anything more. To give USB back, press Restore USB on the alert or on that person's card in Team & devices."
             disabled={!enabled || draft.saving}
           />
 
@@ -597,9 +633,36 @@ export function DataTransferCard({ block, commit }: { block: DataTransferPolicy;
 // Remote software
 // ---------------------------------------------------------------------------
 
-export function RemoteSoftwareCard({ block, commit }: { block: RemoteSoftwarePolicy; commit: CommitPolicy }): ReactElement {
+export function RemoteSoftwareCard({
+  block,
+  commit,
+  focusTool,
+}: {
+  block: RemoteSoftwarePolicy;
+  commit: CommitPolicy;
+  /** "Block AnyDesk" from an alert: the tool is added to the block list (and blocking switched on), ready to save. */
+  focusTool?: string;
+}): ReactElement {
   const draft = useDraft<RemoteSoftwarePolicy>("remote_software", block, commit);
   const { enabled, blocking_enabled, blocked_tools, extra_tool_executables } = draft.draft;
+  const tool = focusTool ? (knownTool(focusTool) ?? focusTool.trim()) : "";
+  const alreadyBlocked =
+    Boolean(tool) && block.enabled && block.blocking_enabled && block.blocked_tools.some((t) => t.toLowerCase() === tool.toLowerCase());
+  const seeded = useRef(false);
+  const { set } = draft;
+  useEffect(() => {
+    if (seeded.current || !tool) return;
+    seeded.current = true;
+    document.getElementById("remote-title")?.scrollIntoView({ block: "center" });
+    if (alreadyBlocked) return;
+    set({
+      enabled: true,
+      blocking_enabled: true,
+      blocked_tools: block.blocked_tools.some((t) => t.toLowerCase() === tool.toLowerCase())
+        ? block.blocked_tools
+        : [...block.blocked_tools, tool],
+    });
+  }, [tool, alreadyBlocked, block.blocked_tools, set]);
 
   return (
     <form
@@ -618,8 +681,22 @@ export function RemoteSoftwareCard({ block, commit }: { block: RemoteSoftwarePol
           checked={enabled}
           onChange={(next) => draft.set({ enabled: next })}
           label="Watch for remote-control tools"
-          description={enabled ? "On — every time one runs, it's recorded under Activity." : "Off — remote tools are not recorded."}
+          description={enabled ? "On — every time one runs, it's recorded under Alerts." : "Off — remote tools are not recorded."}
         />
+
+        {tool && draft.dirty ? (
+          <p className="dash-banner dash-banner--info" role="status">
+            <DashIcon name="shield" />
+            <span>
+              <b>{tool} is added to the block list below.</b> Press “Save changes” to close it whenever it starts on any PC.
+            </span>
+          </p>
+        ) : tool && alreadyBlocked ? (
+          <p className="dash-banner dash-banner--ok" role="status">
+            <DashIcon name="check" />
+            <span>{tool} is already blocked on every PC.</span>
+          </p>
+        ) : null}
 
         <fieldset className="dash-set__group" disabled={!enabled || draft.saving}>
           <legend className="dash-sr">Remote-tool blocking and lists</legend>
@@ -637,8 +714,9 @@ export function RemoteSoftwareCard({ block, commit }: { block: RemoteSoftwarePol
             addLabel="Add tool"
             items={blocked_tools}
             onChange={(next) => draft.set({ blocked_tools: next })}
-            normalize={(raw) => raw.trim()}
-            empty="No tools listed yet. Add a tool name, e.g. AnyDesk or TeamViewer."
+            normalize={(raw) => knownTool(raw) ?? raw.trim()}
+            suggestions={KNOWN_REMOTE_TOOLS}
+            empty="No tools listed yet. Pick one above or type its name."
             disabled={!enabled || draft.saving}
           />
 

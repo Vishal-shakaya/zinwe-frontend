@@ -1,12 +1,15 @@
-import { useState, type FormEvent, type ReactElement } from "react";
-import { ApiError, emailAlert, errorMessage, sendMessage, MESSAGE_BODY_MAX, type DeviceEvent } from "../../lib/api";
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
+import { ApiError, emailAlert, errorMessage, sendMessage, MESSAGE_BODY_MAX, type DeviceEvent, type MessageChannel } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { contextOf, subjectLine, tagsFor, URGENCY, type MessageTag, type Urgency } from "../features/messageTags";
 import { eventMeta } from "../features/events";
-import { DashIcon } from "./DashIcon";
+import { DashIcon, type DashIconName } from "./DashIcon";
 
-/** How a note reaches the person. "email" (one email about an alert) exists only with an alert. */
-export type Delivery = "widget" | "both" | "email";
+/**
+ * How a note reaches the person: the Zinwe widget on their PC ("chat"), the widget plus their inbox
+ * ("chat_email"), or their inbox only ("email"). With an alert, "email" is the one-off alert email.
+ */
+export type Delivery = MessageChannel;
 
 export interface ComposerPerson {
   id: number;
@@ -14,43 +17,210 @@ export interface ComposerPerson {
   email?: string;
 }
 
+const DELIVERIES: ReadonlyArray<{ value: Delivery; label: string; icon: DashIconName; note: string }> = [
+  { value: "chat", label: "Chat", icon: "chat", note: "The Zinwe widget on their PC" },
+  { value: "chat_email", label: "Chat + email", icon: "share", note: "Their PC, plus a copy in their inbox" },
+  { value: "email", label: "Email only", icon: "mail", note: "Their inbox only, not their PC" },
+];
+
+/** A draft as a one-line preview: without the "Hi Asha, " greeting, capitalised; open-ended drafts end in "…". */
+function draftPreview(draft: string): string {
+  const text = draft.replace(/^Hi [^,]+, /, "").trim();
+  const capital = text.charAt(0).toUpperCase() + text.slice(1);
+  return capital.endsWith(":") ? `${capital} …` : capital;
+}
+
+interface MenuOption<T extends string> {
+  value: T;
+  label: string;
+  /** Second line, e.g. what the option does or the draft it fills in. */
+  note?: string;
+  icon?: DashIconName;
+  /** A priority dot instead of an icon. */
+  dot?: Urgency;
+}
+
 /**
- * The one composer for messaging a team member (chat bubble and Chat page):
- * tag chips (what it's about — becomes the subject), urgency, where it goes
- * (widget, widget + email, or email only for an alert), and the text. Picking
- * a tag fills in a draft and its usual urgency; everything stays editable.
+ * A small dropdown in the composer's toolbar: the trigger shows the current choice, the menu opens
+ * upwards (the composer sits at the bottom of the chat). Arrow keys move, Escape closes, a click outside
+ * closes.
+ */
+function ComposerMenu<T extends string>({
+  label,
+  current,
+  options,
+  onPick,
+  trigger,
+  alignEnd = false,
+}: {
+  label: string;
+  current: T | null;
+  options: ReadonlyArray<MenuOption<T>>;
+  onPick: (value: T) => void;
+  trigger: ReactNode;
+  /** Open the menu leftwards from the trigger's right edge (the last control, near the bubble's edge). */
+  alignEnd?: boolean;
+}): ReactElement {
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const listId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    // Start on the chosen option (or the first) so the keyboard can carry on from there.
+    wrap.current?.querySelector<HTMLButtonElement>('[role="option"][aria-selected="true"], [role="option"]')?.focus();
+    const onDown = (e: MouseEvent) => {
+      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        button.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const onListKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const items = [...(wrap.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? [])];
+    const at = items.indexOf(document.activeElement as HTMLButtonElement);
+    const go = (i: number) => {
+      e.preventDefault();
+      items[(i + items.length) % items.length]?.focus();
+    };
+    if (e.key === "ArrowDown") go(at + 1);
+    else if (e.key === "ArrowUp") go(at - 1);
+    else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(items.length - 1);
+    else if (e.key === "Tab") setOpen(false);
+  };
+
+  const chosen = options.find((o) => o.value === current);
+
+  return (
+    <div className={cx("tc-dd", open && "is-open")} ref={wrap}>
+      <button
+        ref={button}
+        type="button"
+        className={cx("tc-dd__btn", chosen && "has-value")}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
+        aria-label={`${label}: ${chosen?.label ?? "none"}`}
+        title={label}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {trigger}
+        <span className="tc-dd__caret" aria-hidden="true" />
+      </button>
+      {open ? (
+        <div className={cx("tc-dd__menu", alignEnd && "tc-dd__menu--end")} id={listId} role="listbox" aria-label={label} onKeyDown={onListKey}>
+          <p className="tc-dd__head" aria-hidden="true">
+            {label}
+          </p>
+          {options.map((o) => {
+            const on = o.value === current;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={on}
+                className={cx("tc-dd__opt", on && "is-on")}
+                onClick={() => {
+                  onPick(o.value);
+                  setOpen(false);
+                  button.current?.focus();
+                }}
+              >
+                {o.dot ? <i className={`tc-dot tc-dot--${o.dot}`} aria-hidden="true" /> : o.icon ? <DashIcon name={o.icon} /> : null}
+                <span className="tc-dd__text">
+                  <b>{o.label}</b>
+                  {o.note ? <small>{o.note}</small> : null}
+                </span>
+                <span className="tc-dd__tick" aria-hidden="true">
+                  {on ? <DashIcon name="check" /> : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Until the owner picks "Send via" themselves, a Normal note goes to the widget only and an Important or
+ * Urgent one also by email, so "Thanks, noted" never lands in someone's inbox (J5-14).
+ */
+function deliveryFor(urgency: Urgency): Delivery {
+  return urgency === "info" ? "chat" : "chat_email";
+}
+
+/**
+ * The one composer for messaging a team member (chat bubble and Chat page): a message box with a
+ * toolbar underneath — Suggestions (fills in a draft, its usual priority and the subject line),
+ * Priority, Send via (chat, chat + email, email only) — and Send. Everything stays editable.
+ * Enter sends, Shift+Enter starts a new line.
  */
 export function TaggedComposer({
   person,
   event = null,
   initialTag = null,
+  initialText,
   initialUrgency,
-  initialDelivery = "both",
+  initialDelivery,
   compact = false,
   onSent,
 }: {
   person: ComposerPerson;
   event?: DeviceEvent | null;
   initialTag?: string | null;
+  /** A ready-made note to start from (used when no suggestion is picked). */
+  initialText?: string;
   initialUrgency?: Urgency;
+  /** Omit to follow the priority: Normal → chat, Important / Urgent → chat + email. */
   initialDelivery?: Delivery;
   compact?: boolean;
   onSent: (delivery: Delivery) => void;
 }): ReactElement {
   const first = person.name.trim().split(/\s+/)[0] || person.name;
+  const inbox = person.email ?? "their email";
   const tags = tagsFor(event);
   const ctx = contextOf(event);
   const startTag = tags.find((t) => t.id === initialTag) ?? null;
 
   const [tag, setTag] = useState<MessageTag | null>(startTag);
-  const [urgency, setUrgency] = useState<Urgency>(initialUrgency ?? startTag?.urgency ?? "info");
-  const [delivery, setDelivery] = useState<Delivery>(event ? initialDelivery : initialDelivery === "email" ? "both" : initialDelivery);
-  const [text, setText] = useState(startTag ? startTag.draft(first, ctx) : "");
+  const startUrgency: Urgency = initialUrgency ?? startTag?.urgency ?? "info";
+  const [urgency, setUrgencyState] = useState<Urgency>(startUrgency);
+  const [delivery, setDelivery] = useState<Delivery>(initialDelivery ?? deliveryFor(startUrgency));
+  // The owner chose "Send via" (or the caller did): the priority no longer changes it.
+  const [deliveryPicked, setDeliveryPicked] = useState(initialDelivery !== undefined);
+  const setUrgency = (next: Urgency) => {
+    setUrgencyState(next);
+    if (!deliveryPicked) setDelivery(deliveryFor(next));
+  };
+  const [text, setText] = useState(startTag ? startTag.draft(first, ctx) : (initialText ?? ""));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
 
-  const pickTag = (next: MessageTag) => {
+  // The alert email has its own wording and no priority; every other note has both.
+  const alertEmail = delivery === "email" && event !== null;
+  const priority = URGENCY.find((u) => u.value === urgency) ?? URGENCY[0];
+  const via = DELIVERIES.find((d) => d.value === delivery) ?? DELIVERIES[0];
+
+  const pickTag = (id: string) => {
+    const next = tags.find((t) => t.id === id);
+    if (!next) return;
     if (tag?.id === next.id) {
       setTag(null);
       return;
@@ -59,6 +229,7 @@ export function TaggedComposer({
     setUrgency(next.urgency);
     setText(next.draft(first, ctx));
     setNotice(null);
+    textRef.current?.focus();
   };
 
   const send = async () => {
@@ -67,19 +238,26 @@ export function TaggedComposer({
     setPending(true);
     setError(null);
     try {
-      if (delivery === "email" && event) {
+      if (alertEmail && event) {
         await emailAlert(event.id, { label: subjectLine(tag, event, eventMeta(event.type).label), suggested: body.slice(0, 300) });
-        setNotice(`Emailed to ${person.email ?? first}.`);
       } else {
         const fallback = body.split("\n")[0].slice(0, 80) + (body.length > 80 ? "…" : "");
         await sendMessage(person.id, {
           title: subjectLine(tag, event, fallback),
           body,
           severity: urgency,
-          also_email: delivery === "both",
+          channel: delivery,
+          // Sending a note about an alert marks that alert handled.
+          ...(event ? { event_id: event.id } : {}),
         });
-        setNotice(delivery === "both" ? `Sent to ${first}'s PC and emailed.` : `Sent to ${first}'s PC.`);
       }
+      setNotice(
+        delivery === "email"
+          ? `Emailed to ${inbox}.`
+          : delivery === "chat_email"
+            ? `Sent to ${first}'s PC and emailed.`
+            : `Sent to ${first}'s PC.`,
+      );
       setText("");
       setTag(null);
       onSent(delivery);
@@ -95,88 +273,91 @@ export function TaggedComposer({
     void send();
   };
 
-  const deliveries: ReadonlyArray<{ value: Delivery; label: string }> = [
-    { value: "widget", label: "PC" },
-    { value: "both", label: "PC + email" },
-    ...(event ? [{ value: "email" as const, label: "Email only" }] : []),
-  ];
-
   return (
     <form className={cx("tc", compact && "tc--compact")} onSubmit={onSubmit} noValidate>
-      <div className="tc__tags" role="group" aria-label="What's it about?">
-        {tags.map((t) => (
+      <div className="tc__box">
+        <label className="dash-sr" htmlFor={`tc-${person.id}`}>
+          Message to {person.name}
+        </label>
+        <textarea
+          ref={textRef}
+          id={`tc-${person.id}`}
+          className="tc__text"
+          rows={2}
+          maxLength={alertEmail ? 300 : MESSAGE_BODY_MAX}
+          placeholder={`Message ${first}…`}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            setNotice(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              void send();
+            }
+          }}
+          disabled={pending}
+        />
+
+        <div className="tc__tools">
+          <ComposerMenu
+            label="Suggestions"
+            current={tag?.id ?? null}
+            options={tags.map((t) => ({ value: t.id, label: t.label, icon: t.icon, note: draftPreview(t.draft(first, ctx)) }))}
+            onPick={pickTag}
+            trigger={
+              <>
+                <DashIcon name={tag?.icon ?? "book"} />
+                {/* The bubble is narrow: there the picked suggestion shows as its icon (the text is in the box). */}
+                {compact ? null : <span className="tc-dd__label tc-dd__label--suggest">{tag?.label ?? "Suggestions"}</span>}
+              </>
+            }
+          />
+          {!alertEmail ? (
+            <ComposerMenu
+              label="Priority"
+              current={urgency}
+              options={URGENCY.map((u) => ({ value: u.value, label: u.label, note: u.hint, dot: u.value }))}
+              onPick={setUrgency}
+              trigger={
+                <>
+                  <i className={`tc-dot tc-dot--${priority.value}`} aria-hidden="true" />
+                  <span className="tc-dd__label">{priority.label}</span>
+                </>
+              }
+            />
+          ) : null}
+          <ComposerMenu
+            label="Send via"
+            alignEnd
+            current={delivery}
+            options={DELIVERIES.map((d) => ({
+              ...d,
+              note: d.value === "email" && event ? "One email about this alert" : d.note,
+            }))}
+            onPick={(value) => {
+              setDelivery(value);
+              setDeliveryPicked(true);
+              setNotice(null);
+            }}
+            trigger={
+              <>
+                <DashIcon name={via.icon} />
+                <span className="tc-dd__label">{via.label}</span>
+              </>
+            }
+          />
           <button
-            key={t.id}
-            type="button"
-            className={cx("tc__tag", tag?.id === t.id && "is-on", `tc__tag--${t.urgency}`)}
-            aria-pressed={tag?.id === t.id}
-            onClick={() => pickTag(t)}
+            type="submit"
+            className="btn btn--primary dash-btn-sm tc__send"
+            disabled={pending || !text.trim()}
+            aria-label={pending ? "Sending" : "Send"}
           >
-            <DashIcon name={t.icon} />
-            {t.label}
+            <DashIcon name="send" />
+            <span className="tc__send-label">{pending ? "Sending…" : "Send"}</span>
           </button>
-        ))}
-      </div>
-
-      <label className="dash-sr" htmlFor={`tc-${person.id}`}>
-        Message to {person.name}
-      </label>
-      <textarea
-        id={`tc-${person.id}`}
-        className="tc__text"
-        rows={compact ? 3 : 2}
-        maxLength={delivery === "email" ? 300 : MESSAGE_BODY_MAX}
-        placeholder={tag ? "" : `Message ${first}… or pick a tag above`}
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          setNotice(null);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            void send();
-          }
-        }}
-        disabled={pending}
-      />
-
-      <div className="tc__bar">
-        {delivery !== "email" ? (
-          <div className="tc__seg" role="radiogroup" aria-label="Urgency">
-            {URGENCY.map((u) => (
-              <button
-                key={u.value}
-                type="button"
-                role="radio"
-                aria-checked={urgency === u.value}
-                className={cx("tc__seg-opt", `tc__seg-opt--${u.value}`, urgency === u.value && "is-on")}
-                onClick={() => setUrgency(u.value)}
-                data-tip={u.hint}
-              >
-                {u.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <div className="tc__seg" role="radiogroup" aria-label="Send to">
-          {deliveries.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              role="radio"
-              aria-checked={delivery === d.value}
-              className={cx("tc__seg-opt", delivery === d.value && "is-on")}
-              onClick={() => setDelivery(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
         </div>
-        <button type="submit" className="btn btn--primary dash-btn-sm tc__send" disabled={pending || !text.trim()}>
-          <DashIcon name="share" />
-          {pending ? "Sending…" : "Send"}
-        </button>
       </div>
 
       {error ? (
@@ -188,7 +369,11 @@ export function TaggedComposer({
           <DashIcon name="check" />
           {notice}
         </p>
-      ) : null}
+      ) : (
+        <p className="tc__hint" aria-hidden="true">
+          <kbd>Enter</kbd> to send · <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line
+        </p>
+      )}
     </form>
   );
 }

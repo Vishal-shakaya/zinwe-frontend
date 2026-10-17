@@ -1,20 +1,21 @@
-import { useCallback, useMemo, type ReactElement } from "react";
+import { useCallback, useMemo, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { listDevices, listEvents, listMembers, type DeviceEvent, type Member } from "../../lib/api";
+import { getPolicy, listDevices, listEvents, listMembers, type DeviceEvent, type Member } from "../../lib/api";
 import { AlertsTable } from "../components/AlertsTable";
+import { GetProtected } from "../components/GetProtected";
 import { StatTiles } from "../components/StatTiles";
 import { DashIcon } from "../components/DashIcon";
 import { PlanLock } from "../components/PlanLock";
 import { useEntitlements } from "../features/entitlements";
 import { LoadingState, PageHeader } from "../components/States";
-import { makeMemberResolver, severityOf } from "../features/events";
-import { formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
+import { makeMemberResolver, needsAttention } from "../features/events";
+import { consentOf, formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
 import { formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
 
-/** Overview is a glance: the few newest alerts, the rest live in Activity. */
+/** Overview is a glance: the few newest alerts to check, the rest live in Alerts. */
 const MAX_ALERTS = 5;
 const MAX_PEOPLE = 6;
 
@@ -24,14 +25,18 @@ function startOfToday(now: number): number {
   return d.getTime();
 }
 
-function alertsToday(events: DeviceEvent[], now: number): number {
+/**
+ * "Alerts to check today": Worth a look + Needs attention since midnight that nobody has handled yet.
+ * Alerts → "To check" counts the same way (J5-11).
+ */
+function toCheckToday(events: DeviceEvent[], now: number): number {
   const from = startOfToday(now);
-  return events.filter((e) => severityOf(e) !== "info" && Date.parse(e.occurred_at) >= from).length;
+  return events.filter((e) => needsAttention(e) && Date.parse(e.occurred_at) >= from).length;
 }
 
-/** The actionable alerts for the main table: warnings/criticals, newest first. */
+/** The alerts for the main table: still to check, newest first (handled ones leave the list, J5-04). */
 function actionable(events: DeviceEvent[]): DeviceEvent[] {
-  return events.filter((e) => severityOf(e) !== "info").slice(0, MAX_ALERTS);
+  return events.filter(needsAttention).slice(0, MAX_ALERTS);
 }
 
 export default function OverviewPage(): ReactElement {
@@ -44,9 +49,14 @@ export default function OverviewPage(): ReactElement {
   const devices = useResource(loadDevices, { pollMs: 60_000 });
   const members = useResource(loadMembers, { pollMs: 60_000 });
   const events = useResource(loadEvents, { pollMs: 60_000 });
+  const loadPolicy = useCallback((signal: AbortSignal) => getPolicy(signal), []);
+  const policy = useResource(loadPolicy);
   const now = useNow(60_000);
+  // Marked handled / messaged from this page: off the list at once, before the next poll.
+  const [handledHere, setHandledHere] = useState<ReadonlySet<number>>(() => new Set());
 
-  const workOn = useEntitlements().has("work_time");
+  const { has, maxDevices } = useEntitlements();
+  const workOn = has("work_time");
   const firstName = account?.user.full_name.trim().split(/\s+/)[0];
   const company = account?.company;
 
@@ -56,20 +66,39 @@ export default function OverviewPage(): ReactElement {
   const onBreak = presence.filter((p) => p === "break").length;
   const offline = presence.filter((p) => p === "offline").length;
 
-  const alerts = events.data ? actionable(events.data) : [];
-  const todays = events.data ? alertsToday(events.data, now) : null;
+  const open = (events.data ?? []).filter((e) => !handledHere.has(e.id));
+  const alerts = events.data ? actionable(open) : [];
+  const todays = events.data ? toCheckToday(open, now) : null;
   const resolveMember = useMemo(() => makeMemberResolver(devices.data), [devices.data]);
 
   const loaded = members.data !== undefined;
   const num = (value: number) => (loaded ? String(value) : "–");
+  // First run: until someone has agreed on their PC, Overview leads with the four setup steps (J5-06).
+  const noTeam = loaded && activeMembers.length === 0;
+  const firstRun = loaded && !activeMembers.some((m) => consentOf(m.device) === "given");
 
   return (
     <>
       <PageHeader
         title={firstName ? `Welcome, ${firstName}` : "Welcome"}
-        lede={company ? `${company.name} · Here's your team today.` : "Here's your team today."}
+        lede={
+          noTeam
+            ? "Let's protect your first PC. It takes about 5 minutes."
+            : company
+              ? `${company.name} · Here's your team today.`
+              : "Here's your team today."
+        }
       />
 
+      {firstRun ? (
+        <GetProtected
+          members={activeMembers}
+          maxDevices={maxDevices}
+          rulesChanged={(policy.data?.version ?? 1) > 1}
+        />
+      ) : null}
+
+      {noTeam ? null : (
       <StatTiles
         wide
         label="Team and alerts"
@@ -88,7 +117,7 @@ export default function OverviewPage(): ReactElement {
                   label: "working now",
                   tone: working > 0 ? ("good" as const) : undefined,
                   icon: "activity" as const,
-                  hint: "Pressed Start in their Zinwe widget and aren't on a break.",
+                  hint: "Pressed Log in in their Zinwe widget and aren't on a break.",
                 },
                 {
                   value: num(onBreak),
@@ -107,20 +136,22 @@ export default function OverviewPage(): ReactElement {
           },
           {
             value: todays !== null ? String(todays) : "–",
-            label: "alerts today",
+            label: todays === 1 ? "alert to check today" : "alerts to check today",
             tone: todays !== null && todays > 0 ? (todays >= 10 ? "bad" : "warn") : "good",
             icon: "alert",
-            hint: "Warnings and critical alerts since midnight. Open Alerts to act on them.",
+            hint: "“Worth a look” and “Needs attention” alerts since midnight that you haven't handled yet.",
+            to: "/app/alerts?show=check",
           },
         ]}
       />
+      )}
 
-      {workOn ? null : (
+      {workOn || noTeam ? null : (
         <PlanLock module="work_time" compact title="Who's working">
           See who's working, who's on a break and why, and when each person started and finished their day.
         </PlanLock>
       )}
-      <section className="dash-card" aria-labelledby="ov-team-title" hidden={!workOn}>
+      <section className="dash-card" aria-labelledby="ov-team-title" hidden={!workOn || noTeam}>
         <div className="dash-card__head dash-card__head--split">
           <h2 className="dash-card__title" id="ov-team-title">
             Who's working
@@ -159,11 +190,13 @@ export default function OverviewPage(): ReactElement {
         <div className="dash-card__head dash-card__head--split">
           <div>
             <h2 className="dash-card__title" id="ov-alerts-title">
-              Recent alerts
+              Alerts to check
             </h2>
             {todays !== null ? (
               <p className="dash-card__sub">
-                {todays === 0 ? "Nothing new today." : `${todays} ${todays === 1 ? "alert" : "alerts"} today.`}
+                {todays === 0
+                  ? "Nothing new to check today."
+                  : `${todays} ${todays === 1 ? "alert" : "alerts"} to check today.`}
               </p>
             ) : null}
           </div>
@@ -178,8 +211,17 @@ export default function OverviewPage(): ReactElement {
             events={alerts}
             resolveMember={resolveMember}
             now={now}
-            caption="Most recent alerts needing attention"
-            emptyText="No alerts need attention. Everything looks calm right now."
+            caption="Most recent alerts to check"
+            emptyText={
+              noTeam
+                ? "Alerts show here once a PC is connected."
+                : "Nothing to check. Everything looks calm right now."
+            }
+            devices={devices.data}
+            onDevicesChanged={devices.reload}
+            onChanged={(event) => {
+              if (event.handled_at) setHandledHere((s) => new Set(s).add(event.id));
+            }}
           />
         )}
       </section>

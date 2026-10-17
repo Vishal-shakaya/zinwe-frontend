@@ -8,6 +8,8 @@ export default function NotFoundPage(): ReactElement {
   usePageMeta({
     title: "Page not found — Zinwe",
     description: "This page doesn't exist. Head back to the Zinwe home page or get in touch.",
+    // The server answers every unknown address with the app (status 200): keep it out of search results.
+    noindex: true,
   });
 
   return (

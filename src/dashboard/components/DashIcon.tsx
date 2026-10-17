@@ -35,7 +35,8 @@ export type DashIconName =
   | "upload"
   | "download"
   | "mail"
-  | "file";
+  | "file"
+  | "send";
 
 const strokeProps = {
   fill: "none",
@@ -229,6 +230,9 @@ function paths(name: DashIconName): ReactElement {
       return <path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" />;
     case "download":
       return <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" />;
+    case "send":
+      // Paper plane: the "send message" button.
+      return <path d="M21 3 10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" />;
     case "mail":
       return (
         <>

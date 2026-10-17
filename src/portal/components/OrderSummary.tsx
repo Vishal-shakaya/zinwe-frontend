@@ -73,8 +73,8 @@ export function OrderSummary({
           ))}
           {quote.export ? (
             <div>
-              <dt>GST (export)</dt>
-              <dd>{money("0")}</dd>
+              <dt>Tax</dt>
+              <dd>None</dd>
             </div>
           ) : null}
         </dl>
@@ -98,10 +98,10 @@ export function OrderSummary({
         ) : null}
         <p className="slip__note">
           {quote.export
-            ? "No Indian GST: an export of services."
+            ? "No tax is added (sold from India as an export)."
             : quote.taxes.length
               ? `Includes GST for ${quote.place_of_supply || "India"}.`
-              : quote.note || "GST not charged."}{" "}
+              : quote.note || "No GST is added."}{" "}
           The invoice is emailed once your payment is confirmed.
         </p>
         {children ?? null}

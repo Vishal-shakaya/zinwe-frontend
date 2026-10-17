@@ -1,21 +1,16 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { CopyButton } from "../../dashboard/components/CopyButton";
-import { DashIcon, type DashIconName } from "../../dashboard/components/DashIcon";
-import type { Payment, PaymentInstructions, Quote } from "../../lib/api";
-import { formatMoney } from "../../lib/format";
-import { defaultWay, methodForWay, type PayWay } from "../payWays";
+import { DashIcon } from "../../dashboard/components/DashIcon";
+import type { Payment, PaymentInstructions, PaymentMethod, Quote } from "../../lib/api";
+import { formatDate, formatMoney } from "../../lib/format";
+import { defaultWay, intlReady, methodForWay, payWayOptions, type PayWay } from "../payWays";
 import { PayWayDetails } from "./PaymentWays";
 import { PlanSteps } from "./PlanSteps";
 import { QuoteShare } from "./QuoteShare";
 import { ReceiptForm } from "./ReceiptForm";
+import { RejectedBanner } from "./RejectedBanner";
 
 type Screen = "methods" | "details" | "receipt" | "done";
-
-const METHODS: ReadonlyArray<{ key: PayWay; label: string; hint: string; icon: DashIconName }> = [
-  { key: "upi", label: "UPI", hint: "Google Pay, PhonePe, Paytm or any UPI app", icon: "phone" },
-  { key: "bank", label: "Bank transfer", hint: "NEFT, IMPS or RTGS to our current account", icon: "building" },
-  { key: "intl", label: "International", hint: "Card or US bank, through Skydo", icon: "globe" },
-];
 
 const TITLES: Record<Exclude<Screen, "details">, string> = {
   methods: "Choose how to pay",
@@ -37,6 +32,10 @@ export interface CheckoutModalProps {
   reference?: string;
   /** An upgrade from the current plan: the plan code the payment is for. */
   upgradePlan?: string;
+  /** An upgrade's period: the new plan runs until `until`, with the paid days left on the old one added. */
+  period?: { until: string; carriedDays: number } | null;
+  /** The last payment wasn't accepted: say why, before the owner pays again. */
+  rejected?: Payment | null;
   /** Offer "email / download / copy link" for the quote (a subscription waiting for payment). */
   shareQuote?: boolean;
   ownerEmail: string;
@@ -47,10 +46,44 @@ export interface CheckoutModalProps {
   onDone: () => void;
 }
 
+/** The price lines (plan price, discount, tax). Shown in the summary; on phones inside "Price details". */
+function PriceLines({ quote, className }: { quote: Quote; className: string }): ReactElement {
+  const money = (amount: string) => formatMoney(amount, quote.currency);
+  return (
+    <dl className={className}>
+      <div>
+        <dt>Plan price</dt>
+        <dd>{money(quote.list_amount)}</dd>
+      </div>
+      {Number(quote.discount_amount) > 0 ? (
+        <div className="checkout__minus">
+          <dt>Launch discount</dt>
+          <dd>− {money(quote.discount_amount)}</dd>
+        </div>
+      ) : null}
+      {quote.taxes.map((tax) => (
+        <div key={tax.label}>
+          <dt>
+            {tax.label} {tax.rate}%
+          </dt>
+          <dd>{money(tax.amount)}</dd>
+        </div>
+      ))}
+      {quote.export ? (
+        <div>
+          <dt>Tax</dt>
+          <dd>None</dd>
+        </div>
+      ) : null}
+    </dl>
+  );
+}
+
 /**
  * Checkout, Razorpay-style: what you're paying for on the left (dark), the steps on the right:
  * choose a way to pay → its details → upload the receipt → sent. Built on the native <dialog> (focus
- * trap, Esc, inert page); a full-screen sheet on phones. Render it only while open: it starts fresh.
+ * trap, Esc, inert page); a full-screen sheet on phones. Render it only while open: it starts fresh,
+ * and gives focus back to whatever opened it when it closes.
  */
 export function CheckoutModal({
   quote,
@@ -58,6 +91,8 @@ export function CheckoutModal({
   devices,
   reference,
   upgradePlan,
+  period = null,
+  rejected = null,
   shareQuote = false,
   ownerEmail,
   onClose,
@@ -66,31 +101,55 @@ export function CheckoutModal({
 }: CheckoutModalProps): ReactElement {
   const ref = useRef<HTMLDialogElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const ways = payWayOptions(instructions, quote.currency);
   const [screen, setScreen] = useState<Screen>("methods");
-  const [way, setWay] = useState<PayWay>(() => defaultWay(instructions));
+  const [way, setWay] = useState<PayWay>(() => {
+    const first = defaultWay(instructions);
+    return ways.some((w) => w.key === first) ? first : ways[0].key;
+  });
+  // "Already paid?" skips choosing a way, so the receipt screen asks how they paid.
+  const [skipped, setSkipped] = useState(false);
   const money = (amount: string) => formatMoney(amount, quote.currency);
   const total = money(quote.total);
-  const discount = Number(quote.discount_amount) > 0;
   const payee = instructions.payee_name || "SKYTECHNO";
-  const method = METHODS.find((m) => m.key === way) ?? METHODS[0];
+  const usd = quote.currency === "USD";
+  const method = ways.find((m) => m.key === way) ?? ways[0];
+  const suggested = ways[0].key;
+
+  // Whatever opened the checkout gets focus back when it closes (Esc, ×, backdrop or done). Read while rendering,
+  // before the dialog takes focus (an effect would see the dialog's own heading on React's second dev run).
+  const [opener] = useState(() => (document.activeElement instanceof HTMLElement ? document.activeElement : null));
 
   useEffect(() => {
     const dialog = ref.current;
     if (dialog && !dialog.open) dialog.showModal();
     // Start on the heading, not the first button (the browser would focus the reference's copy button).
     dialog?.querySelector<HTMLElement>(".checkout__title")?.focus();
-  }, []);
+    return () => {
+      if (opener && opener !== document.body && opener.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, [opener]);
 
   // A new screen starts at its top, with focus on its heading (screen readers hear where they are).
   const go = (next: Screen) => {
     setScreen(next);
     window.requestAnimationFrame(() => {
       bodyRef.current?.scrollTo({ top: 0 });
-      bodyRef.current?.querySelector<HTMLElement>(".checkout__title")?.focus();
+      ref.current?.querySelector<HTMLElement>(".checkout__title")?.focus();
     });
   };
 
-  const back = screen === "details" ? "methods" : screen === "receipt" ? "details" : null;
+  const back = screen === "details" ? "methods" : screen === "receipt" ? (skipped ? "methods" : "details") : null;
+
+  // The choices for "How did you pay?" (only the ways this customer was offered).
+  const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = ways.map((w) => ({
+    value: methodForWay(w.key, instructions),
+    label: w.key === "intl" ? (usd ? "Card or US bank (Skydo)" : "From outside India (Skydo)") : w.label,
+  }));
+
+  const secure = usd && intlReady(instructions)
+    ? `Paid through Skydo to ${payee}. The invoice is emailed once we confirm the payment.`
+    : `Goes straight to ${payee}'s bank account. The invoice is emailed once we confirm it.`;
 
   return (
     <dialog
@@ -116,37 +175,22 @@ export function CheckoutModal({
             {upgradePlan ? <span className="checkout__tag">Upgrade</span> : null}
           </p>
           <p className="checkout__meta">
-            {periodLabel(quote.months)}
+            {period
+              ? `Until ${formatDate(period.until)}${
+                  period.carriedDays > 0
+                    ? ` · includes ${period.carriedDays} paid day${period.carriedDays === 1 ? "" : "s"} carried over`
+                    : ""
+                }`
+              : periodLabel(quote.months)}
             {devices ? ` · ${devices}` : ""}
           </p>
           <p className="checkout__total">{total}</p>
 
-          <dl className="checkout__lines">
-            <div>
-              <dt>Plan price</dt>
-              <dd>{money(quote.list_amount)}</dd>
-            </div>
-            {discount ? (
-              <div className="checkout__minus">
-                <dt>Launch discount</dt>
-                <dd>− {money(quote.discount_amount)}</dd>
-              </div>
-            ) : null}
-            {quote.taxes.map((tax) => (
-              <div key={tax.label}>
-                <dt>
-                  {tax.label} {tax.rate}%
-                </dt>
-                <dd>{money(tax.amount)}</dd>
-              </div>
-            ))}
-            {quote.export ? (
-              <div>
-                <dt>GST (export)</dt>
-                <dd>{money("0")}</dd>
-              </div>
-            ) : null}
-          </dl>
+          <PriceLines quote={quote} className="checkout__lines" />
+          <details className="checkout__price">
+            <summary>Price details</summary>
+            <PriceLines quote={quote} className="checkout__lines checkout__lines--sheet" />
+          </details>
 
           {reference ? (
             <div className="checkout__ref">
@@ -160,7 +204,7 @@ export function CheckoutModal({
 
           <p className="checkout__secure">
             <DashIcon name="lock" />
-            Goes straight to {payee}'s bank account. The invoice is emailed once we confirm it.
+            {secure}
           </p>
         </aside>
 
@@ -183,14 +227,18 @@ export function CheckoutModal({
           <div className="checkout__body" ref={bodyRef} key={screen}>
             {screen === "methods" ? (
               <>
+                {rejected ? (
+                  <RejectedBanner payment={rejected} next="Pay again below and send the new receipt." />
+                ) : null}
                 <ul className="checkout__methods">
-                  {METHODS.map((m) => (
+                  {ways.map((m) => (
                     <li key={m.key}>
                       <button
                         type="button"
                         className="checkout__method"
                         onClick={() => {
                           setWay(m.key);
+                          setSkipped(false);
                           go("details");
                         }}
                       >
@@ -201,7 +249,9 @@ export function CheckoutModal({
                           <b>{m.label}</b>
                           <small>{m.hint}</small>
                         </span>
-                        {m.key === defaultWay(instructions) ? (
+                        {m.tag ? (
+                          <span className="checkout__pill checkout__pill--plain">{m.tag}</span>
+                        ) : m.key === suggested && ways.length > 1 ? (
                           <span className="checkout__pill">Suggested</span>
                         ) : null}
                         <DashIcon name="arrow" />
@@ -209,7 +259,14 @@ export function CheckoutModal({
                     </li>
                   ))}
                 </ul>
-                <button type="button" className="dash-link checkout__skip" onClick={() => go("receipt")}>
+                <button
+                  type="button"
+                  className="dash-link checkout__skip"
+                  onClick={() => {
+                    setSkipped(true);
+                    go("receipt");
+                  }}
+                >
                   Already paid? Upload the receipt
                 </button>
                 {shareQuote ? <QuoteShare ownerEmail={ownerEmail} variant="slip" /> : null}
@@ -217,7 +274,7 @@ export function CheckoutModal({
             ) : screen === "details" ? (
               <>
                 <div className="checkout__details">
-                  <PayWayDetails instructions={instructions} total={total} way={way} />
+                  <PayWayDetails instructions={instructions} total={total} way={way} reference={reference} />
                 </div>
                 <button type="button" className="btn btn--primary btn--block" onClick={() => go("receipt")}>
                   I've paid {total} <span className="arr">→</span>
@@ -228,6 +285,7 @@ export function CheckoutModal({
               <ReceiptForm
                 bare
                 method={methodForWay(way, instructions)}
+                askMethod={skipped && askMethod.length > 1 ? askMethod : undefined}
                 upgradePlan={upgradePlan}
                 onSubmitted={async (payment) => {
                   await onSubmitted(payment);

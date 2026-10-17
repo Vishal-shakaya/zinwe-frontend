@@ -5,6 +5,7 @@ import { Field } from "../../components/forms/Field";
 import { login, loginOtpRequest, type LoginField } from "../../lib/api";
 import { compactErrors, emailError, requiredError, type FieldErrorMap } from "../../lib/validation";
 import { failureMessage } from "../failure";
+import { rememberSignIn } from "../lastLogin";
 import { FormAlert } from "./FormAlert";
 import { PasswordField } from "./PasswordField";
 
@@ -65,6 +66,7 @@ export function PasswordLoginForm({
     setPending(true);
     const result = await login(email.trim(), password);
     if (result.ok) {
+      rememberSignIn(result.data.user.email || email);
       signIn(result.data);
       return; // The guard redirects by onboarding step.
     }
@@ -140,7 +142,7 @@ export function EmailCodeForm({
   return (
     <form className="auth-form" onSubmit={onSubmit} noValidate>
       <EmailField id="login-code-email" email={email} onEmailChange={onEmailChange} error={error} inputRef={emailRef} />
-      <p className="auth__fine">No password needed. We'll email you a 6-digit code to log in.</p>
+      <p className="auth__fine">No password needed. If there's a Zinwe account for this email, we'll send it a 6-digit code.</p>
       <FormAlert message={formError} />
       <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
         {pending ? "Sending code…" : "Email me a code"}

@@ -96,6 +96,11 @@ export function acceptTerms(): Promise<User> {
   return authedRequest<User>("/api/auth/terms/accept/", { method: "POST", body: { accept_terms: true } });
 }
 
+/** POST tour/done/ — the dashboard tour was finished or skipped; it won't start again on any device (204). */
+export function markTourDoneOnServer(): Promise<null> {
+  return authedRequest<null>("/api/auth/tour/done/", { method: "POST" });
+}
+
 /** POST logout/ — deletes the token server-side (204). */
 export function logout(signal?: AbortSignal): Promise<null> {
   return authedRequest<null>("/api/auth/logout/", { method: "POST", signal });

@@ -1,4 +1,36 @@
-import type { Onboarding, OnboardingStep, Subscription } from "../lib/api";
+import type { Onboarding, OnboardingStep, Payment, Subscription } from "../lib/api";
+
+/**
+ * A payment the owner sent while their plan was already active (an upgrade or a renewal) that the Zinwe
+ * team hasn't checked yet. While it's being checked nothing may sell the upgrade again: no upgrade bar,
+ * no sidebar Upgrade button, no PC-limit upsell, and the plan cards say "Payment being checked" (J3-01).
+ */
+export interface PaymentInCheck {
+  kind: "upgrade" | "renewal";
+  /** The plan the upgrade moves to (upgrade), or the current plan (renewal). */
+  planName: string;
+  payment: Payment;
+}
+
+export function paymentInCheck(subscription: Subscription | null | undefined): PaymentInCheck | null {
+  if (!subscription || subscription.status !== "active") return null;
+  const payment = subscription.latest_payment;
+  if (!payment || payment.status !== "submitted") return null;
+  const upgradeTo = payment.upgrade_plan_name?.trim();
+  if (upgradeTo) return { kind: "upgrade", planName: upgradeTo, payment };
+  return { kind: payment.is_renewal ? "renewal" : "upgrade", planName: subscription.plan.name, payment };
+}
+
+/** An active plan with an upgrade (or renewal) payment waiting to be checked: don't offer the upgrade again. */
+export function upgradeBeingChecked(subscription: Subscription | null | undefined): boolean {
+  return paymentInCheck(subscription) !== null;
+}
+
+/** The newest payment was not accepted by the Zinwe team (its `rejection_reason` says why), or null. */
+export function rejectedPayment(subscription: Subscription | null | undefined): Payment | null {
+  const payment = subscription?.latest_payment;
+  return payment && payment.status === "rejected" ? payment : null;
+}
 
 /** Where each onboarding step lives (contract §5 guards). Signing in lands here. */
 export function stepPath(step: OnboardingStep): string {

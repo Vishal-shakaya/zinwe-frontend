@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { cloneElement, type ReactElement, type SVGProps } from "react";
 
 /** Inline SVG icons lifted verbatim from the static HTML. */
 export type IconName =
@@ -28,7 +28,12 @@ interface IconProps {
   strokeWidth?: number;
 }
 
-export function Icon({ name, strokeWidth }: IconProps): ReactElement {
+/** Every icon is decorative (the text beside it says what it is): hidden from screen readers and search engines. */
+export function Icon(props: IconProps): ReactElement {
+  return cloneElement(drawIcon(props), { "aria-hidden": true, focusable: "false" });
+}
+
+function drawIcon({ name, strokeWidth }: IconProps): ReactElement<SVGProps<SVGSVGElement>> {
   const sw = strokeWidth ?? (name === "check" ? 3 : 1.8);
   switch (name) {
     case "transfer":

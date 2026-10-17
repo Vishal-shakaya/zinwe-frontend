@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { seoFor } from "../../content/seo";
+import { BRAND_LINE, seoFor } from "../../content/seo";
 import { useHeroCtaRef } from "../layout/heroCtaContext";
 import { Smoke } from "../ui/Smoke";
 import { StaggerTitle } from "../ui/StaggerTitle";
@@ -16,7 +16,7 @@ export function Hero(): ReactElement {
       <Smoke />
       <div className="wrap">
         <div className="hero__pill fade">
-          <b>IT IS OK.</b> Security, simplified for teams of 5–50
+          <b>{BRAND_LINE}</b> Security, simplified for teams of 5–50
         </div>
         <StaggerTitle text={HOME.h1} />
         <p className="lede fade" style={{ animationDelay: ".5s" }}>

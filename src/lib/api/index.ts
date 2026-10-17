@@ -9,6 +9,7 @@ export * from "./http";
 export * from "./types";
 export * from "./auth";
 export * from "./billing";
+export * from "./contact";
 export * from "./devices";
 export * from "./earlyAccess";
 export * from "./feedback";

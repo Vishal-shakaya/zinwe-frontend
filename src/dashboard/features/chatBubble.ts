@@ -10,9 +10,11 @@ import type { Urgency } from "./messageTags";
 
 export interface ChatBubbleRequest {
   person: ComposerPerson & { hostname?: string };
-  /** The alert it's about, if any (adds context, alert tags and "Email only"). */
+  /** The alert it's about, if any (adds context and alert tags; "Email only" becomes the alert email). */
   event?: DeviceEvent | null;
   tag?: string | null;
+  /** A ready-made note to start from (e.g. "please agree on your PC"); the owner can edit it. */
+  draft?: string;
   urgency?: Urgency;
   delivery?: Delivery;
   /** Called after each send, e.g. to mark an alert row "Sent". */

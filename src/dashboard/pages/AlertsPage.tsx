@@ -8,14 +8,27 @@ import {
   listDevices,
   listEvents,
   listMembers,
+  type Device,
   type DeviceEvent,
   type Member,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { DashIcon, type DashIconName } from "../components/DashIcon";
-import { eventMeta, severityOf, type FeatureKey, type Severity } from "../features/events";
+import {
+  alertLabel,
+  alertsOnly,
+  eventMeta,
+  isHandled,
+  needsAttention,
+  severityOf,
+  SEVERITY_LABEL,
+  SEVERITY_ORDER,
+  type FeatureKey,
+  type Severity,
+} from "../features/events";
 import { detailOf, groupAlerts, type AlertGroup } from "../features/alertGroups";
 import { SendAlertMenu } from "../components/SendAlertMenu";
+import { UsbRestore } from "../components/UsbRestore";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
 import { dayGroup, formatDateTime, formatRelative, formatTime, useNow } from "../time";
 import { useResource } from "../useResource";
@@ -38,8 +51,10 @@ export default function AlertsPage(): ReactElement {
   const devices = useResource(loadDevices);
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
   const members = useResource(loadMembers);
-  const [priority, setPriority] = useState<Priority | "all">("all");
+  // Overview's "alerts to check today" tile opens this page on ?show=check (same count, J5-11).
+  const [priority, setPriority] = useState<Priority>(() => (params.get("show") === "check" ? "check" : "all"));
   const [type, setType] = useState<FeatureKey | "all">("all");
+  const [changed, setChanged] = useState<Record<number, DeviceEvent>>({});
 
   const loadEvents = useCallback(
     (signal: AbortSignal) => listEvents({ device: deviceId, limit }, signal),
@@ -60,7 +75,9 @@ export default function AlertsPage(): ReactElement {
     setParams(next, { replace: true });
   };
 
-  const list = events.data ?? [];
+  // Rule confirmations aren't alerts (J5-01); handled / messaged here shows at once.
+  const list = alertsOnly(events.data).map((e) => changed[e.id] ?? e);
+  const onChanged = (next: DeviceEvent) => setChanged((c) => ({ ...c, [next.id]: next }));
 
   // device → person, for the "PC · person" column and the Send mail recipient.
   const personFor = useMemo(() => {
@@ -77,14 +94,17 @@ export default function AlertsPage(): ReactElement {
     return (deviceId: number) => byDevice.get(deviceId);
   }, [members.data, devices.data]);
 
-  const counts = { high: 0, medium: 0, low: 0 } as Record<Priority, number>;
-  for (const e of list) counts[PRIORITY[severityOf(e)]] += 1;
+  const counts: Record<Priority, number> = { all: list.length, check: 0, critical: 0, warning: 0, info: 0 };
+  for (const e of list) {
+    counts[severityOf(e)] += 1;
+    if (needsAttention(e)) counts.check += 1;
+  }
   const shown = list.filter(
     (e) =>
-      (priority === "all" || PRIORITY[severityOf(e)] === priority) &&
+      (priority === "all" || (priority === "check" ? needsAttention(e) : severityOf(e) === priority)) &&
       (type === "all" || eventMeta(e.type).feature === type),
   );
-  const canLoadMore = events.data !== undefined && list.length >= limit && limit < EVENTS_MAX_LIMIT;
+  const canLoadMore = events.data !== undefined && (events.data?.length ?? 0) >= limit && limit < EVENTS_MAX_LIMIT;
 
   return (
     <>
@@ -161,7 +181,14 @@ export default function AlertsPage(): ReactElement {
                 </button>
               </p>
             ) : (
-              <AlertTable events={shown} now={now} personFor={personFor} />
+              <AlertTable
+                events={shown}
+                now={now}
+                personFor={personFor}
+                devices={devices.data}
+                onDevicesChanged={devices.reload}
+                onChanged={onChanged}
+              />
             )}
             {canLoadMore ? (
               <div className="dash-more">
@@ -219,7 +246,7 @@ function FeedEmpty({
           </Link>
         }
       >
-        Activity appears here once a PC has the Zinwe agent installed.
+        Alerts appear here once Zinwe is installed on a PC and the person has agreed.
       </EmptyState>
     );
   }
@@ -230,11 +257,12 @@ function FeedEmpty({
   );
 }
 
-type Priority = "high" | "medium" | "low";
+/** The filter chips: everything, what's still to check, or one severity (same words as everywhere, J5-11). */
+type Priority = "all" | "check" | Severity;
 
-const PRIORITY: Record<Severity, Priority> = { critical: "high", warning: "medium", info: "low" };
-const PRIORITY_LABEL: Record<Priority, string> = { high: "High", medium: "Medium", low: "Low" };
-const PRIORITY_ORDER: readonly Priority[] = ["high", "medium", "low"];
+const PRIORITY_CLASS: Record<Severity, string> = { critical: "high", warning: "medium", info: "low" };
+const FILTERS: readonly Priority[] = ["all", "check", ...SEVERITY_ORDER];
+const FILTER_LABEL: Record<Priority, string> = { all: "All", check: "To check", ...SEVERITY_LABEL };
 
 const TYPE_LABEL: Record<FeatureKey, string> = {
   internet: "Online protection",
@@ -260,11 +288,18 @@ function AlertTable({
   events,
   now,
   personFor,
+  devices,
+  onDevicesChanged,
+  onChanged,
 }: {
   events: DeviceEvent[];
   now: number;
   personFor: (deviceId: number) => Member | undefined;
+  devices: Device[] | undefined;
+  onDevicesChanged: () => void;
+  onChanged: (event: DeviceEvent) => void;
 }): ReactElement {
+  const [open, setOpen] = useState<number | null>(null);
   const groups = groupAlerts(events);
   const days: Array<{ key: string; label: string; rows: AlertGroup[] }> = [];
   for (const g of groups) {
@@ -279,7 +314,7 @@ function AlertTable({
       <div className="al-row al-row--head" aria-hidden="true">
         <span>Alert</span>
         <span>Person · PC</span>
-        <span>Priority</span>
+        <span>Status</span>
         <span>When</span>
         <span />
       </div>
@@ -288,11 +323,22 @@ function AlertTable({
           <h3 className="al-day__label">
             {day.label}
             <small>
-              {day.rows.reduce((n, g) => n + g.count, 0)} alert{day.rows.reduce((n, g) => n + g.count, 0) === 1 ? "" : "s"}
+              {dayCount(day.rows)} alert{dayCount(day.rows) === 1 ? "" : "s"}
+              {dayToCheck(day.rows) > 0 ? ` · ${dayToCheck(day.rows)} to check` : ""}
             </small>
           </h3>
           {day.rows.map((g) => (
-            <AlertRow key={g.latest.id} group={g} now={now} person={personFor(g.latest.device_id)} />
+            <AlertRow
+              key={g.latest.id}
+              group={g}
+              now={now}
+              person={personFor(g.latest.device_id)}
+              device={devices?.find((d) => d.id === g.latest.device_id)}
+              onDevicesChanged={onDevicesChanged}
+              onChanged={onChanged}
+              open={open === g.latest.id}
+              onToggle={() => setOpen(open === g.latest.id ? null : g.latest.id)}
+            />
           ))}
         </section>
       ))}
@@ -300,27 +346,62 @@ function AlertTable({
   );
 }
 
-function AlertRow({ group, now, person }: { group: AlertGroup; now: number; person: Member | undefined }): ReactElement {
+function dayCount(rows: AlertGroup[]): number {
+  return rows.reduce((n, g) => n + g.count, 0);
+}
+
+/** Same rule as Overview's "alerts to check today": Worth a look / Needs attention, not handled. */
+function dayToCheck(rows: AlertGroup[]): number {
+  return rows.reduce((n, g) => n + g.events.filter(needsAttention).length, 0);
+}
+
+function AlertRow({
+  group,
+  now,
+  person,
+  device,
+  onDevicesChanged,
+  onChanged,
+  open,
+  onToggle,
+}: {
+  group: AlertGroup;
+  now: number;
+  person: Member | undefined;
+  device: Device | undefined;
+  onDevicesChanged: () => void;
+  onChanged: (event: DeviceEvent) => void;
+  open: boolean;
+  onToggle: () => void;
+}): ReactElement {
   const event = group.latest;
   const meta = eventMeta(event.type);
-  const priority = PRIORITY[severityOf(event)];
+  const severity = severityOf(event);
+  const priority = PRIORITY_CLASS[severity];
+  const handled = isHandled(event);
   const recent = now - Date.parse(event.occurred_at) < 12 * 3_600_000;
   const spanMin = Math.max(1, Math.round((Date.parse(group.lastAt) - Date.parse(group.firstAt)) / 60_000));
+  const detail = detailOf(event);
+  // The drive / tool / site shows once: as a chip only when the sentence doesn't already name it.
+  const subjectChip =
+    group.subject && !detail.toLowerCase().includes(group.subject.toLowerCase()) ? group.subject : null;
+  const detailId = `al-detail-${event.id}`;
 
   return (
+    <div className={cx("al-item", open && "is-open", handled && "is-handled")}>
     <div className={`al-row al-row--${priority}`}>
       <span className="al-alert">
         <span className={`act-mark act-mark--${priority}`} aria-hidden="true">
           <DashIcon name={priority === "low" ? TYPE_ICON[meta.feature] : "alert"} />
         </span>
         <span className="al-alert__text">
-          <b>
-            {meta.label}
-            {group.subject ? <span className="al-subject">{group.subject}</span> : null}
-          </b>
-          <small className="al-detail" title={detailOf(event)}>
-            {detailOf(event)}
-          </small>
+          <button type="button" className="al-toggle" aria-expanded={open} aria-controls={detailId} onClick={onToggle}>
+            <b>
+              {alertLabel(event)}
+              {subjectChip ? <span className="al-subject">{subjectChip}</span> : null}
+            </b>
+            <small className="al-detail">{detail}</small>
+          </button>
           <span className="al-chips">
             <span className="al-chip">
               <DashIcon name={TYPE_ICON[meta.feature]} />
@@ -341,8 +422,14 @@ function AlertRow({ group, now, person }: { group: AlertGroup; now: number; pers
         {person ? <b>{person.name}</b> : <b className="al-muted">No one linked</b>}
         <small>{event.hostname || "A PC"}</small>
       </span>
-      <span data-label="Priority">
-        <span className={`act-pri act-pri--${priority}`}>{PRIORITY_LABEL[priority]}</span>
+      <span data-label="Status" className="al-status">
+        <span className={`act-pri act-pri--${priority}`}>{SEVERITY_LABEL[severity]}</span>
+        {handled ? (
+          <small className="dash-alerts__handled">
+            <DashIcon name="check" />
+            Handled
+          </small>
+        ) : null}
       </span>
       <span className="al-when" data-label="When">
         <time dateTime={event.occurred_at} title={formatDateTime(event.occurred_at)}>
@@ -351,8 +438,43 @@ function AlertRow({ group, now, person }: { group: AlertGroup; now: number; pers
         {recent ? <small>{formatTime(event.occurred_at)}</small> : null}
       </span>
       <span className="al-action">
-        <SendAlertMenu event={event} person={person ? { id: person.id, name: person.name, email: person.email } : undefined} />
+        <SendAlertMenu
+          event={event}
+          person={person ? { id: person.id, name: person.name, email: person.email } : undefined}
+          onChanged={onChanged}
+        />
       </span>
+    </div>
+      {event.type === "data.usb_locked_down" && device?.usb_locked_at ? (
+        <div className="al-usb">
+          <UsbRestore device={device} onRestored={onDevicesChanged} />
+        </div>
+      ) : null}
+      {open ? (
+        <div className="dash-alerts__detail al-more" id={detailId}>
+          <p className="dash-alerts__full">{detail}</p>
+          {meta.meaning ? (
+            <p className="dash-alerts__meaning">
+              <b>What it means</b> {meta.meaning}
+            </p>
+          ) : null}
+          {meta.suggested ? (
+            <p className="dash-alerts__meaning">
+              <b>Suggested message</b> {meta.suggested}
+            </p>
+          ) : null}
+          <p className="dash-alerts__when">
+            {formatDateTime(event.occurred_at)} · {event.hostname || "a PC"}
+            {person ? ` · ${person.name}` : ""}
+            {handled && event.handled_by ? ` · handled by ${event.handled_by}` : ""}
+          </p>
+          <p className="dash-alerts__links">
+            <Link className="dash-link" to={meta.reviewTo}>
+              {meta.reviewTo === "/app/team" ? "Restore USB on Team & devices" : "Review the rule"} <DashIcon name="arrow" />
+            </Link>
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -368,16 +490,16 @@ function ActivityFilters({
 }: {
   /** The "which PC" picker, kept in the same row. */
   pcFilter: ReactNode;
-  priority: Priority | "all";
+  priority: Priority;
   type: FeatureKey | "all";
   counts: Record<Priority, number>;
-  onPriority: (value: Priority | "all") => void;
+  onPriority: (value: Priority) => void;
   onType: (value: FeatureKey | "all") => void;
 }): ReactElement {
   return (
     <div className="act-filters">
       <div className="dash-range" role="group" aria-label="Filter by priority">
-        {(["all", ...PRIORITY_ORDER] as const).map((value) => (
+        {FILTERS.map((value) => (
           <button
             key={value}
             type="button"
@@ -385,7 +507,7 @@ function ActivityFilters({
             aria-pressed={priority === value}
             onClick={() => onPriority(value)}
           >
-            {value === "all" ? "All" : `${PRIORITY_LABEL[value]} (${counts[value]})`}
+            {value === "all" ? "All" : `${FILTER_LABEL[value]} (${counts[value]})`}
           </button>
         ))}
       </div>

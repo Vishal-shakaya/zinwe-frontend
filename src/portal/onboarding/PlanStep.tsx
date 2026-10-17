@@ -1,19 +1,30 @@
-import { useState, type ReactElement } from "react";
+import { useCallback, useState, type ReactElement } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { onboardingFor } from "../../auth/steps";
-import { DashIcon } from "../../dashboard/components/DashIcon";
 import { ErrorState } from "../../dashboard/components/States";
 import { higherPlans } from "../../dashboard/features/upgrade";
+import { useResource } from "../../dashboard/useResource";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { ApiError, createSubscription, errorMessage, getSubscription, type Plan } from "../../lib/api";
+import {
+  ApiError,
+  createSubscription,
+  errorMessage,
+  getSubscription,
+  getUpgradeQuote,
+  type Plan,
+  type UpgradeQuote,
+} from "../../lib/api";
 import { cx } from "../../lib/cx";
+import { formatDate, formatMoney } from "../../lib/format";
 import { clearPlanIntent, planCodeParam, readPlanIntent } from "../../lib/planIntent";
 import { CheckoutModal } from "../components/CheckoutModal";
 import { FormAlert } from "../components/FormAlert";
+import { PcPicker } from "../components/PcPicker";
 import { PlanCards, PlanCardsLoading } from "../components/PlanCards";
+import { RejectedBanner } from "../components/RejectedBanner";
 import { apiFailureMessage } from "../failure";
-import { hasTrial, planCtaLabel, planDevices } from "../plan";
+import { hasTrial, planCtaLabel, planDevices, planForPcs, pcsForTeamSize } from "../plan";
 import { usePlans } from "../usePlans";
 import { useSubscriptionInfo } from "../useSubscriptionInfo";
 
@@ -23,9 +34,11 @@ import { useSubscriptionInfo } from "../useSubscriptionInfo";
  *   once, a paid plan opens the checkout modal (`?checkout=1` opens it for the plan waiting for payment);
  * - on a plan (`complete`): an upgrade. Every plan is shown in full; the current one is flagged, it and the
  *   lower ones only have their button disabled, and the first plan above it is preselected. Paying opens
- *   the same checkout modal;
- * - payment being checked (`payment_review`): the plans, read only.
- * `?plan=<code>` preselects a plan (links from the dashboard, the website and emails).
+ *   the same checkout modal, priced by GET subscription/upgrade/<plan>/ (carried-over days, its own UPI QR);
+ * - payment being checked (`payment_review`, or an active plan whose upgrade / renewal payment is being
+ *   checked, 2026-10-17): the plans, read only, so nobody pays twice.
+ * `?plan=<code>` preselects a plan (links from the dashboard, the website and emails). "How many PCs?"
+ * (starting from the company's team size) marks the smallest plan that fits.
  */
 export default function PlanStep(): ReactElement {
   const { account, refresh } = useAuth();
@@ -36,38 +49,85 @@ export default function PlanStep(): ReactElement {
 
   const step = account?.onboarding.step;
   const subscription = account?.subscription ?? null;
-  const upgrading = step === "complete" && subscription?.status === "active";
-  const reviewing = step === "payment_review";
+  const latest = subscription?.latest_payment ?? null;
+  const onPlan = step === "complete" && subscription?.status === "active";
+  // An upgrade or renewal paid on an active plan, not confirmed yet: no second payment.
+  const checking = onPlan && latest?.status === "submitted";
+  const upgrading = onPlan && !checking;
+  const reviewing = step === "payment_review" || checking;
   const pending = step === "payment" ? (subscription?.plan.code ?? null) : null;
-  const current = upgrading ? (subscription?.plan.code ?? null) : null;
+  const current = onPlan ? (subscription?.plan.code ?? null) : null;
   const eligible = upgrading && plans.data ? higherPlans(plans.data, current).map((p) => p.code) : [];
   const unavailable = upgrading && plans.data ? plans.data.map((p) => p.code).filter((c) => !eligible.includes(c)) : [];
+  // The plan the payment being checked is for (an upgrade names it; otherwise the owner's plan).
+  const checkingCode =
+    reviewing && plans.data
+      ? (plans.data.find((p) => latest?.upgrade_plan_name && p.name === latest.upgrade_plan_name)?.code ??
+        subscription?.plan.code ??
+        null)
+      : null;
+  // Rejected: say why where the owner pays again (waiting for payment, or a refused upgrade).
+  const rejected =
+    latest?.status === "rejected" && (pending !== null || (upgrading && Boolean(latest.upgrade_plan_name)))
+      ? latest
+      : null;
 
   // Back here because the free trial ran out, or a paid plan ended without a renewal (step `plan`).
-  const trialEnded = !upgrading && subscription?.is_trial === true && subscription.status === "expired";
+  const trialEnded = !onPlan && subscription?.is_trial === true && subscription.status === "expired";
   const paidEnded =
-    !upgrading && subscription?.is_trial === false && subscription.status === "expired" && Number(subscription.amount_inr) > 0;
+    !onPlan && subscription?.is_trial === false && subscription.status === "expired" && Number(subscription.amount_inr) > 0;
 
   usePageMeta({
     title: upgrading ? "Upgrade your plan — Zinwe" : "Choose a plan — Zinwe",
     description: "Pick the Zinwe plan that fits your team.",
   });
 
+  // "How many PCs?": starts from the team size on the company form.
+  const teamPcs = pcsForTeamSize(account?.company?.team_size);
+  const [typed, setTyped] = useState<number | null | undefined>(undefined);
+  const pcs = typed === undefined ? teamPcs : typed;
+  const fitPlan = pcs && plans.data ? planForPcs(plans.data, pcs) : null;
+  const fit = fitPlan && pcs && !reviewing ? { code: fitPlan.code, pcs } : null;
+
   const asked = planCodeParam(params.get("plan"));
   const suggested = upgrading
     ? asked && eligible.includes(asked)
       ? asked
-      : (eligible[0] ?? null)
-    : (pending ?? asked ?? readPlanIntent());
+      : fit && eligible.includes(fit.code)
+        ? fit.code
+        : (eligible[0] ?? null)
+    : reviewing
+      ? checkingCode
+      : (pending ?? asked ?? readPlanIntent());
   const [picked, setPicked] = useState<string | null>(null);
-  const selected = picked ?? suggested;
+  const selected = reviewing ? suggested : (picked ?? suggested);
 
   // `?checkout=1` opens the checkout for the plan waiting for payment. Latched on arrival: once the receipt is
   // sent the step moves on (payment_review), and the modal must stay open to say so.
-  const [checkout, setCheckout] = useState<string | null>(() => (params.get("checkout") === "1" ? pending : null));
-  const openCode = checkout;
+  // Latched with how it was opened: after an upgrade's receipt is sent the plan is "being checked", and the
+  // modal must stay an upgrade to show "Receipt sent".
+  const [checkout, setCheckout] = useState<{ code: string; upgrade: boolean } | null>(() =>
+    params.get("checkout") === "1" && pending ? { code: pending, upgrade: false } : null,
+  );
+  const openCode = checkout?.code ?? null;
+  const openUpgrade = checkout?.upgrade ?? false;
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // An upgrade's own price, period and UPI QR. An older backend (404) falls back to the plan's quote, without a QR.
+  const upgradeCode = openUpgrade ? openCode : null;
+  const loadUpgrade = useCallback(
+    (signal: AbortSignal): Promise<UpgradeQuote | null> =>
+      upgradeCode
+        ? getUpgradeQuote(upgradeCode, signal).catch((err: unknown) => {
+            if (err instanceof ApiError && err.kind === "not_found") return null;
+            throw err;
+          })
+        : Promise.resolve(null),
+    [upgradeCode],
+  );
+  const upgrade = useResource(loadUpgrade, { resetKey: upgradeCode ?? "" });
+  const upgradeRefused = upgrade.error instanceof ApiError && upgrade.error.kind === "conflict";
 
   const closeCheckout = () => setCheckout(null);
 
@@ -75,7 +135,7 @@ export default function PlanStep(): ReactElement {
     setPicked(plan.code);
     setError(null);
     if (upgrading || plan.code === pending) {
-      setCheckout(plan.code);
+      setCheckout({ code: plan.code, upgrade: upgrading });
       return;
     }
     setBusy(plan.code);
@@ -89,7 +149,7 @@ export default function PlanStep(): ReactElement {
       }
       // Waiting for payment: load what's due and how to pay for the new choice, then check out.
       info.setData(await getSubscription());
-      setCheckout(plan.code);
+      setCheckout({ code: plan.code, upgrade: false });
     } catch (err) {
       setError(apiFailureMessage(err));
       // 409: already active or under review elsewhere (another tab) — let the page catch up.
@@ -106,7 +166,11 @@ export default function PlanStep(): ReactElement {
     if (reviewing) {
       return (
         <button type="button" className="btn btn--block btn--ghost" disabled>
-          {plan.code === subscription?.plan.code ? "Payment being checked" : "Available after the check"}
+          {plan.code === checkingCode
+            ? "Payment being checked"
+            : plan.code === current
+              ? "Current plan"
+              : "Available after the check"}
         </button>
       );
     }
@@ -134,49 +198,80 @@ export default function PlanStep(): ReactElement {
     );
   };
 
-  // The checkout: an upgrade is priced from the plan; a new subscription from what's due on it.
+  const checkingWhat = latest?.upgrade_plan_name
+    ? `the upgrade to ${latest.upgrade_plan_name}`
+    : latest?.is_renewal
+      ? `your ${subscription?.plan.name} renewal`
+      : `${subscription?.plan.name}`;
+  const lede = upgrading
+    ? eligible.length
+      ? `You're on ${subscription?.plan.name}. Pick a bigger plan: it starts once we've confirmed the payment, and any paid days left carry over.`
+      : `You're on ${subscription?.plan.name}, our biggest plan. Need more? Email hello@zinwe.io.`
+    : checking && latest
+      ? `We're checking your payment of ${formatMoney(latest.amount_inr, latest.currency)} for ${checkingWhat}, sent ${formatDate(
+          latest.submitted_at,
+        )}. You can change plans again once it's confirmed, usually within one working day. Paid twice by mistake? Email hello@zinwe.io and we'll refund it.`
+      : reviewing
+        ? "We're checking your payment. You can change plans once it's confirmed, usually within one working day."
+        : trialEnded
+          ? `Your free trial of ${subscription?.plan.name} has ended. Choose a plan to keep protecting your PCs.`
+          : paidEnded
+            ? `Your ${subscription?.plan.name} plan ended. Choose it again to renew, or pick another plan. Your devices and settings are saved.`
+            : "Start free. You can change your plan later.";
+
+  // The checkout: an upgrade is priced by its own quote; a new subscription from what's due on it.
   const openPlan = openCode && plans.data ? plans.data.find((p) => p.code === openCode) : undefined;
   const pendingInfo = info.data?.subscription?.plan.code === openCode ? info.data?.subscription : null;
-  const quote = upgrading ? openPlan?.quote : (pendingInfo?.amount_due ?? openPlan?.quote);
-  const checkoutReady = Boolean(openPlan && quote && info.data && (upgrading || pendingInfo));
+  const upgradeData = upgrade.data ?? null;
+  const upgradeSettled = !openUpgrade || (!upgrade.pending && !upgrade.error) || upgradeData !== null;
+  const quote = openUpgrade ? (upgradeData?.quote ?? openPlan?.quote) : (pendingInfo?.amount_due ?? openPlan?.quote);
+  const checkoutReady = Boolean(openPlan && quote && info.data && (openUpgrade || pendingInfo) && upgradeSettled);
+  const instructions = info.data
+    ? openUpgrade
+      ? // The subscription's own QR and UPI link hold what's due on it, not the upgrade's amount.
+        { ...info.data.instructions, upi_qr_svg: upgradeData?.upi_qr_svg ?? "", upi_uri: upgradeData?.upi_uri ?? "" }
+      : info.data.instructions
+    : null;
 
   return (
     <section className="onb__wide" aria-labelledby="onb-plan-title">
-      {upgrading || reviewing ? (
-        <Link className="onb__back" to="/app">
-          <DashIcon name="back" />
-          Back to dashboard
-        </Link>
-      ) : null}
-
+      {/* "Back to dashboard" lives in the header (OnboardingLayout), once. */}
       <div className="onb__head onb__head--center">
         <h1 className="onb__title" id="onb-plan-title">
           {upgrading ? "Upgrade your plan" : reviewing ? "Your plan" : "Choose your plan"}
         </h1>
-        <p className="onb__lede">
-          {upgrading
-            ? eligible.length
-              ? `You're on ${subscription?.plan.name}. Pick a bigger plan: it starts once we've confirmed the payment, and any paid days left carry over.`
-              : `You're on ${subscription?.plan.name}, our biggest plan. Need more? Email hello@zinwe.io.`
-            : reviewing
-              ? "We're checking your payment. You can change plans once it's confirmed, usually within one working day."
-              : trialEnded
-                ? `Your free trial of ${subscription?.plan.name} has ended. Choose a plan to keep protecting your PCs.`
-                : paidEnded
-                  ? `Your ${subscription?.plan.name} plan ended. Choose it again to renew, or pick another plan. Your devices and settings are saved.`
-                  : "Start free. You can change your plan later."}
-        </p>
+        <p className="onb__lede">{lede}</p>
       </div>
 
+      {rejected ? (
+        <RejectedBanner
+          payment={rejected}
+          next={pending ? "Choose Continue to payment to pay again and send the new receipt." : "You can pay for the upgrade again below."}
+        />
+      ) : null}
       <FormAlert message={error} />
+      {openUpgrade && upgradeRefused ? <FormAlert message={errorMessage(upgrade.error)} /> : null}
+
+      {plans.data && !reviewing && plans.data.length > 1 ? (
+        <PcPicker
+          plans={plans.data}
+          pcs={pcs}
+          onPcs={setTyped}
+          fromTeamSize={typed === undefined && teamPcs !== null}
+          current={upgrading ? (plans.data.find((p) => p.code === current) ?? null) : null}
+        />
+      ) : null}
 
       {plans.data ? (
         <PlanCards
           plans={plans.data}
           selected={selected}
-          selectedNote={upgrading ? "Suggested" : pending ? "Waiting for payment" : "Your pick"}
+          selectedNote={
+            reviewing ? "Payment being checked" : upgrading ? "Suggested" : pending ? "Waiting for payment" : "Your pick"
+          }
           current={current}
           unavailable={unavailable}
+          fit={fit}
           renderAction={action}
         />
       ) : plans.error ? (
@@ -190,7 +285,7 @@ export default function PlanStep(): ReactElement {
         <PlanCardsLoading />
       )}
 
-      {!upgrading && !reviewing ? (
+      {!onPlan && !reviewing ? (
         <p className="onb__skip">
           Not sure yet? <Link className="dash-link" to="/app">Go to your dashboard</Link> and start with the Free
           features. You can choose a plan any time.
@@ -205,20 +300,31 @@ export default function PlanStep(): ReactElement {
           retrying={info.pending}
         />
       ) : null}
+      {openUpgrade && upgrade.error && !upgradeRefused && !upgradeData ? (
+        <ErrorState
+          title="We couldn't price the upgrade"
+          message={errorMessage(upgrade.error)}
+          onRetry={upgrade.reload}
+          retrying={upgrade.pending}
+        />
+      ) : null}
 
-      {checkoutReady && openPlan && quote && info.data ? (
+      {checkoutReady && openPlan && quote && instructions ? (
         <CheckoutModal
           quote={quote}
-          // The server's UPI QR holds the amount due on the current subscription, not an upgrade's.
-          instructions={upgrading ? { ...info.data.instructions, upi_qr_svg: "" } : info.data.instructions}
+          instructions={instructions}
           devices={planDevices(openPlan)}
           reference={account?.company?.name || undefined}
-          upgradePlan={upgrading ? openPlan.code : undefined}
-          shareQuote={!upgrading}
+          upgradePlan={openUpgrade ? openPlan.code : undefined}
+          period={
+            upgradeData ? { until: upgradeData.covers_until, carriedDays: upgradeData.carried_days } : null
+          }
+          rejected={rejected}
+          shareQuote={!openUpgrade}
           ownerEmail={account?.user.email ?? "you"}
           onClose={closeCheckout}
           onSubmitted={async (payment) => {
-            if (!upgrading && pendingInfo) await info.submitted(pendingInfo, payment);
+            if (!openUpgrade && pendingInfo) await info.submitted(pendingInfo, payment);
             else await refresh();
           }}
           onDone={() => navigate("/app")}

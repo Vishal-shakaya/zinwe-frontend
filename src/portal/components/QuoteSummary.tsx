@@ -58,8 +58,8 @@ export function QuoteSummary({ quote, title = "Amount to pay" }: { quote: Quote;
           ))}
           {quote.export ? (
             <tr>
-              <th scope="row">GST</th>
-              <td>{money("0")}</td>
+              <th scope="row">Tax</th>
+              <td>None</td>
             </tr>
           ) : null}
           <tr className="quote__sum">
@@ -71,11 +71,11 @@ export function QuoteSummary({ quote, title = "Amount to pay" }: { quote: Quote;
 
       <p className="dash-note quote__note">
         {quote.export
-          ? "No Indian GST: this is an export of services. Your bank or card may show a small conversion fee."
+          ? "No tax is added: Zinwe is sold to you from India as an export. Your bank or card may show a small conversion fee."
           : quote.taxes.length
             ? `GST for ${quote.place_of_supply || "India"}. Add your GSTIN in Company settings to claim input credit.`
             : quote.note || ""}{" "}
-        A GST invoice is ready to download once we confirm the payment.
+        {quote.taxes.length ? "A GST invoice" : "An invoice"} is ready to download once we confirm the payment.
       </p>
     </section>
   );

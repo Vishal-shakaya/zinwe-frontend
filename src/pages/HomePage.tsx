@@ -8,7 +8,7 @@ import { SetupWizard } from "../components/home/SetupWizard";
 import { WatchPanel } from "../components/home/WatchPanel";
 import { JsonLd } from "../components/ui/JsonLd";
 import { Reveal } from "../components/ui/Reveal";
-import { SOFTWARE_LD, seoFor } from "../content/seo";
+import { BRAND_LINE, SOFTWARE_LD, seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 
 export default function HomePage(): ReactElement {
@@ -20,7 +20,7 @@ export default function HomePage(): ReactElement {
       <WatchPanel />
 
       <section className="sec" id="how">
-        <div className="wrap split split--rev">
+        <div className="wrap split split--rev split--copy-first">
           <SetupWizard />
           <Reveal>
             <p className="eyebrow">Setup</p>
@@ -37,7 +37,7 @@ export default function HomePage(): ReactElement {
       <Platforms />
       <Faq />
       <OfferBand
-        title="IT is OK. Start free, today."
+        title={`${BRAND_LINE} Start free today.`}
         sub="Protect up to 3 PCs at no cost, for as long as you like. Set up in an afternoon and upgrade only when you grow."
         note="No card needed."
       />

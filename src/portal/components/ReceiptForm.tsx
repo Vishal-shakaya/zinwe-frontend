@@ -8,7 +8,7 @@ import { compactErrors, focusFirstInvalid, type FieldErrorMap } from "../../lib/
 import { apiFieldErrors, apiFormError } from "../failure";
 import { FormAlert } from "./FormAlert";
 
-const FIELDS: readonly PaymentField[] = ["proof", "accept_terms"];
+const FIELDS: readonly PaymentField[] = ["method", "proof", "accept_terms"];
 const MAX_PROOF_BYTES = 5 * 1024 * 1024;
 const PROOF_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 const PROOF_EXT = /\.(jpe?g|png|pdf)$/i;
@@ -27,6 +27,8 @@ function fileSize(bytes: number): string {
 interface ReceiptFormProps {
   /** The way the owner had open (UPI, bank transfer, Skydo...): what the payment is recorded as. */
   method: PaymentMethod;
+  /** Ask "How did you pay?" first (the owner skipped choosing a way): these choices, none picked. */
+  askMethod?: ReadonlyArray<{ value: PaymentMethod; label: string }>;
   onSubmitted: (payment: Payment) => void | Promise<void>;
   /** Dashboard upgrade: the plan code this payment is for. */
   upgradePlan?: string;
@@ -40,7 +42,15 @@ interface ReceiptFormProps {
  * "I've paid": upload the receipt, tick the payment terms, send. Nothing to type: the server records
  * the amount due, today and the owner's name, and staff read the reference off the receipt.
  */
-export function ReceiptForm({ method, onSubmitted, upgradePlan, step, bare = false }: ReceiptFormProps): ReactElement {
+export function ReceiptForm({
+  method,
+  askMethod,
+  onSubmitted,
+  upgradePlan,
+  step,
+  bare = false,
+}: ReceiptFormProps): ReactElement {
+  const [paidBy, setPaidBy] = useState<PaymentMethod | null>(null);
   const [proof, setProof] = useState<File | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -76,7 +86,9 @@ export function ReceiptForm({ method, onSubmitted, upgradePlan, step, bare = fal
     event.preventDefault();
     if (pending) return;
     const clientErrors = compactErrors<PaymentField>({
-      proof: proofError(proof),
+      method: askMethod && !paidBy ? "Choose how you paid." : undefined,
+      // A file that was refused keeps its own reason ("Upload a JPG, PNG or PDF file.") until a good one is picked.
+      proof: !proof && errors.proof ? errors.proof : proofError(proof),
       accept_terms: accepted ? undefined : "Please accept the payment terms to continue.",
     });
     setErrors(clientErrors);
@@ -85,7 +97,12 @@ export function ReceiptForm({ method, onSubmitted, upgradePlan, step, bare = fal
 
     setPending(true);
     try {
-      const payment = await submitPayment({ method, proof, upgrade_plan: upgradePlan, accept_terms: accepted });
+      const payment = await submitPayment({
+        method: (askMethod ? paidBy : null) ?? method,
+        proof,
+        upgrade_plan: upgradePlan,
+        accept_terms: accepted,
+      });
       await onSubmitted(payment);
     } catch (error) {
       const fieldErrors = apiFieldErrors(error, FIELDS);
@@ -122,6 +139,42 @@ export function ReceiptForm({ method, onSubmitted, upgradePlan, step, bare = fal
         </div>
       </div>
       )}
+
+      {askMethod ? (
+        <fieldset className={cx("receipt__how", errors.method && "is-invalid")} aria-describedby={errors.method ? "receipt-how-error" : undefined}>
+          <legend>How did you pay?</legend>
+          <div className="receipt__how-opts">
+            {askMethod.map((option, n) => (
+              <label key={option.value} className={cx("receipt__how-opt", paidBy === option.value && "is-on")}>
+                <input
+                  ref={
+                    n === 0
+                      ? (el) => {
+                          controls.current.method = el;
+                        }
+                      : undefined
+                  }
+                  type="radio"
+                  name="receipt-how"
+                  value={option.value}
+                  checked={paidBy === option.value}
+                  disabled={pending}
+                  onChange={() => {
+                    setPaidBy(option.value);
+                    if (errors.method) setErrors((e) => ({ ...e, method: undefined }));
+                  }}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+          {errors.method ? (
+            <p className="field__err" id="receipt-how-error" role="alert">
+              {errors.method}
+            </p>
+          ) : null}
+        </fieldset>
+      ) : null}
 
       <div className={cx("field", errors.proof && "is-invalid")}>
         {proof ? (

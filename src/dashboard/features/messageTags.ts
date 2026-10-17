@@ -19,7 +19,10 @@ export const URGENCY: ReadonlyArray<{ value: Urgency; label: string; hint: strin
 
 export interface MessageTag {
   id: string;
+  /** The chip, short: what the owner is picking. */
   label: string;
+  /** The subject line the member sees (widget + email). Defaults to the label. */
+  subject?: string;
   icon: DashIconName;
   urgency: Urgency;
   /** First draft of the note. `first` = their first name. */
@@ -38,36 +41,70 @@ export interface TagContext {
 
 const thing = (c: TagContext) => c.subject ?? "this";
 
-/** Tags that fit any note (also used on the Chat page). */
+/**
+ * Tags for everyday notes (Chat page and chat bubble), most used first. Each says plainly what the
+ * owner wants from the person; the Zinwe-specific ones (update, work day, data rules) point at
+ * something the member can actually do in the widget or on their PC.
+ */
 const GENERAL: readonly MessageTag[] = [
   {
-    id: "fyi",
-    label: "FYI",
-    icon: "chat",
+    id: "question",
+    label: "Quick question",
+    subject: "A quick question",
+    icon: "help",
     urgency: "info",
-    draft: (first) => `Hi ${first}, just a quick note: `,
+    draft: (first) => `Hi ${first}, quick question: `,
   },
   {
-    id: "reminder",
-    label: "Policy reminder",
-    icon: "shield",
-    urgency: "info",
-    draft: (first) =>
-      `Hi ${first}, a quick reminder to follow our company IT rules on your work PC. Thanks for keeping our data safe.`,
-  },
-  {
-    id: "action",
-    label: "Action needed",
-    icon: "alert",
+    id: "task",
+    label: "Task for today",
+    subject: "Please do this today",
+    icon: "check",
     urgency: "warning",
     draft: (first) => `Hi ${first}, please take care of this today: `,
   },
   {
-    id: "meet",
-    label: "Let's talk",
+    id: "call",
+    label: "Call me",
+    subject: "Please call me",
+    icon: "phone",
+    urgency: "warning",
+    draft: (first) => `Hi ${first}, please call me or come and see me when you have a minute.`,
+  },
+  {
+    id: "update",
+    label: "Update Zinwe",
+    subject: "Please update Zinwe",
+    icon: "refresh",
+    urgency: "warning",
+    draft: (first) =>
+      `Hi ${first}, a new version of Zinwe is ready. Please open the Zinwe widget on your PC and click Update. It takes about a minute.`,
+  },
+  {
+    id: "workday",
+    label: "Log your day",
+    subject: "Please log your work day",
+    icon: "clock",
+    urgency: "info",
+    draft: (first) =>
+      `Hi ${first}, please use the Zinwe widget to log in when you start, mark your breaks and log out at the end of the day, so your hours are counted correctly.`,
+  },
+  {
+    id: "data",
+    label: "Data rules",
+    subject: "Reminder: how we handle company files",
+    icon: "shield",
+    urgency: "info",
+    draft: (first) =>
+      `Hi ${first}, a quick reminder: please keep company files on work PCs and work accounts — no personal USB drives, personal cloud storage or personal email. Ask me if you need to share something.`,
+  },
+  {
+    id: "thanks",
+    label: "Thank you",
+    subject: "Thank you",
     icon: "team",
     urgency: "info",
-    draft: (first) => `Hi ${first}, can you drop by or call me when you have a minute?`,
+    draft: (first) => `Hi ${first}, thank you for your help today!`,
   },
 ];
 
@@ -76,6 +113,7 @@ function alertTags(feature: FeatureKey | null): readonly MessageTag[] {
   const explain: MessageTag = {
     id: "explain",
     label: "Please explain",
+    subject: "Can you explain this?",
     icon: "help",
     urgency: "info",
     draft: (first, c) =>
@@ -86,6 +124,7 @@ function alertTags(feature: FeatureKey | null): readonly MessageTag[] {
   const warn: MessageTag = {
     id: "warning",
     label: "Warning",
+    subject: "Please be careful",
     icon: "alert",
     urgency: "warning",
     draft: (first, c) => c.suggested || `Hi ${first}, please be careful with ${thing(c)} on your work PC.`,
@@ -93,6 +132,7 @@ function alertTags(feature: FeatureKey | null): readonly MessageTag[] {
   const stop: MessageTag = {
     id: "stop",
     label: "Stop now",
+    subject: "Please stop now",
     icon: "close",
     urgency: "critical",
     draft: (first, c) => `Hi ${first}, please stop using ${thing(c)} right away and call me.`,
@@ -109,6 +149,7 @@ function alertTags(feature: FeatureKey | null): readonly MessageTag[] {
     specific.push({
       id: "uninstall",
       label: "Remove the tool",
+      subject: "Please remove this tool",
       icon: "screen",
       urgency: "warning",
       draft: (first, c) =>
@@ -118,6 +159,7 @@ function alertTags(feature: FeatureKey | null): readonly MessageTag[] {
     specific.push({
       id: "site",
       label: "Avoid this site",
+      subject: "Please avoid this website",
       icon: "globe",
       urgency: "warning",
       draft: (first, c) => `Hi ${first}, please don't open ${c.subject ?? "that website"} on your work PC.`,
@@ -126,6 +168,7 @@ function alertTags(feature: FeatureKey | null): readonly MessageTag[] {
     specific.push({
       id: "data",
       label: "Confirm the copy",
+      subject: "Please confirm this file copy",
       icon: "usb",
       urgency: "warning",
       draft: (first) => `Hi ${first}, Zinwe saw a large copy of files from your PC. Was it for work? Please confirm.`,
@@ -148,6 +191,6 @@ export function tagsFor(event: DeviceEvent | null): readonly MessageTag[] {
 /** The subject the member sees: the tag, plus the alert's name when there is one. */
 export function subjectLine(tag: MessageTag | null, event: DeviceEvent | null, fallback: string): string {
   const alert = event ? eventMeta(event.type).label : null;
-  const parts = [tag?.label, alert].filter(Boolean) as string[];
+  const parts = [tag ? (tag.subject ?? tag.label) : null, alert].filter(Boolean) as string[];
   return (parts.length ? parts.join(" · ") : fallback).slice(0, 120);
 }

@@ -20,6 +20,7 @@ import { PasswordField } from "../components/PasswordField";
 import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
 import { SIGNUP_DOCS } from "../../content/legal";
 import { failureMessage } from "../failure";
+import { clearSignupCode, readSignupCode, saveSignupCode } from "../lastLogin";
 
 const ORDER: readonly SignupField[] = ["full_name", "email", "password", "accept_terms"];
 
@@ -43,7 +44,13 @@ export default function SignupPage(): ReactElement {
   const [errors, setErrors] = useState<FieldErrorMap<SignupField>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [codeSent, setCodeSent] = useState<{ email: string; resendIn: number } | null>(null);
+  // The code step survives a reload (phones reload the tab after a trip to the email app).
+  const [codeSent, setCodeSentState] = useState<{ email: string; resendIn: number } | null>(readSignupCode);
+  const setCodeSent = (next: { email: string; resendIn: number } | null) => {
+    if (next) saveSignupCode(next.email, next.resendIn);
+    else clearSignupCode();
+    setCodeSentState(next);
+  };
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -110,7 +117,11 @@ export default function SignupPage(): ReactElement {
           resendIn={codeSent.resendIn}
           title="Check your email"
           submitLabel="Verify and continue"
-          onBack={() => setCodeSent(null)}
+          onBack={() => {
+            if (!email) setEmail(codeSent.email);
+            setCodeSent(null);
+          }}
+          onSignedIn={clearSignupCode}
         />
       ) : (
         <form className="auth-form" onSubmit={onSubmit} noValidate>

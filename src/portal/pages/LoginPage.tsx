@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type ReactElement } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
@@ -7,6 +7,7 @@ import { cx } from "../../lib/cx";
 import { AuthShell } from "../components/AuthShell";
 import { CodeStep } from "../components/CodeStep";
 import { EmailCodeForm, PasswordLoginForm } from "../components/LoginForms";
+import { forgetSignedInHere, lastEmail, signedInHere } from "../lastLogin";
 
 type Tab = "password" | "code";
 
@@ -23,6 +24,11 @@ function emailFromState(state: unknown): string {
   return typeof email === "string" ? email : "";
 }
 
+/** Sent here by the sign-in guard from a dashboard page (`{from}`): the session just ended or was never there. */
+function fromGuard(state: unknown): boolean {
+  return typeof (state as { from?: unknown } | null)?.from === "string";
+}
+
 export default function LoginPage(): ReactElement {
   usePageMeta({
     title: "Log in — Zinwe",
@@ -33,7 +39,15 @@ export default function LoginPage(): ReactElement {
   const location = useLocation();
   const [tab, setTab] = useState<Tab>("password");
   // Shared by both tabs, so switching never loses what was typed.
-  const [email, setEmail] = useState(() => emailFromState(location.state));
+  // Filled in with the last email used on this browser.
+  const [email, setEmail] = useState(() => emailFromState(location.state) || lastEmail());
+  // "You're logged out": the owner signed in in this tab (or comes from a dashboard page on a browser they've used).
+  const [loggedOut] = useState(
+    () => !sessionExpired && (signedInHere() || (fromGuard(location.state) && lastEmail() !== "")),
+  );
+  useEffect(() => {
+    forgetSignedInHere();
+  }, []);
   const [codeState, setCodeState] = useState<CodeState | null>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ password: null, code: null });
 
@@ -80,6 +94,10 @@ export default function LoginPage(): ReactElement {
         {sessionExpired ? (
           <p className="dash-banner dash-banner--info" role="status">
             You've been logged out. Log in again to carry on.
+          </p>
+        ) : loggedOut ? (
+          <p className="dash-banner dash-banner--ok" role="status">
+            You're logged out. See you soon.
           </p>
         ) : null}
 

@@ -15,6 +15,7 @@ const BlogPage = lazyPage(() => import("./pages/BlogPage"));
 const ArticlePage = lazyPage(() => import("./pages/ArticlePage"));
 const NewsletterPage = lazyPage(() => import("./pages/NewsletterPage"));
 const QuotePage = lazyPage(() => import("./pages/QuotePage"));
+const DownloadPage = lazyPage(() => import("./pages/DownloadPage"));
 
 // The portal (sign up, log in, onboarding, dashboard) ships as separate
 // chunks, so marketing visitors never download it.
@@ -63,7 +64,7 @@ function ChunkFallback(): ReactElement {
 
 /**
  * Site map (contract §5):
- * - marketing (shared Layout): /  /plans  /early-access  /contact  /quote/:token (shared quote), and the 404
+ * - marketing (shared Layout): /  /plans  /download  /early-access  /contact  /quote/:token (shared quote), and the 404
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
  * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
@@ -82,6 +83,8 @@ export function AppRoutes(): ReactElement {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="plans" element={<PlansPage />} />
+          {/* The installer itself is /download/ZinweAgent.msi, served by nginx (not this app). */}
+          <Route path="download" element={<DownloadPage />} />
           <Route path="early-access" element={<EarlyAccessPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="blog" element={<BlogPage />} />

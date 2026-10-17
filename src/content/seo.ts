@@ -12,7 +12,8 @@
  * words, no prices (they live in the plan catalogue), India and the US treated equally.
  */
 export const SITE_URL = "https://zinwe.io";
-export const BRAND_LINE = "IT Is OK.";
+/** The tagline, in one form everywhere (hero badge, footer, offer band, structured data). */
+export const BRAND_LINE = "No IT team? It's OK.";
 export const OG_IMAGE = `${SITE_URL}/brand/og-image.png`;
 
 /** Routes that must never be indexed (signed-in app, onboarding, sign-in, personal links). */
@@ -45,7 +46,7 @@ export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Do I need an IT person to set it up?",
-    a: "No. You answer a few questions, install Zinwe on each PC with a one-time ID, and your rules reach every PC within about a minute. Most small offices are set up in an afternoon.",
+    a: "No. You answer a few questions, install Zinwe on each PC and connect it with the person's Member ID, and your rules reach every PC within about a minute. Most small offices are set up in an afternoon.",
   },
   {
     q: "Does it help with India's DPDP Act and US monitoring laws?",
@@ -53,7 +54,7 @@ export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Can I use Zinwe in the United States?",
-    a: "Yes. Zinwe is built for small businesses in India and the United States. Outside India you pay in US dollars, once a year, by card or US bank transfer — with no Indian GST. In India you pay in rupees each month by UPI or bank transfer, plus GST.",
+    a: "Yes. Zinwe is built for small businesses in India and the United States. Outside India you pay in US dollars, once a year, by card or US bank transfer — with no Indian GST. In India you pay in rupees each month by UPI or bank transfer.",
   },
   {
     q: "Which computers does it work on?",
@@ -68,10 +69,11 @@ export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
 const PAGES: readonly SeoPage[] = [
   {
     path: "/",
-    title: "Zinwe — Data protection for small businesses, in plain English",
+    // Keyword theme: small business data protection / business security without an IT team (ZINWE-SEO-ONPAGE-001).
+    title: "Small business data protection in plain English | Zinwe",
     description:
-      "Know when files go to a USB drive, a remote-access tool runs or new software appears, explained in plain English. For teams of 5–50. Free for 3 PCs.",
-    ogTitle: "Zinwe — IT Is OK. Data protection for small businesses.",
+      "Data protection for small businesses with no IT team: know when files go to a USB drive, a remote-access tool runs or new software appears. Free for 3 PCs.",
+    ogTitle: "Zinwe — No IT team? It's OK. Data protection for small businesses.",
     ogDescription: "Know what's happening to your company's data. In plain English. No IT department needed.",
     h1: "Know what's happening to your company's data. In plain English.",
     intro: [
@@ -82,28 +84,42 @@ const PAGES: readonly SeoPage[] = [
   },
   {
     path: "/plans",
-    title: "Plans and pricing — Zinwe | Free for up to 3 PCs",
+    title: "Plans and pricing: free for up to 3 PCs | Zinwe",
     description:
-      "Start free for up to 3 PCs. Paid plans are priced by the number of PCs, not per seat. India: rupees, monthly, + GST. Outside India: US dollars, yearly.",
+      "Start free for up to 3 PCs. Paid plans are priced per PC, not per seat, for 10, 25 or 50 PCs. India: rupees, monthly. Elsewhere: US dollars, yearly.",
     h1: "Simple plans. Start free.",
     intro: [
-      "Free forever for up to 3 PCs. Startups adds full data protection for up to 10 PCs, and Businesses adds work hours, app usage and team chat for up to 50.",
+      "Free forever for up to 3 PCs. Startups covers up to 10 PCs, Teams up to 25 and Businesses up to 50, each with every feature and a longer history. Not sure? Tell the page how many PCs you have and it points to the plan that fits.",
       "Every plan has plain-English alerts, employee consent on every PC and a setup you can finish in an afternoon.",
     ],
     sitemap: true,
   },
   {
-    path: "/early-access",
-    title: "Early access — Zinwe",
+    path: "/download",
+    title: "Download Zinwe for Windows 10 and 11",
     description:
-      "Reserve early access to Zinwe: free forever for up to 3 PCs, setup done with you on a short call, and a say in what we build next.",
-    h1: "Be first. Start free, stay free.",
-    intro: ["Reserve a spot before launch and we'll set you up personally the week we go live."],
+      "Download the Zinwe installer for Windows 10 and 11. Install it on each PC, connect it with the person's email and Member ID, and it shows up in your dashboard.",
+    h1: "Download Zinwe for Windows.",
+    intro: [
+      "One small app on each Windows 10 or 11 PC. Install it, connect it with the person's work email and Member ID from your dashboard, and the PC shows up within about a minute.",
+      "Every employee sees the Zinwe widget and agrees on their own PC before anything is recorded. Linux and macOS are coming next.",
+    ],
+    sitemap: true,
+  },
+  {
+    path: "/early-access",
+    title: "Book a free setup call | Zinwe",
+    description:
+      "Book a free 20-minute setup call with the Zinwe founder: we set up your rules and first PCs with you. Zinwe is free forever for up to 3 PCs.",
+    h1: "Book a free setup call.",
+    intro: [
+      "Zinwe is live: you can start free right now. Prefer a hand? Book a free 20-minute call and we'll set it up with you, rules and first PCs included.",
+    ],
     sitemap: true,
   },
   {
     path: "/contact",
-    title: "Contact Zinwe — talk to a person, not a ticket",
+    title: "Contact Zinwe: talk to a person, not a ticket",
     description:
       "Questions about setup, pricing or whether Zinwe fits your business? Write to hello@zinwe.io and hear back from the founder within a working day.",
     h1: "Talk to a person, not a ticket.",
@@ -115,18 +131,18 @@ const PAGES: readonly SeoPage[] = [
   },
   {
     path: "/blog",
-    title: "Blog — practical data protection for small businesses | Zinwe",
+    title: "Data protection guides for small businesses | Zinwe blog",
     description:
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos and Zinwe news, for small businesses in India and the US.",
-    h1: "The Zinwe blog",
+    h1: "Guides, releases and news",
     intro: [
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos, product releases and news.",
     ],
-    sitemap: true,
+    sitemap: false, // the backend's /api/blog/sitemap.xml lists /blog once an article is published
   },
   {
     path: "/legal",
-    title: "Legal — Zinwe",
+    title: "Legal: terms, privacy and policies | Zinwe",
     description: "Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies, and our Disclaimer.",
     h1: "Legal",
     intro: ["Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies, and our Disclaimer."],
@@ -138,7 +154,7 @@ const PAGES: readonly SeoPage[] = [
 export function legalSeo(doc: { slug: string; title: string; summary: string }): SeoPage {
   return {
     path: `/legal/${doc.slug}`,
-    title: `${doc.title} — Zinwe`,
+    title: `${doc.title} | Zinwe`,
     description: doc.summary,
     h1: doc.title,
     intro: [doc.summary],
@@ -194,7 +210,9 @@ export const SOFTWARE_LD = {
   "@type": "SoftwareApplication",
   name: "Zinwe",
   applicationCategory: "SecurityApplication",
-  operatingSystem: "Windows",
+  // Verified: the agent is a 64-bit Windows 10/11 MSI (window-app); Linux and macOS aren't released.
+  operatingSystem: "Windows 10, Windows 11",
+  downloadUrl: `${SITE_URL}/download`,
   description:
     "Data protection and activity monitoring for small businesses without an IT team: USB drive control, alerts for files leaving the office, remote-access tool detection, new software alerts and website protection, explained in plain English.",
   url: SITE_URL,

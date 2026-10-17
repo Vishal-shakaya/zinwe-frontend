@@ -16,6 +16,8 @@ interface PlanCardsProps {
   current?: string | null;
   /** Plans that can't be picked right now (e.g. below the current plan): shown in full, never highlighted. */
   unavailable?: readonly string[];
+  /** The smallest plan for the owner's PC count ("How many PCs?"): flagged, and highlighted when nothing is selected. */
+  fit?: { code: string; pcs: number } | null;
 }
 
 /**
@@ -29,6 +31,7 @@ export function PlanCards({
   renderAction,
   current = null,
   unavailable = [],
+  fit = null,
 }: PlanCardsProps): ReactElement {
   return (
     <ul className="plans">
@@ -38,18 +41,23 @@ export function PlanCards({
         const isSelected = selected === plan.code;
         const isCurrent = current === plan.code;
         const off = unavailable.includes(plan.code);
-        const highlighted = !off && (isSelected || (!selected && plan.is_recommended));
+        const isFit = fit?.code === plan.code;
+        const highlighted = !off && (isSelected || (!selected && (fit ? isFit : plan.is_recommended)));
         return (
           <li key={plan.code} className={cx("plan", highlighted && "plan--hi", off && "plan--off", isCurrent && "plan--current")}>
             {isCurrent ? (
               <span className="plan__flag plan__flag--current">Your plan</span>
             ) : isSelected && !off ? (
               <span className="plan__flag">{selectedNote}</span>
-            ) : plan.is_recommended && !off && !selected ? (
+            ) : fit && isFit && !off ? (
+              <span className="plan__flag">
+                Fits {fit.pcs} PC{fit.pcs === 1 ? "" : "s"}
+              </span>
+            ) : plan.is_recommended && !off && !selected && !fit ? (
               <span className="plan__flag">Recommended</span>
             ) : null}
             <div className="plan__head">
-              <h3 className="plan__name">{plan.name}</h3>
+              <h2 className="plan__name">{plan.name}</h2>
               <p className="plan__tag">{plan.tagline}</p>
             </div>
             {hasTrial(plan) ? (

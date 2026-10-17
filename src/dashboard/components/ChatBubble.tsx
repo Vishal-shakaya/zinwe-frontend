@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { cx } from "../../lib/cx";
 import type { ChatBubbleRequest } from "../features/chatBubble";
 import { detailOf } from "../features/alertGroups";
-import { eventMeta, severityOf } from "../features/events";
+import { alertLabel, severityOf } from "../features/events";
 import { formatDateTime } from "../time";
 import { DashIcon } from "./DashIcon";
 import { MemberChatThread } from "./MemberChat";
@@ -67,7 +67,7 @@ export function ChatBubble({ request, onClose }: { request: ChatBubbleRequest; o
         >
           <DashIcon name="alert" />
           <span>
-            <b>{eventMeta(event.type).label}</b>
+            <b>{alertLabel(event)}</b>
             {showContext ? (
               <>
                 <small>{detailOf(event)}</small>
@@ -86,12 +86,13 @@ export function ChatBubble({ request, onClose }: { request: ChatBubbleRequest; o
 
       <div className="cb__compose">
         <TaggedComposer
-          key={`${event?.id ?? "chat"}-${request.tag ?? ""}-${request.urgency ?? ""}-${request.delivery ?? ""}`}
+          key={`${event?.id ?? "chat"}-${request.tag ?? ""}-${request.urgency ?? ""}-${request.delivery ?? ""}-${request.draft ?? ""}`}
           person={person}
           event={event}
           initialTag={request.tag ?? null}
+          initialText={request.draft}
           initialUrgency={request.urgency}
-          initialDelivery={request.delivery ?? "both"}
+          initialDelivery={request.delivery}
           compact
           onSent={(d) => {
             setThreadKey((k) => k + 1);

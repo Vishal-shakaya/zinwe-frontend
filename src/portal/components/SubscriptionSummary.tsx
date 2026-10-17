@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from "react";
-import { SUBSCRIPTION_STATUS_LABEL } from "../../content/portal";
+import { PAYMENT_CHECKED_LABEL, SUBSCRIPTION_STATUS_LABEL } from "../../content/portal";
 import type { Subscription, SubscriptionStatus } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { formatDate, isZero } from "../../lib/format";
@@ -13,7 +13,17 @@ const TONE: Record<SubscriptionStatus, string> = {
   cancelled: "bad",
 };
 
-export function SubscriptionStatusPill({ status }: { status: SubscriptionStatus }): ReactElement {
+/** The plan's status; a plan waiting for a payment we're checking says so (not "Waiting for payment"). */
+export function SubscriptionStatusPill({
+  status,
+  checking = false,
+}: {
+  status: SubscriptionStatus;
+  checking?: boolean;
+}): ReactElement {
+  if (checking && status === "pending_payment") {
+    return <span className="st-pill st-pill--info">{PAYMENT_CHECKED_LABEL}</span>;
+  }
   return <span className={cx("st-pill", `st-pill--${TONE[status]}`)}>{SUBSCRIPTION_STATUS_LABEL[status]}</span>;
 }
 
@@ -42,7 +52,10 @@ export function SubscriptionSummary({ subscription, title = "Your plan", action 
             {isTrial ? trialLine(subscription) : subscriptionPrice(subscription)} · {planDevices(subscription.plan)}
           </p>
         </div>
-        <SubscriptionStatusPill status={subscription.status} />
+        <SubscriptionStatusPill
+          status={subscription.status}
+          checking={subscription.latest_payment?.status === "submitted"}
+        />
       </div>
 
       {subscription.status === "active" && (subscription.starts_at || subscription.ends_at) ? (

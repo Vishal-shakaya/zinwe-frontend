@@ -15,8 +15,17 @@ export function requiredError(value: string): string | undefined {
   return value.trim() === "" ? MESSAGES.required : undefined;
 }
 
+/** The WHATWG pattern allows `name@host`; a real reply needs a domain ending (`name@firm.in`). */
+function hasDomainDot(email: string): boolean {
+  const domain = email.slice(email.lastIndexOf("@") + 1);
+  return /\.[a-zA-Z0-9-]{2,}$/.test(domain);
+}
+
 export function emailError(value: string): string | undefined {
-  return requiredError(value) ?? (EMAIL_RE.test(value.trim()) ? undefined : MESSAGES.email);
+  const v = value.trim();
+  if (requiredError(v)) return MESSAGES.required;
+  if (!EMAIL_RE.test(v)) return MESSAGES.email;
+  return hasDomainDot(v) ? undefined : "Check your email address. It needs an ending like .com or .in.";
 }
 
 export function pickError(value: string): string | undefined {
@@ -67,10 +76,76 @@ export function codeError(value: string): string | undefined {
 
 const GSTIN_RE = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
-/** Optional; when given, a 15-character GSTIN (already upper-cased). */
-export function gstinError(value: string): string | undefined {
+/** The example shown in the GSTIN field. */
+export const GSTIN_EXAMPLE = "07ABCDE1234F1Z5";
+
+/**
+ * GST state codes (the first two digits of a GSTIN), by the state names the company form uses.
+ * Some states have two: Andhra Pradesh (28 before 2014, 37 after), Dadra and Nagar Haveli and Daman and Diu
+ * (25 and 26, merged in 2020) and Ladakh (38, earlier 01 under Jammu and Kashmir).
+ */
+const GST_STATE_CODES: Readonly<Record<string, readonly string[]>> = {
+  "Jammu and Kashmir": ["01"],
+  "Himachal Pradesh": ["02"],
+  Punjab: ["03"],
+  Chandigarh: ["04"],
+  Uttarakhand: ["05"],
+  Haryana: ["06"],
+  Delhi: ["07"],
+  Rajasthan: ["08"],
+  "Uttar Pradesh": ["09"],
+  Bihar: ["10"],
+  Sikkim: ["11"],
+  "Arunachal Pradesh": ["12"],
+  Nagaland: ["13"],
+  Manipur: ["14"],
+  Mizoram: ["15"],
+  Tripura: ["16"],
+  Meghalaya: ["17"],
+  Assam: ["18"],
+  "West Bengal": ["19"],
+  Jharkhand: ["20"],
+  Odisha: ["21"],
+  Chhattisgarh: ["22"],
+  "Madhya Pradesh": ["23"],
+  Gujarat: ["24"],
+  "Dadra and Nagar Haveli and Daman and Diu": ["26", "25"],
+  Maharashtra: ["27"],
+  Karnataka: ["29"],
+  Goa: ["30"],
+  Lakshadweep: ["31"],
+  Kerala: ["32"],
+  "Tamil Nadu": ["33"],
+  Puducherry: ["34"],
+  "Andaman and Nicobar Islands": ["35"],
+  Telangana: ["36"],
+  "Andhra Pradesh": ["37", "28"],
+  Ladakh: ["38", "01"],
+};
+
+/** The state a GSTIN was issued in (from its first two digits), or null when the code isn't a state's. */
+export function gstinState(gstin: string): string | null {
+  const code = gstin.slice(0, 2);
+  for (const [state, codes] of Object.entries(GST_STATE_CODES)) {
+    if (codes.includes(code)) return state;
+  }
+  return null;
+}
+
+/**
+ * Optional; when given, a 15-character GSTIN (already upper-cased) that isn't the field's example and,
+ * when the company's Indian `state` is known, was issued in that state (it decides CGST + SGST or IGST).
+ */
+export function gstinError(value: string, state = ""): string | undefined {
   if (value === "") return undefined;
-  return GSTIN_RE.test(value) ? undefined : "Enter a 15-character GSTIN, like 07ABCDE1234F1Z5.";
+  if (!GSTIN_RE.test(value)) return `Enter a 15-character GSTIN, like ${GSTIN_EXAMPLE}.`;
+  if (value === GSTIN_EXAMPLE) return "That's the example GSTIN. Enter your own, or leave this empty.";
+  const codes = GST_STATE_CODES[state.trim()];
+  if (!codes || codes.includes(value.slice(0, 2))) return undefined;
+  const issuedIn = gstinState(value);
+  return issuedIn
+    ? `This GSTIN is from ${issuedIn}, but you picked ${state}. Check the GSTIN or the state.`
+    : `This GSTIN doesn't match ${state}: GSTINs from ${state} start with ${codes[0]}.`;
 }
 
 export function phoneError(value: string): string | undefined {

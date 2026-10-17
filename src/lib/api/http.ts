@@ -24,6 +24,8 @@ export type SubmitResult<T, F extends string> =
   | { ok: false; kind: "rate_limited"; retryAfter: number | null; detail?: string }
   /** 403 `{"code": "email_not_verified"}` from login: a fresh signup code was sent. */
   | { ok: false; kind: "unverified"; detail: string }
+  /** The Zinwe team paused this account (403 `account_paused`): show `detail`, it says who to contact. */
+  | { ok: false; kind: "paused"; detail: string }
   | { ok: false; kind: "network" | "server" };
 
 export function toMessages(value: unknown): string[] {
@@ -121,6 +123,9 @@ export async function postPublic<T, F extends string>(
   }
   if (response.status === 403 && bodyString(body, "code") === "email_not_verified") {
     return { ok: false, kind: "unverified", detail: bodyString(body, "detail") ?? "" };
+  }
+  if (response.status === 403 && bodyString(body, "code") === "account_paused") {
+    return { ok: false, kind: "paused", detail: bodyString(body, "detail") ?? "" };
   }
   if (response.status === 400 && body !== null) {
     return { ok: false, kind: "validation", ...parseValidationBody(body, fields) };

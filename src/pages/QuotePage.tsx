@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
 import { DashIcon } from "../dashboard/components/DashIcon";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { ApiError, errorMessage, getPublicQuote, isAbortError, publicQuotePdfUrl, type SharedQuote } from "../lib/api";
@@ -19,6 +20,7 @@ type Load = { state: "loading" } | { state: "ready"; quote: SharedQuote } | { st
 export default function QuotePage(): ReactElement {
   usePageMeta({ title: "Your Zinwe quote", description: "What to pay for your Zinwe plan, and how." });
   const { token = "" } = useParams();
+  const { token: signedIn } = useAuth();
   const [load, setLoad] = useState<Load>({ state: "loading" });
   const [attempt, setAttempt] = useState(0);
   const [way, setWay] = useState<PayWay | null>(null);
@@ -81,8 +83,17 @@ export default function QuotePage(): ReactElement {
   }
 
   const q = load.quote;
+  // A paid or replaced quote never offers a way to pay again (an emailed link must not take money twice).
+  const open = (q.status ?? "open") === "open";
   const total = formatMoney(q.quote.total, q.quote.currency);
   const current = way ?? defaultWay(q.instructions);
+  // Whoever has the link (often the accounts team, with no Zinwe login) sends the receipt by email.
+  const receiptTo = q.seller.email || "hello@zinwe.io";
+  const receiptMail = `mailto:${receiptTo}?subject=${encodeURIComponent(
+    `Payment receipt for quote ${q.number} (${q.customer.name})`,
+  )}&body=${encodeURIComponent(
+    `Hello,\n\nWe've paid ${total} for quote ${q.number} (Zinwe ${q.plan.name} for ${q.customer.name}). The receipt is attached.\n\nThank you.`,
+  )}`;
 
   return (
     <section className="qpage" aria-labelledby="qpage-title">
@@ -98,14 +109,31 @@ export default function QuotePage(): ReactElement {
               {formatDate(q.valid_until)}.
             </p>
           </div>
-          <a className="btn btn--ghost dash-btn-sm" href={publicQuotePdfUrl(token)} download>
-            <DashIcon name="download" />
-            Download PDF
-          </a>
+          {open ? (
+            <a className="btn btn--ghost dash-btn-sm" href={publicQuotePdfUrl(token)} download>
+              <DashIcon name="download" />
+              Download PDF
+            </a>
+          ) : null}
         </header>
 
         <div className="paypage__grid">
           <div className="paypage__main">
+            {!open ? (
+              <section className="dash-card qpage__closed" aria-labelledby="qpage-closed" role="status">
+                <h2 className="pay-section__title" id="qpage-closed">
+                  {q.status === "paid" ? "This quote has been paid" : "This quote has been replaced"}
+                </h2>
+                <p className="pay-section__sub">
+                  {q.status === "paid"
+                    ? `We've received a payment for it. There's nothing more to pay on quote ${q.number}.`
+                    : `The plan or the amount due has changed since ${formatDate(q.issued_on)}, so this quote no longer applies. Please don't pay it.`}{" "}
+                  {q.customer.contact
+                    ? `Ask ${q.customer.contact} for the latest quote, or write to ${receiptTo}.`
+                    : `For the latest quote, write to ${receiptTo}.`}
+                </p>
+              </section>
+            ) : (
             <section className="dash-card pay-panel" aria-labelledby="qpage-pay">
               <div className="pay-section">
                 <div className="pay-section__head">
@@ -119,7 +147,16 @@ export default function QuotePage(): ReactElement {
                     <p className="pay-section__sub">Use any one of these. Every option pays {q.seller.name}, the company behind Zinwe.</p>
                   </div>
                 </div>
-                <PaymentWays instructions={q.instructions} total={total} way={current} onWay={setWay} idPrefix="qways" showNote={false} />
+                <PaymentWays
+                  instructions={q.instructions}
+                  total={total}
+                  way={current}
+                  onWay={setWay}
+                  idPrefix="qways"
+                  showNote={false}
+                  reference={q.customer.name}
+                  currency={q.quote.currency}
+                />
               </div>
               <hr className="pay-panel__rule" />
               <div className="pay-section">
@@ -130,19 +167,35 @@ export default function QuotePage(): ReactElement {
                   <div>
                     <h2 className="pay-section__title">Send us the receipt</h2>
                     <p className="pay-section__sub">
-                      {q.customer.contact ? `${q.customer.contact} can upload it` : "Upload it"} on the Zinwe payment
-                      page, or reply to the quote email with it attached. We switch the plan on within one working day
-                      and email the invoice.
+                      {signedIn
+                        ? "Upload the screenshot or PDF your app shows on the Billing page. "
+                        : `Email it to ${receiptTo} (or reply to the quote email with it attached)${
+                            q.customer.contact ? `, or send it to ${q.customer.contact} to upload` : ""
+                          }. `}
+                      We switch the plan on within one working day and email the invoice.
                     </p>
                   </div>
                 </div>
                 <div className="qpage__upload">
-                  <Link className="btn btn--primary" to="/login">
-                    Log in to upload the receipt
-                  </Link>
+                  {signedIn ? (
+                    <Link className="btn btn--primary" to="/app/settings/billing">
+                      Upload the receipt
+                    </Link>
+                  ) : (
+                    <>
+                      <a className="btn btn--primary" href={receiptMail}>
+                        <DashIcon name="mail" />
+                        Email the receipt
+                      </a>
+                      <Link className="dash-link" to="/login">
+                        Have a Zinwe login? Upload it there
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </section>
+            )}
           </div>
 
           <aside className="paypage__side" aria-label="Quote details">

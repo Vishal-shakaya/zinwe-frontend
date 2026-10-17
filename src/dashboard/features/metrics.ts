@@ -114,6 +114,21 @@ export function formatBytes(bytes: number): string {
   return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} ${UNITS[unit]}`;
 }
 
+/**
+ * A short size for a chart axis: whole numbers, next unit from 1000 up ("1 GB", not "1001.4 MB";
+ * "334 MB", not "333.8MB") (J5-26).
+ */
+export function formatAxisBytes(bytes: number): string {
+  let value = Math.max(0, bytes);
+  let unit = 0;
+  while (value >= 1000 && unit < UNITS.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  const shown = value >= 10 || unit === 0 ? Math.round(value) : Math.round(value * 10) / 10;
+  return `${shown} ${UNITS[unit]}`;
+}
+
 /** 5400 → "1.5h"; under an hour → "45m". */
 export function formatHours(seconds: number): string {
   if (seconds < 3600) return `${Math.round(seconds / 60)}m`;

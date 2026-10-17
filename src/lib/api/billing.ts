@@ -9,6 +9,7 @@ import type {
   SharedQuote,
   Subscription,
   SubscriptionInfo,
+  UpgradeQuote,
 } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
@@ -115,6 +116,17 @@ export function submitPayment(payload: PaymentPayload): Promise<Payment> {
   if (payload.upgrade_plan) form.append("upgrade_plan", payload.upgrade_plan);
   form.append("accept_terms", payload.accept_terms ? "true" : "false");
   return authedRequest<Payment>("/api/auth/subscription/payment/", { method: "POST", form });
+}
+
+/** GET subscription/upgrade/<plan>/ — price, period and UPI QR of an upgrade (409 when it isn't allowed;
+ * 404 on an older backend). */
+export function getUpgradeQuote(planCode: string, signal?: AbortSignal): Promise<UpgradeQuote> {
+  return authedRequest<UpgradeQuote>(`/api/auth/subscription/upgrade/${encodeURIComponent(planCode)}/`, { signal });
+}
+
+/** Download the receipt the owner uploaded with a payment. */
+export function downloadPaymentProof(paymentId: number): Promise<void> {
+  return authedDownload(`/api/auth/subscription/payment/${paymentId}/proof/`, `Zinwe-receipt-${paymentId}`);
 }
 
 /** GET subscription/quote/ — the owner's quote and its public link (409 when nothing is due). */

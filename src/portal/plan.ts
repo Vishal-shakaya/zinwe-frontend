@@ -1,4 +1,4 @@
-import type { Plan } from "../lib/api";
+import type { Plan, TeamSize } from "../lib/api";
 import { formatDate, formatInr, formatMoney, isZero } from "../lib/format";
 
 const DAY_MS = 86_400_000;
@@ -86,14 +86,49 @@ export function planPrice(plan: Plan): { big: string; small: string } {
     return { big: formatMoney(usd, "USD"), small: `a month, billed yearly (${formatMoney(usd * 12, "USD")})` };
   }
   if (isZero(plan.price_inr_monthly)) {
-    // Legacy zero-price trial plans (early-access) still appear on old subscriptions.
-    return { big: "₹0", small: plan.trial_days > 0 ? `for ${trialSpan(plan)}` : "free forever" };
+    // Owners billed in dollars see "$0". Legacy zero-price trial plans (early-access) still appear on old subscriptions.
+    const big = plan.quote?.currency === "USD" ? formatMoney(0, "USD") : "₹0";
+    return { big, small: plan.trial_days > 0 ? `for ${trialSpan(plan)}` : "free forever" };
   }
   const big = formatInr(plan.price_inr_monthly);
   if (hasTrial(plan)) return { big, small: `a month after ${trialSpan(plan)} free` };
-  // India: GST is added on top (the business norm). Signed-in owners see what their quote says.
-  const gst = plan.quote ? plan.quote.taxes.length > 0 : true;
-  return { big, small: gst ? "a month + GST" : "a month" };
+  return { big, small: planChargesGst(plan) ? "a month + GST" : "a month" };
+}
+
+/**
+ * GST is added on top of this plan's price: what the signed-in owner's quote says, else the server's
+ * `gst_charged` (seller registered for GST). Never assumed: an older backend without the flag promises no GST.
+ */
+export function planChargesGst(plan: Plan): boolean {
+  if (plan.quote) return plan.quote.taxes.length > 0;
+  return plan.gst_charged === true;
+}
+
+/** Upper end of the company form's team size, as a PC count ("11-25" -> 25). */
+export function pcsForTeamSize(teamSize: TeamSize | "" | null | undefined): number | null {
+  switch (teamSize) {
+    case "1-10":
+      return 10;
+    case "11-25":
+      return 25;
+    case "26-50":
+      return 50;
+    case "50+":
+      return 51;
+    default:
+      return null;
+  }
+}
+
+/** The smallest plan on sale that covers `pcs` PCs (max_devices 0 = no limit); null when none does. */
+export function planForPcs(plans: readonly Plan[], pcs: number): Plan | null {
+  if (!(pcs > 0)) return null;
+  const limit = (p: Plan) => (p.max_devices > 0 ? p.max_devices : Number.POSITIVE_INFINITY);
+  const fits = plans.filter((p) => limit(p) >= pcs);
+  if (fits.length === 0) return null;
+  return fits.reduce((best, p) =>
+    limit(p) < limit(best) || (limit(p) === limit(best) && p.sort_order < best.sort_order) ? p : best,
+  );
 }
 
 /** "Start free trial" or "Choose Startups". */

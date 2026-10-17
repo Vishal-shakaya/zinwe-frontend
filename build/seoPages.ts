@@ -1,12 +1,14 @@
 /**
- * Build step: a static, search-engine-ready HTML file per public page, plus sitemap.xml.
+ * Build step: a static, search-engine-ready HTML file per public page, plus the page sitemap.
  *
  * The website is a single-page app, so its index.html has generic tags and an empty #root until
  * JavaScript runs. After `vite build` this plugin writes, from dist/index.html and src/content/seo.ts:
  *
  *   dist/index.html            "/"   (home tags + a plain-HTML version of the page)
  *   dist/<path>.html           every other public page (plans.html, contact.html, legal/privacy.html…)
- *   dist/sitemap.xml           the public pages (the blog has its own: /api/blog/sitemap.xml)
+ *   dist/sitemap-pages.xml     the public pages, with the build date as lastmod. The backend serves it (on
+ *                              this environment's address) and lists it in /sitemap.xml next to the blog's
+ *                              /api/blog/sitemap.xml; it also serves /robots.txt (zinwe-backend z_main/seo.py).
  *
  * Serving: the web server must try `<path>.html` before falling back to index.html, e.g. nginx
  * `try_files $uri $uri.html /index.html;` (a folder + index.html would make nginx redirect /plans to
@@ -55,8 +57,9 @@ function setMeta(html: string, attr: "name" | "property", key: string, content: 
 const NAV_LINKS: ReadonlyArray<[string, string]> = [
   ["/", "Home"],
   ["/plans", "Plans and pricing"],
+  ["/download", "Download for Windows"],
   ["/blog", "Blog"],
-  ["/early-access", "Early access"],
+  ["/early-access", "Book a free setup call"],
   ["/contact", "Contact"],
   ["/legal", "Legal"],
   ["/signup?plan=free", "Start free"],
@@ -88,7 +91,9 @@ export function renderPage(template: string, page: SeoPage): string {
   html = setMeta(html, "name", "twitter:description", ogDescription);
   html = html.replace(/<link rel="canonical" href="[^"]*"[^>]*>/, `<link rel="canonical" href="${url}" data-prerender />`);
 
-  const pageLd = page.path === "/" ? jsonLd(SOFTWARE_LD) + jsonLd(FAQ_LD) : "";
+  // The product on the pages that show it (home: with its FAQ; download: the installer).
+  const pageLd =
+    page.path === "/" ? jsonLd(SOFTWARE_LD) + jsonLd(FAQ_LD) : page.path === "/download" ? jsonLd(SOFTWARE_LD) : "";
   html = html.replace("</head>", `${pageLd}</head>`);
 
   // Same path with or without a trailing slash; anything else is an app route served this file.
@@ -104,10 +109,10 @@ export function renderPage(template: string, page: SeoPage): string {
   return html.replace('<div id="root"></div>', `<div id="root"></div>${block}`);
 }
 
-export function sitemap(pages: readonly SeoPage[]): string {
+export function sitemap(pages: readonly SeoPage[], lastmod = new Date().toISOString().slice(0, 10)): string {
   const urls = pages
     .filter((p) => p.sitemap)
-    .map((p) => `  <url><loc>${urlOf(p.path)}</loc></url>`)
+    .map((p) => `  <url><loc>${urlOf(p.path)}</loc><lastmod>${lastmod}</lastmod></url>`)
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
@@ -152,7 +157,7 @@ export function seoPages(): Plugin {
         mkdirSync(dirname(file), { recursive: true });
         writeFileSync(file, renderPage(template, page));
       }
-      writeFileSync(join(outDir, "sitemap.xml"), sitemap(pages));
+      writeFileSync(join(outDir, "sitemap-pages.xml"), sitemap(pages));
     },
   };
 }

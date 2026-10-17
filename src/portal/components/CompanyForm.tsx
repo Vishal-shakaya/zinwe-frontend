@@ -23,7 +23,9 @@ import {
 import {
   compactErrors,
   focusFirstInvalid,
+  GSTIN_EXAMPLE,
   gstinError,
+  gstinState,
   normaliseWebsite,
   phoneError,
   pickError,
@@ -97,7 +99,7 @@ function validate(d: Draft): FieldErrorMap<CompanyField> {
     city: requiredError(d.city),
     state: requiredError(d.state),
     country: requiredError(d.country),
-    gstin: gstinError(d.gstin),
+    gstin: gstinError(d.gstin, d.state),
     website: websiteError(d.website),
   });
 }
@@ -147,6 +149,15 @@ export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict, l
       state: regions && !regions.includes(d.state) ? "" : d.state,
     }));
     setSaved(null);
+  };
+
+  // A complete GSTIN fills in an empty state (its first two digits are the state's GST code).
+  const changeGstin = (raw: string) => {
+    const gstin = raw.toUpperCase();
+    const from = gstin.length === 15 ? gstinState(gstin) : null;
+    setDraft((d) => ({ ...d, gstin, state: d.state === "" && from ? from : d.state }));
+    setSaved(null);
+    if (errors.gstin) setErrors((e) => ({ ...e, gstin: undefined }));
   };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -400,11 +411,15 @@ export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict, l
                 autoCapitalize="characters"
                 spellCheck={false}
                 maxLength={15}
-                placeholder="07ABCDE1234F1Z5"
+                placeholder={GSTIN_EXAMPLE}
                 value={draft.gstin}
-                onChange={(e) => set("gstin", e.target.value.toUpperCase())}
+                onChange={(e) => changeGstin(e.target.value)}
                 aria-invalid={errors.gstin ? true : undefined}
+                aria-describedby="co-gstin-hint"
               />
+              <p className="field__hint" id="co-gstin-hint">
+                Optional. Add it to get GST input credit on your invoice. It must be from the state you picked.
+              </p>
             </Field>
           ) : null}
         </div>

@@ -36,6 +36,9 @@ export default function BlogPage(): ReactElement {
 
   const [lead, ...rest] = data?.results ?? [];
   const showLead = !!lead && page === 1;
+  // Filters only once there's something to filter, and only the types that have articles.
+  const types = (data?.types ?? []).filter((t) => t.count > 0 || t.key === type);
+  const showFilters = types.length > 0 && (types.length > 1 || type !== "");
 
   return (
     <div className="blog">
@@ -46,23 +49,24 @@ export default function BlogPage(): ReactElement {
       </header>
 
       <div className="wrap">
-        <nav className="blog-filter" aria-label="Article types">
-          <button type="button" className={cx("blog-filter__chip", !type && "is-on")} onClick={() => go({ type: "" })}>
-            All
-          </button>
-          {(data?.types ?? []).map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              className={cx("blog-filter__chip", `kind--${t.key}`, type === t.key && "is-on")}
-              onClick={() => go({ type: t.key })}
-              disabled={t.count === 0 && type !== t.key}
-            >
-              {t.label}
-              <span>{t.count}</span>
+        {showFilters ? (
+          <nav className="blog-filter" aria-label="Article types">
+            <button type="button" className={cx("blog-filter__chip", !type && "is-on")} onClick={() => go({ type: "" })}>
+              All
             </button>
-          ))}
-        </nav>
+            {types.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={cx("blog-filter__chip", `kind--${t.key}`, type === t.key && "is-on")}
+                onClick={() => go({ type: t.key })}
+              >
+                {t.label}
+                <span>{t.count}</span>
+              </button>
+            ))}
+          </nav>
+        ) : null}
 
         {list.error && !data ? (
           <div className="blog-empty">

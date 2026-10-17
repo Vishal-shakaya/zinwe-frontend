@@ -79,7 +79,7 @@ export function ChatLauncher({
                     >
                       <span className="cb-avatar cl__avatar" aria-hidden="true">
                         {initialsOf(m.name)}
-                        <i className={`tchat__dot tchat__dot--${PRESENCE_CLASS[status]}`} />
+                        <i className={`tchat__dot tchat__dot--${status === "online" ? "online" : PRESENCE_CLASS[status]}`} />
                       </span>
                       <span className="cl__who">
                         <b>{m.name}</b>
@@ -106,7 +106,7 @@ export function ChatLauncher({
         className="sup__fab cl__fab"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label={unread > 0 ? `Chat with your team, ${unread} new replies` : "Chat with your team"}
+        aria-label={unread > 0 ? `Chat with your team, ${unread} new ${unread === 1 ? "reply" : "replies"}` : "Chat with your team"}
         data-tour="chat-fab"
       >
         <DashIcon name={open ? "close" : "team"} />

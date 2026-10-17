@@ -5,7 +5,7 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { downloadInvoicePdf, errorMessage, getPaymentHistory, type Payment, type Subscription } from "../../lib/api";
 import { formatDate, formatInr, formatMoney } from "../../lib/format";
 import { formatDateTime } from "../time";
-import { PaymentDetails, PaymentStatusPill } from "../../portal/components/PaymentDetails";
+import { PaymentDetails, PaymentStatusPill, ReceiptLink } from "../../portal/components/PaymentDetails";
 import { PayPanel } from "../../portal/components/PayPanel";
 import { QuoteShare } from "../../portal/components/QuoteShare";
 import { QuoteSummary } from "../../portal/components/QuoteSummary";
@@ -13,8 +13,11 @@ import { RejectedBanner } from "../../portal/components/RejectedBanner";
 import { SubscriptionSummary } from "../../portal/components/SubscriptionSummary";
 import { useSubscriptionInfo } from "../../portal/useSubscriptionInfo";
 import { DashIcon } from "../components/DashIcon";
-import { EmptyState, ErrorState, LoadingState, RefreshButton } from "../components/States";
+import { EmptyState, ErrorState, LoadingState } from "../components/States";
 import { useResource } from "../useResource";
+
+/** Renewing is offered in full only near the end; earlier it's a one-line "pay early" link. */
+const RENEW_SOON_DAYS = 7;
 
 function LatestPayment({ payment }: { payment: Payment }): ReactElement {
   return (
@@ -22,7 +25,7 @@ function LatestPayment({ payment }: { payment: Payment }): ReactElement {
       <div className="dash-card__head--split">
         <div>
           <h2 className="dash-card__title" id="bill-pay-title">
-            {payment.is_renewal ? "Latest renewal" : "Latest payment"}
+            {payment.upgrade_plan_name ? "Latest upgrade payment" : payment.is_renewal ? "Latest renewal" : "Latest payment"}
           </h2>
           <p className="dash-card__sub">Sent {formatDateTime(payment.submitted_at)}</p>
         </div>
@@ -33,9 +36,11 @@ function LatestPayment({ payment }: { payment: Payment }): ReactElement {
         <p className="dash-banner dash-banner--info">
           <DashIcon name="clock" />
           <span>
-            {payment.is_renewal
-              ? "We're matching this renewal with our bank statement. Once it's confirmed, your plan is extended by a month and we'll email you."
-              : "We're matching this payment with our bank statement. We'll email you when your plan is active."}
+            {payment.upgrade_plan_name
+              ? `We're matching this payment with our bank statement. Once it's confirmed, ${payment.upgrade_plan_name} switches on and we'll email you. No need to pay again.`
+              : payment.is_renewal
+                ? "We're matching this renewal with our bank statement. Once it's confirmed, your plan is extended by a month and we'll email you."
+                : "We're matching this payment with our bank statement. We'll email you when your plan is active."}
           </span>
         </p>
       ) : null}
@@ -43,7 +48,10 @@ function LatestPayment({ payment }: { payment: Payment }): ReactElement {
   );
 }
 
-/** Pay for next month early: it's added after the current end date, so no days are lost. */
+/**
+ * Pay for next month early: it's added after the current end date, so no days are lost. More than a week before
+ * the end it's one quiet line (right after paying, "pay for next month" would read as money still owed).
+ */
 function RenewCard({
   subscription,
   open,
@@ -58,8 +66,21 @@ function RenewCard({
   const days = subscription.days_left;
   const period = subscription.billing_cycle === "yearly" ? "year" : "month";
   const due = subscription.amount_due;
-  const soon = days !== null && days <= 7;
+  const soon = days !== null && days <= RENEW_SOON_DAYS;
   const next = subscription.renewal_period;
+
+  if (!soon && !open) {
+    return (
+      <p className="dash-note bill-early">
+        {subscription.ends_at ? `Paid until ${formatDate(subscription.ends_at)}. ` : ""}
+        We'll remind you a week before it ends.{" "}
+        <button type="button" className="dash-link" onClick={onOpen}>
+          Pay for the next {period} early
+        </button>
+      </p>
+    );
+  }
+
   return (
     <section className={"dash-card renew" + (soon ? " renew--soon" : "")} aria-labelledby="renew-title">
       <div className="dash-card__head--split">
@@ -97,7 +118,7 @@ function RenewCard({
   );
 }
 
-/** Every payment the owner made: what it was for, the period it covered, and its status. */
+/** Every payment the owner made: what it was for, the period it covered, its status, and why one was refused. */
 function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
   return (
     <section className="dash-card" aria-labelledby="bill-history-title">
@@ -112,7 +133,7 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
           <span role="columnheader">Period covered</span>
           <span role="columnheader">Status</span>
           <span role="columnheader">
-            <span className="dash-sr">Invoice</span>
+            <span className="dash-sr">Invoice and receipt</span>
           </span>
         </div>
         {payments.map((p) => (
@@ -134,8 +155,13 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
               <PaymentStatusPill payment={p} />
             </span>
             <span role="cell" className="pay-hist__inv">
-              {p.status === "verified" ? <InvoiceLinks payment={p} /> : null}
+              {p.status === "verified" ? <InvoiceLinks payment={p} /> : <ReceiptLink payment={p} />}
             </span>
+            {p.status === "rejected" && p.rejection_reason ? (
+              <p className="pay-hist__why" role="cell">
+                Why it wasn't accepted: {p.rejection_reason}
+              </p>
+            ) : null}
           </div>
         ))}
       </div>
@@ -143,7 +169,7 @@ function PaymentHistory({ payments }: { payments: Payment[] }): ReactElement {
   );
 }
 
-/** "View" opens the printable invoice; "PDF" downloads the GST invoice file. */
+/** "View" opens the printable invoice; "PDF" downloads the invoice file; "Receipt" what the owner uploaded. */
 function InvoiceLinks({ payment }: { payment: Payment }): ReactElement {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +199,7 @@ function InvoiceLinks({ payment }: { payment: Payment }): ReactElement {
 
 export default function BillingPage(): ReactElement {
   usePageMeta({ title: "Billing — Settings", description: "Your Zinwe plan and payments." });
-  const { user } = useAuth();
+  const { user, account } = useAuth();
   const info = useSubscriptionInfo();
   const subscription = info.data?.subscription;
   const payment = subscription?.latest_payment ?? null;
@@ -181,9 +207,12 @@ export default function BillingPage(): ReactElement {
     subscription?.status === "pending_payment" && (payment === null || payment.status === "rejected");
   // Renewal: an active paid plan, nothing under review (the local copy updates right after a submit).
   const canRenew = Boolean(subscription?.can_renew) && payment?.status !== "submitted";
+  const checking = payment?.status === "submitted";
+  const due = subscription?.amount_due ?? null;
   const dueTotal = subscription
-    ? formatMoney(subscription.amount_due?.total ?? subscription.amount_inr, subscription.amount_due?.currency ?? subscription.currency)
+    ? formatMoney(due?.total ?? subscription.amount_inr, due?.currency ?? subscription.currency)
     : "";
+  const reference = account?.company?.name || undefined;
   const [renewing, setRenewing] = useState(false);
   const loadHistory = useCallback((signal: AbortSignal) => getPaymentHistory(signal), []);
   const history = useResource(loadHistory);
@@ -210,17 +239,31 @@ export default function BillingPage(): ReactElement {
           <SubscriptionSummary
             subscription={subscription}
             action={
-              <div>
-                <RefreshButton onClick={info.reload} pending={info.pending} />
+              <div className="bill-actions">
+                <Link className="btn btn--ghost dash-btn-sm" to="/onboarding/plan">
+                  {checking ? "See plans" : "Change plan"}
+                </Link>
               </div>
             }
           />
+          {payment?.status === "rejected" && !needsPayment ? (
+            <RejectedBanner
+              payment={payment}
+              next={
+                payment.upgrade_plan_name
+                  ? "Choose Change plan to pay for the upgrade again."
+                  : "Pay again from Renew below and send the new receipt."
+              }
+            />
+          ) : null}
           {canRenew ? (
             <RenewCard subscription={subscription} open={renewing} onOpen={() => setRenewing(true)}>
-              {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} title="Renewal" /> : null}
+              {due ? <QuoteSummary quote={due} title="Renewal" /> : null}
               <PayPanel
                 instructions={info.data.instructions}
                 total={dueTotal}
+                reference={reference}
+                currency={due?.currency ?? subscription.currency}
                 onSubmitted={async (next) => {
                   setRenewing(false);
                   await info.submitted(subscription, next);
@@ -234,10 +277,12 @@ export default function BillingPage(): ReactElement {
           {needsPayment ? (
             <>
               {payment?.status === "rejected" ? <RejectedBanner payment={payment} /> : null}
-              {subscription.amount_due ? <QuoteSummary quote={subscription.amount_due} /> : null}
+              {due ? <QuoteSummary quote={due} /> : null}
               <PayPanel
                 instructions={info.data.instructions}
                 total={dueTotal}
+                reference={reference}
+                currency={due?.currency ?? subscription.currency}
                 onSubmitted={async (next) => {
                   await info.submitted(subscription, next);
                   history.reload();
@@ -250,8 +295,11 @@ export default function BillingPage(): ReactElement {
           ) : null}
           {history.data && history.data.length > 0 ? <PaymentHistory payments={history.data} /> : null}
           <p className="dash-note">
-            Want to change your plan, or need your GSTIN on an invoice? Add it in Company settings before you pay, or
-            email <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>.
+            Need your GSTIN on an invoice? Add it in{" "}
+            <Link className="dash-link" to="/app/settings/company">
+              Company settings
+            </Link>{" "}
+            before you pay. Questions about a payment? Email <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>.
           </p>
         </>
       ) : (
@@ -269,6 +317,8 @@ export default function BillingPage(): ReactElement {
           </EmptyState>
         </section>
       )}
+      {/* Room under the floating Chat / Support buttons, so the last rows can scroll clear of them. */}
+      <div className="bill-end" aria-hidden="true" />
     </>
   );
 }

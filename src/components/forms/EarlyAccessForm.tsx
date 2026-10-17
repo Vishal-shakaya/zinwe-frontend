@@ -1,4 +1,5 @@
 import { useRef, useState, type ChangeEvent, type FormEvent, type ReactElement } from "react";
+import { Link } from "react-router-dom";
 import { concernOptions, platformOptions, teamSizeOptions } from "../../content/forms";
 import {
   submitEarlyAccess,
@@ -57,17 +58,18 @@ const FIELD_ORDER: readonly EarlyAccessField[] = [
 
 const SUCCESS_COPY = {
   new: {
-    heading: "Spot reserved.",
-    body: "We'll be in touch before launch with your access and a time for setup.",
+    heading: "Request received.",
+    body: "We'll email you within one working day to pick a time for your free setup call. No need to wait: Zinwe is live, so you can start free now and we'll set it up together on the call.",
   },
   existing: {
-    heading: "You're already on the list.",
-    body: "We have your spot. We'll be in touch before launch.",
+    heading: "We already have your request.",
+    body: "We'll email you to pick a time for the call. Meanwhile, you can start free now: your account is ready in two minutes.",
   },
 } as const;
 
 const FORM_MESSAGES = {
   unverified: "Couldn't reach the server. Check your connection and try again.",
+  paused: "Couldn't reach the server. Check your connection and try again.",
   rate_limited: "Too many attempts. Try again in a few minutes.",
   network: "Couldn't reach the server. Check your connection and try again.",
   server: "Couldn't reach the server. Check your connection and try again.",
@@ -98,7 +100,7 @@ function toggleIn<T>(list: T[], value: T, on: boolean): T[] {
   return on ? [...without, value] : without;
 }
 
-/** Early-access sign-up, posted to POST /api/auth/early-access/. */
+/** "Book a free setup call" (was early access, 2026-10-17), posted to POST /api/auth/early-access/. */
 export function EarlyAccessForm(): ReactElement {
   const [values, setValues] = useState<Values>(INITIAL);
   const [errors, setErrors] = useState<FieldErrorMap<EarlyAccessField>>({});
@@ -268,7 +270,7 @@ export function EarlyAccessForm(): ReactElement {
           </Field>
           <Field full error={errors.concerns}>
             <label id="ea-worry-label">
-              What worries you most? <small>(pick any)</small>
+              What should the call cover? <small>(pick any)</small>
             </label>
             <ChipGroup
               type="checkbox"
@@ -291,17 +293,26 @@ export function EarlyAccessForm(): ReactElement {
           ) : null}
           <button className="btn btn--primary btn--lg btn--block" type="submit" disabled={pending} aria-busy={pending}>
             {pending ? (
-              "Reserving…"
+              "Sending…"
             ) : (
               <>
-                Reserve my spot <span className="arr">→</span>
+                Book my setup call <span className="arr">→</span>
               </>
             )}
           </button>
-          <p className="form__fine">We'll email you once, when your access is ready. No newsletter, no sharing.</p>
+          <p className="form__fine">We'll email you to pick a time. No newsletter, no sharing.</p>
         </div>
       </form>
-      <FormSuccess active={sent !== null} heading={success.heading} body={success.body} />
+      <FormSuccess
+        active={sent !== null}
+        heading={success.heading}
+        body={success.body}
+        action={
+          <Link className="btn btn--primary" to="/signup?plan=free">
+            Start free now <span className="arr">→</span>
+          </Link>
+        }
+      />
     </Reveal>
   );
 }

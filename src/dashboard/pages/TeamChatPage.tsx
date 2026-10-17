@@ -3,7 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, listMembers, type Member } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { DashIcon } from "../components/DashIcon";
 import { PagePlanGate } from "../components/PlanLock";
 import { ChatComposer, MemberChatThread } from "../components/MemberChat";
 import { EmptyState, ErrorState, LoadingState, PageHeader } from "../components/States";
@@ -83,8 +82,8 @@ function TeamChatPageContent(): ReactElement {
         title="Chat"
         lede={
           unread > 0
-            ? `${unread} new ${unread === 1 ? "reply" : "replies"} from your team. Messages pop up in the Zinwe widget on their PC, and we email them a copy.`
-            : "Message anyone on your team. It pops up in the Zinwe widget on their PC, we email them a copy, and their replies come back here."
+            ? `${unread} new ${unread === 1 ? "reply" : "replies"} from your team.`
+            : "Message anyone on your team by chat (the Zinwe widget on their PC), by email, or both. Their replies come back here."
         }
       />
 
@@ -126,7 +125,7 @@ function TeamChatPageContent(): ReactElement {
                   >
                     <span className="tchat__avatar" aria-hidden="true">
                       {initialsOf(member.name)}
-                      <i className={`tchat__dot tchat__dot--${PRESENCE_CLASS[status]}`} />
+                      <i className={`tchat__dot tchat__dot--${status === "online" ? "online" : PRESENCE_CLASS[status]}`} />
                     </span>
                     <span className="tchat__who">
                       <b>{member.name}</b>
@@ -152,17 +151,18 @@ function TeamChatPageContent(): ReactElement {
                 <b>{selected.name}</b>
                 <small>
                   {selected.device
-                    ? `${selected.device.hostname || "Their PC"} · ${PRESENCE_LABEL[presenceOf(selected.device)]}`
-                    : "Zinwe isn't on their PC yet — messages wait until it is"}
+                    ? `${selected.device.hostname || "Their PC"} · ${PRESENCE_LABEL[presenceOf(selected.device)]} · ${selected.email}`
+                    : `${selected.email} · Zinwe isn't on their PC yet: chat waits until it is, email arrives now`}
                 </small>
               </span>
-              <a className="btn btn--ghost dash-btn-sm tchat__mail" href={`mailto:${selected.email}`}>
-                <DashIcon name="share" />
-                Email instead
-              </a>
             </header>
             <div className="tchat__scroll">
-              <MemberChatThread key={selected.id} member={selected} reloadKey={threadKey} />
+              <MemberChatThread
+                key={selected.id}
+                member={selected}
+                reloadKey={threadKey}
+                online={selected.device ? selected.device.is_online : false}
+              />
             </div>
             <ChatComposer key={`c-${selected.id}`} member={selected} onSent={() => setThreadKey((k) => k + 1)} />
           </div>

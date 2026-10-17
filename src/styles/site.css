@@ -348,8 +348,12 @@ textarea {
     display: flex;
   }
   .nav__links li {
-    padding: 12px 0;
     border-bottom: 1px solid var(--line);
+  }
+  /* The whole row is the link (not just its words). */
+  .nav__links li > a:not(.btn) {
+    display: block;
+    padding: 12px 0;
   }
   .nav__links li:last-child {
     border: 0;
@@ -458,8 +462,8 @@ textarea {
   background: var(--orange);
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
+  font-size: 0.74rem;
+  white-space: nowrap;
 }
 
 .hero .h-display {
@@ -1172,6 +1176,15 @@ textarea {
   color: var(--orange-text);
 }
 
+a.plat__item--live {
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+a.plat__item--live:hover {
+  background: var(--orange-tint);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
 /* ---------- Offer / CTA band ---------- */
 
 .offer {
@@ -1208,7 +1221,8 @@ textarea {
 
 .offer__cta small {
   font-size: 0.85rem;
-  color: rgba(13, 13, 14, 0.7);
+  /* Ink on the orange band: AA for small text (the old 70% ink was 4.28:1). */
+  color: var(--ink);
 }
 
 .offer__big {
@@ -1256,7 +1270,8 @@ textarea {
 
 .footer__links {
   display: flex;
-  gap: 22px;
+  flex-wrap: wrap;
+  gap: 10px 22px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1871,4 +1886,310 @@ textarea {
     display: inline-block;
     margin-left: 0;
   }
+}
+
+/* ---------- Download page (/download, 2026-10-17) ---------- */
+
+.dl-hero {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
+}
+
+.dl-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.dl-cta__btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dl-cta__meta {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--mute);
+}
+
+.dl-card {
+  padding: clamp(22px, 3vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.dl-card__title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dl-needs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dl-needs li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.dl-needs svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  padding: 3px;
+  border-radius: 4px;
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+}
+
+.dl-needs--plain {
+  margin-top: 24px;
+}
+
+.dl-card__foot {
+  margin: 20px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 0.92rem;
+  color: var(--mute);
+}
+
+.dl-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dl-step {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.dl-step__num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--orange);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.dl-step__title {
+  margin: 16px 0 6px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dl-step__body {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.dl-split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.dl-code {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 12px 12px 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--white);
+}
+
+.dl-code code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.dl-code__copy {
+  flex: none;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dl-code__copy:hover {
+  color: var(--ink);
+  background: var(--white);
+}
+
+@media (max-width: 960px) {
+  .dl-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .dl-hero,
+  .dl-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .dl-steps {
+    grid-template-columns: 1fr;
+  }
+  .dl-cta,
+  .dl-cta__btn {
+    width: 100%;
+  }
+}
+
+/* ========== Fix round 2026-10-17 (website) ========== */
+
+/* "How it works" on phones: the heading that explains the demo comes before it. */
+@media (max-width: 860px) {
+  .split--copy-first > :first-child {
+    order: 2;
+  }
+}
+
+/* Example dots under the hero: a 44px tap target around the thin bar. */
+.xl__dots {
+  margin-block: -16px -16px;
+}
+
+.xl__dot {
+  height: 44px;
+  background: linear-gradient(var(--line), var(--line)) center / 100% 4px no-repeat;
+  border-radius: 0;
+}
+
+.xl__dot::after {
+  inset: 20px 0;
+  border-radius: 2px;
+}
+
+.xl__dot.is-past {
+  background: linear-gradient(var(--line-strong), var(--line-strong)) center / 100% 4px no-repeat;
+}
+
+/* Feature switches: the visible switch stays 46x26, the tap area is 54x44. */
+.toggle::before {
+  content: "";
+  position: absolute;
+  inset: -9px -4px;
+}
+
+@media (max-width: 560px) {
+  .hero__pill {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    padding: 6px 10px;
+  }
+}
+
+/* Download page on a phone / Mac: send the link to the Windows PC instead */
+.dl-away {
+  width: 100%;
+  max-width: 520px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.dl-away__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.dl-away__text {
+  margin: 6px 0 14px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.dl-away__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dl-away__anyway {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+  font-size: 0.86rem;
+  color: var(--mute);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .dl-away__actions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* After the download starts: what to do with the file */
+.dl-next {
+  width: 100%;
+  max-width: 520px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--orange);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+}
+
+.dl-next__title {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.dl-next__list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* Form success panels with a next step ("Start free now") */
+.form__ok-action {
+  margin-top: 16px;
 }

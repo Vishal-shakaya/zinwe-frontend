@@ -12,6 +12,8 @@ export interface User {
   email_verified?: boolean;
   /** Which Terms version they accepted; `needs_acceptance` asks once for the current one. */
   terms?: TermsStatus;
+  /** The dashboard tour was finished or skipped on any device (POST tour/done/). Absent on older backends. */
+  tour_done?: boolean;
 }
 
 export interface TermsStatus {
@@ -118,6 +120,11 @@ export interface Plan {
   sort_order: number;
   /** v1.1: `trial_days > 0` and the caller hasn't used a trial (always true signed out). */
   trial_available: boolean;
+  /** Days of history the plan keeps (0 = no limit). Absent on older backends. */
+  history_days?: number;
+  /** GST is added to this price for this caller (seller GSTIN set, caller in India or signed out). Absent on
+   * older backends: then nothing promises GST. */
+  gst_charged?: boolean;
 }
 
 export type PaymentMethod = "upi" | "bank_transfer" | "paypal" | "skydo" | "cheque" | "cash";
@@ -197,6 +204,20 @@ export interface PaymentInstructions {
   payment_link?: string;
   /** India: a UPI QR code (SVG) with the exact amount due filled in; "" when there's nothing due. */
   upi_qr_svg?: string;
+  /** The `upi://pay?...` link with the exact amount (a "Pay in a UPI app" button on phones); "" = none. */
+  upi_uri?: string;
+}
+
+/** GET subscription/upgrade/<plan_code>/: what an upgrade from the active plan costs and covers. */
+export interface UpgradeQuote {
+  quote: Quote;
+  /** ISO dates (YYYY-MM-DD). */
+  covers_from: string;
+  covers_until: string;
+  /** Paid days left on the current plan, added to the new one. */
+  carried_days: number;
+  upi_qr_svg: string;
+  upi_uri: string;
 }
 
 export interface SkydoAccount {
@@ -218,6 +239,11 @@ export interface SubscriptionInfo {
  * (GET subscription/quote/) and the public page /quote/<token> (GET quotes/<token>/) have the same shape.
  */
 export interface SharedQuote {
+  /**
+   * Public link (2026-10-17): the quote as issued. "open" = pay this; "paid" = a payment came in after it was issued;
+   * "replaced" = what's due changed, the plan ended or it expired. Only "open" may show ways to pay. Absent = open.
+   */
+  status?: "open" | "paid" | "replaced";
   /** e.g. "ZWQ/2026-27/00007" */
   number: string;
   issued_on: string;
@@ -256,6 +282,8 @@ export interface Entitlements {
   modules: PlanModule[];
   /** 0 = no limit. */
   max_devices: number;
+  /** Days of alerts / activity / work-log history the plan keeps (0 = no limit). Absent on older backends. */
+  history_days?: number;
   devices_used: number;
   /** For each locked module, the cheapest plan that has it. */
   upgrade_for: Partial<Record<PlanModule, { code: string; name: string }>>;

@@ -1,6 +1,5 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { cx } from "../../lib/cx";
 import { Icon, type IconName } from "../ui/Icon";
 import { Reveal } from "../ui/Reveal";
 
@@ -19,13 +18,21 @@ export function Platforms(): ReactElement {
           <p className="eyebrow">Platforms</p>
           <h2 className="h-section">Windows today. Linux and macOS next.</h2>
           <p className="lede">One small agent on each PC, one dashboard for you. Works for teams in India and the US.</p>
+          {/* The live platform looked like a button but did nothing: it now goes to the download page. */}
           <div className="plat">
-            {platforms.map((p) => (
-              <span key={p.name} className={cx("plat__item", p.live && "plat__item--live")}>
-                <Icon name={p.icon} />
-                {p.name} <small>{p.status}</small>
-              </span>
-            ))}
+            {platforms.map((p) =>
+              p.live ? (
+                <Link key={p.name} className="plat__item plat__item--live" to="/download">
+                  <Icon name={p.icon} />
+                  {p.name} <small>Download now →</small>
+                </Link>
+              ) : (
+                <span key={p.name} className="plat__item">
+                  <Icon name={p.icon} />
+                  {p.name} <small>{p.status}</small>
+                </span>
+              ),
+            )}
           </div>
         </Reveal>
         <Reveal delay={1}>

@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { Field } from "../../components/forms/Field";
 import { usePageMeta } from "../../hooks/usePageMeta";
@@ -13,6 +13,7 @@ import { PasswordField } from "../components/PasswordField";
 import { ResendButton } from "../components/ResendButton";
 import { failureMessage } from "../failure";
 import { useCountdown } from "../useCountdown";
+import { rememberSignIn } from "../lastLogin";
 
 function emailFromState(state: unknown): string {
   const email = (state as { email?: unknown } | null)?.email;
@@ -23,8 +24,13 @@ export default function ForgotPasswordPage(): ReactElement {
   usePageMeta({ title: "Reset your password — Zinwe", description: "Reset your Zinwe password with a code sent to your email." });
 
   const location = useLocation();
-  const [email, setEmail] = useState(() => emailFromState(location.state));
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  // From the reset-code email (`?email=…&step=code`, e.g. a reset the Zinwe team sent): open on the code step.
+  const [params] = useSearchParams();
+  const linkEmail = (params.get("email") ?? "").trim();
+  const [email, setEmail] = useState(() => emailFromState(location.state) || linkEmail);
+  const [sentTo, setSentTo] = useState<string | null>(() =>
+    params.get("step") === "code" && !emailError(linkEmail) ? linkEmail : null,
+  );
   const [resendIn, setResendIn] = useState(60);
 
   return (
@@ -140,6 +146,7 @@ function ResetForm({ email, resendIn, onBack }: { email: string; resendIn: numbe
     setPending(true);
     const result = await resetPassword(email, digits, password);
     if (result.ok) {
+      rememberSignIn(result.data.user.email || email);
       signIn(result.data);
       return; // The guard redirects by onboarding step.
     }

@@ -115,7 +115,7 @@ export function SupportWidget(): ReactElement {
         data-tour="support"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        aria-label={unread > 0 ? `Help and support, ${unread} new replies` : "Help and support"}
+        aria-label={unread > 0 ? `Help and support, ${unread} new ${unread === 1 ? "reply" : "replies"}` : "Help and support"}
       >
         <DashIcon name={open ? "close" : "chat"} />
         <span className="sup__fab-label">{open ? "Close" : "Support"}</span>

@@ -19,6 +19,8 @@ export interface EntitlementsApi {
   devicesUsed: number;
   /** Every PC slot on the plan is taken (adding another will be refused). */
   atDeviceLimit: boolean;
+  /** Days of history the plan keeps (0 = no limit): older alerts, usage and work log are hidden. */
+  historyDays: number;
 }
 
 /** Short, owner-language name of each module, for lock cards. */
@@ -47,5 +49,6 @@ export function useEntitlements(): EntitlementsApi {
     maxDevices,
     devicesUsed,
     atDeviceLimit: maxDevices > 0 && devicesUsed >= maxDevices,
+    historyDays: ent?.history_days ?? 0,
   };
 }

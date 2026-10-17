@@ -56,15 +56,30 @@ function bodyError(value: string): string | undefined {
     : undefined;
 }
 
-/** Read receipt for the admin's latest line: Sent → Delivered (on their PC) → Seen (opened in the widget). */
-function Receipt({ message: m, now }: { message: Message; now: number }): ReactElement {
-  const label = m.read_by_member
-    ? m.read_by_member_at
-      ? `Seen ${formatRelative(m.read_by_member_at, now, "just now")}`
-      : "Seen"
-    : m.delivered_at
-      ? "Delivered"
-      : "Sent — shows on their PC when it's online";
+/** How an admin line went out, after its time ("" for plain chat). */
+const CHANNEL_NOTE: Record<NonNullable<Message["channel"]>, string> = {
+  chat: "",
+  chat_email: " · chat + email",
+  email: " · email only",
+};
+
+/**
+ * Read receipt for the admin's latest line: Sent → Delivered (on their PC) → Seen (opened in the widget).
+ * An email-only line never reaches the PC, so it just says it was emailed.
+ */
+function Receipt({ message: m, now, online }: { message: Message; now: number; online?: boolean }): ReactElement {
+  const label =
+    m.channel === "email"
+      ? "Emailed"
+      : m.read_by_member
+        ? m.read_by_member_at
+          ? `Seen ${formatRelative(m.read_by_member_at, now, "just now")}`
+          : "Seen"
+        : m.delivered_at
+          ? "Delivered"
+          : online === false
+            ? "Sent — shows on their PC when it's online"
+            : "Sent — on its way to their PC";
   return (
     <span className={cx("team-chat__receipt", m.read_by_member && "is-seen")} aria-live="polite">
       {label}
@@ -76,9 +91,12 @@ function Receipt({ message: m, now }: { message: Message; now: number }): ReactE
 export function MemberChatThread({
   member,
   reloadKey,
+  online,
 }: {
   member: Pick<Member, "id" | "name">;
   reloadKey: number;
+  /** Whether their PC is online right now (unknown = undefined): words the "Sent" receipt. */
+  online?: boolean;
 }): ReactElement {
   const [thread, setThread] = useState<Message[] | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +144,11 @@ export function MemberChatThread({
       {ordered.map((m) => (
         <div
           key={m.id}
-          className={cx("team-chat__msg", m.sender === "owner" ? "team-chat__msg--out" : "team-chat__msg--in")}
+          className={cx(
+            "team-chat__msg",
+            m.sender === "owner" ? "team-chat__msg--out" : "team-chat__msg--in",
+            m.channel === "email" && "team-chat__msg--email",
+          )}
         >
           {/* A long chat note is sent as a cut-down title + the full text; show the text once. */}
           {m.sender === "owner" && m.title && !(m.body && m.body.startsWith(m.title.replace(/…$/, ""))) ? (
@@ -135,8 +157,9 @@ export function MemberChatThread({
           {m.body ? <span className="team-chat__body">{m.body}</span> : m.title ? null : <span className="team-chat__body">—</span>}
           <time className="team-chat__time">
             {m.sender === "owner" ? "You" : firstName} · {formatRelative(m.created_at, now, "just now")}
+            {m.sender === "owner" && m.channel ? CHANNEL_NOTE[m.channel] : ""}
           </time>
-          {m.id === lastOwnerId ? <Receipt message={m} now={now} /> : null}
+          {m.id === lastOwnerId ? <Receipt message={m} now={now} online={online} /> : null}
         </div>
       ))}
     </div>
@@ -287,13 +310,13 @@ export function SendMessageForm({ member, onClose, onSent }: { member: Member; o
 }
 
 /**
- * The Chat page composer: the same tagged composer as the chat bubble (tags,
- * urgency, PC / PC + email), without alert-only options.
+ * The Chat page composer: the same tagged composer as the chat bubble (suggestions, priority,
+ * chat / chat + email / email only), without alert-only options.
  */
 export function ChatComposer({ member, onSent }: { member: Member; onSent: () => void }): ReactElement {
   return (
     <div className="tchat__compose">
-      <TaggedComposer person={member} initialDelivery="both" onSent={onSent} />
+      <TaggedComposer person={member} onSent={onSent} />
     </div>
   );
 }

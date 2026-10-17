@@ -27,6 +27,8 @@ export function failureMessage(result: Failure): string {
       return waitCopy(result.retryAfter);
     case "unverified":
       return result.detail || "Verify your email to continue.";
+    case "paused":
+      return result.detail || "Your Zinwe account is paused. Write to hello@zinwe.io and we'll help.";
     case "network":
       return NETWORK_COPY;
     case "server":

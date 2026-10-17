@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
+import { paymentInCheck } from "../../auth/steps";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import {
   createMember,
@@ -13,6 +14,9 @@ import {
   type Member,
   type MemberField,
 } from "../../lib/api";
+import { AGENT_MSI_URL } from "../../content/download";
+import { useChatBubble } from "../features/chatBubble";
+import { Toast } from "../components/Toast";
 import { compactErrors, emailError, focusFirstInvalid, requiredError, type FieldErrorMap } from "../../lib/validation";
 import { apiFieldErrors, apiFormError } from "../../portal/failure";
 import { Field } from "../../components/forms/Field";
@@ -27,7 +31,15 @@ import { MemberUsage } from "../components/MemberUsage";
 import { Modal } from "../components/Modal";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
 import { useEntitlements } from "../features/entitlements";
-import { formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
+import {
+  consentOf,
+  consentReminder,
+  formatDuration,
+  PRESENCE_CLASS,
+  PRESENCE_LABEL,
+  presenceOf,
+} from "../features/memberStatus";
+import { UsbRestore } from "../components/UsbRestore";
 import { formatDateTime, formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
 import { formatDate } from "../../lib/format";
@@ -49,16 +61,33 @@ export default function TeamPage(): ReactElement {
     description: "Everyone on your team, their PC and how much it's used — and an ID to connect each PC.",
   });
 
-  const { account } = useAuth();
+  const { account, refresh } = useAuth();
   const companyName = account?.company?.name ?? null;
   const { maxDevices, planName, upgradeFor } = useEntitlements();
+  const upgradeInCheck = paymentInCheck(account?.subscription);
 
+  // Someone added but not connected yet: check every 10 s so their card flips to Online by itself (J5-10).
+  const [waiting, setWaiting] = useState(false);
+  const pollMs = waiting ? 10_000 : 60_000;
   const load = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  const members = useResource(load, { pollMs: 60_000 });
+  const members = useResource(load, { pollMs });
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
-  const devices = useResource(loadDevices, { pollMs: 60_000 });
-  const [adding, setAdding] = useState(false);
+  const devices = useResource(loadDevices, { pollMs });
+  const someoneWaiting = (members.data ?? []).some((m) => m.is_active && !m.device);
+  if (someoneWaiting !== waiting) setWaiting(someoneWaiting);
+
+  // Tour → "Add your first person" lands on /app/team?add=1: open the add dialog straight away.
+  const [params, setParams] = useSearchParams();
+  const [adding, setAdding] = useState(() => params.get("add") === "1");
+  useEffect(() => {
+    if (params.get("add") !== "1") return;
+    const next = new URLSearchParams(params);
+    next.delete("add");
+    setParams(next, { replace: true });
+  }, [params, setParams]);
   const [created, setCreated] = useState<Member | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const clearToast = useCallback(() => setToast(null), []);
 
   const current = members.data ?? [];
 
@@ -69,6 +98,19 @@ export default function TeamPage(): ReactElement {
   const onUpdated = (member: Member) => {
     members.setData(current.map((m) => (m.id === member.id ? member : m)));
     if (created?.id === member.id) setCreated(member);
+  };
+  // Removed: the PC count and the plan's free slots update at once, with a short confirmation (J5-17).
+  const onRemoved = (member: Member) => {
+    onUpdated(member);
+    devices.reload();
+    void refresh();
+    const slotsFree = maxDevices > 0 && member.device ? Math.max(0, maxDevices - (pcsUsed - 1)) : null;
+    const first = member.name.trim().split(/\s+/)[0] || member.name;
+    setToast(
+      slotsFree !== null
+        ? `${first} removed. ${slotsFree} PC ${slotsFree === 1 ? "slot" : "slots"} free.`
+        : `${first} removed from your team.`,
+    );
   };
   const closeAdd = () => {
     setAdding(false);
@@ -118,6 +160,11 @@ export default function TeamPage(): ReactElement {
               }}
               pending={members.pending || devices.pending}
             />
+            {/* The installer + setup steps, for the owner who's at the member's PC (new tab: the dashboard stays). */}
+            <a className="btn btn--ghost dash-btn-sm" href="/download" target="_blank" rel="noopener">
+              <DashIcon name="download" />
+              Download Zinwe
+            </a>
             <button type="button" className="btn btn--primary dash-btn-sm" onClick={() => setAdding(true)}>
               <DashIcon name="plus" />
               Add member
@@ -129,7 +176,7 @@ export default function TeamPage(): ReactElement {
       <Modal
         open={adding}
         onClose={closeAdd}
-        title={created ? "Member added" : "Add a team member"}
+        title={created ? "Member added" : (members.data ?? []).some((m) => m.is_active) ? "Add a team member" : "Add your first person"}
         sub={created ? undefined : "Enter their name and work email. We'll give you an ID to connect their PC."}
       >
         {created ? (
@@ -139,21 +186,29 @@ export default function TeamPage(): ReactElement {
         )}
       </Modal>
 
+      {/* The only PC-limit notice on this page (the top bar's copy is hidden here). */}
       {pcsFull ? (
-        <div className="dash-banner dash-banner--info" role="status">
+        <div className="dash-banner dash-banner--info dash-banner--compact" role="status">
           <DashIcon name="pc" />
-          <span>
-            <b>
-              All {maxDevices} PCs on your {planName ?? "current"} plan are in use.
-            </b>{" "}
-            A new PC won't connect until you upgrade or remove one. PCs already connected keep working.
-          </span>
-          <Link
-            className="dash-link"
-            to={biggerPlan ? `/app/upgrade?plan=${encodeURIComponent(biggerPlan.code)}` : "/app/upgrade"}
-          >
-            Upgrade
-          </Link>
+          {upgradeInCheck ? (
+            <span>
+              <b>All {maxDevices} PCs on your {planName ?? "current"} plan are in use.</b> Your upgrade to{" "}
+              {upgradeInCheck.planName} is being checked; new PCs connect as soon as it's confirmed.
+            </span>
+          ) : (
+            <>
+              <span>
+                <b>All {maxDevices} PCs on your {planName ?? "current"} plan are in use.</b> A new PC won't connect
+                until you upgrade or remove one. PCs already connected keep working.
+              </span>
+              <Link
+                className="dash-link"
+                to={biggerPlan ? `/app/upgrade?plan=${encodeURIComponent(biggerPlan.code)}` : "/app/upgrade"}
+              >
+                Upgrade
+              </Link>
+            </>
+          )}
         </div>
       ) : null}
 
@@ -174,11 +229,11 @@ export default function TeamPage(): ReactElement {
         <section className="dash-card">
           <EmptyState
             icon="team"
-            title="Add your first team member"
+            title="Add your first person"
             action={
               <button type="button" className="btn btn--primary dash-btn-sm" onClick={() => setAdding(true)}>
                 <DashIcon name="plus" />
-                Add member
+                Add your first person
               </button>
             }
           >
@@ -203,11 +258,14 @@ export default function TeamPage(): ReactElement {
                 device={deviceOf(member)}
                 companyName={companyName}
                 onUpdated={onUpdated}
+                onRemoved={onRemoved}
+                onDeviceChanged={devices.reload}
               />
             ))}
           </div>
         </section>
       )}
+      <Toast message={toast} onDone={clearToast} />
 
       {unassigned.length > 0 ? (
         <section className="dash-card" aria-labelledby="other-pcs-title">
@@ -365,39 +423,58 @@ function AddMemberForm({ onCreated }: { onCreated: (member: Member) => void }): 
   );
 }
 
-/** Success panel: the new member's ID shown large, with copy/share buttons and the install hint. */
+/**
+ * Success panel: the member's ID shown large, with copy / share / download and the install hint. Used
+ * after adding someone and after "Get a new ID" (`newId`), when the new ID has been emailed to them.
+ */
 function CreatedPanel({
   member,
   companyName,
   onAddAnother,
+  newId = false,
 }: {
   member: Member;
   companyName: string | null;
-  onAddAnother: () => void;
+  onAddAnother?: () => void;
+  newId?: boolean;
 }): ReactElement {
+  const first = member.name.trim().split(/\s+/)[0] || member.name;
   return (
     <div className="team-new">
       <p className="dash-banner dash-banner--ok" role="status">
         <DashIcon name="check" />
-        <span>
-          <b>{member.name}</b> is added. Send them the details below so their PC can connect.
-        </span>
+        {newId ? (
+          <span>
+            <b>New ID ready for {member.name}.</b> We've emailed it to {first}. Their old ID and the old invite email
+            no longer work.
+          </span>
+        ) : (
+          <span>
+            <b>{member.name}</b> is added. Send them the details below so their PC can connect.
+          </span>
+        )}
       </p>
       <div className="dash-key">
         <code className="dash-key__value">{member.member_id}</code>
         <CopyButton text={member.member_id} label="Copy ID" what={`member ID for ${member.name}`} />
       </div>
       <p className="dash-note">
-        On <b>{member.name}</b>'s PC, run Zinwe and enter their email (
+        On <b>{member.name}</b>'s PC, download Zinwe, run it and enter their email (
         <span className="dash-mono">{member.email}</span>) and this ID. They'll show as online here within about a
-        minute. We've also emailed these details to them.
+        minute.{newId ? "" : " We've also emailed these details to them."}
       </p>
-      <div className="co-form__foot">
-        <ShareDetails member={member} companyName={companyName} />
-        <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onAddAnother}>
-          <DashIcon name="team" />
-          Add another member
-        </button>
+      <div className="co-form__foot team-new__actions">
+        <a className="btn btn--primary dash-btn-sm" href={AGENT_MSI_URL} download>
+          <DashIcon name="download" />
+          Download Zinwe (Windows)
+        </a>
+        <ShareDetails member={member} companyName={companyName} small />
+        {onAddAnother ? (
+          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onAddAnother}>
+            <DashIcon name="team" />
+            Add another member
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -418,27 +495,41 @@ function MemberTile({
   device,
   companyName,
   onUpdated,
+  onRemoved,
+  onDeviceChanged,
 }: {
   member: Member;
   /** The full PC record (OS, id for Activity) when the devices list has it. */
   device: Device | undefined;
   companyName: string | null;
   onUpdated: (member: Member) => void;
+  onRemoved: (member: Member) => void;
+  /** Reload the PCs (after Restore USB). */
+  onDeviceChanged: () => void;
 }): ReactElement {
   const now = useNow();
   const chatOn = useEntitlements().has("team_chat");
+  const bubble = useChatBubble();
   const [confirm, setConfirm] = useState<null | "rotate" | "deactivate">(null);
   const [messaging, setMessaging] = useState(false);
   const [threadKey, setThreadKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  // After "Get a new ID": the new ID with Copy / Share / Download, and that it was emailed (J5-05).
+  const [rotated, setRotated] = useState<Member | null>(null);
   const more = useRef<HTMLDetailsElement>(null);
 
   const run = async (kind: "rotate" | "deactivate") => {
     setBusy(true);
     setActionError(null);
     try {
-      onUpdated(kind === "rotate" ? await rotateMemberId(member.id) : await deactivateMember(member.id));
+      if (kind === "rotate") {
+        const next = await rotateMemberId(member.id, { email: true });
+        onUpdated(next);
+        setRotated(next);
+      } else {
+        onRemoved(await deactivateMember(member.id));
+      }
       setConfirm(null);
     } catch (error) {
       setActionError(errorMessage(error));
@@ -446,6 +537,7 @@ function MemberTile({
       setBusy(false);
     }
   };
+
   const [notice, setNotice] = useState<string | null>(null);
   useEffect(() => {
     if (!notice) return;
@@ -468,6 +560,13 @@ function MemberTile({
   const worked = pc?.worked_seconds ?? 0;
   const showWorked = (status === "working" || status === "break") && worked > 0;
   const system = device ? systemOf(device) : "";
+  const consent = consentOf(pc, device);
+  const first = member.name.trim().split(/\s+/)[0] || member.name;
+  const remind = () =>
+    bubble.open({
+      person: { id: member.id, name: member.name, email: member.email, hostname: pc?.hostname },
+      draft: consentReminder(member.name, consent),
+    });
 
   return (
     <article className="team-tile" aria-label={member.name}>
@@ -510,11 +609,22 @@ function MemberTile({
         {pc ? (
           <div>
             <dt>Consent</dt>
-            <dd>
-              {pc.consent_at ? (
-                <span className="team-consent team-consent--ok" data-tip={`Policy version ${pc.consent_version}`}>
+            <dd className="team-consent-row">
+              {consent === "given" ? (
+                <span
+                  className="team-consent team-consent--ok"
+                  data-tip={pc.consent_version ? `Policy version ${pc.consent_version}` : undefined}
+                >
                   <DashIcon name="check" />
-                  Given {formatDate(pc.consent_at)}
+                  {pc.consent_at ? `Given ${formatDate(pc.consent_at)}` : "Given"}
+                </span>
+              ) : consent === "declined" ? (
+                <span
+                  className="team-consent team-consent--no"
+                  data-tip="They said no on their PC. Zinwe collects nothing from it; work hours and chat still work."
+                >
+                  <DashIcon name="close" />
+                  Declined monitoring · rules and alerts are off on this PC
                 </span>
               ) : (
                 <span
@@ -525,6 +635,19 @@ function MemberTile({
                   Waiting for them
                 </span>
               )}
+              {consent !== "given" && chatOn ? (
+                <button type="button" className="dash-link" onClick={remind}>
+                  {consent === "declined" ? `Talk to ${first}` : `Remind ${first}`}
+                </button>
+              ) : null}
+            </dd>
+          </div>
+        ) : null}
+        {device?.usb_locked_at ? (
+          <div>
+            <dt>USB</dt>
+            <dd>
+              <UsbRestore device={device} onRestored={onDeviceChanged} />
             </dd>
           </div>
         ) : null}
@@ -612,7 +735,7 @@ function MemberTile({
       >
         <p className="dash-modal__text">
           {confirm === "rotate"
-            ? "Their old ID stops working straight away. If their PC is already connected it keeps running; you only need the new ID to connect a PC again."
+            ? `Their old ID and the invite email we sent stop working straight away. We'll email the new ID to ${first}. If their PC is already connected it keeps running; you only need the new ID to connect a PC again.`
             : "Their ID stops working and their PC stops checking in. You can add them again later with a new ID."}
         </p>
         {actionError ? (
@@ -641,6 +764,10 @@ function MemberTile({
             Cancel
           </button>
         </div>
+      </Modal>
+
+      <Modal open={rotated !== null} onClose={() => setRotated(null)} title={`New ID for ${member.name}`}>
+        {rotated ? <CreatedPanel member={rotated} companyName={companyName} newId /> : null}
       </Modal>
     </article>
   );

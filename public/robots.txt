@@ -1,14 +1,12 @@
-# zinwe.io — public pages are open to search engines; the app, sign-in and the API are not.
+# Fallback only. The live robots.txt comes from the backend (zinwe-backend z_main/seo.py): nginx sends
+# /robots.txt there, and it closes everything on dev, admin and API addresses. This copy is served only if
+# that route is missing, so it carries the production rules and points at files that exist without it.
 User-agent: *
-Allow: /
+Allow: /api/blog/
 Disallow: /app
 Disallow: /onboarding
-Disallow: /login
-Disallow: /forgot-password
-Disallow: /newsletter
-Disallow: /quote
+Disallow: /quote/
 Disallow: /api/
-Allow: /api/blog/
 
-Sitemap: https://zinwe.io/sitemap.xml
+Sitemap: https://zinwe.io/sitemap-pages.xml
 Sitemap: https://zinwe.io/api/blog/sitemap.xml

@@ -2,19 +2,22 @@ import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { openCookieSettings } from "../../lib/cookieConsent";
 import { COMPANY_EMAIL } from "../../content/company";
+import { BRAND_LINE } from "../../content/seo";
+import { useBlogLive } from "../blog/useBlogLive";
 import { Brand } from "../ui/Brand";
 import { SocialLinks } from "../ui/SocialLinks";
 
 const YEAR = new Date().getFullYear();
 
 export function Footer(): ReactElement {
+  const blogLive = useBlogLive();
   return (
     <footer className="footer">
       <div className="wrap footer__row">
         <div>
           <Brand ariaLabel="Zinwe home" height={26} />
           <p className="footer__meta">
-            <b className="footer__line">IT Is OK. Security, simplified.</b>
+            <b className="footer__line">{BRAND_LINE} Security, simplified.</b>
             <br />
             Data protection for small businesses in India and the US.
             <br />
@@ -32,11 +35,16 @@ export function Footer(): ReactElement {
             <Link to="/plans">Plans</Link>
           </li>
           <li>
-            <Link to="/early-access">Early access</Link>
+            <Link to="/download">Download</Link>
           </li>
           <li>
-            <Link to="/blog">Blog</Link>
+            <Link to="/early-access">Book a setup call</Link>
           </li>
+          {blogLive ? (
+            <li>
+              <Link to="/blog">Blog</Link>
+            </li>
+          ) : null}
           <li>
             <Link to="/contact">Contact</Link>
           </li>

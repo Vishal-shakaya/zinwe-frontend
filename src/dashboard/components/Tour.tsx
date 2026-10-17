@@ -14,24 +14,36 @@ function boxOf(selector: string): Box | null {
   if (!el) return null;
   const r = el.getBoundingClientRect();
   if (r.width === 0 && r.height === 0) return null;
+  // Off-screen (e.g. inside the closed phone menu): no spotlight, the card shows on its own.
+  if (r.right <= 0 || r.left >= window.innerWidth || getComputedStyle(el).visibility === "hidden") return null;
   return { top: r.top, left: r.left, width: r.width, height: r.height };
 }
 
 /**
  * A spotlight tour: dims the page, rings one element, and shows a small card
  * beside it with Back / Next / Skip. Esc or Skip ends it; finishing (or
- * skipping) is remembered on this browser.
+ * skipping) is remembered on the account. The last step's button can lead
+ * somewhere (`cta`): `onClose` gets that path.
  */
-export function Tour({ steps, onClose }: { steps: readonly TourStep[]; onClose: () => void }): ReactElement {
+export function Tour({
+  steps,
+  onClose,
+}: {
+  steps: readonly TourStep[];
+  onClose: (goTo?: string) => void;
+}): ReactElement {
   const [index, setIndex] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
   const step = steps[index];
   const last = index === steps.length - 1;
 
-  const finish = useCallback(() => {
-    markTourDone();
-    onClose();
-  }, [onClose]);
+  const finish = useCallback(
+    (goTo?: string) => {
+      markTourDone();
+      onClose(goTo);
+    },
+    [onClose],
+  );
 
   useLayoutEffect(() => {
     const el = document.querySelector(step.target);
@@ -96,7 +108,7 @@ export function Tour({ steps, onClose }: { steps: readonly TourStep[]; onClose: 
               <i key={s.target} className={i === index ? "is-on" : undefined} />
             ))}
           </span>
-          <button type="button" className="dash-link" onClick={finish}>
+          <button type="button" className="dash-link" onClick={() => finish()}>
             Skip
           </button>
           {index > 0 ? (
@@ -107,10 +119,10 @@ export function Tour({ steps, onClose }: { steps: readonly TourStep[]; onClose: 
           <button
             type="button"
             className="btn btn--primary dash-btn-sm"
-            onClick={() => (last ? finish() : setIndex(index + 1))}
+            onClick={() => (last ? finish(step.cta?.to) : setIndex(index + 1))}
             autoFocus
           >
-            {last ? "Done" : "Next"}
+            {last ? (step.cta?.label ?? "Done") : "Next"}
           </button>
         </div>
       </div>

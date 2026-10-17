@@ -1,7 +1,7 @@
 /**
- * The data every feature page needs: usage metrics for the chart (scoped to the
- * chosen day range), recent events for the alert table, and devices so an alert
- * can be tied back to the member who owns the PC.
+ * The data every feature page needs: usage metrics for the tiles and chart (scoped to the chosen day
+ * range and, optionally, one team member), the feature's recent alerts (same scope), and devices so an
+ * alert can be tied back to the member who owns the PC.
  */
 import { useCallback, useMemo } from "react";
 import { getMetrics, listDevices, listEvents, type Device, type DeviceEvent, type Metrics } from "../../lib/api";
@@ -20,12 +20,23 @@ export interface FeatureData {
 
 const EVENTS_LIMIT = 200;
 
-export function useFeatureData(days: number): FeatureData {
-  const loadMetrics = useCallback((signal: AbortSignal) => getMetrics({ days }, signal), [days]);
-  const metrics = useResource(loadMetrics, { resetKey: days });
+/**
+ * `member` = a team member's id, or null for everyone. `types` = the feature's event types (keep it a
+ * module-level constant: it's part of the request).
+ */
+export function useFeatureData(days: number, member: number | null, types: readonly string[]): FeatureData {
+  const scope = `${days}:${member ?? "all"}`;
+  const loadMetrics = useCallback(
+    (signal: AbortSignal) => getMetrics({ days, member: member ?? undefined }, signal),
+    [days, member],
+  );
+  const metrics = useResource(loadMetrics, { resetKey: scope });
 
-  const loadEvents = useCallback((signal: AbortSignal) => listEvents({ limit: EVENTS_LIMIT }, signal), []);
-  const events = useResource(loadEvents, { pollMs: 60_000 });
+  const loadEvents = useCallback(
+    (signal: AbortSignal) => listEvents({ limit: EVENTS_LIMIT, member: member ?? undefined, types }, signal),
+    [member, types],
+  );
+  const events = useResource(loadEvents, { pollMs: 60_000, resetKey: member ?? "all" });
 
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
   const devices = useResource(loadDevices, { pollMs: 60_000 });

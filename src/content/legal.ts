@@ -9,7 +9,7 @@
  * (ConsentStore.CurrentVersion) have their own versions — bump those only when their texts change.
  */
 
-export const LEGAL_VERSION = "2026-10-15";
+export const LEGAL_VERSION = "2026-10-17";
 export const LEGAL_UPDATED = "15 October 2026";
 export const COOKIE_POLICY_VERSION = "2026-10-14";
 export const LEGAL_CONTACT = "hello@zinwe.io";
@@ -40,7 +40,7 @@ const TERMS: LegalDoc = {
       heading: "Acceptance & What Zinwe Is",
       blocks: [
         'By creating an account or using Zinwe ("the Service"), you agree to these Terms and Conditions. Zinwe is operated by SKYTECHNO, a proprietorship based in New Delhi, India ("Zinwe," "we," "us"). If you don\'t agree, don\'t use the Service. If you\'re signing up on behalf of a business, you confirm you have authority to bind that business.',
-        "Zinwe provides small and medium businesses with software for data loss prevention and employee activity monitoring — including file transfer/USB control, LAN activity, remote access, software installation control, and email monitoring — along with centralized administrative logs and alerts.",
+        "Zinwe provides small and medium businesses with software for data loss prevention and employee activity monitoring — including file transfer/USB control, LAN activity, remote access, software installation control, and email attachment alerts (never email content) — along with centralized administrative logs and alerts.",
         "These Terms apply to customers in India, the United States, and elsewhere, with jurisdiction-specific points called out below where the law differs.",
       ],
     },

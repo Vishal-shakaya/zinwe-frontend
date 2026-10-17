@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { cx } from "../../lib/cx";
+import { useBlogLive } from "../blog/useBlogLive";
 import { Brand } from "../ui/Brand";
 
 export function Nav(): ReactElement {
@@ -9,6 +10,9 @@ export function Nav(): ReactElement {
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(() => window.scrollY > 8);
+  const blogLive = useBlogLive();
+  const headerRef = useRef<HTMLElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -17,30 +21,49 @@ export function Nav(): ReactElement {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // The phone menu closes on Escape (focus back on ☰) and on a tap outside it.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      burgerRef.current?.focus();
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [open]);
+
   const close = () => setOpen(false);
   const current = (path: string) => (pathname === path ? "page" : undefined);
+  const onBlog = pathname.startsWith("/blog");
 
   return (
-    <header className={cx("nav", scrolled && "is-scrolled")}>
+    <header className={cx("nav", scrolled && "is-scrolled")} ref={headerRef}>
       <div className="wrap nav__row">
         <Brand ariaLabel="Zinwe home" />
         <button
+          ref={burgerRef}
           className={cx("nav__burger", open && "is-open")}
           type="button"
           aria-label="Menu"
           aria-expanded={open}
+          aria-controls="site-menu"
           onClick={() => setOpen((o) => !o)}
         >
           <span></span>
           <span></span>
           <span></span>
         </button>
-        <ul className={cx("nav__links", open && "is-open")}>
-          <li className="nav__home">
-            <Link to="/" aria-current={current("/")} onClick={close}>
-              Home
-            </Link>
-          </li>
+        {/* In the order a visitor asks: what is it, what does it cost, how do I get it, learn more, talk to us.
+            The logo is the way home. Blog shows once an article is published. */}
+        <ul id="site-menu" className={cx("nav__links", open && "is-open")}>
           <li>
             <Link to="/#how" onClick={close}>
               How it works
@@ -52,10 +75,17 @@ export function Nav(): ReactElement {
             </Link>
           </li>
           <li>
-            <Link to="/blog" aria-current={pathname.startsWith("/blog") ? "page" : undefined} onClick={close}>
-              Blog
+            <Link to="/download" aria-current={current("/download")} onClick={close}>
+              Download
             </Link>
           </li>
+          {blogLive || onBlog ? (
+            <li>
+              <Link to="/blog" aria-current={onBlog ? "page" : undefined} onClick={close}>
+                Blog
+              </Link>
+            </li>
+          ) : null}
           <li>
             <Link to="/contact" aria-current={current("/contact")} onClick={close}>
               Contact
