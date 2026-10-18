@@ -7,7 +7,7 @@ import { ErrorState, LoadingState } from "../components/States";
 import { useResource } from "../useResource";
 
 export default function CompanyPage(): ReactElement {
-  usePageMeta({ title: "Company — Settings", description: "Your company details." });
+  usePageMeta({ title: "Company info — Profile", description: "Your company details." });
   const { account, refresh } = useAuth();
   const load = useCallback((signal: AbortSignal) => getCompany(signal), []);
   const company = useResource(load);

@@ -11,9 +11,11 @@ import {
   type SupportTicketDetail,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
+import { readFabHidden, SUPPORT_OPEN_EVENT, writeFabHidden } from "../features/support";
 import { formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
 import { DashIcon } from "./DashIcon";
+import { Toast } from "./Toast";
 
 const CATEGORIES: ReadonlyArray<{ value: SupportCategory; label: string }> = [
   { value: "question", label: "A question" },
@@ -35,17 +37,34 @@ type View = { kind: "list" } | { kind: "new" } | { kind: "thread"; id: number };
  * The floating "Help & support" chat, bottom-right on every dashboard page.
  * Owners message the Zinwe team (who are emailed and answer in the admin app);
  * replies come back here and by email. `?support=<id>` (from the reply email)
- * opens that conversation.
+ * opens that conversation; the account menu's Support item opens the panel.
+ *
+ * The floating button shows by default and has a × to put it away (remembered per account,
+ * features/support.ts). While it's away it still appears when the team has replied, and
+ * while the panel is open (as its Close button).
  */
-export function SupportWidget(): ReactElement {
+export function SupportWidget({ userId }: { userId?: number }): ReactElement {
   const [params, setParams] = useSearchParams();
   const { pathname } = useLocation();
   const [openState, setOpenState] = useState(false);
   const [viewState, setViewState] = useState<View>({ kind: "list" });
+  const [fabHidden, setFabHidden] = useState(() => readFabHidden(userId));
+  const [toast, setToast] = useState<string | null>(null);
+  const clearToast = useCallback(() => setToast(null), []);
 
   const load = useCallback((signal: AbortSignal) => listSupportTickets(signal), []);
   const tickets = useResource(load, { pollMs: 60_000 });
   const unread = (tickets.data ?? []).reduce((sum, t) => sum + t.unread, 0);
+
+  // Account menu → Support: open the panel on the conversation list.
+  useEffect(() => {
+    const onOpen = () => {
+      setViewState({ kind: "list" });
+      setOpenState(true);
+    };
+    window.addEventListener(SUPPORT_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(SUPPORT_OPEN_EVENT, onOpen);
+  }, []);
 
   // Deep link from the "we answered" email: ?support=<id> opens that conversation until the owner moves on.
   const linkedRaw = Number(params.get("support"));
@@ -68,9 +87,15 @@ export function SupportWidget(): ReactElement {
     setOpenState(next);
   };
   const close = () => setOpen(false);
+  const showFab = !fabHidden || open || unread > 0;
+  const hideFab = () => {
+    setFabHidden(true);
+    writeFabHidden(userId, true);
+    setToast("Support is always in your account menu, bottom left.");
+  };
 
   return (
-    <div className={cx("sup", open && "is-open")}>
+    <div className={cx("sup", open && "is-open", !showFab && "is-fab-hidden")}>
       {open ? (
         <section className="sup__panel" role="dialog" aria-label="Help and support">
           <header className="sup__head">
@@ -109,18 +134,29 @@ export function SupportWidget(): ReactElement {
         </section>
       ) : null}
 
-      <button
-        type="button"
-        className="sup__fab"
-        data-tour="support"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        aria-label={unread > 0 ? `Help and support, ${unread} new ${unread === 1 ? "reply" : "replies"}` : "Help and support"}
-      >
-        <DashIcon name={open ? "close" : "chat"} />
-        <span className="sup__fab-label">{open ? "Close" : "Support"}</span>
-        {unread > 0 && !open ? <span className="sup__badge">{unread}</span> : null}
-      </button>
+      {showFab ? (
+        <div className="sup__fabwrap">
+          <button
+            type="button"
+            className="sup__fab"
+            data-tour="support"
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-label={unread > 0 ? `Help and support, ${unread} new ${unread === 1 ? "reply" : "replies"}` : "Help and support"}
+          >
+            <DashIcon name={open ? "close" : "chat"} />
+            <span className="sup__fab-label">{open ? "Close" : "Support"}</span>
+            {unread > 0 && !open ? <span className="sup__badge">{unread}</span> : null}
+          </button>
+          {/* Put the button away (not while the panel is open or a reply is waiting). */}
+          {!open && unread === 0 ? (
+            <button type="button" className="sup__hide" onClick={hideFab} aria-label="Hide the Support button" title="Hide">
+              <DashIcon name="close" />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      <Toast message={toast} onDone={clearToast} />
     </div>
   );
 }

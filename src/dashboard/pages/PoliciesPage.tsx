@@ -4,14 +4,16 @@ import { LEGAL_DOCS, LEGAL_UPDATED } from "../../content/legal";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { DashIcon } from "../components/DashIcon";
 import { MetricsDisclosure } from "../components/MetricsDisclosure";
+import { PageHeader } from "../components/States";
 import { SocialLinks } from "../../components/ui/SocialLinks";
 
-/** Help → Policies: what Zinwe records, what it never does, and how the data is handled. */
-export default function HelpPoliciesPage(): ReactElement {
-  usePageMeta({ title: "Policies — Help", description: "What Zinwe records, what it never does, and who sees it." });
+/** Policies (/app/policies, from the account menu): what Zinwe records, what it never does, and how the data is handled. */
+export default function PoliciesPage(): ReactElement {
+  usePageMeta({ title: "Policies — Zinwe", description: "What Zinwe records, what it never does, and who sees it." });
 
   return (
     <>
+      <PageHeader title="Policies" lede="What Zinwe records, what it never does, and the documents you agreed to." />
       <MetricsDisclosure
         title="What Zinwe records"
         sub="Across every feature, in one place. It's visible only to your company's Zinwe account."

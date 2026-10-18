@@ -7,7 +7,7 @@ import { PageHeader } from "../components/States";
 /**
  * Standalone feedback page. Not in the sidebar: it's the landing spot for the
  * "How are we doing?" link in our emails. In the app, owners use the sidebar's
- * Feedback button (a modal) or Help → Feedback.
+ * account menu (Give feedback, a modal); its "Your past feedback" link opens this page.
  */
 export default function FeedbackPage(): ReactElement {
   usePageMeta({ title: "Feedback — Zinwe", description: "Tell us how Zinwe is working for you." });

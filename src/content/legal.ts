@@ -2,7 +2,7 @@
  * Zinwe's legal texts, from the founder's document (.cloude/zinwe-doc.docx, 14 Oct 2026), with the
  * plans and billing corrected to the live product on 15 Oct 2026.
  * One source for the website's /legal pages, the sign-up and payment checkboxes, the cookie
- * banner and the dashboard's Help → Policies. When the Terms change, bump LEGAL_VERSION here and
+ * banner and the dashboard's Policies page. When the Terms change, bump LEGAL_VERSION here and
  * ZINWE_LEGAL_VERSION in the backend settings: new acceptances record the new version, and every
  * owner on an older version is asked once to accept again (dashboard UpdatedTermsDialog).
  * The cookie banner (COOKIE_POLICY_VERSION) and the widget's monitoring consent

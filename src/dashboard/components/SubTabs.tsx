@@ -12,7 +12,7 @@ export interface SubTab {
   badge?: number;
 }
 
-/** Underlined tabs under a page header (Settings, Help). Each tab is its own route, so it can be linked to. */
+/** Underlined tabs under a page header (Profile). Each tab is its own route, so it can be linked to. */
 export function SubTabs({ tabs, label }: { tabs: readonly SubTab[]; label: string }): ReactElement {
   return (
     <nav className="dash-tabs" aria-label={label}>

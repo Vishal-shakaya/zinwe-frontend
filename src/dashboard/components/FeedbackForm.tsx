@@ -33,7 +33,7 @@ interface FeedbackFormProps {
 
 /**
  * Rate Zinwe 1–10 and say what to improve. Shared by the sidebar's feedback
- * modal, the Help → Feedback tab and the /app/feedback page that emails link to.
+ * modal (account menu) and the /app/feedback page that emails link to.
  */
 export function FeedbackForm({
   page,

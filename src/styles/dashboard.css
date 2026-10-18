@@ -244,35 +244,6 @@ table.dash-sr {
   color: var(--mute);
 }
 
-.dash__logout {
-  grid-column: 1 / -1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border: 1.5px solid var(--line-strong);
-  border-radius: var(--radius-btn);
-  background: var(--white);
-  font-size: 0.86rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.dash__logout:hover {
-  border-color: var(--ink);
-}
-
-.dash__logout .dash-ico {
-  width: 16px;
-  height: 16px;
-}
-
-.dash__logout--top {
-  display: none;
-}
-
 .dash__main {
   min-width: 0;
   padding: clamp(24px, 4vw, 44px) clamp(16px, 4vw, 44px) 72px;
@@ -305,10 +276,6 @@ table.dash-sr {
   .dash__top {
     height: 56px;
     padding: 0 16px;
-  }
-  .dash__logout--top {
-    display: inline-flex;
-    padding: 7px 10px;
   }
   .dash__nav {
     flex-direction: row;
@@ -3398,38 +3365,75 @@ table.dash-sr {
   font-weight: 500;
 }
 
-/* Help in the phone tab strip only. */
-.dash__link--phone {
-  display: none;
-}
-
-.dash__util {
+/* ---------- Account menu: the bottom account row opens plan + Upgrade, How to use, Policies, feedback ---------- */
+.acct {
+  position: relative;
   margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
-.dash__plan {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Account row: [avatar · name/company · ⇕], the whole row opens the menu. */
+.dash__me {
+  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 14px;
+}
+
+.acct__trigger {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 16px;
   gap: 10px;
-  margin-bottom: 8px;
-  padding: 12px;
-  border: 1px solid var(--line);
+  align-items: center;
+  min-width: 0;
+  margin: -6px;
+  padding: 6px;
+  border: 0;
   border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, var(--orange-tint), var(--white));
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.dash__plan-text {
+.acct__trigger:hover,
+.acct.is-open .acct__trigger {
+  background: var(--paper);
+}
+
+.acct__trigger > .dash-ico {
+  width: 16px;
+  height: 16px;
+  color: var(--mute);
+}
+
+.acct__menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: 0 22px 50px -20px rgba(13, 13, 14, 0.4);
+  animation: dash-rise 0.14s ease-out;
+}
+
+.acct__plan {
+  display: flex;
+  flex-direction: column;
+  margin: 4px 0 6px;
+  padding: 10px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, var(--orange-tint), var(--white));
   line-height: 1.3;
 }
 
-.dash__plan-text small {
+.acct__plan small {
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -3437,73 +3441,67 @@ table.dash-sr {
   color: var(--mute);
 }
 
-.dash__plan-text b {
+.acct__plan b {
   font-size: 0.92rem;
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
-.dash__plan-btn {
-  flex: none;
-  padding-inline: 12px;
-}
-
-.dash__plan-btn .dash-ico {
-  width: 14px;
-  height: 14px;
-  transform: rotate(-45deg);
-}
-
-.dash__plan-link {
-  flex: none;
-  font-size: 0.86rem;
-}
-
-/* A button that looks exactly like a nav link (Give feedback). */
-.dash__linkbtn {
+.acct__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
+  padding: 9px 10px;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
 }
 
-/* Account row: avatar · name/company · logout icon on one line. */
-.dash__util + .dash__me {
-  margin-top: 0;
+.acct__item:hover,
+.acct__item:focus-visible {
+  background: var(--paper);
 }
 
-.dash__me {
-  grid-template-columns: 36px minmax(0, 1fr) auto;
-  padding-top: 14px;
+.acct__item .dash-ico {
+  width: 16px;
+  height: 16px;
+  color: var(--mute);
 }
 
-.dash__logout--icon {
-  grid-column: auto;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border-color: var(--line);
+.acct__item--primary,
+.acct__item--primary .dash-ico {
+  color: var(--orange-text);
+  font-weight: 600;
 }
 
-.dash__logout--icon:hover {
-  border-color: var(--ink);
+.acct__item--primary .dash-ico {
+  transform: rotate(-45deg);
+}
+
+.acct__rule {
+  margin: 6px 4px;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* Under the feedback modal's form: the owner's earlier responses (/app/feedback). */
+.acct__history {
+  margin-top: 12px;
 }
 
 @media (max-width: 860px) {
   .dash__item {
     display: contents;
   }
-  .dash__sub,
-  .dash__util {
+  .dash__sub {
     display: none;
-  }
-  .dash__link--phone {
-    display: flex;
   }
 }
 
@@ -4563,19 +4561,9 @@ button.wd-row:hover {
   transform: none;
 }
 
-@media (min-width: 861px) {
-  /* Desktop: the logout in the top row is hidden, so refresh sits at the far right. */
-  .dash__top .dash__logout--top {
-    display: none;
-  }
-}
-
 @media (max-width: 860px) {
   .dash__refresh {
     margin-left: auto;
-  }
-  .dash__top .dash__logout--top {
-    margin-left: 0;
   }
 }
 
@@ -4619,6 +4607,46 @@ button.wd-row:hover {
 .sup__fab .dash-ico {
   width: 18px;
   height: 18px;
+}
+
+/* The small × on the Support button (top right, where the reply badge sits when there is one): puts the
+   floating button away; Support stays in the account menu. */
+.sup__fabwrap {
+  position: relative;
+}
+
+.sup__hide {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--ink-2);
+  box-shadow: 0 4px 10px -4px rgba(13, 13, 14, 0.35);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.sup__hide:hover,
+.sup__hide:focus-visible {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.sup__hide .dash-ico {
+  width: 12px;
+  height: 12px;
+}
+
+/* Support button put away: the Chat launcher takes its corner. */
+.dash:has(.sup.is-fab-hidden) .cl {
+  right: 20px;
 }
 
 .sup__badge {
@@ -6218,6 +6246,9 @@ button.wd-row:hover {
     right: 70px;
     bottom: 12px;
   }
+  .dash:has(.sup.is-fab-hidden) .cl {
+    right: 12px;
+  }
   .cl__fab {
     width: 48px;
     padding: 0;
@@ -6632,17 +6663,11 @@ button.wd-row:hover {
 
 .dash__panel-head,
 .dash__menu-btn,
-.dash__scrim,
-.dash__logout--top,
-.dash-phone-only {
+.dash__scrim {
   display: none;
 }
 
 @media (max-width: 860px) {
-  .dash-phone-only {
-    display: block;
-  }
-
   /* ---- Slim top bar: ☰ · logo · refresh ---- */
   /* No backdrop-filter here: it would make the fixed menu panel position against this bar, not the screen. */
   .dash__side {
@@ -6801,13 +6826,6 @@ button.wd-row:hover {
   }
   .dash__sub {
     display: flex;
-  }
-  .dash__link--phone {
-    display: none;
-  }
-  .dash__util {
-    display: flex;
-    margin-top: auto;
   }
   .dash__me {
     display: grid;
@@ -7553,12 +7571,6 @@ button.wd-row:hover {
   color: var(--mute);
 }
 
-/* ---- Sidebar: the plan name wraps instead of "Free for…" (J5-26) ---- */
-.dash__plan-text b {
-  white-space: normal;
-  overflow: visible;
-  overflow-wrap: anywhere;
-}
 
 /* Alerts page: room for "Needs attention" / "Worth a look" on one line. */
 @media (min-width: 901px) {

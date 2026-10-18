@@ -1,5 +1,5 @@
 /**
- * Copy for the dashboard's Help section (/app/help/*). Plain words for a busy
+ * Copy for the dashboard's How to use and Policies pages (/app/help, /app/policies). Plain words for a busy
  * owner with no IT team — short steps, each pointing at the screen that does it.
  */
 import type { DashIconName } from "../dashboard/components/DashIcon";
@@ -68,7 +68,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     q: "How do I change my plan or get a receipt?",
-    a: "Go to Settings → Billing for your plan and payments. For plan changes or receipts, email hello@zinwe.io.",
+    a: "Go to Profile → Billing for your plan and payments. For plan changes or receipts, email hello@zinwe.io.",
   },
 ];
 

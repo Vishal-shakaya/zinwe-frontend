@@ -17,13 +17,13 @@ type Stage = "change" | "start" | "code" | "done";
 const CHANGE_FIELDS: readonly ChangePasswordField[] = ["current_password", "new_password"];
 
 /**
- * Settings → Password. The usual path is current + new password. If the owner
+ * Profile → Password. The usual path is current + new password. If the owner
  * has forgotten the current one, they confirm with a 6-digit email code
  * instead. Either way the session is swapped for a fresh one and every other
  * device is signed out.
  */
 export default function PasswordPage(): ReactElement {
-  usePageMeta({ title: "Password — Settings", description: "Change the password you sign in with." });
+  usePageMeta({ title: "Password — Profile", description: "Change the password you sign in with." });
   const { account } = useAuth();
   const email = account?.user.email ?? "";
 

@@ -36,7 +36,10 @@ export type DashIconName =
   | "download"
   | "mail"
   | "file"
-  | "send";
+  | "send"
+  | "grid"
+  | "chevron"
+  | "user";
 
 const strokeProps = {
   fill: "none",
@@ -219,6 +222,27 @@ function paths(name: DashIconName): ReactElement {
       );
     case "back":
       return <path d="M19 12H5M11 6l-6 6 6 6" />;
+    case "grid":
+      // Overview: the dashboard's tiles (the house icon is the website's Home).
+      return (
+        <>
+          <rect x="4" y="4" width="7" height="7" rx="1.5" />
+          <rect x="13" y="4" width="7" height="7" rx="1.5" />
+          <rect x="4" y="13" width="7" height="7" rx="1.5" />
+          <rect x="13" y="13" width="7" height="7" rx="1.5" />
+        </>
+      );
+    case "user":
+      // Profile: one person.
+      return (
+        <>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+        </>
+      );
+    case "chevron":
+      // Up and down: "this opens a menu".
+      return <path d="m8 10 4-4 4 4M8 14l4 4 4-4" />;
     case "phone":
       return (
         <>

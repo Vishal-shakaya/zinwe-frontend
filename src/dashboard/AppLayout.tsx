@@ -5,6 +5,7 @@ import { paymentInCheck, rejectedPayment } from "../auth/steps";
 import { Brand } from "../components/ui/Brand";
 import { getAnnouncements, listMembers, type Announcement, type PlanModule, type Subscription } from "../lib/api";
 import { formatDate, formatMoney } from "../lib/format";
+import { AccountMenu, type PlanAction } from "./components/AccountMenu";
 import { DashIcon, type DashIconName } from "./components/DashIcon";
 import { FeedbackForm } from "./components/FeedbackForm";
 import { Modal } from "./components/Modal";
@@ -41,14 +42,15 @@ interface NavItem {
 
 /**
  * Grouped by what an owner is trying to do: see today (Overview), protect the
- * business, look after people, then account chores. The bottom of the sidebar
- * holds the always-there utilities: plan + Upgrade, Help and Feedback (a modal;
- * /app/feedback stays for email links only).
+ * business, look after people. The account row at the bottom opens a menu with the
+ * plan + Upgrade, Profile (company info, billing, password), How to use, Support,
+ * Policies, Give feedback (a modal; /app/feedback stays for email links), Site (the
+ * public website) and Log out.
  */
 const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
   {
     items: [
-      { to: "/app", label: "Overview", icon: "home", end: true, tour: "overview" },
+      { to: "/app", label: "Overview", icon: "grid", end: true, tour: "overview" },
       { to: "/app/alerts", label: "Alerts", icon: "alert", tour: "alerts" },
     ],
   },
@@ -66,21 +68,6 @@ const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
       { to: "/app/team", label: "Team & devices", icon: "team", tour: "team" },
       { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread", tour: "chat", module: "team_chat" },
       { to: "/app/activity", label: "Activity", icon: "activity", tour: "activity", module: "work_time" },
-    ],
-  },
-  {
-    group: "Account",
-    items: [
-      {
-        to: "/app/settings",
-        label: "Settings",
-        icon: "settings",
-        children: [
-          { to: "/app/settings/company", label: "Company" },
-          { to: "/app/settings/billing", label: "Billing" },
-          { to: "/app/settings/password", label: "Password" },
-        ],
-      },
     ],
   },
 ];
@@ -192,7 +179,7 @@ export default function AppLayout(): ReactElement {
   // Navbar refresh: remounting the page reloads everything it shows.
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  // The tour plays once per account, on Overview only (J2-06, J5-25); Help → "Take the tour" replays it anywhere.
+  // The tour plays once per account, on Overview only (J2-06, J5-25); How to use → "Take the tour" replays it anywhere.
   const [tourClosed, setTourClosed] = useState(false);
   const [tourReplay, setTourReplay] = useState(false);
   const touring = tourReplay || (!tourClosed && user !== null && pathname === "/app" && !tourDone(user));
@@ -252,6 +239,7 @@ export default function AppLayout(): ReactElement {
   }, [planActiveShown]);
   const showPlanActive = planActiveShown !== null && !planActiveClosed && subscription?.status === "active";
   const upgrade = useMemo(() => ({ open: () => navigate("/onboarding/plan"), canUpgrade }), [canUpgrade, navigate]);
+  const planAction: PlanAction = inCheck ? "checking" : canUpgrade ? "upgrade" : "billing";
 
   // Unread member replies, for the Chat badge (non-critical: failures just hide it).
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
@@ -278,7 +266,7 @@ export default function AppLayout(): ReactElement {
     return () => window.removeEventListener(CHAT_READ_EVENT, reloadMembers);
   }, [reloadMembers]);
 
-  // Help → "Take the tour" asks for a replay with this event.
+  // How to use → "Take the tour" asks for a replay with this event.
   useEffect(() => {
     const start = () => setTourReplay(true);
     window.addEventListener("zinwe:tour", start);
@@ -429,63 +417,20 @@ export default function AppLayout(): ReactElement {
             ))}
           </nav>
 
-          <div className="dash__util">
-            <div className="dash__plan">
-              <div className="dash__plan-text">
-                <small>Your plan</small>
-                <b>{currentPlan ? currentPlan.name : "No plan yet"}</b>
-              </div>
-              {inCheck ? (
-                <Link className="dash-link dash__plan-link" to="/app/settings/billing">
-                  Being checked
-                </Link>
-              ) : canUpgrade ? (
-                <button type="button" className="btn btn--primary dash-btn-sm dash__plan-btn" onClick={upgrade.open}>
-                  <DashIcon name="arrow" />
-                  Upgrade
-                </button>
-              ) : (
-                <Link className="dash-link dash__plan-link" to="/app/settings/billing">
-                  Billing
-                </Link>
-              )}
-            </div>
-            <NavLink to="/app/help" className="dash__link">
-              <DashIcon name="help" />
-              <span>Help</span>
-            </NavLink>
-            <button
-              type="button"
-              className="dash__link dash__linkbtn"
-              onClick={() => {
-                setMenuOpen(false);
-                setFeedbackOpen(true);
-              }}
-            >
-              <DashIcon name="chat" />
-              <span>Give feedback</span>
-            </button>
-          </div>
-
-          <div className="dash__me">
-            <span className="dash__avatar" aria-hidden="true">
-              {user ? initials(user.full_name, user.email) : ""}
-            </span>
-            <div className="dash__who">
-              <b>{user ? user.full_name || user.email : "Your account"}</b>
-              <small>{companyName}</small>
-            </div>
-            <button
-              type="button"
-              className="dash__logout dash__logout--icon"
-              onClick={onLogout}
-              disabled={leaving}
-              aria-label={leaving ? "Logging out" : "Log out"}
-              title="Log out"
-            >
-              <DashIcon name="logout" />
-            </button>
-          </div>
+          <AccountMenu
+            initials={user ? initials(user.full_name, user.email) : ""}
+            name={user ? user.full_name || user.email : "Your account"}
+            company={companyName}
+            planName={currentPlan ? currentPlan.name : "No plan yet"}
+            planAction={planAction}
+            onUpgrade={upgrade.open}
+            onFeedback={() => {
+              setMenuOpen(false);
+              setFeedbackOpen(true);
+            }}
+            onLogout={onLogout}
+            leaving={leaving}
+          />
         </div>
         {menuOpen ? <button type="button" className="dash__scrim" aria-label="Close menu" tabIndex={-1} onClick={() => setMenuOpen(false)} /> : null}
       </aside>
@@ -619,6 +564,12 @@ export default function AppLayout(): ReactElement {
         sub="Takes 20 seconds. The Zinwe team reads every response."
       >
         <FeedbackForm page={`modal:${pathname}`.slice(0, 120)} onDone={() => setFeedbackOpen(false)} />
+        {/* What used to be Help → Feedback: everything this owner has sent before. */}
+        <p className="dash-note acct__history">
+          <Link className="dash-link" to="/app/feedback" onClick={() => setFeedbackOpen(false)}>
+            Your past feedback <DashIcon name="arrow" />
+          </Link>
+        </p>
       </Modal>
 
       {/* The Chat page is the full chat: no floating launcher or bubble on top of it. */}
@@ -633,7 +584,7 @@ export default function AppLayout(): ReactElement {
           }
         />
       ) : null}
-      <SupportWidget />
+      <SupportWidget key={user?.id} userId={user?.id} />
       {bubble && !onChatPage ? (
         <ChatBubble
           key={`${bubble.person.id}-${bubble.event?.id ?? "chat"}-${bubble.tag ?? ""}`}

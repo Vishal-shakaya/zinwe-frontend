@@ -3,14 +3,22 @@ import { Link } from "react-router-dom";
 import { FAQS, GUIDE_STEPS } from "../../content/help";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { DashIcon } from "../components/DashIcon";
+import { PageHeader } from "../components/States";
 import { startTour } from "../features/tour";
 
-/** Help → How to use: four steps from sign-up to protected, then the questions owners ask most. */
-export default function HelpGuidePage(): ReactElement {
-  usePageMeta({ title: "How to use Zinwe — Help", description: "Get your team protected in four steps." });
+/**
+ * How to use (/app/help, from the account menu): four steps from sign-up to protected, then the
+ * questions owners ask most. Getting help from a person is the floating Support chat.
+ */
+export default function HowToUsePage(): ReactElement {
+  usePageMeta({ title: "How to use Zinwe", description: "Get your team protected in four steps." });
 
   return (
     <>
+      <PageHeader
+        title="How to use"
+        lede="Get your team protected, step by step. Still stuck? Message us from Support at the bottom right."
+      />
       <section className="dash-card" aria-labelledby="guide-title">
         <div className="dash-card__head">
           <h2 className="dash-card__title" id="guide-title">

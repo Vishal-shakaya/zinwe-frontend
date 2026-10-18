@@ -54,7 +54,7 @@ export const DASHBOARD_TOUR: readonly TourStep[] = [
   {
     target: '[data-tour="support"]',
     title: "We're here to help",
-    body: "Stuck? Message the Zinwe team from here any time. You can replay this tour from Help.",
+    body: "Stuck? Message the Zinwe team from here, or from Support in your account menu (bottom left). Replay this tour from How to use.",
     icon: "help",
   },
   {
@@ -102,7 +102,7 @@ export function markTourDone(): void {
   });
 }
 
-/** Ask the dashboard shell to replay the tour (Help → "Take the tour"). */
+/** Ask the dashboard shell to replay the tour (How to use → "Take the tour"). */
 export function startTour(): void {
   window.dispatchEvent(new Event("zinwe:tour"));
 }

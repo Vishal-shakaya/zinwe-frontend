@@ -198,7 +198,7 @@ function InvoiceLinks({ payment }: { payment: Payment }): ReactElement {
 }
 
 export default function BillingPage(): ReactElement {
-  usePageMeta({ title: "Billing — Settings", description: "Your Zinwe plan and payments." });
+  usePageMeta({ title: "Billing — Profile", description: "Your Zinwe plan and payments." });
   const { user, account } = useAuth();
   const info = useSubscriptionInfo();
   const subscription = info.data?.subscription;

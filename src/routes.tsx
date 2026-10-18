@@ -43,10 +43,8 @@ const CompanyPage = lazyPage(() => import("./dashboard/pages/CompanyPage"));
 const FeedbackPage = lazyPage(() => import("./dashboard/pages/FeedbackPage"));
 const SettingsLayout = lazyPage(() => import("./dashboard/pages/SettingsLayout"));
 const PasswordPage = lazyPage(() => import("./dashboard/pages/PasswordPage"));
-const HelpLayout = lazyPage(() => import("./dashboard/pages/HelpLayout"));
-const HelpGuidePage = lazyPage(() => import("./dashboard/pages/HelpGuidePage"));
-const HelpPoliciesPage = lazyPage(() => import("./dashboard/pages/HelpPoliciesPage"));
-const HelpFeedbackPage = lazyPage(() => import("./dashboard/pages/HelpFeedbackPage"));
+const HowToUsePage = lazyPage(() => import("./dashboard/pages/HowToUsePage"));
+const PoliciesPage = lazyPage(() => import("./dashboard/pages/PoliciesPage"));
 
 /** /app/upgrade?plan=x -> /onboarding/plan?plan=x */
 function ToPlanPage(): ReactElement {
@@ -68,8 +66,9 @@ function ChunkFallback(): ReactElement {
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
  * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
- *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password}  /app/help/{guide,policies,feedback}
- *   /app/setup (all protections in one scroll, not in the sidebar)  /app/feedback (email-link target, not in the sidebar)
+ *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password}
+ *   /app/help (How to use) · /app/policies · /app/feedback — from the account menu (bottom of the sidebar); /app/feedback is also the email-link target
+ *   /app/setup (all protections in one scroll, not in the sidebar)
  *   Old /app/devices, /app/billing, /app/company and /app/rules redirect, so emails and bookmarks keep working.
  */
 export function AppRoutes(): ReactElement {
@@ -143,13 +142,12 @@ export function AppRoutes(): ReactElement {
                 <Route path="password" element={<PasswordPage />} />
                 <Route path="*" element={<Navigate to="company" replace />} />
               </Route>
-              <Route path="help" element={<HelpLayout />}>
-                <Route index element={<Navigate to="guide" replace />} />
-                <Route path="guide" element={<HelpGuidePage />} />
-                <Route path="policies" element={<HelpPoliciesPage />} />
-                <Route path="feedback" element={<HelpFeedbackPage />} />
-                <Route path="*" element={<Navigate to="guide" replace />} />
-              </Route>
+              {/* Account menu pages. The old Help tabs redirect, so bookmarks keep working. */}
+              <Route path="help" element={<HowToUsePage />} />
+              <Route path="policies" element={<PoliciesPage />} />
+              <Route path="help/policies" element={<Navigate to="/app/policies" replace />} />
+              <Route path="help/feedback" element={<Navigate to="/app/feedback" replace />} />
+              <Route path="help/*" element={<Navigate to="/app/help" replace />} />
               {/* Email-link target only (not in the sidebar). */}
               <Route path="feedback" element={<FeedbackPage />} />
               {/* Old routes kept working for bookmarks, emails (billing reminders) and in-app links. */}
