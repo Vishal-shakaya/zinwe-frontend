@@ -55,7 +55,11 @@ export function AnnouncementBar({ className }: { className?: string }): ReactEle
     ) : null;
 
   return (
-    <div className={cx("abar", `abar--${item.kind}`, className)} role="region" aria-label="Announcement">
+    <div
+      className={cx("abar", `abar--${item.kind}`, item.dismissible && "abar--closable", className)}
+      role="region"
+      aria-label="Announcement"
+    >
       <div className="abar__inner">
         <p className="abar__text">
           <b>{item.title}</b>

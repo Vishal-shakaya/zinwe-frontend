@@ -1796,6 +1796,7 @@ a.plat__item--live:hover {
 /* ---------- Announcement bar (offers / news pushed from the admin panel; components/ui/AnnouncementBar) ---------- */
 
 .abar {
+  position: relative; /* the close button sits at the bar's far right, not the content column's edge */
   background: var(--ink);
   color: var(--white);
   font-size: 0.9rem;
@@ -1847,8 +1848,16 @@ a.plat__item--live:hover {
   transform: translateX(2px);
 }
 
+/* Room for the close button, so long text never runs under it on narrow screens. */
+.abar--closable .abar__inner {
+  padding-right: max(var(--gutter), 48px);
+}
+
 .abar__x {
-  flex: none;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
   width: 28px;
   height: 28px;
   display: grid;
