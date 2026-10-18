@@ -3,14 +3,12 @@ import { Link } from "react-router-dom";
 import { openCookieSettings } from "../../lib/cookieConsent";
 import { COMPANY_EMAIL } from "../../content/company";
 import { BRAND_LINE } from "../../content/seo";
-import { useBlogLive } from "../blog/useBlogLive";
 import { Brand } from "../ui/Brand";
 import { SocialLinks } from "../ui/SocialLinks";
 
 const YEAR = new Date().getFullYear();
 
 export function Footer(): ReactElement {
-  const blogLive = useBlogLive();
   return (
     <footer className="footer">
       <div className="wrap footer__row">
@@ -40,11 +38,9 @@ export function Footer(): ReactElement {
           <li>
             <Link to="/early-access">Book a setup call</Link>
           </li>
-          {blogLive ? (
-            <li>
-              <Link to="/blog">Blog</Link>
-            </li>
-          ) : null}
+          <li>
+            <Link to="/blog">Blog</Link>
+          </li>
           <li>
             <Link to="/contact">Contact</Link>
           </li>

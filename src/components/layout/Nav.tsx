@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { cx } from "../../lib/cx";
-import { useBlogLive } from "../blog/useBlogLive";
 import { Brand } from "../ui/Brand";
 
 export function Nav(): ReactElement {
@@ -10,7 +9,6 @@ export function Nav(): ReactElement {
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(() => window.scrollY > 8);
-  const blogLive = useBlogLive();
   const headerRef = useRef<HTMLElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
 
@@ -62,7 +60,7 @@ export function Nav(): ReactElement {
           <span></span>
         </button>
         {/* In the order a visitor asks: what is it, what does it cost, how do I get it, learn more, talk to us.
-            The logo is the way home. Blog shows once an article is published. */}
+            The logo is the way home. */}
         <ul id="site-menu" className={cx("nav__links", open && "is-open")}>
           <li>
             <Link to="/#how" onClick={close}>
@@ -79,13 +77,11 @@ export function Nav(): ReactElement {
               Download
             </Link>
           </li>
-          {blogLive || onBlog ? (
-            <li>
-              <Link to="/blog" aria-current={onBlog ? "page" : undefined} onClick={close}>
-                Blog
-              </Link>
-            </li>
-          ) : null}
+          <li>
+            <Link to="/blog" aria-current={onBlog ? "page" : undefined} onClick={close}>
+              Blog
+            </Link>
+          </li>
           <li>
             <Link to="/contact" aria-current={current("/contact")} onClick={close}>
               Contact
