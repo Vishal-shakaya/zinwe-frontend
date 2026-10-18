@@ -29,6 +29,7 @@ import {
   FAQ_LD,
   HOME_FAQ,
   legalSeo,
+  NOINDEX_FILES,
   isNoindex,
   OG_IMAGE,
   ORGANIZATION_LD,
@@ -91,7 +92,13 @@ export function renderPage(template: string, page: SeoPage): string {
   html = setMeta(html, "property", "og:url", url);
   html = setMeta(html, "name", "twitter:title", ogTitle);
   html = setMeta(html, "name", "twitter:description", ogDescription);
-  html = html.replace(/<link rel="canonical" href="[^"]*"[^>]*>/, `<link rel="canonical" href="${url}" data-prerender />`);
+  if (page.noindex) {
+    // One file serves many addresses (or none worth listing): no canonical, and search engines told to skip it.
+    html = setMeta(html, "name", "robots", "noindex, nofollow");
+    html = html.replace(/\s*<link rel="canonical" href="[^"]*"[^>]*>/, "");
+  } else {
+    html = html.replace(/<link rel="canonical" href="[^"]*"[^>]*>/, `<link rel="canonical" href="${url}" data-prerender />`);
+  }
 
   // The product on the pages that show it (home: with its FAQ; download: the installer).
   const pageLd =
@@ -194,6 +201,7 @@ export function seoPages(): Plugin {
         mkdirSync(dirname(file), { recursive: true });
         writeFileSync(file, renderPage(template, page));
       }
+      for (const { file, page } of NOINDEX_FILES) writeFileSync(join(outDir, file), renderPage(template, page));
       writeFileSync(join(outDir, "sitemap-pages.xml"), sitemap(pages));
     },
   };

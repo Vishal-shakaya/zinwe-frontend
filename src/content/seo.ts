@@ -12,8 +12,9 @@
  * words, no prices (they live in the plan catalogue), India and the US treated equally.
  */
 export const SITE_URL = "https://zinwe.io";
-/** The tagline, in one form everywhere (hero badge, footer, offer band, structured data). */
-export const BRAND_LINE = "No IT team? It's OK.";
+/** The tagline, in one form everywhere (hero badge, footer, offer band, structured data). Owner decision
+ *  2026-10-15: "IT Is OK.", always next to what Zinwe does (mantra "Security, simplified" / the descriptor). */
+export const BRAND_LINE = "IT Is OK.";
 export const OG_IMAGE = `${SITE_URL}/brand/og-image.png`;
 
 /** Routes that must never be indexed (signed-in app, onboarding, sign-in, personal links). */
@@ -33,7 +34,24 @@ export interface SeoPage {
   /** Put in sitemap.xml (public, indexable, not a duplicate). The build fails if a public route in
    *  src/routes.tsx has no entry here (build/seoPages.ts checkRouteCoverage). */
   sitemap: boolean;
+  /** Kept out of search results: robots noindex and no canonical (NOINDEX_FILES). */
+  noindex?: boolean;
 }
+
+/**
+ * Static files for addresses search engines must not index, so even a crawler that never runs JavaScript gets
+ * "noindex" (the app also sets it, but only once it has loaded). The server sends `/signup` → signup.html etc.;
+ * `app.html` for every /app, /onboarding and /quote address; `404.html`, with status 404, for any address that
+ * isn't a page (zinwe-server nginx_spa_block). The app then draws the right screen as usual.
+ */
+export const NOINDEX_FILES: ReadonlyArray<{ file: string; page: SeoPage }> = [
+  { file: "signup.html", page: { path: "/signup", title: "Create your account — Zinwe", description: "Create a Zinwe account to protect your team's PCs. Start free forever for up to 3 PCs.", h1: "Create your Zinwe account", intro: ["Start free forever for up to 3 PCs. No card needed."], sitemap: false, noindex: true } },
+  { file: "login.html", page: { path: "/login", title: "Log in — Zinwe", description: "Log in to see your PCs, set USB rules and check recent activity.", h1: "Log in to Zinwe", intro: ["See your PCs, set USB rules and check what happened today."], sitemap: false, noindex: true } },
+  { file: "forgot-password.html", page: { path: "/forgot-password", title: "Reset your password — Zinwe", description: "Reset your Zinwe password with a code sent to your email.", h1: "Reset your password", intro: ["We'll email you a code to set a new password."], sitemap: false, noindex: true } },
+  { file: "newsletter.html", page: { path: "/newsletter", title: "Newsletter — Zinwe", description: "Manage your Zinwe blog subscription.", h1: "Your Zinwe newsletter", intro: ["Confirm or manage your subscription to the Zinwe blog."], sitemap: false, noindex: true } },
+  { file: "app.html", page: { path: "/app", title: "Zinwe dashboard", description: "The Zinwe dashboard for signed-in owners.", h1: "Zinwe dashboard", intro: ["Log in to see your dashboard."], sitemap: false, noindex: true } },
+  { file: "404.html", page: { path: "/404", title: "Page not found — Zinwe", description: "This page doesn't exist. Head back to the Zinwe home page or get in touch.", h1: "Page not found", intro: ["The link may be old, or the address mistyped."], sitemap: false, noindex: true } },
+];
 
 /** The homepage FAQ: shown on the page and sent as FAQPage structured data. */
 export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
@@ -59,11 +77,11 @@ export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Which computers does it work on?",
-    a: "Windows PCs today. Linux and macOS are next, and we'll announce them on the Zinwe blog.",
+    a: "Windows PCs today. Linux and macOS are on our roadmap, and we'll announce them on the Zinwe blog.",
   },
   {
     q: "How much does Zinwe cost?",
-    a: "Zinwe is free forever for up to 3 PCs. Paid plans are priced by the number of PCs, not per person, and billed one month at a time. No card is needed to start.",
+    a: "Zinwe is free forever for up to 3 PCs. Paid plans are priced by the number of PCs, not per person: in India you pay in rupees each month, elsewhere in US dollars once a year. No card is needed to start.",
   },
 ];
 
@@ -74,7 +92,7 @@ const PAGES: readonly SeoPage[] = [
     title: "Small business data protection in plain English | Zinwe",
     description:
       "Data protection for small businesses with no IT team: know when files go to a USB drive, a remote-access tool runs or new software appears. Free for 3 PCs.",
-    ogTitle: "Zinwe — No IT team? It's OK. Data protection for small businesses.",
+    ogTitle: "Zinwe — IT Is OK. Data protection for small businesses.",
     ogDescription: "Know what's happening to your company's data. In plain English. No IT department needed.",
     h1: "Know what's happening to your company's data. In plain English.",
     intro: [
@@ -103,7 +121,7 @@ const PAGES: readonly SeoPage[] = [
     h1: "Download Zinwe for Windows.",
     intro: [
       "One small app on each Windows 10 or 11 PC. Install it, connect it with the person's work email and Member ID from your dashboard, and the PC shows up within about a minute.",
-      "Every employee sees the Zinwe widget and agrees on their own PC before anything is recorded. Linux and macOS are coming next.",
+      "Every employee sees the Zinwe widget and agrees on their own PC before anything is recorded. Linux and macOS are on our roadmap.",
     ],
     sitemap: true,
   },

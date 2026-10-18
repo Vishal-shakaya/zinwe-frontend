@@ -64,6 +64,6 @@ export const DOWNLOAD_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Is there a Mac or Linux version?",
-    a: "Not yet. Windows is available today; Linux and macOS are next, and we'll announce them on the Zinwe blog.",
+    a: "Not yet. Windows is available today; Linux and macOS are on our roadmap, and we'll announce them on the Zinwe blog.",
   },
 ];
