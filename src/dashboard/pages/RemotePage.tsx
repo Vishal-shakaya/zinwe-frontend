@@ -20,7 +20,8 @@ import { filterEvents, useFeatureData } from "../features/useFeatureData";
 import { usePolicy } from "../features/usePolicy";
 import { useResource } from "../useResource";
 
-const REMOTE_SPECS: SeriesSpec[] = [{ category: "remote.detected", field: "count", label: "Remote sessions" }];
+// The agent counts each remote-tool sighting as a "remote.tool" metric (keyed by tool); "remote.detected" was never sent.
+const REMOTE_SPECS: SeriesSpec[] = [{ category: "remote.tool", field: "count", label: "Remote sessions" }];
 const APP_SPECS: SeriesSpec[] = [{ category: "app.foreground", field: "seconds", label: "Time in apps" }];
 const TYPES = FEATURE_EVENT_TYPES.remote;
 
@@ -86,7 +87,7 @@ function RemotePageContent(): ReactElement {
   const alerts = filterEvents(events.data, TYPES);
   const specs = view === "apps" ? APP_SPECS : REMOTE_SPECS;
   const rows = metrics.data ? toChartRows(metrics.data.series, specs, days) : [];
-  const detections = metrics.data ? totalFor(metrics.data.categories, ["remote.detected"], "total_count") : 0;
+  const detections = metrics.data ? totalFor(metrics.data.categories, ["remote.tool"], "total_count") : 0;
   const installs = alerts.filter((e) => e.type === "software.installed").length;
   const appSeconds = metrics.data ? totalFor(metrics.data.categories, ["app.foreground"], "total_seconds") : 0;
   const who = scope.person?.name;

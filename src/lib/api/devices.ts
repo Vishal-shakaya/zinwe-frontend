@@ -412,6 +412,7 @@ export type MetricCategory =
   | "transfer.usb"
   | "transfer.lan"
   | "transfer.email"
+  | "remote.tool"
   | "remote.detected"
   | (string & {});
 
