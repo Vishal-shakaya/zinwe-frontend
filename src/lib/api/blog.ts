@@ -1,4 +1,5 @@
 /** Public blog (/api/blog/*): published articles only, no sign-in. */
+import { referralCode } from "../attribution";
 import { authedRequest } from "./http";
 
 export type ArticleType = "press_release" | "tutorial" | "newsletter" | "new_release" | "informative";
@@ -25,7 +26,20 @@ export interface ArticlePage {
   results: ArticleCard[];
 }
 
+export interface SeriesPick {
+  series_slug: string;
+  series_title: string;
+  slug: string;
+  title: string;
+  label: string;
+  summary: string;
+  free_preview: boolean;
+  cover: { id: number; url: string } | null;
+}
+
 export interface Article extends ArticleCard {
+  /** The members' series episode closest to this article's topic. */
+  series_pick?: SeriesPick | null;
   body_html: string;
   seo_title: string;
   meta_description: string;
@@ -73,7 +87,7 @@ export function subscribeToBlog(email: string, source: string): Promise<{ status
   }
   return authedRequest("/api/blog/newsletter/subscribe/", {
     method: "POST",
-    body: { email, source, timezone },
+    body: { email, source, timezone, ref: referralCode() },
     anonymous: true,
   });
 }

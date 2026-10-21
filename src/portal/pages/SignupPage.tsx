@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
+import { signupSource } from "../../lib/attribution";
 import { Link, useSearchParams } from "react-router-dom";
 import { Field } from "../../components/forms/Field";
 import { PLAN_INTENT_COPY } from "../../content/portal";
@@ -79,7 +80,13 @@ export default function SignupPage(): ReactElement {
     if (Object.keys(clientErrors).length > 0) return focusErrors(clientErrors);
 
     setPending(true);
-    const result = await signup({ full_name: fullName.trim(), email: email.trim(), password, accept_terms: accepted });
+    const result = await signup({
+      full_name: fullName.trim(),
+      email: email.trim(),
+      password,
+      accept_terms: accepted,
+      source: signupSource(),
+    });
     setPending(false);
     if (result.ok) {
       trackEvent("signup_started");

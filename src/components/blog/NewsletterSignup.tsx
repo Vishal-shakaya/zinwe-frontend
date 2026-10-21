@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ApiError, errorMessage } from "../../lib/api";
 import { subscribeToBlog } from "../../lib/api/blog";
 import { cx } from "../../lib/cx";
+import { trackEvent } from "../../lib/analytics";
 
 /**
  * "Get new articles by email": double opt-in sign-up for the blog newsletter. `compact` is the
@@ -22,6 +23,7 @@ export function NewsletterSignup({ compact = false }: { compact?: boolean }): Re
     try {
       await subscribeToBlog(email.trim(), pathname);
       setState("done");
+      trackEvent("generate_lead", { method: "blog_newsletter" });
     } catch (err) {
       setError((err instanceof ApiError && err.fieldErrors.email?.[0]) || errorMessage(err));
       setState("idle");

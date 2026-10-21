@@ -17,8 +17,10 @@ export interface SignupPayload {
   password: string;
   /** The Terms + Privacy + Acceptable Use checkbox; the server refuses sign-up without it. */
   accept_terms: boolean;
+  /** Where the visitor came from when the site knows (lib/attribution.ts), e.g. "tlf:ep07:email". */
+  source?: string;
 }
-export type SignupField = keyof SignupPayload;
+export type SignupField = Exclude<keyof SignupPayload, "source">;
 export interface SignupResponse extends CodeSent {
   email: string;
   otp_sent: boolean;

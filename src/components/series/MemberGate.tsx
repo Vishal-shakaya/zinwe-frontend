@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ApiError, errorMessage } from "../../lib/api";
 import { subscribeToBlog } from "../../lib/api/blog";
 import { cx } from "../../lib/cx";
+import { trackEvent } from "../../lib/analytics";
 
 /**
  * The members' door of a series: one email field that does both jobs. A new address gets the
@@ -32,6 +33,7 @@ export function MemberGate({
     try {
       await subscribeToBlog(email.trim(), pathname);
       setState("done");
+      trackEvent("generate_lead", { method: "tlf_membership" });
     } catch (err) {
       setError((err instanceof ApiError && err.fieldErrors.email?.[0]) || errorMessage(err));
       setState("idle");

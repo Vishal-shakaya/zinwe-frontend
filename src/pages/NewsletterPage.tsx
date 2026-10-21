@@ -4,6 +4,7 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage } from "../lib/api";
 import { confirmBlogSubscription, unsubscribeFromBlog } from "../lib/api/blog";
 import { storeReaderKey } from "../lib/api/series";
+import { trackEvent } from "../lib/analytics";
 import "../styles/blog.css";
 
 type View =
@@ -38,6 +39,7 @@ export default function NewsletterPage(): ReactElement {
       .then((r) => {
         // Membership opens the members-only series in this browser; back to the series page they joined from.
         if (r.access_key) storeReaderKey(r.access_key);
+        trackEvent("tlf_member_confirmed", {});
         const fromSeries = (r.source ?? "").split("?")[0];
         setView({ kind: "confirmed", email: r.email, next: /^\/blog\/series(\/[-\w]+){0,2}$/.test(fromSeries) ? fromSeries : "" });
       })

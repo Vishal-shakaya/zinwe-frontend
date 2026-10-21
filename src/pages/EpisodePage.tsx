@@ -1,5 +1,8 @@
-import { useCallback, useEffect, type ReactElement } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { GrowCard } from "../components/series/GrowCard";
+import { trackEvent } from "../lib/analytics";
+import { fromEmail, noteSeriesVisit } from "../lib/attribution";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { LockIcon, MemberGate } from "../components/series/MemberGate";
@@ -54,10 +57,38 @@ function useEpisodeHead(ep: Episode | undefined): void {
 /** Public /blog/series/:slug/:episode: the opening for everyone, the full case file for members. */
 export default function EpisodePage(): ReactElement {
   const { slug = "", episode = "" } = useParams();
+  const { search } = useLocation();
   const [key, setKey] = useReaderKey();
-  const load = useCallback((signal: AbortSignal) => getEpisode(slug, episode, key, signal), [slug, episode, key]);
+  // Opened from an episode email (utm_medium=email): the API counts the read as an email read. Read once.
+  const [viaEmail] = useState(() => fromEmail(search));
+  const load = useCallback(
+    (signal: AbortSignal) => getEpisode(slug, episode, key, signal, viaEmail),
+    [slug, episode, key, viaEmail],
+  );
   const res = useResource(load, { resetKey: `${slug}|${episode}|${key}` });
   const ep = res.data;
+  const endRef = useRef<HTMLDivElement>(null);
+
+  // Attribution (a later Zinwe sign-up is credited to this episode) and what the visitor saw.
+  useEffect(() => {
+    if (!ep) return;
+    noteSeriesVisit(ep.episode, search);
+    if (ep.locked && !ep.reader) trackEvent("view_promotion", { promotion_name: "tlf_members_gate", item_id: ep.episode ?? 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per episode loaded
+  }, [ep?.slug, ep?.locked]);
+
+  // Read to the end: the last paragraph of the full episode came into view.
+  useEffect(() => {
+    if (!ep || ep.locked || !endRef.current) return;
+    const seen = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        trackEvent("tlf_read_end", { item_id: ep.episode ?? 0, member: !!ep.reader });
+        seen.disconnect();
+      }
+    });
+    seen.observe(endRef.current);
+    return () => seen.disconnect();
+  }, [ep]);
 
   usePageMeta({
     title: ep ? `${ep.seo_title} — ${ep.series.title}` : "Series — Zinwe",
@@ -118,7 +149,32 @@ export default function EpisodePage(): ReactElement {
         <div className="sx-read">
           <div className="sx-body" dangerouslySetInnerHTML={{ __html: withAssetBase(ep.teaser_html) }} />
 
-          {ep.locked ? (
+          {ep.member_locked ? (
+            <div className="ep-members sx-locked">
+              <div className="sx-locked__fade" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <section className="sx-gate sx-gate--panel">
+                <p className="sx-gate__badge">
+                  <LockIcon /> Coming to your inbox
+                </p>
+                <h2 className="sx-gate__title">
+                  This episode opens with your {ep.unlocks_on ? `${weekday(ep.unlocks_on)} morning` : "next"} email
+                </h2>
+                <p className="sx-gate__lede">
+                  Members get one episode a morning, four days a week, in order.
+                  {ep.reader?.progress ? ` You have ${ep.reader.progress.unlocked} of ${ep.reader.progress.released} so far.` : ""} Your
+                  next episode arrives by email, and opens here the same morning.
+                </p>
+                <Link className="sx-btn sx-btn--red" to={`/blog/series/${ep.series.slug}`}>
+                  Your episodes
+                </Link>
+              </section>
+            </div>
+          ) : ep.locked ? (
             <div className="ep-members sx-locked">
               <div className="sx-locked__fade" aria-hidden="true">
                 <span />
@@ -142,13 +198,18 @@ export default function EpisodePage(): ReactElement {
           ) : (
             <div className="ep-members">
               <div className="sx-body" dangerouslySetInnerHTML={{ __html: withAssetBase(ep.body_html) }} />
+              <div ref={endRef} aria-hidden="true" />
               {ep.attachments.length ? (
                 <section className="sx-files" aria-labelledby="files-title">
                   <h2 id="files-title">Case file downloads</h2>
                   <ul>
                     {ep.attachments.map((f) => (
                       <li key={f.url}>
-                        <a href={`${blogAsset(f.url ?? "")}${keyQuery}`} download={f.filename}>
+                        <a
+                          href={`${blogAsset(f.url ?? "")}${keyQuery}`}
+                          download={f.filename}
+                          onClick={() => trackEvent("file_download", { file_name: f.filename ?? "", item_id: ep.episode ?? 0 })}
+                        >
                           <span className="sx-files__kind">{fileKind(f.content_type)}</span>
                           <span className="sx-files__name">
                             <b>{f.title}</b>
@@ -162,9 +223,21 @@ export default function EpisodePage(): ReactElement {
                   <p className="sx-files__note">For you and your team. Please don't post them publicly.</p>
                 </section>
               ) : null}
+              {ep.free_preview && !ep.reader ? (
+                <MemberGate title={ep.next ? `Get Episode ${ep.next.episode} and the rest of the series, free` : "Get the whole series, free"}>
+                  <p className="sx-gate__lede">
+                    This episode is free for everyone. The rest are for members: one a morning, four days a week, with the
+                    case files and worksheets. Membership costs nothing.
+                  </p>
+                </MemberGate>
+              ) : null}
             </div>
           )}
         </div>
+      </div>
+
+      <div className="wrap">
+        <GrowCard seriesSlug={ep.series.slug} seriesTitle={ep.series.title} episode={ep.episode} reader={ep.reader} />
       </div>
 
       <nav className="wrap sx-nextprev" aria-label="More episodes">
@@ -201,4 +274,10 @@ function NeighbourCard({ seriesSlug, episode: e, label }: { seriesSlug: string; 
       </span>
     </Link>
   );
+}
+
+/** "Friday" from an ISO date (the reader's local date, from the server). */
+function weekday(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { weekday: "long" });
 }

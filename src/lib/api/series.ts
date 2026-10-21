@@ -45,6 +45,9 @@ export interface EpisodeCard {
   free_preview: boolean;
   /** How many files come with it. */
   files: number;
+  /** Members only: whether it's open to them yet (the drip opens episodes as their emails arrive), and when. */
+  unlocked?: boolean;
+  unlocks_on?: string | null;
 }
 
 /** A scheduled episode: number, title and date only. */
@@ -59,6 +62,11 @@ export interface UpcomingEpisode {
 export interface Reader {
   /** Masked, e.g. r•••@example.com */
   email: string;
+  /** Their share code: "send the series to a business owner" links carry it (?ref=). */
+  ref_code: string;
+  /** Episodes open to them out of those released (the drip opens one per email). */
+  progress?: { unlocked: number; released: number };
+  drip?: boolean;
 }
 
 export interface SeriesDetail extends SeriesCard {
@@ -88,6 +96,9 @@ export interface Episode extends EpisodeCard {
   updated_at: string;
   teaser_html: string;
   locked: boolean;
+  /** A member whose email for this episode hasn't arrived yet, and the day it should. */
+  member_locked: boolean;
+  unlocks_on: string | null;
   body_html: string;
   attachments: EpisodeFile[];
   previous: EpisodeCard | null;
@@ -104,12 +115,34 @@ export function getSeries(slug: string, key: string, signal?: AbortSignal): Prom
   return authedRequest(`/api/blog/series/${encodeURIComponent(slug)}/`, { anonymous: true, signal, query: { k: key } });
 }
 
-export function getEpisode(slug: string, episode: string, key: string, signal?: AbortSignal): Promise<Episode> {
+export function getEpisode(
+  slug: string,
+  episode: string,
+  key: string,
+  signal?: AbortSignal,
+  viaEmail = false,
+): Promise<Episode> {
   return authedRequest(`/api/blog/series/${encodeURIComponent(slug)}/${encodeURIComponent(episode)}/`, {
     anonymous: true,
     signal,
-    query: { k: key },
+    query: { k: key, via: viaEmail ? "email" : "" },
   });
+}
+
+const SITE = "https://zinwe.io";
+
+/** The series link a member shares: carries their code so the newsletter can credit them. */
+export function shareUrl(seriesSlug: string, refCode: string | undefined, source: string): string {
+  const q = new URLSearchParams({ utm_source: source, utm_medium: "referral", utm_campaign: "tlf" });
+  if (refCode) q.set("ref", refCode);
+  return `${SITE}/blog/series/${seriesSlug}?${q.toString()}`;
+}
+
+/** "Start Zinwe free" from the series, tagged with the episode. */
+export function startFreeUrl(episode: number | null): string {
+  const q = new URLSearchParams({ plan: "free", utm_source: "newsletter", utm_medium: "site", utm_campaign: "tlf" });
+  if (episode) q.set("utm_content", `ep${String(episode).padStart(2, "0")}`);
+  return `/signup?${q.toString()}`;
 }
 
 export function episodePath(seriesSlug: string, episodeSlug: string): string {

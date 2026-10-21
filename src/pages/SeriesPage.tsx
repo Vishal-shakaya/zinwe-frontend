@@ -1,5 +1,7 @@
-import { useCallback, useMemo, useState, type ReactElement } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { GrowCard } from "../components/series/GrowCard";
+import { noteSeriesVisit } from "../lib/attribution";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { LockIcon, MemberGate } from "../components/series/MemberGate";
@@ -18,6 +20,11 @@ export default function SeriesPage(): ReactElement {
   const load = useCallback((signal: AbortSignal) => getSeries(slug, key, signal), [slug, key]);
   const res = useResource(load, { resetKey: `${slug}|${key}` });
   const show = res.data;
+  const { search } = useLocation();
+  useEffect(() => {
+    if (show) noteSeriesVisit(null, search);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per series loaded
+  }, [show?.slug]);
 
   usePageMeta({
     title: show ? `${show.title} — a Zinwe series` : "Series — Zinwe",
@@ -98,6 +105,12 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
             )}
           </div>
           {show.reader ? <ReaderPill reader={show.reader} onForget={onForget} /> : null}
+          {show.reader?.drip && show.reader.progress ? (
+            <p className="sx-progress">
+              Your episodes: <b>{show.reader.progress.unlocked}</b> of {show.reader.progress.released} open · the next one arrives
+              by email
+            </p>
+          ) : null}
         </div>
       </header>
 
@@ -173,6 +186,10 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
         </div>
       </section>
 
+      <div className="wrap">
+        <GrowCard seriesSlug={show.slug} seriesTitle={show.title} episode={null} reader={show.reader} />
+      </div>
+
       {member ? null : (
         <div className="wrap" id="join">
           <MemberGate title={`Get ${show.title} in your inbox, free`} variant="band">
@@ -189,7 +206,7 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
 }
 
 function EpisodeRow({ seriesSlug, episode: e, member }: { seriesSlug: string; episode: EpisodeCard; member: boolean }): ReactElement {
-  const open = member || e.free_preview;
+  const open = e.free_preview || (member && e.unlocked !== false);
   return (
     <li className="sx-row">
       <Link to={episodePath(seriesSlug, e.slug)} className="sx-row__link">
@@ -209,7 +226,11 @@ function EpisodeRow({ seriesSlug, episode: e, member }: { seriesSlug: string; ep
             <span>{formatDate(e.published_at)}</span>
             {e.free_preview ? (
               <span className="sx-chip sx-chip--free">Free episode</span>
-            ) : open ? null : (
+            ) : open ? null : member ? (
+              <span className="sx-chip sx-chip--soon">
+                <LockIcon /> {e.unlocks_on ? `Opens ${formatDate(e.unlocks_on)}` : "Opens with a coming email"}
+              </span>
+            ) : (
               <span className="sx-chip">
                 <LockIcon /> Members
               </span>

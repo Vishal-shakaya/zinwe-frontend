@@ -225,6 +225,22 @@ export default function OverviewPage(): ReactElement {
           />
         )}
       </section>
+
+      {/* The members' series: for the owner, and for owners they know (the share link is on every episode). */}
+      <section className="dash-card ov-series" aria-labelledby="ov-series-title">
+        <div className="dash-card__head dash-card__head--split">
+          <h2 className="dash-card__title" id="ov-series-title">
+            The Last File · free for business owners
+          </h2>
+          <Link className="dash-link" to="/blog/series/the-last-file">
+            Read the series
+          </Link>
+        </div>
+        <p className="dash-note">
+          Short stories about the small mistakes that put company data at risk, each with a 10-minute fix for your team. Know an
+          owner who'd find it useful? Every episode has a share link.
+        </p>
+      </section>
     </>
   );
 }
