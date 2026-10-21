@@ -4,11 +4,14 @@ import { seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { NewsletterSignup } from "../components/blog/NewsletterSignup";
+import { SeriesFeature } from "../components/series/SeriesFeature";
+import { getSeriesList } from "../lib/api/series";
 import { blogAsset, getArticles, type ArticleCard, type ArticleType } from "../lib/api/blog";
 import { errorMessage } from "../lib/api";
 import { formatDate } from "../lib/format";
 import { cx } from "../lib/cx";
 import "../styles/blog.css";
+import "../styles/series.css";
 
 const TYPE_KEYS: ArticleType[] = ["press_release", "tutorial", "newsletter", "new_release", "informative"];
 
@@ -23,6 +26,8 @@ export default function BlogPage(): ReactElement {
   const load = useCallback((signal: AbortSignal) => getArticles({ type, page }, signal), [type, page]);
   const list = useResource(load, { resetKey: `${type}|${page}` });
   const data = list.data;
+  // The members' series sit above the articles (first page, no filter), like a streaming service's billboard.
+  const shows = useResource(getSeriesList).data?.results ?? [];
 
   const go = (next: { type?: ArticleType | ""; page?: number }) => {
     const t = next.type ?? type;
@@ -49,6 +54,8 @@ export default function BlogPage(): ReactElement {
       </header>
 
       <div className="wrap">
+        {page === 1 && !type ? shows.map((s) => <SeriesFeature key={s.slug} show={s} />) : null}
+
         {showFilters ? (
           <nav className="blog-filter" aria-label="Article types">
             <button type="button" className={cx("blog-filter__chip", !type && "is-on")} onClick={() => go({ type: "" })}>

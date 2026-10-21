@@ -3,11 +3,12 @@ import { Link, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage } from "../lib/api";
 import { confirmBlogSubscription, unsubscribeFromBlog } from "../lib/api/blog";
+import { storeReaderKey } from "../lib/api/series";
 import "../styles/blog.css";
 
 type View =
   | { kind: "working" }
-  | { kind: "confirmed"; email: string }
+  | { kind: "confirmed"; email: string; next: string }
   | { kind: "ask-unsubscribe" }
   | { kind: "unsubscribed"; email: string }
   | { kind: "error"; message: string };
@@ -34,7 +35,12 @@ export default function NewsletterPage(): ReactElement {
     if (!confirmToken || started.current) return;
     started.current = true;
     confirmBlogSubscription(confirmToken)
-      .then((r) => setView({ kind: "confirmed", email: r.email }))
+      .then((r) => {
+        // Membership opens the members-only series in this browser; back to the series page they joined from.
+        if (r.access_key) storeReaderKey(r.access_key);
+        const fromSeries = (r.source ?? "").split("?")[0];
+        setView({ kind: "confirmed", email: r.email, next: /^\/blog\/series(\/[-\w]+){0,2}$/.test(fromSeries) ? fromSeries : "" });
+      })
       .catch((err) => setView({ kind: "error", message: errorMessage(err) }));
   }, [confirmToken]);
 
@@ -55,14 +61,20 @@ export default function NewsletterPage(): ReactElement {
           <p className="muted">One moment…</p>
         ) : view.kind === "confirmed" ? (
           <>
-            <p className="eyebrow">You're subscribed</p>
-            <h1>Thanks for confirming</h1>
+            <p className="eyebrow">You're a member</p>
+            <h1>Welcome in. It's unlocked.</h1>
             <p>
-              New articles will come to <b>{view.email}</b>. Every email has an unsubscribe link at the bottom.
+              Members-only episodes are now open in this browser, and new ones will come to <b>{view.email}</b>. Every email has an
+              unsubscribe link at the bottom.
             </p>
-            <Link className="btn btn--primary" to="/blog">
-              Read the blog
-            </Link>
+            <div className="nl-page__actions">
+              <Link className="btn btn--primary" to={view.next || "/blog/series"}>
+                {view.next ? "Continue reading" : "Start the series"}
+              </Link>
+              <Link className="btn btn--ghost" to="/blog">
+                Read the blog
+              </Link>
+            </div>
           </>
         ) : view.kind === "ask-unsubscribe" ? (
           <>

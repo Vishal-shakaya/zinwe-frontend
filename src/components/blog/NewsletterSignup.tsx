@@ -31,8 +31,8 @@ export function NewsletterSignup({ compact = false }: { compact?: boolean }): Re
   return (
     <section className={cx("nl-signup", compact && "nl-signup--compact")} aria-labelledby={`${id}-title`}>
       <div className="nl-signup__copy">
-        <b id={`${id}-title`}>Get new articles by email</b>
-        <span>Practical guides and Zinwe news, one or two emails a month. Unsubscribe any time.</span>
+        <b id={`${id}-title`}>Get new articles and members-only episodes</b>
+        <span>Free membership: practical guides, Zinwe news and our members-only series. Unsubscribe any time.</span>
       </div>
       {state === "done" ? (
         <p className="nl-signup__done" role="status">

@@ -161,6 +161,18 @@ const PAGES: readonly SeoPage[] = [
     sitemap: true,
   },
   {
+    path: "/blog/series",
+    title: "Zinwe series — members-only stories for business owners",
+    description:
+      "Short business-drama series about the small mistakes that put company data at risk, each episode with a 10-minute fix. Free membership.",
+    h1: "Stories, not lectures",
+    intro: [
+      "Members-only series for business owners: short episodes about the small mistakes that put company data at risk, each with a 10-minute fix. Membership is free.",
+    ],
+    // The backend's /sitemap.xml adds each live series and its released episodes.
+    sitemap: true,
+  },
+  {
     path: "/legal",
     title: "Legal: terms, privacy and policies | Zinwe",
     description: "Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies, and our Disclaimer.",

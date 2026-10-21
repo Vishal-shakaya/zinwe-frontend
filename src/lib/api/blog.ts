@@ -74,6 +74,9 @@ export function subscribeToBlog(email: string, source: string): Promise<{ status
 export interface NewsletterResult {
   status: "active" | "unsubscribed";
   email: string;
+  /** Confirm only: the reader key that opens the members-only series, and the page they signed up on. */
+  access_key?: string;
+  source?: string;
 }
 
 export function confirmBlogSubscription(token: string): Promise<NewsletterResult> {
