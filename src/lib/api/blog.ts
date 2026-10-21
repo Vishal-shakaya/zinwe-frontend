@@ -64,9 +64,16 @@ export function getArticle(slug: string, signal?: AbortSignal): Promise<Article>
 
 /** Always resolves the same way for a valid address (the list isn't revealed); a confirm email follows. */
 export function subscribeToBlog(email: string, source: string): Promise<{ status: "check_inbox" }> {
+  // The reader's time zone: series episodes arrive in their morning, wherever they are.
+  let timezone = "";
+  try {
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+  } catch {
+    /* very old browser: the server's default zone is used */
+  }
   return authedRequest("/api/blog/newsletter/subscribe/", {
     method: "POST",
-    body: { email, source },
+    body: { email, source, timezone },
     anonymous: true,
   });
 }

@@ -177,8 +177,8 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
         <div className="wrap" id="join">
           <MemberGate title={`Get ${show.title} in your inbox, free`} variant="band">
             <p className="sx-gate__lede">
-              Membership is free. You get each new episode by email, and the full archive here on any device you sign in from with
-              your link.
+              Membership is free. Episode 1 arrives the moment you confirm, then one episode a morning, four days a week, in order.
+              Every released episode stays open to you here, on any device you open your link on.
             </p>
           </MemberGate>
         </div>
