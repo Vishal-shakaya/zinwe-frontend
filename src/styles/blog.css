@@ -302,3 +302,58 @@
   .nl-signup { grid-template-columns: minmax(0, 1fr); padding: 20px; }
   .article__body { font-size: 17px; }
 }
+
+/* The newest release, pointing to the release notes (/whats-new): releases aren't repeated as articles. */
+.blog-release {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 0 0 28px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius, 14px);
+  background: var(--white);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.blog-release:hover {
+  border-color: var(--orange-strong, #fd6d02);
+  box-shadow: 0 6px 20px rgba(13, 13, 14, 0.06);
+}
+
+.blog-release__tag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--orange-tint, #fff1e6);
+  color: var(--orange-ink, #8a3a00);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blog-release__text {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.blog-release__text span {
+  color: var(--ink-2, #4a4a4a);
+  font-size: 0.92rem;
+}
+
+.blog-release__go {
+  color: var(--orange-text, #b34a00);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blog-filter__chip--link {
+  text-decoration: none;
+}

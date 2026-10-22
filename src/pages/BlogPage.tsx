@@ -10,7 +10,7 @@ import { getGuides } from "../lib/api/guides";
 import { GuidePickCard } from "../components/guides/GuideCard";
 import "../styles/guides.css";
 import { blogAsset, getArticles, type ArticleCard, type ArticleType } from "../lib/api/blog";
-import { errorMessage } from "../lib/api";
+import { errorMessage, getReleaseNotes } from "../lib/api";
 import { formatDate } from "../lib/format";
 import { cx } from "../lib/cx";
 import "../styles/blog.css";
@@ -32,6 +32,9 @@ export default function BlogPage(): ReactElement {
   // The members' series sit above the articles (first page, no filter), like a streaming service's billboard.
   const shows = useResource(getSeriesList).data?.results ?? [];
   const guides = useResource(getGuides).data?.results ?? [];
+  // Releases live in one place, the release notes (/whats-new, written in the admin app); the blog points to the
+  // newest one rather than repeating it as an article.
+  const latestRelease = useResource(getReleaseNotes).data?.[0];
 
   const go = (next: { type?: ArticleType | ""; page?: number }) => {
     const t = next.type ?? type;
@@ -58,6 +61,18 @@ export default function BlogPage(): ReactElement {
       </header>
 
       <div className="wrap">
+        {page === 1 && !type && latestRelease ? (
+          <Link className="blog-release" to="/whats-new" aria-label={`What's new in Zinwe ${latestRelease.version}`}>
+            <span className="blog-release__tag">New in Zinwe {latestRelease.version}</span>
+            <span className="blog-release__text">
+              <b>{latestRelease.title}</b>
+              {latestRelease.summary ? <span>{latestRelease.summary}</span> : null}
+            </span>
+            <span className="blog-release__go">
+              Read the release notes <span aria-hidden="true">→</span>
+            </span>
+          </Link>
+        ) : null}
         {page === 1 && !type ? shows.map((s) => <SeriesFeature key={s.slug} show={s} />) : null}
         {page === 1 && !type && guides.length ? (
           <section className="blog-guides" aria-labelledby="blog-guides-title">
@@ -88,6 +103,9 @@ export default function BlogPage(): ReactElement {
                 <span>{t.count}</span>
               </button>
             ))}
+            <Link className="blog-filter__chip blog-filter__chip--link" to="/whats-new">
+              Release notes <span aria-hidden="true">→</span>
+            </Link>
           </nav>
         ) : null}
 

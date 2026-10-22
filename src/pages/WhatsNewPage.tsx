@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { Link } from "react-router-dom";
 import { ReleaseNotes } from "../components/ReleaseNotes";
 import { Smoke } from "../components/ui/Smoke";
 import { StaggerTitle } from "../components/ui/StaggerTitle";
@@ -14,7 +15,9 @@ export default function WhatsNewPage(): ReactElement {
       <section className="page-hero zin-host">
         <Smoke />
         <div className="wrap">
-          <p className="eyebrow fade">What's new</p>
+          <p className="eyebrow fade">
+            <Link to="/blog">Zinwe blog</Link> · Release notes
+          </p>
           <StaggerTitle text="What's new in Zinwe." />
           <p className="lede fade" style={{ animationDelay: ".4s" }}>
             What we fixed and what you can do now, release by release.
