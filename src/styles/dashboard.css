@@ -7601,3 +7601,10 @@ button.wd-row:hover {
     display: none;
   }
 }
+
+/* Online protection → Internet data used (FR-04): by app and by website, side by side on wide screens. */
+.net-data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 18px 28px;
+}
