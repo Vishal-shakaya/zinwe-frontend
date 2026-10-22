@@ -25,8 +25,8 @@ export default function SeriesHubPage(): ReactElement {
         <p className="eyebrow">Zinwe originals</p>
         <h1 className="h-display blog-hero__title">Stories, not lectures</h1>
         <p className="lede">
-          Members-only series for business owners and their teams: short episodes about the small mistakes that put company data
-          and people's identities at risk, each with a 10-minute fix. Membership is free.
+          Members-only series for business owners, their teams and their families: short episodes about company data, people's
+          identities and children growing up online, each with a 10-minute fix. Membership is free.
         </p>
       </header>
       <div className="wrap sx-hub">

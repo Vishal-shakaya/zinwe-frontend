@@ -17,6 +17,13 @@ export interface SeriesVoice {
   perks: { title: string; text: string }[];
   shareText: (title: string) => string;
   disclaimer: string;
+  /** Who the share card speaks to ("Know a business owner who'd want this?"). */
+  shareAsk?: string;
+  /** The start-free card under each episode. */
+  startTitle?: string;
+  startText?: string;
+  /** SAFE BY DESIGN: each episode has a kid-facing Family Card at /family/NN to send on (FamilyShare). */
+  familyCards?: boolean;
 }
 
 const TLF: SeriesVoice = {
@@ -57,7 +64,31 @@ const IUA: SeriesVoice = {
   disclaimer: "The people and incidents in our series are fictional composites. The risks are common, and the lessons are real.",
 };
 
-const VOICES: Record<string, SeriesVoice> = { "the-last-file": TLF, "identity-under-attack": IUA };
+const SBD: SeriesVoice = {
+  campaign: "sbd",
+  unit: "episode",
+  pace: "one episode a week, every Saturday morning",
+  inside: ["The rest of the story", "What it means, in plain terms", "One thing to try together, and the line to say first"],
+  filesTitle: "Printables for your family",
+  freeLede:
+    "This episode is free for everyone. The rest are for members: one every Saturday morning, each with a family action card and a Family Card for your child. Membership costs nothing.",
+  joinLede:
+    "Membership is free. Episode 1 arrives the moment you confirm, then one episode every Saturday morning, in order. Every released episode stays open to you here, on any device you open your link on.",
+  perks: [
+    { title: "Every episode in full", text: "A short family story, what it means in plain terms, and the words to say first." },
+    { title: "One thing to try together", text: "A 10-minute family action, with a conversation for ages 7 to 10 and 11 to 14." },
+    { title: "A Family Card each week", text: "A card for your child to keep, with a badge to collect. Thirty badges make your Family Shield." },
+  ],
+  shareText: (title) => `${title}: 30 short family stories about growing up online, each with one thing to try together and a card for your child. Free to join.`,
+  disclaimer:
+    "The family in our stories is fictional; the situations are common and the habits are real. We never ask for your child's name, school, photos, usernames, passwords or location.",
+  shareAsk: "Know a parent who'd want this?",
+  startTitle: "The same calm care, for your business",
+  startText: "At work, Zinwe tells you in plain English when company files leave your team's PCs. Free forever for up to 3 PCs.",
+  familyCards: true,
+};
+
+const VOICES: Record<string, SeriesVoice> = { "the-last-file": TLF, "identity-under-attack": IUA, "safe-by-design": SBD };
 
 export function seriesVoice(slug: string): SeriesVoice {
   const known = VOICES[slug];

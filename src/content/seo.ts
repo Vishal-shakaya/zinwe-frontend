@@ -164,10 +164,10 @@ const PAGES: readonly SeoPage[] = [
     path: "/blog/series",
     title: "Zinwe series — members-only stories for business owners",
     description:
-      "Short story series about the small mistakes that put company data and people's identities at risk, each episode with a 10-minute fix. Free membership.",
+      "Short story series about company data, people's identities and children growing up online, each episode with a 10-minute fix. Free membership.",
     h1: "Stories, not lectures",
     intro: [
-      "Members-only series for business owners and their teams: short episodes about the small mistakes that put company data and people's identities at risk, each with a 10-minute fix. Membership is free.",
+      "Members-only series for business owners, their teams and their families: short episodes about company data, people's identities and children growing up online, each with a 10-minute fix. Membership is free.",
     ],
     // The backend's /sitemap.xml adds each live series and its released episodes.
     sitemap: true,

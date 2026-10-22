@@ -39,7 +39,7 @@ export function GrowCard({
   return (
     <section className="sx-grow" aria-label="Share the series and start Zinwe free">
       <div className="sx-grow__share">
-        <b>Know a business owner who'd want this?</b>
+        <b>{voice.shareAsk ?? "Know a business owner who'd want this?"}</b>
         <span>Send them {seriesTitle}. Membership is free for them too.</span>
         <div className="sx-grow__buttons">
           <a href={`https://wa.me/?text=${encodeURIComponent(`${text} ${link("whatsapp")}`)}`} target="_blank" rel="noreferrer" onClick={() => shared("whatsapp")}>
@@ -62,8 +62,8 @@ export function GrowCard({
         </div>
       </div>
       <div className="sx-grow__start">
-        <b>See what leaves your own team's PCs</b>
-        <span>Zinwe tells you in plain English when company files leave by USB, upload or email. Free forever for up to 3 PCs.</span>
+        <b>{voice.startTitle ?? "See what leaves your own team's PCs"}</b>
+        <span>{voice.startText ?? "Zinwe tells you in plain English when company files leave by USB, upload or email. Free forever for up to 3 PCs."}</span>
         <Link className="sx-btn sx-btn--red" to={startFreeUrl(seriesSlug, episode)} onClick={() => trackEvent("select_promotion", { promotion_name: `${voice.campaign}_start_free`, item_id: episode ?? 0 })}>
           Start Zinwe free
         </Link>

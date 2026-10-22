@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { FamilyShare } from "../components/series/FamilyShare";
 import { GrowCard } from "../components/series/GrowCard";
 import { trackEvent } from "../lib/analytics";
 import { fromEmail, noteSeriesVisit } from "../lib/attribution";
@@ -237,6 +238,7 @@ export default function EpisodePage(): ReactElement {
       </div>
 
       <div className="wrap">
+        {voice.familyCards && ep.episode ? <FamilyShare episode={ep.episode} /> : null}
         <GrowCard seriesSlug={ep.series.slug} seriesTitle={ep.series.title} episode={ep.episode} reader={ep.reader} />
       </div>
 
