@@ -1355,10 +1355,25 @@
   border-radius: var(--radius-sm);
 }
 
-.pay-qr__img svg {
-  display: block;
-  width: 100%;
-  height: 100%;
+/* FR-06: before the payer asks for the QR, a dashed square with the button, the QR's size and place. */
+.pay-qr--ask {
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-height: 148px;
+  padding: 12px;
+  text-align: center;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.pay-qr--ask small {
+  font-size: 0.78rem;
+  color: var(--mute);
+}
+
+.pay-qr--ask .pay-qr__error {
+  color: var(--ink);
 }
 
 .pay-qr figcaption {
@@ -1668,6 +1683,11 @@
   height: 168px;
   padding: 8px;
   border-radius: var(--radius-sm);
+}
+
+.ways__split .pay-qr--ask {
+  height: 168px;
+  margin: 0;
 }
 
 .ways__split .pay-qr figcaption {

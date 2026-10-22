@@ -10,6 +10,7 @@ import type {
   Subscription,
   SubscriptionInfo,
   UpgradeQuote,
+  UpiQr,
 } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
@@ -118,10 +119,22 @@ export function submitPayment(payload: PaymentPayload): Promise<Payment> {
   return authedRequest<Payment>("/api/auth/subscription/payment/", { method: "POST", form });
 }
 
-/** GET subscription/upgrade/<plan>/ — price, period and UPI QR of an upgrade (409 when it isn't allowed;
+/** GET subscription/upgrade/<plan>/ — price, period and UPI link of an upgrade (409 when it isn't allowed;
  * 404 on an older backend). */
 export function getUpgradeQuote(planCode: string, signal?: AbortSignal): Promise<UpgradeQuote> {
   return authedRequest<UpgradeQuote>(`/api/auth/subscription/upgrade/${encodeURIComponent(planCode)}/`, { signal });
+}
+
+/** GET subscription/upi-qr/[?upgrade=<plan>] — the UPI QR for what's due (or that upgrade), made on request
+ * (404 when there's no UPI payment). */
+export function getUpiQr(upgradePlan?: string, signal?: AbortSignal): Promise<UpiQr> {
+  const query = upgradePlan ? `?upgrade=${encodeURIComponent(upgradePlan)}` : "";
+  return authedRequest<UpiQr>(`/api/auth/subscription/upi-qr/${query}`, { signal });
+}
+
+/** GET quotes/<token>/upi-qr/ — a shared quote's UPI QR, on request, while the quote is open. */
+export function getPublicUpiQr(token: string, signal?: AbortSignal): Promise<UpiQr> {
+  return authedRequest<UpiQr>(`/api/auth/quotes/${encodeURIComponent(token)}/upi-qr/`, { anonymous: true, signal });
 }
 
 /** Download the receipt the owner uploaded with a payment. */

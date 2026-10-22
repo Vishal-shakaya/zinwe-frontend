@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { CopyButton } from "../../dashboard/components/CopyButton";
 import { DashIcon } from "../../dashboard/components/DashIcon";
-import type { Payment, PaymentInstructions, PaymentMethod, Quote } from "../../lib/api";
+import { getUpiQr, type Payment, type PaymentInstructions, type PaymentMethod, type Quote } from "../../lib/api";
 import { formatDate, formatMoney } from "../../lib/format";
 import { defaultWay, intlReady, methodForWay, payWayOptions, type PayWay } from "../payWays";
 import { PayWayDetails } from "./PaymentWays";
@@ -281,7 +281,13 @@ export function CheckoutModal({
             ) : screen === "details" ? (
               <>
                 <div className="checkout__details">
-                  <PayWayDetails instructions={instructions} total={total} way={way} reference={reference} />
+                  <PayWayDetails
+                    instructions={instructions}
+                    total={total}
+                    way={way}
+                    reference={reference}
+                    loadQr={() => getUpiQr(upgradePlan)}
+                  />
                 </div>
                 <button type="button" className="btn btn--primary btn--block" onClick={() => go("receipt")}>
                   I've paid {total} <span className="arr">→</span>

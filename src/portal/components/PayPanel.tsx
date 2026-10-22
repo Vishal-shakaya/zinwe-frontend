@@ -1,5 +1,5 @@
 import { useState, type ReactElement } from "react";
-import type { Payment, PaymentInstructions } from "../../lib/api";
+import { getUpiQr, type Payment, type PaymentInstructions } from "../../lib/api";
 import { defaultWay, methodForWay, payWayOptions, type PayWay } from "../payWays";
 import { PaymentWays } from "./PaymentWays";
 import { ReceiptForm } from "./ReceiptForm";
@@ -59,6 +59,7 @@ export function PayPanel({
           showNote={!hideNote && !reference}
           reference={reference}
           currency={currency}
+          loadQr={() => getUpiQr(upgradePlan)}
         />
       </div>
       <hr className="pay-panel__rule" />

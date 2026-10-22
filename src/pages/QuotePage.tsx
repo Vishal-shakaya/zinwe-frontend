@@ -3,7 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { DashIcon } from "../dashboard/components/DashIcon";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { ApiError, errorMessage, getPublicQuote, isAbortError, publicQuotePdfUrl, type SharedQuote } from "../lib/api";
+import {
+  ApiError,
+  errorMessage,
+  getPublicQuote,
+  getPublicUpiQr,
+  isAbortError,
+  publicQuotePdfUrl,
+  type SharedQuote,
+} from "../lib/api";
 import { formatDate, formatMoney } from "../lib/format";
 import { OrderSummary } from "../portal/components/OrderSummary";
 import { PaymentWays } from "../portal/components/PaymentWays";
@@ -156,6 +164,7 @@ export default function QuotePage(): ReactElement {
                   showNote={false}
                   reference={q.customer.name}
                   currency={q.quote.currency}
+                  loadQr={() => getPublicUpiQr(token)}
                 />
               </div>
               <hr className="pay-panel__rule" />

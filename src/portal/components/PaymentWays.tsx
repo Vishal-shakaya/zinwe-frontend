@@ -1,7 +1,7 @@
-import { useRef, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
+import { useRef, useState, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
 import { CopyButton } from "../../dashboard/components/CopyButton";
 import { DashIcon } from "../../dashboard/components/DashIcon";
-import type { PaymentInstructions } from "../../lib/api";
+import { errorMessage, getUpiQr, type PaymentInstructions, type UpiQr } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { isTouchDevice, payWayOptions, safeHttpsUrl, safeUpiUri, type PayWay } from "../payWays";
 
@@ -49,12 +49,64 @@ function NotSetUp({ what }: { what: string }): ReactElement {
   );
 }
 
-/** The details of one way to pay: UPI (app button on phones, QR + ID), bank account, or Skydo / US account. */
+/** Fetches the UPI QR for this payment from the server (what's due, an upgrade, or a shared quote). */
+export type LoadUpiQr = () => Promise<UpiQr>;
+
+type QrState = { kind: "idle" } | { kind: "loading" } | { kind: "ready"; qr: UpiQr } | { kind: "error"; message: string };
+
+/**
+ * FR-06: the UPI QR only once the payer asks for it. The server makes it from its own UPI ID with the exact
+ * amount; it's shown as an image (never as markup), with the payee and UPI ID to check in the app before paying.
+ */
+function UpiQrOnRequest({ loadQr, total }: { loadQr: LoadUpiQr; total: string }): ReactElement {
+  const [state, setState] = useState<QrState>({ kind: "idle" });
+  const show = async () => {
+    setState({ kind: "loading" });
+    try {
+      setState({ kind: "ready", qr: await loadQr() });
+    } catch (err) {
+      setState({ kind: "error", message: errorMessage(err) });
+    }
+  };
+  if (state.kind === "ready") {
+    const { qr } = state;
+    return (
+      <figure className="pay-qr">
+        <img
+          className="pay-qr__img"
+          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.svg)}`}
+          alt={`UPI QR code: pay ${total} to ${qr.payee_name}`}
+        />
+        <figcaption>
+          Scan with any UPI app. {total} is filled in. Before you pay, check the app shows{" "}
+          <b>{qr.payee_name}</b> ({qr.upi_id}).
+        </figcaption>
+      </figure>
+    );
+  }
+  return (
+    <div className="pay-qr pay-qr--ask">
+      <button type="button" className="btn btn--ghost dash-btn-sm" onClick={() => void show()} disabled={state.kind === "loading"}>
+        <DashIcon name="qr" />
+        {state.kind === "loading" ? "Making the QR code…" : "Show QR code"}
+      </button>
+      <small>Made by Zinwe for {total}, when you ask for it.</small>
+      {state.kind === "error" ? (
+        <small className="pay-qr__error" role="alert">
+          {state.message} Use the UPI ID instead.
+        </small>
+      ) : null}
+    </div>
+  );
+}
+
+/** The details of one way to pay: UPI (app button on phones, QR on request + ID), bank account, or Skydo / US account. */
 export function PayWayDetails({
   instructions,
   total,
   way,
   reference,
+  loadQr = () => getUpiQr(),
 }: {
   instructions: PaymentInstructions;
   /** The formatted amount due, e.g. "₹971". */
@@ -62,6 +114,8 @@ export function PayWayDetails({
   way: PayWay;
   /** What to write in the UPI note / bank remarks (the company name), so the payment can be matched. */
   reference?: string;
+  /** Where the QR comes from; default: what's due on the signed-in owner's plan. */
+  loadQr?: LoadUpiQr;
 }): ReactElement {
   const i = instructions;
   const payee = i.payee_name || "SKYTECHNO";
@@ -81,13 +135,8 @@ export function PayWayDetails({
           </a>
         ) : null}
         <div className="ways__split">
-          {i.upi_qr_svg ? (
-            <figure className="pay-qr">
-              {/* Our own server-made SVG (segno): the UPI link with the exact amount. */}
-              <span className="pay-qr__img" dangerouslySetInnerHTML={{ __html: i.upi_qr_svg }} />
-              <figcaption>Scan with any UPI app. {total} is filled in.</figcaption>
-            </figure>
-          ) : null}
+          {/* A QR needs an amount in rupees: the server's UPI link is there only for an INR payment. */}
+          {i.upi_uri ? <UpiQrOnRequest loadQr={loadQr} total={total} /> : null}
           <dl className="pay-rows">
             <Row label="UPI ID" value={i.upi_id} copy="UPI ID" />
             <Row label="Payee" value={payee} />
@@ -184,6 +233,7 @@ export function PaymentWays({
   showNote = true,
   reference,
   currency,
+  loadQr,
 }: {
   instructions: PaymentInstructions;
   /** The formatted amount due, e.g. "₹971". */
@@ -197,6 +247,8 @@ export function PaymentWays({
   reference?: string;
   /** The quote's currency, when known (decides the order and which ways show). */
   currency?: string;
+  /** Where the UPI QR comes from (see PayWayDetails). */
+  loadQr?: LoadUpiQr;
 }): ReactElement {
   const i = instructions;
   const ways = payWayOptions(instructions, currency);
@@ -256,7 +308,7 @@ export function PaymentWays({
         aria-labelledby={ways.length > 1 ? `${idPrefix}-tab-${current}` : undefined}
         tabIndex={ways.length > 1 ? 0 : undefined}
       >
-        <PayWayDetails instructions={instructions} total={total} way={current} reference={reference} />
+        <PayWayDetails instructions={instructions} total={total} way={current} reference={reference} loadQr={loadQr} />
       </div>
       {showNote && i.note ? <p className="dash-note ways__note">{i.note}</p> : null}
     </div>

@@ -228,8 +228,9 @@ export default function PlanStep(): ReactElement {
   const checkoutReady = Boolean(openPlan && quote && info.data && (openUpgrade || pendingInfo) && upgradeSettled);
   const instructions = info.data
     ? openUpgrade
-      ? // The subscription's own QR and UPI link hold what's due on it, not the upgrade's amount.
-        { ...info.data.instructions, upi_qr_svg: upgradeData?.upi_qr_svg ?? "", upi_uri: upgradeData?.upi_uri ?? "" }
+      ? // The subscription's own UPI link holds what's due on it, not the upgrade's amount (the QR is fetched
+        // for the upgrade itself: CheckoutModal's upgradePlan).
+        { ...info.data.instructions, upi_uri: upgradeData?.upi_uri ?? "" }
       : info.data.instructions
     : null;
 

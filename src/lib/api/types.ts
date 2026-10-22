@@ -202,8 +202,6 @@ export interface PaymentInstructions {
   skydo?: SkydoAccount | null;
   /** This customer's own payment link (card or US bank), set by the Zinwe team. */
   payment_link?: string;
-  /** India: a UPI QR code (SVG) with the exact amount due filled in; "" when there's nothing due. */
-  upi_qr_svg?: string;
   /** The `upi://pay?...` link with the exact amount (a "Pay in a UPI app" button on phones); "" = none. */
   upi_uri?: string;
 }
@@ -216,7 +214,21 @@ export interface UpgradeQuote {
   covers_until: string;
   /** Paid days left on the current plan, added to the new one. */
   carried_days: number;
-  upi_qr_svg: string;
+  upi_uri: string;
+}
+
+/**
+ * GET subscription/upi-qr/ (or quotes/<token>/upi-qr/): a UPI QR made on request (FR-06), from the server's own
+ * UPI ID with the exact amount. The page never carries a QR until the payer asks for one.
+ */
+export interface UpiQr {
+  /** The QR as an SVG document (shown as an image, never as markup). */
+  svg: string;
+  upi_id: string;
+  payee_name: string;
+  /** "971.00" (INR). */
+  amount: string;
+  note: string;
   upi_uri: string;
 }
 
