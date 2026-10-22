@@ -13,4 +13,5 @@ export * from "./contact";
 export * from "./devices";
 export * from "./earlyAccess";
 export * from "./feedback";
+export * from "./payments";
 export * from "./support";

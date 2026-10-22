@@ -4,6 +4,7 @@ import { DashIcon } from "../../dashboard/components/DashIcon";
 import { getUpiQr, type Payment, type PaymentInstructions, type PaymentMethod, type Quote } from "../../lib/api";
 import { formatDate, formatMoney } from "../../lib/format";
 import { defaultWay, intlReady, methodForWay, payWayOptions, type PayWay } from "../payWays";
+import { OnlinePay } from "./OnlinePay";
 import { PayWayDetails } from "./PaymentWays";
 import { PlanSteps } from "./PlanSteps";
 import { QuoteShare } from "./QuoteShare";
@@ -18,6 +19,8 @@ const TITLES: Record<Exclude<Screen, "details">, string> = {
   receipt: "Upload the receipt",
   done: "Receipt sent",
 };
+
+const PAID_TITLE = { paid: "Payment received", pending: "Payment received" } as const;
 
 function periodLabel(months: number): string {
   return months === 12 ? "1 year" : months === 1 ? "1 month" : `${months} months`;
@@ -108,12 +111,16 @@ export function CheckoutModal({
     // Once per opening of the modal.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const ways = payWayOptions(instructions, quote.currency);
+  // "Pay online" (Razorpay) first when it's on; the manual ways (and the receipt) always stay as the fallback.
+  const ways = payWayOptions(instructions, quote.currency, true);
   const [screen, setScreen] = useState<Screen>("methods");
   const [way, setWay] = useState<PayWay>(() => {
-    const first = defaultWay(instructions);
+    const first = defaultWay(instructions, true);
     return ways.some((w) => w.key === first) ? first : ways[0].key;
   });
+  // How it ended: paid online (plan on now), paid online but still being applied, or a receipt sent.
+  const [paidOnline, setPaidOnline] = useState<"paid" | "pending" | null>(null);
+  const [pendingNote, setPendingNote] = useState("");
   // "Already paid?" skips choosing a way, so the receipt screen asks how they paid.
   const [skipped, setSkipped] = useState(false);
   const money = (amount: string) => formatMoney(amount, quote.currency);
@@ -149,14 +156,16 @@ export function CheckoutModal({
   const back = screen === "details" ? "methods" : screen === "receipt" ? (skipped ? "methods" : "details") : null;
 
   // The choices for "How did you pay?" (only the ways this customer was offered).
-  const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = ways.map((w) => ({
+  const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = ways.filter((w) => w.key !== "online").map((w) => ({
     value: methodForWay(w.key, instructions),
     label: w.key === "intl" ? (usd ? "Card or US bank (Skydo)" : "From outside India (Skydo)") : w.label,
   }));
 
   const secure = usd && intlReady(instructions)
     ? `Paid through Skydo to ${payee}. The invoice is emailed once we confirm the payment.`
-    : `Goes straight to ${payee}'s bank account. The invoice is emailed once we confirm it.`;
+    : ways.some((w) => w.key === "online")
+      ? `Pay online through Razorpay, or straight to ${payee}'s bank account. The invoice is emailed either way.`
+      : `Goes straight to ${payee}'s bank account. The invoice is emailed once we confirm it.`;
 
   return (
     <dialog
@@ -224,7 +233,7 @@ export function CheckoutModal({
               </button>
             ) : null}
             <h2 className="checkout__title" id="checkout-title" tabIndex={-1}>
-              {screen === "details" ? method.label : TITLES[screen]}
+              {screen === "details" ? method.label : screen === "done" && paidOnline ? PAID_TITLE[paidOnline] : TITLES[screen]}
             </h2>
             <button type="button" className="checkout__icon-btn checkout__x" onClick={onClose} aria-label="Close">
               <DashIcon name="close" />
@@ -278,6 +287,30 @@ export function CheckoutModal({
                 </button>
                 {shareQuote ? <QuoteShare ownerEmail={ownerEmail} variant="slip" /> : null}
               </>
+            ) : screen === "details" && way === "online" ? (
+              <div className="checkout__details">
+                <OnlinePay
+                  total={total}
+                  upgradePlan={upgradePlan}
+                  onPaid={async (payment) => {
+                    if (payment) await onSubmitted(payment);
+                    setPaidOnline("paid");
+                    go("done");
+                  }}
+                  onPending={(result) => {
+                    setPendingNote(result.detail ?? "");
+                    setPaidOnline("pending");
+                    go("done");
+                  }}
+                  onFallback={() => setWay("upi")}
+                  onWindow={(open) => {
+                    const dialog = ref.current;
+                    if (!dialog) return;
+                    if (open && dialog.open) dialog.close();
+                    else if (!open && !dialog.open) dialog.showModal();
+                  }}
+                />
+              </div>
             ) : screen === "details" ? (
               <>
                 <div className="checkout__details">
@@ -310,10 +343,19 @@ export function CheckoutModal({
                 <span className="checkout__done-mark" aria-hidden="true">
                   <DashIcon name="check" />
                 </span>
-                <p>
-                  We're checking your payment of <b>{total}</b>. Zinwe {quote.plan_name} switches on as soon as it's
-                  confirmed, usually within one working day, and we'll email <b>{ownerEmail}</b>.
-                </p>
+                {paidOnline === "paid" ? (
+                  <p>
+                    Payment of <b>{total}</b> received. Zinwe {quote.plan_name} is on now, and the invoice is on its way
+                    to <b>{ownerEmail}</b>.
+                  </p>
+                ) : paidOnline === "pending" ? (
+                  <p>{pendingNote || `Payment of ${total} received. We're confirming it, and we'll email ${ownerEmail}.`}</p>
+                ) : (
+                  <p>
+                    We're checking your payment of <b>{total}</b>. Zinwe {quote.plan_name} switches on as soon as it's
+                    confirmed, usually within one working day, and we'll email <b>{ownerEmail}</b>.
+                  </p>
+                )}
                 <button type="button" className="btn btn--primary btn--block" onClick={onDone}>
                   Go to your dashboard <span className="arr">→</span>
                 </button>

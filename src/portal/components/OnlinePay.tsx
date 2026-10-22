@@ -1,0 +1,154 @@
+import { useState, type ReactElement } from "react";
+import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
+import { PAYMENT_TERMS } from "../../content/legal";
+import { DashIcon } from "../../dashboard/components/DashIcon";
+import { ApiError, errorMessage, type Payment } from "../../lib/api";
+import { createOnlineOrder, verifyOnlinePayment, type OnlineResult } from "../../lib/api/payments";
+import { trackEvent } from "../../lib/analytics";
+import { openCheckout } from "../razorpay";
+import { FormAlert } from "./FormAlert";
+
+type Stage = "idle" | "starting" | "open" | "confirming";
+
+/**
+ * "Pay online" (Razorpay): UPI apps, cards, netbanking or wallets, confirmed at once. If anything goes wrong on
+ * our side or Razorpay's (switched off, down, script blocked), `onFallback` takes the owner to UPI / bank transfer
+ * + receipt, which never depend on Razorpay. A declined card just shows why and lets them try again.
+ */
+export function OnlinePay({
+  total,
+  upgradePlan,
+  onPaid,
+  onPending,
+  onFallback,
+  onWindow,
+}: {
+  /** e.g. "₹1,146". */
+  total: string;
+  upgradePlan?: string;
+  /** The plan is updated: `payment` is the approved payment (status "verified"). */
+  onPaid: (payment: Payment | null) => void | Promise<void>;
+  /** Money taken, plan not updated yet ("confirming" / "review"): show `detail`, nothing more to do. */
+  onPending: (result: OnlineResult) => void | Promise<void>;
+  /** Pay another way (UPI / bank transfer + receipt). */
+  onFallback: () => void;
+  /**
+   * Razorpay's window opens (true) / closes (false). A native modal <dialog> is drawn above everything, so a
+   * checkout dialog must step aside while Razorpay's window is open, or the customer can't reach it.
+   */
+  onWindow?: (open: boolean) => void;
+}): ReactElement {
+  const [accepted, setAccepted] = useState(false);
+  const [termsError, setTermsError] = useState<string | undefined>();
+  const [stage, setStage] = useState<Stage>("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState(false);
+
+  const pay = async () => {
+    if (!accepted) {
+      setTermsError("Please accept the payment terms to continue.");
+      return;
+    }
+    setError(null);
+    setStage("starting");
+    let order;
+    try {
+      order = await createOnlineOrder(upgradePlan);
+    } catch (err) {
+      setStage("idle");
+      // 503 (off / Razorpay down) or a network failure: offer the manual ways.
+      if (!(err instanceof ApiError) || err.status === 503 || err.status === 0) {
+        setOffline(true);
+        setError("Online payment isn't available right now. You can pay by UPI or bank transfer instead.");
+      } else {
+        setError(errorMessage(err));
+      }
+      return;
+    }
+    trackEvent("add_payment_info", { payment_type: "razorpay" });
+    setStage("open");
+    let outcome;
+    try {
+      onWindow?.(true);
+      outcome = await openCheckout(order);
+    } catch {
+      setStage("idle");
+      setOffline(true);
+      setError("The secure payment window couldn't load (a blocker or a slow connection can stop it).");
+      return;
+    } finally {
+      onWindow?.(false);
+    }
+    if (outcome.kind === "dismissed") {
+      setStage("idle");
+      return;
+    }
+    if (outcome.kind === "failed") {
+      setStage("idle");
+      setError(`${outcome.reason} Nothing was charged. Try again, or pay another way.`);
+      return;
+    }
+    setStage("confirming");
+    try {
+      const result = await verifyOnlinePayment(outcome.response);
+      if (result.status === "paid") {
+        trackEvent("purchase", { payment_type: "razorpay" });
+        await onPaid(result.payment ?? null);
+      } else {
+        await onPending(result);
+      }
+    } catch (err) {
+      // We couldn't hear back: the money may be taken. Never ask them to pay again; the server finishes it.
+      await onPending({
+        status: "confirming",
+        detail: `We're confirming your payment (${errorMessage(err)}). If Razorpay took it, your plan updates within the hour and we'll email you. Please don't pay again.`,
+      });
+    }
+  };
+
+  const busy = stage !== "idle";
+  return (
+    <div className="online-pay">
+      <ul className="online-pay__ways" aria-label="You can pay with">
+        <li>UPI apps</li>
+        <li>Cards</li>
+        <li>Netbanking</li>
+        <li>Wallets</li>
+      </ul>
+      <p className="online-pay__lede">
+        Pay {total} in Razorpay's secure window. Your plan updates as soon as it's paid, and the invoice comes by
+        email. No receipt to upload.
+      </p>
+      <TermsCheckbox
+        id="online-terms"
+        checked={accepted}
+        onChange={(value) => {
+          setAccepted(value);
+          if (value) setTermsError(undefined);
+        }}
+        docs={[PAYMENT_TERMS]}
+        dialogTitle="Payment terms"
+        lead="I agree to Zinwe's"
+        error={termsError}
+        disabled={busy}
+      />
+      <FormAlert message={error} />
+      <button type="button" className="btn btn--primary btn--block online-pay__go" onClick={() => void pay()} disabled={busy}>
+        <DashIcon name="lock" />
+        {stage === "starting"
+          ? "Opening the secure window…"
+          : stage === "open"
+            ? "Finish paying in the Razorpay window…"
+            : stage === "confirming"
+              ? "Confirming your payment…"
+              : `Pay ${total} securely`}
+      </button>
+      {offline || error ? (
+        <button type="button" className="dash-link online-pay__alt" onClick={onFallback}>
+          Pay by UPI or bank transfer instead
+        </button>
+      ) : null}
+      <p className="online-pay__note">Payments are processed by Razorpay. Zinwe never sees your card or bank details.</p>
+    </div>
+  );
+}

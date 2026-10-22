@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from "react";
-import { getUpiQr, type Payment, type PaymentInstructions } from "../../lib/api";
+import { getUpiQr, type OnlineResult, type Payment, type PaymentInstructions } from "../../lib/api";
 import { defaultWay, methodForWay, payWayOptions, type PayWay } from "../payWays";
+import { OnlinePay } from "./OnlinePay";
 import { PaymentWays } from "./PaymentWays";
 import { ReceiptForm } from "./ReceiptForm";
 
@@ -29,8 +30,10 @@ export function PayPanel({
   /** The currency of what's due (decides which ways show, and in what order). */
   currency?: string;
 }): ReactElement {
-  const [picked, setWay] = useState<PayWay>(() => defaultWay(instructions));
-  const ways = payWayOptions(instructions, currency);
+  const [picked, setWay] = useState<PayWay>(() => defaultWay(instructions, true));
+  // Paid online but not applied yet ("confirming" / "review"): say so instead of offering to pay again.
+  const [pending, setPending] = useState<OnlineResult | null>(null);
+  const ways = payWayOptions(instructions, currency, true);
   const way = ways.some((w) => w.key === picked) ? picked : ways[0].key;
   const payee = instructions.payee_name || "SKYTECHNO";
   return (
@@ -60,15 +63,36 @@ export function PayPanel({
           reference={reference}
           currency={currency}
           loadQr={() => getUpiQr(upgradePlan)}
+          online={
+            pending ? (
+              <p className="online-pay__pending" role="status">
+                {pending.detail}
+              </p>
+            ) : (
+              <OnlinePay
+                total={total}
+                upgradePlan={upgradePlan}
+                onPaid={async (payment) => {
+                  if (payment) await onSubmitted(payment);
+                }}
+                onPending={(result) => setPending(result)}
+                onFallback={() => setWay("upi")}
+              />
+            )
+          }
         />
       </div>
-      <hr className="pay-panel__rule" />
-      <ReceiptForm
-        step="2"
-        method={methodForWay(way, instructions)}
-        upgradePlan={upgradePlan}
-        onSubmitted={onSubmitted}
-      />
+      {way === "online" ? null : (
+        <>
+          <hr className="pay-panel__rule" />
+          <ReceiptForm
+            step="2"
+            method={methodForWay(way, instructions)}
+            upgradePlan={upgradePlan}
+            onSubmitted={onSubmitted}
+          />
+        </>
+      )}
     </section>
   );
 }

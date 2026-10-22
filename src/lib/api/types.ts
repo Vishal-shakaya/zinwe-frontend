@@ -127,7 +127,8 @@ export interface Plan {
   gst_charged?: boolean;
 }
 
-export type PaymentMethod = "upi" | "bank_transfer" | "paypal" | "skydo" | "cheque" | "cash";
+/** "razorpay": paid online and approved automatically (no receipt). */
+export type PaymentMethod = "upi" | "bank_transfer" | "paypal" | "skydo" | "cheque" | "cash" | "razorpay";
 export type PaymentStatus = "submitted" | "verified" | "rejected";
 
 export interface Payment {
@@ -204,6 +205,8 @@ export interface PaymentInstructions {
   payment_link?: string;
   /** The `upi://pay?...` link with the exact amount (a "Pay in a UPI app" button on phones); "" = none. */
   upi_uri?: string;
+  /** Online payment (Razorpay) for rupee customers; null / missing = only the manual ways. */
+  online?: { provider: "razorpay"; key_id: string } | null;
 }
 
 /** GET subscription/upgrade/<plan_code>/: what an upgrade from the active plan costs and covers. */

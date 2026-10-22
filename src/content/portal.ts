@@ -18,6 +18,7 @@ export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
   skydo: "Skydo",
   cheque: "Cheque",
   cash: "Cash",
+  razorpay: "Online (Razorpay)",
 };
 
 export const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus, string> = {

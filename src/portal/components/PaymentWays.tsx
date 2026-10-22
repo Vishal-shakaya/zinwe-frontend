@@ -107,6 +107,7 @@ export function PayWayDetails({
   way,
   reference,
   loadQr = () => getUpiQr(),
+  online,
 }: {
   instructions: PaymentInstructions;
   /** The formatted amount due, e.g. "₹971". */
@@ -116,6 +117,8 @@ export function PayWayDetails({
   reference?: string;
   /** Where the QR comes from; default: what's due on the signed-in owner's plan. */
   loadQr?: LoadUpiQr;
+  /** The "Pay online" panel (OnlinePay), shown on the online way. */
+  online?: ReactNode;
 }): ReactElement {
   const i = instructions;
   const payee = i.payee_name || "SKYTECHNO";
@@ -126,7 +129,9 @@ export function PayWayDetails({
   const upiApp = isTouchDevice() ? safeUpiUri(i.upi_uri) : null;
 
   let panel: ReactNode;
-  if (way === "upi") {
+  if (way === "online") {
+    panel = online ?? null;
+  } else if (way === "upi") {
     panel = i.upi_id ? (
       <>
         {upiApp ? (
@@ -234,6 +239,7 @@ export function PaymentWays({
   reference,
   currency,
   loadQr,
+  online,
 }: {
   instructions: PaymentInstructions;
   /** The formatted amount due, e.g. "₹971". */
@@ -249,9 +255,11 @@ export function PaymentWays({
   currency?: string;
   /** Where the UPI QR comes from (see PayWayDetails). */
   loadQr?: LoadUpiQr;
+  /** Offer "Pay online" (Razorpay) first, with this panel; omitted = only the manual ways (e.g. a shared quote). */
+  online?: ReactNode;
 }): ReactElement {
   const i = instructions;
-  const ways = payWayOptions(instructions, currency);
+  const ways = payWayOptions(instructions, currency, Boolean(online));
   const tabs = useRef<Array<HTMLButtonElement | null>>([]);
   const current = ways.some((w) => w.key === way) ? way : ways[0].key;
 
@@ -308,7 +316,14 @@ export function PaymentWays({
         aria-labelledby={ways.length > 1 ? `${idPrefix}-tab-${current}` : undefined}
         tabIndex={ways.length > 1 ? 0 : undefined}
       >
-        <PayWayDetails instructions={instructions} total={total} way={current} reference={reference} loadQr={loadQr} />
+        <PayWayDetails
+          instructions={instructions}
+          total={total}
+          way={current}
+          reference={reference}
+          loadQr={loadQr}
+          online={online}
+        />
       </div>
       {showNote && i.note ? <p className="dash-note ways__note">{i.note}</p> : null}
     </div>

@@ -3033,3 +3033,62 @@
 .qpage__closed {
   border-left: 4px solid var(--orange-strong);
 }
+
+/* ---------- Pay online (Razorpay), with the manual ways as the fallback ---------- */
+
+.online-pay {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.online-pay__ways {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.online-pay__ways li {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.online-pay__lede {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+}
+
+.online-pay__go {
+  gap: 8px;
+}
+
+.online-pay__go .dash-ico {
+  width: 16px;
+  height: 16px;
+}
+
+.online-pay__alt {
+  align-self: flex-start;
+}
+
+.online-pay__note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+
+.online-pay__pending {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--orange-tint, #fff1e6);
+  color: var(--ink);
+}
