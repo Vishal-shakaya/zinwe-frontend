@@ -24,6 +24,7 @@ import { FormAlert } from "../../portal/components/FormAlert";
 import { CHAT_READ_EVENT } from "../features/chatEvents";
 import { formatRelative, useNow } from "../time";
 import { DashIcon } from "./DashIcon";
+import { Linkified } from "./Linkified";
 import { TaggedComposer } from "./TaggedComposer";
 
 const MESSAGE_FIELDS: readonly MessageField[] = ["title", "body", "severity"];
@@ -154,7 +155,7 @@ export function MemberChatThread({
           {m.sender === "owner" && m.title && !(m.body && m.body.startsWith(m.title.replace(/…$/, ""))) ? (
             <b className="team-chat__title">{m.title}</b>
           ) : null}
-          {m.body ? <span className="team-chat__body">{m.body}</span> : m.title ? null : <span className="team-chat__body">—</span>}
+          {m.body ? <span className="team-chat__body"><Linkified text={m.body} /></span> : m.title ? null : <span className="team-chat__body">—</span>}
           <time className="team-chat__time">
             {m.sender === "owner" ? "You" : firstName} · {formatRelative(m.created_at, now, "just now")}
             {m.sender === "owner" && m.channel ? CHANNEL_NOTE[m.channel] : ""}

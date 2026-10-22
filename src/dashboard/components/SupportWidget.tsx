@@ -16,6 +16,7 @@ import { formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
 import { DashIcon } from "./DashIcon";
 import { Toast } from "./Toast";
+import { Linkified } from "./Linkified";
 
 const CATEGORIES: ReadonlyArray<{ value: SupportCategory; label: string }> = [
   { value: "question", label: "A question" },
@@ -317,7 +318,7 @@ function Thread({ id, onChanged }: { id: number; onChanged: () => void }): React
       <div className="sup__msgs" role="log" aria-label="Conversation">
         {t.messages.map((m) => (
           <div key={m.id} className={cx("sup__msg", m.sender === "owner" ? "sup__msg--out" : "sup__msg--in")}>
-            <span className="sup__msg-body">{m.body}</span>
+            <span className="sup__msg-body"><Linkified text={m.body} /></span>
             <small>
               {m.sender === "owner" ? "You" : m.author_name} · {formatRelative(m.created_at, now, "just now")}
             </small>
