@@ -1,0 +1,84 @@
+/* What's new: release notes on the website (/whats-new) and in the dashboard (FR-21). */
+
+.rn-wrap .rn-list,
+.rn-wrap .rn-empty {
+  max-width: 760px;
+}
+
+.rn-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.rn-note + .rn-note {
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+}
+
+.rn-note__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--mute);
+}
+
+.rn-note__version {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--orange-tint);
+  color: var(--orange-ink);
+  font-weight: 600;
+}
+
+.rn-note__title {
+  margin: 10px 0 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.rn-note__summary {
+  margin: 8px 0 0;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+}
+
+.rn-note__body {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.rn-note__body h3 {
+  margin: 20px 0 6px;
+  font-size: 1rem;
+}
+
+.rn-note__body p,
+.rn-note__body ul {
+  margin: 8px 0;
+}
+
+.rn-note__body ul {
+  padding-left: 20px;
+}
+
+.rn-note__body li + li {
+  margin-top: 4px;
+}
+
+.rn-empty {
+  color: var(--mute);
+}
+
+.rn-dash {
+  max-width: 820px;
+}
+
+.rn-dash .rn-note__title {
+  font-size: 1.25rem;
+}

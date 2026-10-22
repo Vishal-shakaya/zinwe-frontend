@@ -119,6 +119,10 @@ export function AccountMenu({
             <DashIcon name="book" />
             <span>How to use</span>
           </Link>
+          <Link role="menuitem" className="acct__item" to="/app/whats-new" onClick={close}>
+            <DashIcon name="bell" />
+            <span>What's new</span>
+          </Link>
           <button
             type="button"
             role="menuitem"

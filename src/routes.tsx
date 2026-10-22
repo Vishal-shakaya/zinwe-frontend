@@ -11,6 +11,8 @@ import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const LegalPage = lazyPage(() => import("./pages/LegalPage"));
+const WhatsNewPage = lazyPage(() => import("./pages/WhatsNewPage"));
+const WhatsNewDashPage = lazyPage(() => import("./dashboard/pages/WhatsNewDashPage"));
 const BlogPage = lazyPage(() => import("./pages/BlogPage"));
 const ArticlePage = lazyPage(() => import("./pages/ArticlePage"));
 const SeriesHubPage = lazyPage(() => import("./pages/SeriesHubPage"));
@@ -69,7 +71,7 @@ function ChunkFallback(): ReactElement {
 
 /**
  * Site map (contract §5):
- * - marketing (shared Layout): /  /plans  /download  /early-access  /contact  /quote/:token (shared quote), and the 404
+ * - marketing (shared Layout): /  /plans  /download  /early-access  /contact  /whats-new  /quote/:token (shared quote), and the 404
  * - blog: /blog  /blog/:slug  /blog/series (members-only series)  /blog/series/:slug  /blog/series/:slug/:episode
  *   /blog/guides (free e-guides)  /blog/guides/:slug
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
@@ -95,6 +97,7 @@ export function AppRoutes(): ReactElement {
           <Route path="download" element={<DownloadPage />} />
           <Route path="early-access" element={<EarlyAccessPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="whats-new" element={<WhatsNewPage />} />
           <Route path="blog" element={<BlogPage />} />
           {/* Members-only newsletter series (THE LAST FILE): the opening is public, the rest for subscribers. */}
           <Route path="blog/series" element={<SeriesHubPage />} />
@@ -152,6 +155,7 @@ export function AppRoutes(): ReactElement {
               <Route path="alerts" element={<AlertsPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="reports" element={<ReportsPage />} />
+              <Route path="whats-new" element={<WhatsNewDashPage />} />
               <Route path="settings" element={<SettingsLayout />}>
                 <Route index element={<Navigate to="company" replace />} />
                 <Route path="company" element={<CompanyPage />} />

@@ -149,6 +149,15 @@ const PAGES: readonly SeoPage[] = [
     sitemap: true,
   },
   {
+    path: "/whats-new",
+    title: "What's new in Zinwe | release notes",
+    description:
+      "What changed in each Zinwe release: the fixes and the new things you can do, in plain words.",
+    h1: "What's new in Zinwe.",
+    intro: ["What we fixed and what you can do now, release by release."],
+    sitemap: true,
+  },
+  {
     path: "/blog",
     title: "Data protection guides for small businesses | Zinwe blog",
     description:

@@ -166,3 +166,18 @@ export function getPublicQuote(token: string, signal?: AbortSignal): Promise<Sha
 export function publicQuotePdfUrl(token: string): string {
   return `${API_BASE}/api/auth/quotes/${encodeURIComponent(token)}/pdf/`;
 }
+
+/** A published release note (FR-21). `body` is plain text: "## " heading, "- " bullet. */
+export interface ReleaseNote {
+  id: number;
+  version: string;
+  title: string;
+  summary: string;
+  body: string;
+  published_at: string;
+}
+
+/** GET whats-new/ — published release notes, newest first (no sign-in needed). */
+export function getReleaseNotes(signal?: AbortSignal): Promise<ReleaseNote[]> {
+  return authedRequest<ReleaseNote[]>("/api/auth/whats-new/", { signal, anonymous: true });
+}
