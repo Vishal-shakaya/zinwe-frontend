@@ -283,7 +283,8 @@ export type PlanModule =
   | "work_time"
   | "app_usage"
   | "team_chat"
-  | "alert_to_employee";
+  | "alert_to_employee"
+  | "reports_pro";
 
 /** GET me/ `entitlements`: what the owner's plan switches on right now, and the PC limit. */
 export interface Entitlements {

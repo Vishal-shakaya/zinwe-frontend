@@ -71,3 +71,11 @@ export function axisDuration(seconds: number): string {
   const halves = Math.round(total / 1800);
   return halves % 2 ? `${(halves - 1) / 2} h 30 min` : `${halves / 2} h`;
 }
+
+/** A moment as "21 Oct, 9:05 AM" in the viewer's time zone; "" when missing. */
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+}

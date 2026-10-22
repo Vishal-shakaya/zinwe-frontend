@@ -7822,6 +7822,296 @@ button.wd-row:hover {
   box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.18);
 }
 
+/* ---------- Reports: per person, email, schedules (FR-22) ---------- */
+
+.rpt-views {
+  margin-bottom: 16px;
+}
+
+button.dash-tabs__link {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+button.dash-tabs__link.active {
+  border-bottom-color: var(--orange-strong);
+}
+
+.rpt-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.rpt-controls .rpt-period {
+  margin-bottom: 0;
+}
+
+.rpt-who select {
+  min-width: 180px;
+}
+
+.rpt-person {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 6px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 12px);
+  background: var(--white);
+}
+
+.rpt-person__who {
+  flex: 1;
+  min-width: 160px;
+}
+
+.rpt-person__who h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.rpt-person__who .dash-note {
+  margin: 0;
+}
+
+.rpt-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rpt-name .dash-ico {
+  width: 14px;
+  height: 14px;
+  color: var(--mute);
+  transform: rotate(-90deg);
+  transition: transform 0.2s, color 0.2s;
+}
+
+.rpt-name:hover {
+  color: var(--orange-text);
+}
+
+.rpt-name:hover .dash-ico {
+  color: var(--orange-text);
+  transform: rotate(-90deg) translateY(2px);
+}
+
+.rpt-name:focus-visible {
+  outline: 2px solid var(--orange-strong);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.rpt-table small {
+  color: var(--mute);
+  font-weight: 400;
+}
+
+.rpt-table--sent th,
+.rpt-table--sent td {
+  text-align: left;
+  white-space: normal;
+  vertical-align: top;
+}
+
+.rpt-table--sent small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+}
+
+.rpt-recips {
+  max-width: 320px;
+  word-break: break-word;
+}
+
+.rpt-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.rpt-status--sent {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.rpt-status--partial,
+.rpt-status--skipped {
+  background: #fff7e6;
+  color: #b45309;
+}
+
+.rpt-status--failed {
+  background: #fdecec;
+  color: #c62828;
+}
+
+.rpt-recipients {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+.rpt-recipients legend,
+.rpt-freq legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.rpt-check small {
+  display: block;
+  color: var(--mute);
+  font-size: 0.82rem;
+}
+
+.rpt-freq {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+
+.rpt-freq .dash-note {
+  margin: 6px 0 0;
+}
+
+.rpt-sched-form .field select,
+.rpt-sched-form .field input,
+.rpt-recipients .field input {
+  width: 100%;
+}
+
+.rpt-schedule-link {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.rpt-sched-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rpt-sched {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 12px);
+  background: var(--white);
+}
+
+.rpt-sched.is-paused {
+  background: var(--paper, #f7f7f4);
+}
+
+.rpt-sched__main {
+  flex: 1;
+  min-width: 240px;
+}
+
+.rpt-sched__main p {
+  margin: 0 0 4px;
+}
+
+.rpt-sched__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.rpt-sched__title .dash-ico,
+.rpt-sched__to .dash-ico {
+  width: 16px;
+  height: 16px;
+  color: var(--orange-text);
+}
+
+.rpt-sched__when {
+  color: var(--ink-2);
+}
+
+.rpt-sched__to {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.rpt-sched__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.rpt-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.rpt-badge--warn {
+  background: #fff7e6;
+  color: #b45309;
+}
+
+.rpt-danger {
+  color: #c62828;
+}
+
+@media (max-width: 640px) {
+  .rpt-controls {
+    align-items: stretch;
+  }
+
+  .rpt-who,
+  .rpt-who select {
+    width: 100%;
+  }
+
+  .rpt-schedule-link {
+    margin-left: 0;
+  }
+}
+
 /* ---------- Online protection: internet usage (FR-18) ---------- */
 
 .iu__bar {

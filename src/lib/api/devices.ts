@@ -586,7 +586,7 @@ export function saveNotificationPrefs(prefs: Partial<NotificationPrefs>): Promis
   return authedRequest<NotificationPrefs>("/api/devices/notifications/settings/", { method: "PATCH", body: prefs });
 }
 
-/** One person's row in a report (FR-17). Seconds are whole seconds. */
+/** One person's row in a report (FR-17, FR-22). Seconds are whole seconds. */
 export interface ReportPerson {
   member_id: number | null;
   name: string;
@@ -598,6 +598,44 @@ export interface ReportPerson {
   /** Breaks and log-outs still waiting for the owner's OK. */
   to_review: number;
   alerts: number;
+  /** Time an app was in front while the PC was in use (Zinwe app 1.1.1+). */
+  active_seconds: number;
+  /** Internet data sent and received. */
+  data_bytes: number;
+  /** Usual (average) first log-in and last log-out, in minutes after midnight; null when none. */
+  first_in: number | null;
+  last_out: number | null;
+}
+
+/** One day of the period: the team's (or the person's) totals that day. */
+export interface ReportDay {
+  date: string;
+  worked_seconds: number;
+  break_seconds: number;
+  breaks: number;
+  alerts: number;
+  active_seconds: number;
+  data_bytes: number;
+  /** How many people worked that day. */
+  people: number;
+  /** One person's report only: when they started and finished (minutes after midnight). */
+  first_in: number | null;
+  last_out: number | null;
+}
+
+export interface ReportTotals {
+  worked_seconds: number;
+  break_seconds: number;
+  breaks: number;
+  logouts: number;
+  to_review: number;
+  alerts: number;
+  active_seconds: number;
+  data_bytes: number;
+  alerts_all: number;
+  people_worked: number;
+  /** Days worked, added up over everyone (for "average a person-day"). */
+  person_days: number;
 }
 
 export interface TeamReport {
@@ -605,26 +643,125 @@ export interface TeamReport {
   from: string;
   to: string;
   days: number;
+  /** Set when the report is about one person. */
+  member: { id: number; name: string; email: string; role: string } | null;
   people: ReportPerson[];
-  /** Active members with nothing in the period. */
+  /** Active members with nothing in the period (team report only). */
   no_activity: string[];
-  totals: Omit<ReportPerson, "member_id" | "name" | "days_worked"> & { alerts_all: number };
+  totals: ReportTotals;
+  daily: ReportDay[];
   top_apps: MetricTopItem[];
   top_sites: MetricTopItem[];
+  /** Sites that used the most internet data (bytes). */
+  top_data: (MetricTopItem & { bytes: number })[];
+  /** One person's report: each day they have something recorded. */
+  person_days?: ReportDay[];
 }
 
-/** GET reports/?from=&to= — the team's report for that period (both days included). */
-export function getReport(from: string, to: string, signal?: AbortSignal): Promise<TeamReport> {
-  return authedRequest<TeamReport>(
-    `/api/devices/reports/?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-    { signal },
-  );
+function reportQuery(from: string, to: string, member?: number | null): string {
+  const q = `from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+  return member ? `${q}&member=${member}` : q;
 }
 
-/** Download the same report as a CSV file (opens in Excel / Google Sheets). */
-export function downloadReport(from: string, to: string): Promise<void> {
+/** GET reports/?from=&to=[&member=] — the report for that period (both days included), team or one person. */
+export function getReport(from: string, to: string, signal?: AbortSignal, member?: number | null): Promise<TeamReport> {
+  return authedRequest<TeamReport>(`/api/devices/reports/?${reportQuery(from, to, member)}`, { signal });
+}
+
+/** Download the same report as CSV (Excel / Google Sheets) or PDF (reports_pro). */
+export function downloadReport(from: string, to: string, member?: number | null, format: "csv" | "pdf" = "csv"): Promise<void> {
   return authedDownload(
-    `/api/devices/reports/download/?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-    `Zinwe-report-${from}-to-${to}.csv`,
+    `/api/devices/reports/download/?${reportQuery(from, to, member)}&file=${format}`,
+    `Zinwe-report-${from}-to-${to}.${format}`,
   );
+}
+
+export type ReportDeliveryStatus = "sent" | "partial" | "failed" | "skipped";
+
+/** One report that went out by email (the "Sent" list). */
+export interface ReportDelivery {
+  id: number;
+  schedule: number | null;
+  member_name: string | null;
+  period_from: string;
+  period_to: string;
+  recipients: string[];
+  status: ReportDeliveryStatus;
+  detail: string;
+  created_at: string;
+}
+
+export interface ReportSendInput {
+  from: string;
+  to: string;
+  member?: number | null;
+  send_to_owner: boolean;
+  /** Each person gets only their own report. */
+  send_to_members: boolean;
+  emails: string[];
+  include_csv: boolean;
+}
+
+/** POST reports/send/ — email the report now. */
+export function sendReport(input: ReportSendInput): Promise<ReportDelivery> {
+  return authedRequest<ReportDelivery>("/api/devices/reports/send/", { method: "POST", body: input });
+}
+
+export type ReportFrequency = "daily" | "weekly" | "monthly" | "custom";
+
+export interface ReportSchedule {
+  id: number;
+  /** Null = the whole team. */
+  member: number | null;
+  member_name: string | null;
+  frequency: ReportFrequency;
+  /** Weekly: 0 = Monday. */
+  weekday: number;
+  /** Monthly: 1-28. */
+  month_day: number;
+  /** Custom: every N days (2-90). */
+  every_days: number;
+  /** Local hour, 0-23. */
+  send_hour: number;
+  send_to_owner: boolean;
+  send_to_members: boolean;
+  extra_emails: string[];
+  include_csv: boolean;
+  is_active: boolean;
+  /** "Every Monday around 9 AM, for the week before". */
+  description: string;
+  next_run_at: string | null;
+  last_sent_at: string | null;
+  last_status: string;
+  created_at: string;
+}
+
+export type ReportScheduleInput = Omit<
+  ReportSchedule,
+  "id" | "member_name" | "description" | "next_run_at" | "last_sent_at" | "last_status" | "created_at"
+>;
+
+export function getReportSchedules(signal?: AbortSignal): Promise<ReportSchedule[]> {
+  return authedRequest<ReportSchedule[]>("/api/devices/reports/schedules/", { signal });
+}
+
+export function createReportSchedule(input: ReportScheduleInput): Promise<ReportSchedule> {
+  return authedRequest<ReportSchedule>("/api/devices/reports/schedules/", { method: "POST", body: input });
+}
+
+export function updateReportSchedule(id: number, input: Partial<ReportScheduleInput>): Promise<ReportSchedule> {
+  return authedRequest<ReportSchedule>(`/api/devices/reports/schedules/${id}/`, { method: "PATCH", body: input });
+}
+
+export function deleteReportSchedule(id: number): Promise<void> {
+  return authedRequest<void>(`/api/devices/reports/schedules/${id}/`, { method: "DELETE" });
+}
+
+/** Send a schedule's latest period now (to try it). */
+export function sendReportScheduleNow(id: number): Promise<ReportDelivery> {
+  return authedRequest<ReportDelivery>(`/api/devices/reports/schedules/${id}/send-now/`, { method: "POST", body: {} });
+}
+
+export function getReportDeliveries(signal?: AbortSignal): Promise<ReportDelivery[]> {
+  return authedRequest<ReportDelivery[]>("/api/devices/reports/deliveries/", { signal });
 }

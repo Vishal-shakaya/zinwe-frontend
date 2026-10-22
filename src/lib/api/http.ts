@@ -195,7 +195,7 @@ export function errorMessage(error: unknown): string {
 }
 
 export interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "PATCH";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** JSON body. */
   body?: unknown;
   /** Multipart body; the browser sets the Content-Type with its boundary. */

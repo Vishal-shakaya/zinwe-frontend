@@ -35,6 +35,7 @@ export const MODULE_TITLES: Record<PlanModule, string> = {
   app_usage: "App usage",
   team_chat: "Chat with your team",
   alert_to_employee: "Email an alert to the employee",
+  reports_pro: "PDF, emailed and scheduled reports",
 };
 
 export function useEntitlements(): EntitlementsApi {
