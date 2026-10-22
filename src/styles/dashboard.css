@@ -7912,3 +7912,9 @@ button.wd-row:hover {
   font-size: 0.8rem;
   cursor: help;
 }
+
+/* One person's internet data on their Team & devices tile (MemberData), under active time. */
+.md { margin-top: 10px; }
+.md__line { font-size: 13px; color: var(--mute, #6e6e6b); }
+.md__line b { color: var(--ink, #0d0d0e); font-weight: 600; }
+.md__line a { font-weight: 600; }

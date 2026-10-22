@@ -24,6 +24,8 @@ import { InternetUsage } from "../components/InternetUsage";
 import { useEntitlements } from "../features/entitlements";
 
 const SPECS: SeriesSpec[] = [{ category: "web.domain", field: "count", label: "Websites visited" }];
+// Internet data used over time (FR-04): bytes sent + received by every app on the PCs.
+const DATA_SPECS: SeriesSpec[] = [{ category: "web.data.app", field: "bytes", label: "Data used" }];
 const TYPES = FEATURE_EVENT_TYPES.internet;
 
 /** Plan enforcement: the whole page is web; without it, a lock card shows instead. */
@@ -86,6 +88,7 @@ function InternetPageContent(): ReactElement {
 
   const alerts = filterEvents(events.data, TYPES);
   const rows = metrics.data ? toChartRows(metrics.data.series, SPECS, days) : [];
+  const dataRows = metrics.data ? toChartRows(metrics.data.series, DATA_SPECS, days) : [];
   const websites = metrics.data ? totalFor(metrics.data.categories, ["web.domain"], "total_count") : 0;
 
   return (
@@ -125,7 +128,7 @@ function InternetPageContent(): ReactElement {
             emptyHint={
               scope.person
                 ? `No website activity from ${scope.person.name} in this range.`
-                : "No website activity recorded yet. It appears here once a PC with website protection on has been used."
+                : "No website visits recorded yet. They appear once your PCs run the latest Zinwe app (each member can update from the Zinwe window)."
             }
           />
         )}
@@ -136,8 +139,20 @@ function InternetPageContent(): ReactElement {
           <h2 className="dash-card__title" id="net-data-title">
             Internet data used
           </h2>
-          <p className="dash-card__sub">Which apps and websites use your internet · {scope.label}</p>
+          <p className="dash-card__sub">How much, when, and which apps and websites use it · {scope.label}</p>
         </div>
+        <UsageChart
+          rows={dataRows}
+          specs={DATA_SPECS}
+          format={(v) => formatBytes(v)}
+          caption="Internet data used over time"
+          loading={metrics.data === undefined}
+          emptyHint={
+            scope.person
+              ? `No internet data recorded for ${scope.person.name} in this range.`
+              : "No internet data recorded yet. It appears once your PCs run the latest Zinwe app."
+          }
+        />
         {dataApps.error || dataSites.error ? (
           <ErrorState
             message={errorMessage(dataApps.error ?? dataSites.error)}

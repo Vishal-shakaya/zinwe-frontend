@@ -60,7 +60,7 @@ function MemberUsageChart({ memberId, connected }: { memberId: number; connected
       {metrics.data === undefined ? (
         <div className="mu__bars mu__bars--skel" aria-hidden="true" />
       ) : total === 0 ? (
-        <span className="mu__none">No activity recorded this week yet.</span>
+        <span className="mu__none">No activity recorded this week yet. Needs the latest Zinwe app on their PC.</span>
       ) : (
         <>
           <ol className="mu__bars" aria-hidden="true">

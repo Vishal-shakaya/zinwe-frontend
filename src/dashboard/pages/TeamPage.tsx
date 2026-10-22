@@ -33,6 +33,7 @@ import { buildInviteText } from "../features/invite";
 import { copyText } from "../../lib/clipboard";
 import { DashIcon } from "../components/DashIcon";
 import { MemberChatThread, SendMessageForm } from "../components/MemberChat";
+import { MemberData } from "../components/MemberData";
 import { MemberUsage } from "../components/MemberUsage";
 import { Modal } from "../components/Modal";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
@@ -724,6 +725,7 @@ function MemberTile({
       </dl>
 
       <MemberUsage memberId={member.id} connected={Boolean(pc)} />
+      <MemberData memberId={member.id} connected={Boolean(pc)} />
 
       <footer className="team-tile__actions">
         {/* FR-11: straight to this person's day on the Activity page (was "Share on text"). */}
