@@ -98,6 +98,8 @@ const PRIVACY: LegalDoc = {
   slug: "privacy",
   title: "Privacy Policy",
   summary: "What we collect, how we use and share it, how long we keep it, and your rights.",
+  // v1.1: names website time and internet data used (the PC's consent notice asks members again).
+  updated: "2026-10-22",
   sections: [
     {
       heading: "What We Collect",
@@ -106,7 +108,7 @@ const PRIVACY: LegalDoc = {
         {
           list: [
             "Customer Account Data — information about the business that registers for Zinwe: name, business name, email, phone, billing details, and support communications. We're the data controller/fiduciary for this.",
-            "Monitored User Data — activity data about your employees, collected through monitoring features you configure: file transfer events, application usage, email metadata, and LAN activity, limited to what you've enabled, plus timestamped consent records. Here, you (the Customer) are the controller/fiduciary; we're the data processor providing the technical infrastructure. If an employee wants to exercise a data right, direct them to you, their employer — not us.",
+            "Monitored User Data — activity data about your employees, collected through monitoring features you configure: file transfer events, application usage, website names and time spent on them, how much internet data each app and website uses, work hours and breaks, email metadata, and LAN activity, limited to what you've enabled, plus timestamped consent records. Here, you (the Customer) are the controller/fiduciary; we're the data processor providing the technical infrastructure. If an employee wants to exercise a data right, direct them to you, their employer — not us.",
           ],
         },
         "From our website, we also collect standard technical data (IP address, browser type, pages visited) via cookies — see our Cookie Policy.",

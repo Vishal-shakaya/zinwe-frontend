@@ -20,6 +20,8 @@ import { useResource } from "../useResource";
 import { StatTiles } from "../components/StatTiles";
 import { appSource, mergeBySource, siteSource } from "../features/usageSources";
 import { formatBytes } from "../features/metrics";
+import { InternetUsage } from "../components/InternetUsage";
+import { useEntitlements } from "../features/entitlements";
 
 const SPECS: SeriesSpec[] = [{ category: "web.domain", field: "count", label: "Websites visited" }];
 const TYPES = FEATURE_EVENT_TYPES.internet;
@@ -54,23 +56,33 @@ function InternetPageContent(): ReactElement {
   const { policy, commit } = usePolicy();
 
   const loadSites = useCallback(
-    (s: AbortSignal) => getTopMetrics({ category: "web.domain", days, member: member ?? undefined, limit: 10 }, s),
+    (s: AbortSignal) => getTopMetrics({ category: "web.domain", days, member: member ?? undefined, limit: 100 }, s),
     [days, member],
   );
   const sites = useResource(loadSites, { resetKey: `${days}:${member ?? "all"}` });
 
   // Internet data used (FR-04): by app (everything) and by website (when the PC resolved the site's name).
   const loadDataApps = useCallback(
-    (s: AbortSignal) => getTopMetrics({ category: "web.data.app", days, member: member ?? undefined, limit: 50 }, s),
+    (s: AbortSignal) => getTopMetrics({ category: "web.data.app", days, member: member ?? undefined, limit: 100 }, s),
     [days, member],
   );
   const loadDataSites = useCallback(
-    (s: AbortSignal) => getTopMetrics({ category: "web.data.site", days, member: member ?? undefined, limit: 50 }, s),
+    (s: AbortSignal) => getTopMetrics({ category: "web.data.site", days, member: member ?? undefined, limit: 100 }, s),
     [days, member],
   );
   const dataApps = useResource(loadDataApps, { resetKey: `${days}:${member ?? "all"}` });
   const dataSites = useResource(loadDataSites, { resetKey: `${days}:${member ?? "all"}` });
   const dataUsed = metrics.data ? totalFor(metrics.data.categories, ["web.data.app"], "total_bytes") : 0;
+  // FR-18: time in each app, next to its data used (only on plans with app usage).
+  const appsOn = useEntitlements().has("app_usage");
+  const loadAppTime = useCallback(
+    (s: AbortSignal) =>
+      appsOn
+        ? getTopMetrics({ category: "app.foreground", days, member: member ?? undefined, limit: 100 }, s)
+        : Promise.resolve({ category: "app.foreground", items: [] }),
+    [appsOn, days, member],
+  );
+  const appTime = useResource(loadAppTime, { resetKey: `${days}:${member ?? "all"}:${appsOn}` });
 
   const alerts = filterEvents(events.data, TYPES);
   const rows = metrics.data ? toChartRows(metrics.data.series, SPECS, days) : [];
@@ -192,25 +204,32 @@ function InternetPageContent(): ReactElement {
       <section className="dash-card" aria-labelledby="net-top-title">
         <div className="dash-card__head">
           <h2 className="dash-card__title" id="net-top-title">
-            Top websites
+            Internet usage
           </h2>
-          <p className="dash-card__sub">Most-visited websites · {scope.label}</p>
+          <p className="dash-card__sub">Every website and app: how long, how often and how much data · {scope.label}</p>
         </div>
-        {sites.error ? (
-          <ErrorState message={errorMessage(sites.error)} onRetry={sites.reload} retrying={sites.pending} />
+        {sites.error || appTime.error ? (
+          <ErrorState
+            message={errorMessage(sites.error ?? appTime.error)}
+            onRetry={() => {
+              sites.reload();
+              appTime.reload();
+            }}
+            retrying={sites.pending || appTime.pending}
+          />
         ) : (
-          <TopUsageTable
-            items={sites.data?.items ?? []}
-            keyLabel="Website"
-            showCount
-            loading={sites.data === undefined}
-            caption="Top websites by time"
-            emptyText="No website activity recorded yet. It appears once a PC with website tracking on has been used in a browser."
+          <InternetUsage
+            siteTime={sites.data?.items ?? []}
+            siteData={dataSites.data?.items ?? []}
+            appTime={appTime.data?.items ?? []}
+            appData={dataApps.data?.items ?? []}
+            loading={sites.data === undefined || appTime.data === undefined}
+            appsOn={appsOn}
           />
         )}
         <p className="dash-note">
-          Counts pages opened in the foreground browser. App usage is under App monitoring. Turn on “Block &amp; watch”
-          to also stop risky sites.
+          Time counts while a website or app is in front. Website names only — never full addresses, page contents or
+          what was typed. Turn on “Block &amp; watch” to also stop risky sites.
         </p>
       </section>
 

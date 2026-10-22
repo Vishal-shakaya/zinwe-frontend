@@ -21,6 +21,7 @@ interface MetricsDisclosureProps {
 const INTERNET_COLLECTED: DiscloseRow[] = [
   { label: "Websites visited", detail: "The domain only (e.g. youtube.com) and time spent — never the full address, page or search terms." },
   { label: "Apps used", detail: "Which app is in the foreground (e.g. chrome, winword) and for how long." },
+  { label: "Internet data used", detail: "How much data each app and website sends and receives — sizes only, never what was in it." },
   { label: "Blocked-site attempts", detail: "When someone opens a site your rules block — the domain and when." },
 ];
 

@@ -7803,3 +7803,47 @@ button.wd-row:hover {
   border-top: 1px solid var(--line);
   font-size: 0.92rem;
 }
+
+.rpt-dates input,
+.iu__search input {
+  padding: 7px 10px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.rpt-dates input:focus,
+.iu__search input:focus {
+  outline: 0;
+  border-color: var(--orange-strong);
+  box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.18);
+}
+
+/* ---------- Online protection: internet usage (FR-18) ---------- */
+
+.iu__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.iu__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.iu__search input {
+  width: min(260px, 100%);
+}
+
+.iu__list {
+  max-height: 520px;
+  overflow-y: auto;
+}
