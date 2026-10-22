@@ -22,6 +22,16 @@ export interface BreakSpan {
   seconds: number;
 }
 
+/** A log-out, approved or questioned like a break (FR-16). */
+export interface LogoutSpan {
+  id: number;
+  at: string;
+  reason: string;
+  note: string;
+  approval: "" | "pending" | "approved" | "denied";
+  decisionNote: string;
+}
+
 export interface TimelineItem {
   at: string;
   kind: "start" | "break" | "back" | "end";
@@ -38,6 +48,8 @@ export interface PersonDay {
   startedAt: string | null;
   endedAt: string | null;
   breaks: BreakSpan[];
+  /** Every log-out that day (they may log in again), for approval. */
+  logouts: LogoutSpan[];
   breakSeconds: number;
   workedSeconds: number;
   /** Past day the member never logged out of: the last stretch couldn't be counted. */
@@ -70,6 +82,7 @@ export function summarizeDay(entries: WorkLogEntry[], isToday: boolean, now: num
       startedAt: null,
       endedAt: null,
       breaks: [],
+      logouts: [],
       breakSeconds: 0,
       workedSeconds: 0,
       openEnded: false,
@@ -103,6 +116,14 @@ export function summarizeDay(entries: WorkLogEntry[], isToday: boolean, now: num
         day.timeline.push({ at: entry.at, kind: "break", reason: entry.reason });
       } else {
         day.endedAt = entry.at;
+        day.logouts.push({
+          id: entry.id,
+          at: entry.at,
+          reason: entry.reason ?? "",
+          note: entry.note ?? "",
+          approval: entry.approval ?? "",
+          decisionNote: entry.decision_note ?? "",
+        });
         // Logging out carries the reason + note the member gave in the widget (older agents send none).
         day.timeline.push({ at: entry.at, kind: "end", reason: entry.reason ?? "", note: entry.note ?? "" });
       }

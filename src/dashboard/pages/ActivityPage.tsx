@@ -92,7 +92,7 @@ function ActivityPageContent(): ReactElement {
   const onBreakNow = isToday ? people.filter((p) => p.current === "on_break").length : 0;
   const breaks = people.reduce((sum, p) => sum + p.breaks.length, 0);
   const finished = people.filter((p) => p.endedAt).length;
-  const toReview = people.reduce((sum, p) => sum + p.breaks.filter((b) => b.approval === "pending").length, 0);
+  const toReview = people.reduce((sum, p) => sum + pendingOf(p), 0);
 
   return (
     <>
@@ -172,7 +172,7 @@ function ActivityPageContent(): ReactElement {
           { value: log.data ? String(breaks) : "–", label: breaks === 1 ? "break taken" : "breaks taken" },
           {
             value: log.data ? String(toReview) : "–",
-            label: "breaks to review",
+            label: "to review",
             tone: toReview > 0 ? ("warn" as const) : undefined,
           },
           { value: log.data ? String(finished) : "–", label: "logged out", tone: finished > 0 ? ("good" as const) : undefined },
@@ -263,7 +263,7 @@ function PersonRow({
   /** Opened from this person's Team card: start open and scroll into view. */
   focused?: boolean;
 }): ReactElement {
-  const pending = person.breaks.filter((b) => b.approval === "pending").length;
+  const pending = pendingOf(person);
   const [open, setOpen] = useState(focused);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -297,7 +297,7 @@ function PersonRow({
             <b>
               {person.name}
               {pending > 0 ? (
-                <span className="wd-pending" title="Breaks waiting for your approval">
+                <span className="wd-pending" title="Breaks and log-outs waiting for your OK">
                   {pending} to review
                 </span>
               ) : null}
@@ -340,6 +340,7 @@ function PersonRow({
         <ol className="wd-timeline" aria-label={`${person.name}'s day`}>
           {person.timeline.map((item, i) => {
             const brk = item.kind === "break" ? person.breaks.find((b) => b.start === item.at) : undefined;
+            const out = item.kind === "end" ? person.logouts.find((l) => l.at === item.at) : undefined;
             return (
               <li key={`${item.at}-${i}`} className={`wd-step wd-step--${item.kind}`}>
                 <time dateTime={item.at}>{formatTime(item.at)}</time>
@@ -353,13 +354,21 @@ function PersonRow({
                         <small>{brk.end ? `for ${formatDuration(brk.seconds)}` : `${formatDuration(brk.seconds)} so far`}</small>
                       ) : null}
                       {brk?.note ? <q className="wd-note">{brk.note}</q> : null}
-                      {brk ? <BreakDecision brk={brk} personName={person.name} onDecided={onDecided} /> : null}
+                      {brk ? (
+                        <BreakDecision
+                          brk={brk}
+                          what={brk.reason ? `${brk.reason} break` : "break"}
+                          personName={person.name}
+                          onDecided={onDecided}
+                        />
+                      ) : null}
                     </>
                   ) : null}
-                  {item.kind === "end" && (item.reason || item.note) ? (
+                  {item.kind === "end" ? (
                     <>
                       {item.reason ? <span className="wd-reason">{item.reason}</span> : null}
                       {item.note ? <q className="wd-note">{item.note}</q> : null}
+                      {out ? <BreakDecision brk={out} what="log-out" personName={person.name} onDecided={onDecided} /> : null}
                     </>
                   ) : null}
                 </span>
@@ -372,17 +381,25 @@ function PersonRow({
   );
 }
 
+/** Breaks and log-outs (FR-16) still waiting for the owner's OK. */
+function pendingOf(person: PersonDay): number {
+  return [...person.breaks, ...person.logouts].filter((x) => x.approval === "pending").length;
+}
+
 /**
- * Approve one break, or say it wasn't OK. Both go to the person's Zinwe widget, so each opens a small
- * dialog first: what they'll see, and an optional note ("Lunch was 50 min, please keep it to 30"). Then
- * the row says "Sent to Priya" (J5-03). The owner can change their mind.
+ * Approve one break or log-out (FR-16), or say it wasn't OK. Both go to the person's Zinwe widget, so each
+ * opens a small dialog first: what they'll see, and an optional note ("Lunch was 50 min, please keep it to 30").
+ * Then the row says "Sent to Priya" (J5-03). The owner can change their mind.
  */
 function BreakDecision({
   brk,
+  what,
   personName,
   onDecided,
 }: {
-  brk: BreakSpan;
+  brk: Pick<BreakSpan, "id" | "approval" | "decisionNote">;
+  /** "Lunch break", "break" or "log-out". */
+  what: string;
   personName: string;
   onDecided: () => void;
 }): ReactElement | null {
@@ -393,7 +410,6 @@ function BreakDecision({
   const [editing, setEditing] = useState(false);
   if (!brk.approval) return null;
   const first = personName.trim().split(/\s+/)[0] || personName;
-  const what = brk.reason ? `${brk.reason} break` : "break";
 
   const open = (decision: "approved" | "denied") => {
     setNote("");
