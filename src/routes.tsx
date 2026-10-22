@@ -48,6 +48,7 @@ const CompanyPage = lazyPage(() => import("./dashboard/pages/CompanyPage"));
 const FeedbackPage = lazyPage(() => import("./dashboard/pages/FeedbackPage"));
 const SettingsLayout = lazyPage(() => import("./dashboard/pages/SettingsLayout"));
 const PasswordPage = lazyPage(() => import("./dashboard/pages/PasswordPage"));
+const NotificationsPage = lazyPage(() => import("./dashboard/pages/NotificationsPage"));
 const HowToUsePage = lazyPage(() => import("./dashboard/pages/HowToUsePage"));
 const PoliciesPage = lazyPage(() => import("./dashboard/pages/PoliciesPage"));
 
@@ -73,7 +74,7 @@ function ChunkFallback(): ReactElement {
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
  * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
- *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password}
+ *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password,notifications}
  *   /app/help (How to use) · /app/policies · /app/feedback — from the account menu (bottom of the sidebar); /app/feedback is also the email-link target
  *   /app/setup (all protections in one scroll, not in the sidebar)
  *   Old /app/devices, /app/billing, /app/company and /app/rules redirect, so emails and bookmarks keep working.
@@ -154,6 +155,7 @@ export function AppRoutes(): ReactElement {
                 <Route path="company" element={<CompanyPage />} />
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="password" element={<PasswordPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="*" element={<Navigate to="company" replace />} />
               </Route>
               {/* Account menu pages. The old Help tabs redirect, so bookmarks keep working. */}

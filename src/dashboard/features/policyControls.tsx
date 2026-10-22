@@ -193,7 +193,7 @@ function SaveBar<T extends object>({
   );
 }
 
-function Toggle({
+export function Toggle({
   checked,
   onChange,
   label,

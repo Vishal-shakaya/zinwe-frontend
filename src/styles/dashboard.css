@@ -7653,3 +7653,54 @@ button.wd-row:hover {
   width: 13px;
   height: 13px;
 }
+
+/* ---------- Profile → Notifications (FR-15) ---------- */
+
+.notify-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+}
+
+.notify-card > .btn {
+  align-self: flex-start;
+}
+
+.notify-card__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.notify-card__row .dash-toggle {
+  flex: 1 1 320px;
+}
+
+.notify-card__rule {
+  width: 100%;
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.notify-card__sub {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.notify-card__prefs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notify-card__level {
+  align-self: flex-start;
+}
+
+.notify-card__blocked {
+  color: var(--ink);
+}

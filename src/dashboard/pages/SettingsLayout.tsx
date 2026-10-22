@@ -8,6 +8,7 @@ const TABS: readonly SubTab[] = [
   { to: "/app/settings/company", label: "Company info", icon: "building" },
   { to: "/app/settings/billing", label: "Billing", icon: "card" },
   { to: "/app/settings/password", label: "Password", icon: "key" },
+  { to: "/app/settings/notifications", label: "Notifications", icon: "bell" },
 ];
 
 /**
@@ -17,7 +18,10 @@ const TABS: readonly SubTab[] = [
 export default function SettingsLayout(): ReactElement {
   return (
     <>
-      <PageHeader title="Profile" lede="Your company details, plan and payments, and the password you sign in with." />
+      <PageHeader
+        title="Profile"
+        lede="Your company details, plan and payments, the password you sign in with, and what Zinwe notifies you about."
+      />
       <SubTabs tabs={TABS} label="Profile sections" />
       <Outlet />
     </>

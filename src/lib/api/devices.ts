@@ -503,3 +503,43 @@ export function getTopMetrics(params: MetricsTopQuery, signal?: AbortSignal): Pr
     signal,
   });
 }
+
+/** One thing new for the owner (FR-15), shown as a browser notification. `link` is a dashboard path. */
+export interface OwnerFeedItem {
+  id: string;
+  kind: "chat" | "alert" | "approval";
+  title: string;
+  body: string;
+  at: string;
+  link: string;
+  severity?: "info" | "warning" | "critical";
+}
+
+export interface OwnerFeed {
+  /** Server time: pass it back as the next `since`. */
+  now: string;
+  items: OwnerFeedItem[];
+}
+
+/** GET notifications/?since= — what's new since then (nothing on the first call, without `since`). */
+export function getOwnerFeed(since: string | null, signal?: AbortSignal): Promise<OwnerFeed> {
+  const query = since ? `?since=${encodeURIComponent(since)}` : "";
+  return authedRequest<OwnerFeed>(`/api/devices/notifications/${query}`, { signal });
+}
+
+export type AlertNotifyLevel = "all" | "warning" | "critical" | "off";
+
+/** What the owner is notified about in the browser (FR-15). */
+export interface NotificationPrefs {
+  chat: boolean;
+  alerts: AlertNotifyLevel;
+  approvals: boolean;
+}
+
+export function getNotificationPrefs(signal?: AbortSignal): Promise<NotificationPrefs> {
+  return authedRequest<NotificationPrefs>("/api/devices/notifications/settings/", { signal });
+}
+
+export function saveNotificationPrefs(prefs: Partial<NotificationPrefs>): Promise<NotificationPrefs> {
+  return authedRequest<NotificationPrefs>("/api/devices/notifications/settings/", { method: "PATCH", body: prefs });
+}

@@ -22,6 +22,7 @@ import { DASHBOARD_TOUR, syncTourFlag, tourDone, type TourStep } from "./feature
 import { higherPlans, isUpgradeDone, UpgradeContext } from "./features/upgrade";
 import { useResource } from "./useResource";
 import { usePlans } from "../portal/usePlans";
+import { useOwnerNotifications } from "./features/useOwnerNotifications";
 import "../styles/dashboard.css";
 import "../styles/portal.css";
 
@@ -240,6 +241,9 @@ export default function AppLayout(): ReactElement {
   const showPlanActive = planActiveShown !== null && !planActiveClosed && subscription?.status === "active";
   const upgrade = useMemo(() => ({ open: () => navigate("/onboarding/plan"), canUpgrade }), [canUpgrade, navigate]);
   const planAction: PlanAction = inCheck ? "checking" : canUpgrade ? "upgrade" : "billing";
+
+  // FR-15: browser notifications for replies, alerts and requests (once switched on in Profile → Notifications).
+  useOwnerNotifications(true);
 
   // Unread member replies, for the Chat badge (non-critical: failures just hide it).
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
