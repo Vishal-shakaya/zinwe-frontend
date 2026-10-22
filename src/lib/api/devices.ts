@@ -1,5 +1,5 @@
 /** PCs, members, rules and activity (z_devices). */
-import { authedRequest } from "./http";
+import { authedDownload, authedRequest } from "./http";
 
 /**
  * What the agent last reported the person was doing (M8). Older agents that
@@ -542,4 +542,47 @@ export function getNotificationPrefs(signal?: AbortSignal): Promise<Notification
 
 export function saveNotificationPrefs(prefs: Partial<NotificationPrefs>): Promise<NotificationPrefs> {
   return authedRequest<NotificationPrefs>("/api/devices/notifications/settings/", { method: "PATCH", body: prefs });
+}
+
+/** One person's row in a report (FR-17). Seconds are whole seconds. */
+export interface ReportPerson {
+  member_id: number | null;
+  name: string;
+  days_worked: number;
+  worked_seconds: number;
+  break_seconds: number;
+  breaks: number;
+  logouts: number;
+  /** Breaks and log-outs still waiting for the owner's OK. */
+  to_review: number;
+  alerts: number;
+}
+
+export interface TeamReport {
+  /** The period actually shown (clamped to today and the plan's history). */
+  from: string;
+  to: string;
+  days: number;
+  people: ReportPerson[];
+  /** Active members with nothing in the period. */
+  no_activity: string[];
+  totals: Omit<ReportPerson, "member_id" | "name" | "days_worked"> & { alerts_all: number };
+  top_apps: MetricTopItem[];
+  top_sites: MetricTopItem[];
+}
+
+/** GET reports/?from=&to= — the team's report for that period (both days included). */
+export function getReport(from: string, to: string, signal?: AbortSignal): Promise<TeamReport> {
+  return authedRequest<TeamReport>(
+    `/api/devices/reports/?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    { signal },
+  );
+}
+
+/** Download the same report as a CSV file (opens in Excel / Google Sheets). */
+export function downloadReport(from: string, to: string): Promise<void> {
+  return authedDownload(
+    `/api/devices/reports/download/?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    `Zinwe-report-${from}-to-${to}.csv`,
+  );
 }

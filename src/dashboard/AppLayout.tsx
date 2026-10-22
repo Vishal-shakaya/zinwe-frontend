@@ -69,6 +69,7 @@ const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
       { to: "/app/team", label: "Team & devices", icon: "team", tour: "team" },
       { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread", tour: "chat", module: "team_chat" },
       { to: "/app/activity", label: "Activity", icon: "activity", tour: "activity", module: "work_time" },
+      { to: "/app/reports", label: "Reports", icon: "file" },
     ],
   },
 ];

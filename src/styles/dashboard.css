@@ -7704,3 +7704,102 @@ button.wd-row:hover {
 .notify-card__blocked {
   color: var(--ink);
 }
+
+/* ---------- Reports (FR-17) ---------- */
+
+.rpt-period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.rpt-chip {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.rpt-chip:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.rpt-chip.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--white);
+}
+
+.rpt-dates {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rpt-range {
+  margin: 0 0 16px;
+}
+
+.rpt-scroll {
+  overflow-x: auto;
+}
+
+.rpt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.rpt-table th,
+.rpt-table td {
+  padding: 10px 8px;
+  border-top: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rpt-table thead th {
+  border-top: 0;
+  color: var(--mute);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.rpt-table th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.rpt-table .rpt-warn {
+  color: var(--orange-text, #b34a00);
+  font-weight: 600;
+}
+
+.rpt-tops {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.rpt-top ol {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rpt-top li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.92rem;
+}

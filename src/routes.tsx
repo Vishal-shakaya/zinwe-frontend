@@ -42,6 +42,7 @@ const InternetPage = lazyPage(() => import("./dashboard/pages/InternetPage"));
 const DataPage = lazyPage(() => import("./dashboard/pages/DataPage"));
 const RemotePage = lazyPage(() => import("./dashboard/pages/RemotePage"));
 const ActivityPage = lazyPage(() => import("./dashboard/pages/ActivityPage"));
+const ReportsPage = lazyPage(() => import("./dashboard/pages/ReportsPage"));
 const AlertsPage = lazyPage(() => import("./dashboard/pages/AlertsPage"));
 const BillingPage = lazyPage(() => import("./dashboard/pages/BillingPage"));
 const CompanyPage = lazyPage(() => import("./dashboard/pages/CompanyPage"));
@@ -73,7 +74,7 @@ function ChunkFallback(): ReactElement {
  *   /blog/guides (free e-guides)  /blog/guides/:slug
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
  * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
- * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
+ * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/reports (any period, CSV)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
  *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password,notifications}
  *   /app/help (How to use) · /app/policies · /app/feedback — from the account menu (bottom of the sidebar); /app/feedback is also the email-link target
  *   /app/setup (all protections in one scroll, not in the sidebar)
@@ -150,6 +151,7 @@ export function AppRoutes(): ReactElement {
               <Route path="setup" element={<SetupPage />} />
               <Route path="alerts" element={<AlertsPage />} />
               <Route path="activity" element={<ActivityPage />} />
+              <Route path="reports" element={<ReportsPage />} />
               <Route path="settings" element={<SettingsLayout />}>
                 <Route index element={<Navigate to="company" replace />} />
                 <Route path="company" element={<CompanyPage />} />
