@@ -7,6 +7,7 @@
  * category*, not a per-domain / per-app breakdown. Pages note that limitation.
  */
 import type { MetricCategoryTotal, MetricPoint } from "../../lib/api";
+import { friendlyDuration } from "../../lib/format";
 
 export type MetricField = "count" | "bytes" | "seconds";
 
@@ -129,8 +130,7 @@ export function formatAxisBytes(bytes: number): string {
   return `${shown} ${UNITS[unit]}`;
 }
 
-/** 5400 → "1.5h"; under an hour → "45m". */
+/** 5400 → "1 h 30 min"; 84 → "1 min 24 s" (FR-10: lib/format friendlyDuration, never "1.5h"). */
 export function formatHours(seconds: number): string {
-  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-  return `${(Math.round((seconds / 3600) * 10) / 10).toFixed(1)}h`;
+  return friendlyDuration(seconds);
 }

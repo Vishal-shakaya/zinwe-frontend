@@ -10,6 +10,7 @@
  * - online + ended/not_started     → "online"    (reachable, not clocked in)
  */
 import { toWorkState, type WorkState } from "../../lib/api";
+import { friendlyDuration } from "../../lib/format";
 
 export type PresenceStatus = "working" | "break" | "online" | "offline" | "waiting";
 
@@ -47,13 +48,9 @@ export const PRESENCE_CLASS: Record<PresenceStatus, string> = {
   waiting: "waiting",
 };
 
-/** "2h 15m", "45m", "0m" — a compact worked/break duration from whole seconds. */
+/** "2 h 15 min", "45 min", "1 min 24 s", "0 min" — a worked/break duration from whole seconds (FR-10). */
 export function formatDuration(seconds: number | undefined): string {
-  const total = Math.max(0, Math.floor(seconds ?? 0));
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  return friendlyDuration(seconds);
 }
 
 /** Where a person's consent on their own PC stands: no PC yet, waiting for them, agreed, or declined. */

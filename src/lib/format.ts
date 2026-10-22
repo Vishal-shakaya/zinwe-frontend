@@ -48,3 +48,26 @@ export function todayIso(): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
+
+/**
+ * A time anyone can read (FR-10): 84 → "1 min 24 s", 2700 → "45 min", 8100 → "2 h 15 min", 0 → "0 min".
+ * Seconds only under 10 minutes, where they still matter; never decimals ("1.24m" read as a time was the bug).
+ */
+export function friendlyDuration(seconds: number | undefined): string {
+  const total = Math.max(0, Math.floor(seconds ?? 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) return m > 0 ? `${h} h ${m} min` : `${h} h`;
+  if (m === 0) return s > 0 ? `${s} s` : "0 min";
+  if (m < 10 && s > 0) return `${m} min ${s} s`;
+  return `${m} min`;
+}
+
+/** A chart-axis time: whole minutes under an hour, else whole or half hours ("45 min", "2 h", "1 h 30 min"). */
+export function axisDuration(seconds: number): string {
+  const total = Math.max(0, seconds);
+  if (total < 3600) return `${Math.round(total / 60)} min`;
+  const halves = Math.round(total / 1800);
+  return halves % 2 ? `${(halves - 1) / 2} h 30 min` : `${halves / 2} h`;
+}

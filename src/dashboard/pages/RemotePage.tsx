@@ -1,3 +1,4 @@
+import { axisDuration } from "../../lib/format";
 import { useCallback, useState, type ReactElement } from "react";
 import { useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
@@ -148,6 +149,7 @@ function RemotePageContent(): ReactElement {
             rows={rows}
             specs={specs}
             format={formatHours}
+            axisFormat={axisDuration}
             caption="Time with an app open in front, over time"
             loading={metrics.data === undefined}
             emptyHint={who ? `No app usage from ${who} in this range.` : "No app usage recorded yet. It appears once a connected PC has been used."}
