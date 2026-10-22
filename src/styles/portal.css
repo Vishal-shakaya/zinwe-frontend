@@ -357,6 +357,27 @@
   align-items: stretch;
 }
 
+/* FR-09: on the plans page and the choose / upgrade page, all four plans in one row on a laptop, two by two on a
+   tablet, never three and a lonely fourth. */
+@media (min-width: 600px) {
+  .plans-sec .plans,
+  .onb__wide .plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .plans-sec .plans,
+  .onb__wide .plans {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .plans-sec .plan,
+  .onb__wide .plan {
+    padding: 26px 20px 22px;
+  }
+}
+
 .plan {
   position: relative;
   display: flex;
