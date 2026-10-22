@@ -6,6 +6,7 @@
  * confirmation link (NewsletterPage stores it) or as `?k=` in an episode email link, and is kept in this
  * browser. Membership is free; the subscription is the membership.
  */
+import type { GuideCard } from "./guides";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authedRequest } from "./http";
@@ -105,6 +106,8 @@ export interface Episode extends EpisodeCard {
   previous: EpisodeCard | null;
   next: EpisodeCard | null;
   next_upcoming: UpcomingEpisode | null;
+  /** The free e-guide that goes deeper on this episode's topic. */
+  guide_pick?: GuideCard | null;
   reader: Reader | null;
 }
 

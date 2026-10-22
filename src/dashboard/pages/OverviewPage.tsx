@@ -241,6 +241,22 @@ export default function OverviewPage(): ReactElement {
           owner who'd find it useful? Every episode has a share link.
         </p>
       </section>
+
+      {/* Free e-guides: worth handing to the team (scams, communication) as much as reading yourself. */}
+      <section className="dash-card ov-series" aria-labelledby="ov-guides-title">
+        <div className="dash-card__head dash-card__head--split">
+          <h2 className="dash-card__title" id="ov-guides-title">
+            Free guides for you and your team
+          </h2>
+          <Link className="dash-link" to="/blog/guides">
+            See the guides
+          </Link>
+        </div>
+        <p className="dash-note">
+          Plain-English e-guides with workbooks and 30-day plans: protecting your business online, keeping data safe, stopping
+          scams and communicating better at work. Share them with your team.
+        </p>
+      </section>
     </>
   );
 }

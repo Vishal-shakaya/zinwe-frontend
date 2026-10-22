@@ -14,6 +14,8 @@ const LegalPage = lazyPage(() => import("./pages/LegalPage"));
 const BlogPage = lazyPage(() => import("./pages/BlogPage"));
 const ArticlePage = lazyPage(() => import("./pages/ArticlePage"));
 const SeriesHubPage = lazyPage(() => import("./pages/SeriesHubPage"));
+const GuidesPage = lazyPage(() => import("./pages/GuidesPage"));
+const GuidePage = lazyPage(() => import("./pages/GuidePage"));
 const SeriesPage = lazyPage(() => import("./pages/SeriesPage"));
 const EpisodePage = lazyPage(() => import("./pages/EpisodePage"));
 const NewsletterPage = lazyPage(() => import("./pages/NewsletterPage"));
@@ -67,6 +69,7 @@ function ChunkFallback(): ReactElement {
  * Site map (contract §5):
  * - marketing (shared Layout): /  /plans  /download  /early-access  /contact  /quote/:token (shared quote), and the 404
  * - blog: /blog  /blog/:slug  /blog/series (members-only series)  /blog/series/:slug  /blog/series/:slug/:episode
+ *   /blog/guides (free e-guides)  /blog/guides/:slug
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
  * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
@@ -95,6 +98,9 @@ export function AppRoutes(): ReactElement {
           <Route path="blog/series" element={<SeriesHubPage />} />
           <Route path="blog/series/:slug" element={<SeriesPage />} />
           <Route path="blog/series/:slug/:episode" element={<EpisodePage />} />
+          {/* Free e-guides: the page is public, the PDF is for members (the same free membership). */}
+          <Route path="blog/guides" element={<GuidesPage />} />
+          <Route path="blog/guides/:slug" element={<GuidePage />} />
           <Route path="blog/:slug" element={<ArticlePage />} />
           <Route path="newsletter" element={<NewsletterPage />} />
           {/* A shared quote (public link from the payment page or the quote email; not indexed). */}

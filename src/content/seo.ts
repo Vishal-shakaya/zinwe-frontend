@@ -173,6 +173,18 @@ const PAGES: readonly SeoPage[] = [
     sitemap: true,
   },
   {
+    path: "/blog/guides",
+    title: "Free guides for small businesses — Zinwe",
+    description:
+      "Plain-English e-guides with workbooks and 30-day plans: protect your business online, keep data safe, stop scams and communicate better at work.",
+    h1: "Practical guides for small businesses",
+    intro: [
+      "Plain-English e-guides with workbooks and 30-day plans you can actually finish. No jargon, no scare statistics, no IT department needed. Free for members.",
+    ],
+    // The backend's /sitemap.xml adds each live guide.
+    sitemap: true,
+  },
+  {
     path: "/legal",
     title: "Legal: terms, privacy and policies | Zinwe",
     description: "Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies, and our Disclaimer.",

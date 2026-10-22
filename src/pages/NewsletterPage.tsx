@@ -4,12 +4,13 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage } from "../lib/api";
 import { confirmBlogSubscription, unsubscribeFromBlog } from "../lib/api/blog";
 import { storeReaderKey } from "../lib/api/series";
+import { downloadGuide, guideFromSource } from "../lib/api/guides";
 import { trackEvent } from "../lib/analytics";
 import "../styles/blog.css";
 
 type View =
   | { kind: "working" }
-  | { kind: "confirmed"; email: string; next: string }
+  | { kind: "confirmed"; email: string; next: string; guide?: boolean }
   | { kind: "ask-unsubscribe" }
   | { kind: "unsubscribed"; email: string }
   | { kind: "error"; message: string };
@@ -41,6 +42,14 @@ export default function NewsletterPage(): ReactElement {
         if (r.access_key) storeReaderKey(r.access_key);
         trackEvent("tlf_member_confirmed", {});
         const fromSeries = (r.source ?? "").split("?")[0];
+        // Signed up on a guide's page: the guide downloads now (the promise in the confirmation email).
+        const guide = guideFromSource(r.source);
+        if (guide && r.access_key) {
+          downloadGuide(guide, r.access_key);
+          trackEvent("file_download", { file_name: guide, item_id: guide, link_text: "guide_confirm" });
+          setView({ kind: "confirmed", email: r.email, next: `/blog/guides/${guide}`, guide: true });
+          return;
+        }
         setView({ kind: "confirmed", email: r.email, next: /^\/blog\/series(\/[-\w]+){0,2}$/.test(fromSeries) ? fromSeries : "" });
       })
       .catch((err) => setView({ kind: "error", message: errorMessage(err) }));
@@ -61,6 +70,23 @@ export default function NewsletterPage(): ReactElement {
       <div className="nl-page__card" aria-live="polite">
         {view.kind === "working" ? (
           <p className="muted">One moment…</p>
+        ) : view.kind === "confirmed" && view.guide ? (
+          <>
+            <p className="eyebrow">You're a member</p>
+            <h1>Your guide is downloading</h1>
+            <p>
+              Check your downloads folder. Every other Zinwe guide is free for you too, and our members-only stories will come to{" "}
+              <b>{view.email}</b>. Every email has an unsubscribe link at the bottom.
+            </p>
+            <div className="nl-page__actions">
+              <Link className="btn btn--primary" to={view.next}>
+                Back to the guide
+              </Link>
+              <Link className="btn btn--ghost" to="/blog/guides">
+                More free guides
+              </Link>
+            </div>
+          </>
         ) : view.kind === "confirmed" ? (
           <>
             <p className="eyebrow">You're a member</p>

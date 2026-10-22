@@ -6,6 +6,9 @@ import { useResource } from "../dashboard/useResource";
 import { NewsletterSignup } from "../components/blog/NewsletterSignup";
 import { SeriesFeature } from "../components/series/SeriesFeature";
 import { getSeriesList } from "../lib/api/series";
+import { getGuides } from "../lib/api/guides";
+import { GuidePickCard } from "../components/guides/GuideCard";
+import "../styles/guides.css";
 import { blogAsset, getArticles, type ArticleCard, type ArticleType } from "../lib/api/blog";
 import { errorMessage } from "../lib/api";
 import { formatDate } from "../lib/format";
@@ -28,6 +31,7 @@ export default function BlogPage(): ReactElement {
   const data = list.data;
   // The members' series sit above the articles (first page, no filter), like a streaming service's billboard.
   const shows = useResource(getSeriesList).data?.results ?? [];
+  const guides = useResource(getGuides).data?.results ?? [];
 
   const go = (next: { type?: ArticleType | ""; page?: number }) => {
     const t = next.type ?? type;
@@ -55,6 +59,18 @@ export default function BlogPage(): ReactElement {
 
       <div className="wrap">
         {page === 1 && !type ? shows.map((s) => <SeriesFeature key={s.slug} show={s} />) : null}
+        {page === 1 && !type && guides.length ? (
+          <section className="blog-guides" aria-labelledby="blog-guides-title">
+            <h2 id="blog-guides-title">
+              Free guides <Link to="/blog/guides">See all →</Link>
+            </h2>
+            <div className="blog-guides__row">
+              {guides.slice(0, 4).map((g) => (
+                <GuidePickCard key={g.slug} guide={g} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {showFilters ? (
           <nav className="blog-filter" aria-label="Article types">

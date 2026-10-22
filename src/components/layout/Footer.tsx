@@ -45,6 +45,9 @@ export function Footer(): ReactElement {
             <Link to="/blog/series">Series</Link>
           </li>
           <li>
+            <Link to="/blog/guides">Free guides</Link>
+          </li>
+          <li>
             <Link to="/contact">Contact</Link>
           </li>
         </ul>

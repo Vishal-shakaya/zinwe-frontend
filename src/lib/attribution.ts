@@ -47,6 +47,16 @@ export function noteSeriesVisit(campaign: string, episode: number | null, search
   write({ c: campaign, ep: episode ? `ep${String(episode).padStart(2, "0")}` : "series", via, ref: ref || previous?.ref || "", at: Date.now() });
 }
 
+/** Note a visit to a free guide's page (`campaign`: its code, e.g. "guide-scams"). Sign-up source: "guide-scams:guide:site". */
+export function noteGuideVisit(campaign: string, search: string): void {
+  const params = new URLSearchParams(search);
+  const ref = (params.get("ref") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 16);
+  const via: Touch["via"] = ref ? "ref" : params.get("utm_medium") === "email" ? "email" : "site";
+  const previous = read();
+  if (previous && previous.via !== "site" && via === "site") return; // keep the stronger channel
+  write({ c: campaign, ep: "guide", via, ref: ref || previous?.ref || "", at: Date.now() });
+}
+
 function write(t: Touch): void {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(t));

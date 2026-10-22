@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type ReactElement } from "rea
 import { Link, useLocation, useParams } from "react-router-dom";
 import { FamilyShare } from "../components/series/FamilyShare";
 import { GrowCard } from "../components/series/GrowCard";
+import { GuidePickCard } from "../components/guides/GuideCard";
+import "../styles/guides.css";
 import { trackEvent } from "../lib/analytics";
 import { fromEmail, noteSeriesVisit } from "../lib/attribution";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -239,6 +241,12 @@ export default function EpisodePage(): ReactElement {
 
       <div className="wrap">
         {voice.familyCards && ep.episode ? <FamilyShare episode={ep.episode} /> : null}
+        {ep.guide_pick ? (
+          <div className="sx-guide-pick">
+            <p>Go deeper on this topic</p>
+            <GuidePickCard guide={ep.guide_pick} dark />
+          </div>
+        ) : null}
         <GrowCard seriesSlug={ep.series.slug} seriesTitle={ep.series.title} episode={ep.episode} reader={ep.reader} />
       </div>
 

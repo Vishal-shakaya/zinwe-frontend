@@ -1,5 +1,6 @@
 /** Public blog (/api/blog/*): published articles only, no sign-in. */
 import { referralCode } from "../attribution";
+import type { GuideCard } from "./guides";
 import { authedRequest } from "./http";
 
 export type ArticleType = "press_release" | "tutorial" | "newsletter" | "new_release" | "informative";
@@ -40,6 +41,8 @@ export interface SeriesPick {
 export interface Article extends ArticleCard {
   /** The members' series episode closest to this article's topic. */
   series_pick?: SeriesPick | null;
+  /** The free e-guide closest to this article's topic. */
+  guide_pick?: GuideCard | null;
   body_html: string;
   seo_title: string;
   meta_description: string;

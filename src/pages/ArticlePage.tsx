@@ -4,6 +4,8 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { NewsletterSignup } from "../components/blog/NewsletterSignup";
 import { SeriesPickCard } from "../components/series/SeriesPickCard";
+import { GuidePickCard } from "../components/guides/GuideCard";
+import "../styles/guides.css";
 import { ApiError, errorMessage } from "../lib/api";
 import { blogAsset, getArticle, withAssetBase, type Article } from "../lib/api/blog";
 import { formatDate } from "../lib/format";
@@ -170,6 +172,7 @@ export default function ArticlePage(): ReactElement {
               ))}
             </div>
           ) : null}
+          {article.guide_pick ? <GuidePickCard guide={article.guide_pick} /> : null}
           {article.series_pick ? <SeriesPickCard pick={article.series_pick} /> : null}
           <NewsletterSignup compact />
         </aside>
