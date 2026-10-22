@@ -429,8 +429,6 @@ a.sx-next:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .sx-pick:hover em { text-decoration: underline; }
 .sx-pick:focus-visible { outline: 2px solid var(--orange-strong); outline-offset: 2px; }
 
-.sec--series .sx-feature { margin: 24px 0 0; }
-.home-series__lede { max-width: 640px; }
 
 @media (max-width: 760px) {
   .sx-grow { grid-template-columns: 1fr; }

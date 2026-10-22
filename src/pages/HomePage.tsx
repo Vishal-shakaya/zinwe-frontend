@@ -4,8 +4,6 @@ import { Faq } from "../components/home/Faq";
 import { Hero } from "../components/home/Hero";
 import { OfferBand } from "../components/home/OfferBand";
 import { Platforms } from "../components/home/Platforms";
-import { GuidesBand } from "../components/home/GuidesBand";
-import { SeriesBand } from "../components/home/SeriesBand";
 import { SetupWizard } from "../components/home/SetupWizard";
 import { WatchPanel } from "../components/home/WatchPanel";
 import { JsonLd } from "../components/ui/JsonLd";
@@ -35,8 +33,6 @@ export default function HomePage(): ReactElement {
         </div>
       </section>
 
-      <SeriesBand />
-      <GuidesBand />
       <ConsentFacts />
       <Platforms />
       <Faq />

@@ -88,10 +88,6 @@
 .gd-pick--dark { border-color: rgba(255, 255, 255, 0.14); background: #17181d; color: #f4f3ef; }
 .gd-pick--dark small { color: #ffb37a; }
 
-/* ---------- Home band ---------- */
-
-.sec--guides .gd-grid { margin-top: 24px; }
-
 @media (max-width: 860px) {
   .gd-hero { grid-template-columns: 1fr; }
   .gd-hero__book { order: -1; }
