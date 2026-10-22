@@ -23,7 +23,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   },
   {
     title: "Install Zinwe on their PC",
-    body: "Download Zinwe on their Windows PC and sign in with their email and ID. Use “Share on text” to send them the details. The PC shows up within about a minute.",
+    body: "Download Zinwe on their Windows PC and sign in with their email and ID. We email them the details, or use “Copy details” to paste them into a message. The PC shows up within about a minute.",
     to: "/app/team",
     cta: "Share someone's ID",
     icon: "pc",

@@ -22,7 +22,7 @@ import { apiFieldErrors, apiFormError } from "../../portal/failure";
 import { Field } from "../../components/forms/Field";
 import { FormAlert } from "../../portal/components/FormAlert";
 import { CopyButton } from "../components/CopyButton";
-import { ShareDetails } from "../components/ShareDetails";
+import { CopyDetails } from "../components/CopyDetails";
 import { buildInviteText } from "../features/invite";
 import { copyText } from "../../lib/clipboard";
 import { DashIcon } from "../components/DashIcon";
@@ -424,7 +424,7 @@ function AddMemberForm({ onCreated }: { onCreated: (member: Member) => void }): 
 }
 
 /**
- * Success panel: the member's ID shown large, with copy / share / download and the install hint. Used
+ * Success panel: the member's ID shown large, with copy / download and the install hint. Used
  * after adding someone and after "Get a new ID" (`newId`), when the new ID has been emailed to them.
  */
 function CreatedPanel({
@@ -468,7 +468,7 @@ function CreatedPanel({
           <DashIcon name="download" />
           Download Zinwe (Windows)
         </a>
-        <ShareDetails member={member} companyName={companyName} small />
+        <CopyDetails member={member} companyName={companyName} small />
         {onAddAnother ? (
           <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onAddAnother}>
             <DashIcon name="team" />
@@ -515,7 +515,7 @@ function MemberTile({
   const [threadKey, setThreadKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  // After "Get a new ID": the new ID with Copy / Share / Download, and that it was emailed (J5-05).
+  // After "Get a new ID": the new ID with Copy / Download, and that it was emailed (J5-05).
   const [rotated, setRotated] = useState<Member | null>(null);
   const more = useRef<HTMLDetailsElement>(null);
 
@@ -547,7 +547,7 @@ function MemberTile({
   const copyDetails = async () => {
     if (more.current) more.current.open = false;
     const ok = await copyText(buildInviteText(member, companyName));
-    setNotice(ok ? "Connect details copied" : "Couldn't copy — use Share on text instead");
+    setNotice(ok ? "Connect details copied" : "Couldn't copy. Use Copy next to their ID instead");
   };
   const ask = (kind: "rotate" | "deactivate") => {
     if (more.current) more.current.open = false;
@@ -663,7 +663,11 @@ function MemberTile({
       <MemberUsage memberId={member.id} connected={Boolean(pc)} />
 
       <footer className="team-tile__actions">
-        <ShareDetails member={member} companyName={companyName} small shareOnly />
+        {/* FR-11: straight to this person's day on the Activity page (was "Share on text"). */}
+        <Link className="btn btn--ghost dash-btn-sm" to={`/app/activity?member=${member.id}`}>
+          <DashIcon name="activity" />
+          Activity
+        </Link>
         {chatOn ? (
           <button
             type="button"

@@ -4200,6 +4200,11 @@ button.wd-row:hover {
   transform: rotate(90deg);
 }
 
+/* FR-11: the person opened from their Team card. */
+.wd-person.is-focused {
+  box-shadow: inset 3px 0 0 var(--orange-strong, #f26b00);
+}
+
 .wd-who > span {
   display: flex;
   flex-direction: column;

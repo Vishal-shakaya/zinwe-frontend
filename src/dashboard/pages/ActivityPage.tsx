@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { upgradeBeingChecked } from "../../auth/steps";
@@ -60,6 +60,8 @@ function ActivityPageContent(): ReactElement {
   const parsed = parseDay(params.get("date"), today);
   const day = earliest && parsed < earliest ? earliest : parsed;
   const isToday = day === today;
+  // FR-11: Team & devices' "Activity" opens here with ?member=<id>: that person's day, opened and in view.
+  const focusId = Number(params.get("member")) || null;
   const atEarliest = earliest !== undefined && day <= earliest;
 
   const loadLog = useCallback((signal: AbortSignal) => getWorkLog({ date: day }, signal), [day]);
@@ -224,12 +226,19 @@ function ActivityPageContent(): ReactElement {
                   member={person.memberId != null ? byMember.get(person.memberId) : undefined}
                   isToday={isToday}
                   onDecided={log.reload}
+                  focused={focusId !== null && person.memberId === focusId}
                 />
               ))}
             </div>
           </>
         )}
 
+        {log.data && focusId !== null && absent.some((m) => m.id === focusId) ? (
+          <p className="dash-note wd-absent" role="status">
+            <b>{byMember.get(focusId)?.name}</b> has no activity {isToday ? "yet today" : "that day"}. Pick another day
+            above to see theirs.
+          </p>
+        ) : null}
         {log.data && absent.length > 0 ? (
           <p className="dash-note wd-absent">
             <b>No activity {isToday ? "yet" : "that day"}:</b> {absent.map((m) => m.name).join(", ")}
@@ -245,14 +254,22 @@ function PersonRow({
   member,
   isToday,
   onDecided,
+  focused = false,
 }: {
   person: PersonDay;
   member: Member | undefined;
   isToday: boolean;
   onDecided: () => void;
+  /** Opened from this person's Team card: start open and scroll into view. */
+  focused?: boolean;
 }): ReactElement {
   const pending = person.breaks.filter((b) => b.approval === "pending").length;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(focused);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!focused) return;
+    box.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focused]);
   // Today the widget's own totals are exact (no missed short breaks); past days use the log.
   const live = isToday ? member?.device?.worked_seconds ?? 0 : 0;
   const worked = live > 0 ? live : person.workedSeconds;
@@ -266,7 +283,7 @@ function PersonRow({
           : null;
 
   return (
-    <div className={cx("wd-person", open && "is-open")}>
+    <div ref={box} className={cx("wd-person", open && "is-open", focused && "is-focused")}>
       <button
         type="button"
         className="wd-row"
