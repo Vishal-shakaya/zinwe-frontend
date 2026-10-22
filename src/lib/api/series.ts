@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authedRequest } from "./http";
 import type { ArticleCard } from "./blog";
+import { seriesVoice } from "../seriesVoice";
 
 type Image = ArticleCard["cover"];
 
@@ -133,14 +134,14 @@ const SITE = "https://zinwe.io";
 
 /** The series link a member shares: carries their code so the newsletter can credit them. */
 export function shareUrl(seriesSlug: string, refCode: string | undefined, source: string): string {
-  const q = new URLSearchParams({ utm_source: source, utm_medium: "referral", utm_campaign: "tlf" });
+  const q = new URLSearchParams({ utm_source: source, utm_medium: "referral", utm_campaign: seriesVoice(seriesSlug).campaign });
   if (refCode) q.set("ref", refCode);
   return `${SITE}/blog/series/${seriesSlug}?${q.toString()}`;
 }
 
-/** "Start Zinwe free" from the series, tagged with the episode. */
-export function startFreeUrl(episode: number | null): string {
-  const q = new URLSearchParams({ plan: "free", utm_source: "newsletter", utm_medium: "site", utm_campaign: "tlf" });
+/** "Start Zinwe free" from a series, tagged with the series and the episode. */
+export function startFreeUrl(seriesSlug: string, episode: number | null): string {
+  const q = new URLSearchParams({ plan: "free", utm_source: "newsletter", utm_medium: "site", utm_campaign: seriesVoice(seriesSlug).campaign });
   if (episode) q.set("utm_content", `ep${String(episode).padStart(2, "0")}`);
   return `/signup?${q.toString()}`;
 }

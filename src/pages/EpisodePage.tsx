@@ -21,6 +21,7 @@ import {
   type EpisodeCard,
 } from "../lib/api/series";
 import { formatDate } from "../lib/format";
+import { seriesVoice } from "../lib/seriesVoice";
 import "../styles/series.css";
 
 const SITE = "https://zinwe.io";
@@ -54,7 +55,7 @@ function useEpisodeHead(ep: Episode | undefined): void {
   }, [ep]);
 }
 
-/** Public /blog/series/:slug/:episode: the opening for everyone, the full case file for members. */
+/** Public /blog/series/:slug/:episode: the opening for everyone, the full episode for members. */
 export default function EpisodePage(): ReactElement {
   const { slug = "", episode = "" } = useParams();
   const { search } = useLocation();
@@ -72,8 +73,9 @@ export default function EpisodePage(): ReactElement {
   // Attribution (a later Zinwe sign-up is credited to this episode) and what the visitor saw.
   useEffect(() => {
     if (!ep) return;
-    noteSeriesVisit(ep.episode, search);
-    if (ep.locked && !ep.reader) trackEvent("view_promotion", { promotion_name: "tlf_members_gate", item_id: ep.episode ?? 0 });
+    const code = seriesVoice(ep.series.slug).campaign;
+    noteSeriesVisit(code, ep.episode, search);
+    if (ep.locked && !ep.reader) trackEvent("view_promotion", { promotion_name: `${code}_members_gate`, item_id: ep.episode ?? 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per episode loaded
   }, [ep?.slug, ep?.locked]);
 
@@ -82,7 +84,7 @@ export default function EpisodePage(): ReactElement {
     if (!ep || ep.locked || !endRef.current) return;
     const seen = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)) {
-        trackEvent("tlf_read_end", { item_id: ep.episode ?? 0, member: !!ep.reader });
+        trackEvent(`${seriesVoice(ep.series.slug).campaign}_read_end`, { item_id: ep.episode ?? 0, member: !!ep.reader });
         seen.disconnect();
       }
     });
@@ -117,9 +119,10 @@ export default function EpisodePage(): ReactElement {
   const cover = ep.cover ?? ep.series.cover;
   const seasonLine = ep.season_info?.title ? `Season ${ep.season}: ${ep.season_info.title}` : `Season ${ep.season}`;
   const keyQuery = key ? `?k=${encodeURIComponent(key)}` : "";
+  const voice = seriesVoice(ep.series.slug);
 
   return (
-    <article className="sx sx-ep">
+    <article className="sx sx-ep" data-series={ep.series.slug}>
       <header className="sx-hero sx-hero--ep">
         {cover ? <img className="sx-hero__art" src={blogAsset(cover.url)} alt="" fetchPriority="high" /> : null}
         <div className="sx-hero__shade" aria-hidden="true" />
@@ -165,7 +168,7 @@ export default function EpisodePage(): ReactElement {
                   This episode opens with your {ep.unlocks_on ? `${weekday(ep.unlocks_on)} morning` : "next"} email
                 </h2>
                 <p className="sx-gate__lede">
-                  Members get one episode a morning, four days a week, in order.
+                  Members get {voice.pace}, in order.
                   {ep.reader?.progress ? ` You have ${ep.reader.progress.unlocked} of ${ep.reader.progress.released} so far.` : ""} Your
                   next episode arrives by email, and opens here the same morning.
                 </p>
@@ -182,11 +185,11 @@ export default function EpisodePage(): ReactElement {
                 <span />
                 <span />
               </div>
-              <MemberGate title="The rest of this case file is for members">
+              <MemberGate title={`The rest of this ${voice.unit} is for members`}>
                 <ul className="sx-inside">
-                  <li>The full story, to the last scene</li>
-                  <li>The lesson, in plain English</li>
-                  <li>Your 10-minute challenge</li>
+                  {voice.inside.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
                   {ep.attachments.map((f) => (
                     <li key={f.title}>
                       <LockIcon /> {f.title} <small>({fileKind(f.content_type)}, {fileSize(f.size)})</small>
@@ -201,7 +204,7 @@ export default function EpisodePage(): ReactElement {
               <div ref={endRef} aria-hidden="true" />
               {ep.attachments.length ? (
                 <section className="sx-files" aria-labelledby="files-title">
-                  <h2 id="files-title">Case file downloads</h2>
+                  <h2 id="files-title">{voice.filesTitle}</h2>
                   <ul>
                     {ep.attachments.map((f) => (
                       <li key={f.url}>
@@ -225,10 +228,7 @@ export default function EpisodePage(): ReactElement {
               ) : null}
               {ep.free_preview && !ep.reader ? (
                 <MemberGate title={ep.next ? `Get Episode ${ep.next.episode} and the rest of the series, free` : "Get the whole series, free"}>
-                  <p className="sx-gate__lede">
-                    This episode is free for everyone. The rest are for members: one a morning, four days a week, with the
-                    case files and worksheets. Membership costs nothing.
-                  </p>
+                  <p className="sx-gate__lede">{voice.freeLede}</p>
                 </MemberGate>
               ) : null}
             </div>
@@ -257,7 +257,7 @@ export default function EpisodePage(): ReactElement {
       <p className="wrap sx-back">
         <Link to={`/blog/series/${ep.series.slug}`}>← All episodes of {ep.series.title}</Link>
       </p>
-      <p className="wrap sx-disclaimer">The companies and people in our series are fictional. The mistakes are common, and the lessons are real.</p>
+      <p className="wrap sx-disclaimer">{voice.disclaimer}</p>
     </article>
   );
 }

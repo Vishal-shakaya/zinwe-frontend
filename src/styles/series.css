@@ -435,3 +435,14 @@ a.sx-next:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 760px) {
   .sx-grow { grid-template-columns: 1fr; }
 }
+
+/* ---------- IDENTITY UNDER ATTACK: the Digital Noir accent ----------
+   Zinwe orange is the series' signal colour (darkened where white text sits on it, for contrast). */
+.sx[data-series="identity-under-attack"],
+.sx[data-series="identity-under-attack"] .sx-gate {
+  --sx-red: #c2410c;
+  --sx-red-hover: #a3360a;
+}
+.sx[data-series="identity-under-attack"] .sx-eyebrow { color: #ff8a3d; }
+.sx[data-series="identity-under-attack"] .sx-body blockquote { border-left-color: #fd6d02; }
+.sx[data-series="identity-under-attack"] .sx-files a:focus-visible { outline-color: #c2410c; }

@@ -2,6 +2,7 @@ import { useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "../../lib/analytics";
 import { shareUrl, startFreeUrl, type Reader } from "../../lib/api/series";
+import { seriesVoice } from "../../lib/seriesVoice";
 
 /**
  * After an episode (and on the series page for members): the two things the series is for. Send it to a business
@@ -20,7 +21,8 @@ export function GrowCard({
 }): ReactElement {
   const [copied, setCopied] = useState(false);
   const link = (source: string) => shareUrl(seriesSlug, reader?.ref_code, source);
-  const text = `${seriesTitle}: short stories about the small mistakes that put company data at risk, each with a 10-minute fix. Free to join.`;
+  const voice = seriesVoice(seriesSlug);
+  const text = voice.shareText(seriesTitle);
   const shared = (channel: string) => trackEvent("share", { method: channel, content_type: "series", item_id: seriesSlug });
 
   const copy = async () => {
@@ -62,7 +64,7 @@ export function GrowCard({
       <div className="sx-grow__start">
         <b>See what leaves your own team's PCs</b>
         <span>Zinwe tells you in plain English when company files leave by USB, upload or email. Free forever for up to 3 PCs.</span>
-        <Link className="sx-btn sx-btn--red" to={startFreeUrl(episode)} onClick={() => trackEvent("select_promotion", { promotion_name: "tlf_start_free", item_id: episode ?? 0 })}>
+        <Link className="sx-btn sx-btn--red" to={startFreeUrl(seriesSlug, episode)} onClick={() => trackEvent("select_promotion", { promotion_name: `${voice.campaign}_start_free`, item_id: episode ?? 0 })}>
           Start Zinwe free
         </Link>
       </div>

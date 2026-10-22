@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactElement } from "re
 import { Link, useLocation, useParams } from "react-router-dom";
 import { GrowCard } from "../components/series/GrowCard";
 import { noteSeriesVisit } from "../lib/attribution";
+import { seriesVoice } from "../lib/seriesVoice";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { LockIcon, MemberGate } from "../components/series/MemberGate";
@@ -22,7 +23,7 @@ export default function SeriesPage(): ReactElement {
   const show = res.data;
   const { search } = useLocation();
   useEffect(() => {
-    if (show) noteSeriesVisit(null, search);
+    if (show) noteSeriesVisit(seriesVoice(show.slug).campaign, null, search);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per series loaded
   }, [show?.slug]);
 
@@ -50,6 +51,7 @@ export default function SeriesPage(): ReactElement {
 
 function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => void }): ReactElement {
   const member = !!show.reader;
+  const voice = seriesVoice(show.slug);
   const first = show.episodes[0];
   const latest = show.episodes[show.episodes.length - 1];
   const seasonsWithWork = useMemo(
@@ -71,7 +73,7 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
   ].filter(Boolean);
 
   return (
-    <div className="sx">
+    <div className="sx" data-series={show.slug}>
       <header className="sx-hero">
         {show.cover ? <img className="sx-hero__art" src={blogAsset(show.cover.url)} alt="" fetchPriority="high" /> : null}
         <div className="sx-hero__shade" aria-hidden="true" />
@@ -172,18 +174,12 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
       </section>
 
       <section className="wrap sx-perks" aria-label="What members get">
-        <div>
-          <b>The full case file</b>
-          <span>Every episode in full: the story, what went wrong, and the plain-English lesson.</span>
-        </div>
-        <div>
-          <b>A 10-minute fix</b>
-          <span>One practical step per episode that a small team can do today, with no IT department.</span>
-        </div>
-        <div>
-          <b>Downloads to keep</b>
-          <span>Many episodes come with case-file PDFs and checklists, for you and your team.</span>
-        </div>
+        {voice.perks.map((p) => (
+          <div key={p.title}>
+            <b>{p.title}</b>
+            <span>{p.text}</span>
+          </div>
+        ))}
       </section>
 
       <div className="wrap">
@@ -193,14 +189,11 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
       {member ? null : (
         <div className="wrap" id="join">
           <MemberGate title={`Get ${show.title} in your inbox, free`} variant="band">
-            <p className="sx-gate__lede">
-              Membership is free. Episode 1 arrives the moment you confirm, then one episode a morning, four days a week, in order.
-              Every released episode stays open to you here, on any device you open your link on.
-            </p>
+            <p className="sx-gate__lede">{voice.joinLede}</p>
           </MemberGate>
         </div>
       )}
-      <p className="wrap sx-disclaimer">The companies and people in our series are fictional. The mistakes are common, and the lessons are real.</p>
+      <p className="wrap sx-disclaimer">{voice.disclaimer}</p>
     </div>
   );
 }

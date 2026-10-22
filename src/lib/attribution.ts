@@ -1,14 +1,17 @@
 /**
- * Newsletter attribution: remembers (30 days, this browser) that a visitor came through THE LAST FILE — which
- * episode, and whether from an episode email, a member's share link (?ref=) or the site — so a later Zinwe
- * sign-up can say where it started ("tlf:ep07:email") and a newsletter sign-up can credit the member who shared.
- * Nothing personal is stored: an episode number, a channel and a share code.
+ * Newsletter attribution: remembers (30 days, this browser) that a visitor came through a newsletter series — which
+ * series (its campaign code, lib/seriesVoice), which episode, and whether from an episode email, a member's share
+ * link (?ref=) or the site — so a later Zinwe sign-up can say where it started ("tlf:ep07:email", "iua:ep03:ref")
+ * and a newsletter sign-up can credit the member who shared.
+ * Nothing personal is stored: a series code, an episode number, a channel and a share code.
  */
 
 const KEY = "zinwe.tlf.touch";
 const DAYS = 30;
 
 interface Touch {
+  /** The series' campaign code ("tlf", "iua"); older entries have none and mean The Last File. */
+  c?: string;
   ep: string; // "ep07" | "series"
   via: "email" | "ref" | "site";
   ref: string;
@@ -27,20 +30,21 @@ function read(): Touch | null {
 }
 
 /**
- * Note a visit to the series (call on series and episode pages). `episode`: the episode number, or null on the
- * series page. A share code or an email visit is kept over a plain site visit.
+ * Note a visit to a series (call on series and episode pages). `campaign`: the series' code; `episode`: the
+ * episode number, or null on the series page. A share code or an email visit is kept over a plain site visit.
  */
-export function noteSeriesVisit(episode: number | null, search: string): void {
+export function noteSeriesVisit(campaign: string, episode: number | null, search: string): void {
   const params = new URLSearchParams(search);
   const ref = (params.get("ref") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 16);
   const via: Touch["via"] = ref ? "ref" : params.get("utm_medium") === "email" ? "email" : "site";
   const previous = read();
   if (previous && previous.via !== "site" && via === "site") {
     // keep the stronger channel, refresh the episode they're on
-    write({ ...previous, ep: episode ? `ep${String(episode).padStart(2, "0")}` : previous.ep, at: Date.now() });
+    const sameSeries = (previous.c ?? "tlf") === campaign;
+    write({ ...previous, ep: episode ? `ep${String(episode).padStart(2, "0")}` : sameSeries ? previous.ep : "series", c: campaign, at: Date.now() });
     return;
   }
-  write({ ep: episode ? `ep${String(episode).padStart(2, "0")}` : "series", via, ref: ref || previous?.ref || "", at: Date.now() });
+  write({ c: campaign, ep: episode ? `ep${String(episode).padStart(2, "0")}` : "series", via, ref: ref || previous?.ref || "", at: Date.now() });
 }
 
 function write(t: Touch): void {
@@ -51,10 +55,10 @@ function write(t: Touch): void {
   }
 }
 
-/** For the Zinwe sign-up: "tlf:ep07:email", or "" when the visitor didn't come through the series. */
+/** For the Zinwe sign-up: "tlf:ep07:email", or "" when the visitor didn't come through a series. */
 export function signupSource(): string {
   const t = read();
-  return t ? `tlf:${t.ep}:${t.via}` : "";
+  return t ? `${t.c ?? "tlf"}:${t.ep}:${t.via}` : "";
 }
 
 /** The member share code that brought this visitor, for the newsletter sign-up. */
