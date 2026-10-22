@@ -53,6 +53,8 @@ export interface Member {
   email: string;
   /** The enrol id shown to the owner, e.g. "ZM-7KQ2-9F3M". */
   member_id: string;
+  /** What they do (FR-19): the card's colour theme. "" = not set; older backends leave it out. */
+  role?: MemberRole | "";
   is_active: boolean;
   created_at: string;
   /** The PC this member has enrolled, or null until they install the agent. */
@@ -278,6 +280,46 @@ export function listDevices(signal?: AbortSignal): Promise<Device[]> {
 /** GET /api/devices/members/ — the people the owner has added, newest first. */
 export function listMembers(signal?: AbortSignal): Promise<Member[]> {
   return authedRequest<Member[]>("/api/devices/members/", { signal });
+}
+
+export type MemberRole =
+  | "developer"
+  | "designer"
+  | "sales"
+  | "support"
+  | "accounts"
+  | "operations"
+  | "management"
+  | "other";
+
+export const MEMBER_ROLES: ReadonlyArray<{ value: MemberRole; label: string }> = [
+  { value: "developer", label: "Developer" },
+  { value: "designer", label: "Designer" },
+  { value: "sales", label: "Sales" },
+  { value: "support", label: "Support" },
+  { value: "accounts", label: "Accounts" },
+  { value: "operations", label: "Operations" },
+  { value: "management", label: "Management" },
+  { value: "other", label: "Other" },
+];
+
+/** PATCH /api/devices/members/<id>/ — set what a member does ("" clears it). */
+export function setMemberRole(memberId: number, role: MemberRole | ""): Promise<Member> {
+  return authedRequest<Member>(`/api/devices/members/${memberId}/`, { method: "PATCH", body: { role } });
+}
+
+/** A small, kind tag from a member's week (FR-19), shown only to the owner. */
+export interface MemberTag {
+  key: string;
+  emoji: string;
+  label: string;
+  /** Plain words: why they got it. */
+  why: string;
+}
+
+/** GET /api/devices/members/tags/ — {member id: tags} (at most three each). */
+export function getMemberTags(signal?: AbortSignal): Promise<Record<string, MemberTag[]>> {
+  return authedRequest<Record<string, MemberTag[]>>("/api/devices/members/tags/", { signal });
 }
 
 /** POST /api/devices/members/ — add a member; the response carries their id code. */

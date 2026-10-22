@@ -7847,3 +7847,68 @@ button.wd-row:hover {
   max-height: 520px;
   overflow-y: auto;
 }
+
+/* ---------- Team: role themes + playful tags (FR-19) ---------- */
+
+.team-tile {
+  --role: transparent;
+  --role-tint: var(--orange-tint);
+  --role-ink: var(--orange-ink);
+}
+
+.team-tile[class*="team-tile--"] {
+  border-top: 3px solid var(--role);
+}
+
+.team-tile .team-tile__avatar {
+  background: var(--role-tint);
+  color: var(--role-ink);
+}
+
+.team-tile--developer { --role: #2f6fdf; --role-tint: #e6effd; --role-ink: #1d4fa8; }
+.team-tile--designer { --role: #d0458f; --role-tint: #fbe8f2; --role-ink: #9c2867; }
+.team-tile--sales { --role: #1f9d61; --role-tint: #e3f6ec; --role-ink: #136c42; }
+.team-tile--support { --role: #158f96; --role-tint: #e0f5f6; --role-ink: #0d666b; }
+.team-tile--accounts { --role: #c98a12; --role-tint: #fbf1dc; --role-ink: #8a5d06; }
+.team-tile--operations { --role: #5b6475; --role-tint: #eceef2; --role-ink: #3c4352; }
+.team-tile--management { --role: #7a4ad8; --role-tint: #efe8fc; --role-ink: #5530a3; }
+.team-tile--other { --role: #8a8a83; --role-tint: #efefeb; --role-ink: #55554f; }
+
+.team-role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.team-role .dash-filter > span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.team-role select {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}
+
+.team-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.8rem;
+  cursor: help;
+}

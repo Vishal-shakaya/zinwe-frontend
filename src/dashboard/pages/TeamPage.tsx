@@ -7,13 +7,19 @@ import {
   createMember,
   deactivateMember,
   errorMessage,
+  getMemberTags,
   listDevices,
   listMembers,
+  MEMBER_ROLES,
   rotateMemberId,
+  setMemberRole,
   type Device,
   type Member,
   type MemberField,
+  type MemberRole,
+  type MemberTag,
 } from "../../lib/api";
+import { cx } from "../../lib/cx";
 import { AGENT_MSI_URL } from "../../content/download";
 import { useChatBubble } from "../features/chatBubble";
 import { Toast } from "../components/Toast";
@@ -73,6 +79,9 @@ export default function TeamPage(): ReactElement {
   const members = useResource(load, { pollMs });
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
   const devices = useResource(loadDevices, { pollMs });
+  // FR-19: playful tags from each person's week (a nice-to-have: failures just hide them).
+  const loadTags = useCallback((signal: AbortSignal) => getMemberTags(signal), []);
+  const tags = useResource(loadTags);
   const someoneWaiting = (members.data ?? []).some((m) => m.is_active && !m.device);
   if (someoneWaiting !== waiting) setWaiting(someoneWaiting);
 
@@ -256,6 +265,7 @@ export default function TeamPage(): ReactElement {
                 key={member.id}
                 member={member}
                 device={deviceOf(member)}
+                tags={tags.data?.[String(member.id)] ?? []}
                 companyName={companyName}
                 onUpdated={onUpdated}
                 onRemoved={onRemoved}
@@ -480,6 +490,43 @@ function CreatedPanel({
   );
 }
 
+/** What the member does (FR-19): saved at once, and gives their card its colour theme. */
+function RolePicker({ member, onUpdated }: { member: Member; onUpdated: (m: Member) => void }): ReactElement {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const change = async (role: MemberRole | "") => {
+    setBusy(true);
+    setError(null);
+    try {
+      onUpdated(await setMemberRole(member.id, role));
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <span className="team-role">
+      <label className="dash-filter">
+        <span>Role</span>
+        <select value={member.role ?? ""} disabled={busy} onChange={(e) => void change(e.target.value as MemberRole | "")}>
+          <option value="">Choose a role</option>
+          {MEMBER_ROLES.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {error ? (
+        <small className="form__err" role="alert">
+          {error}
+        </small>
+      ) : null}
+    </span>
+  );
+}
+
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
@@ -493,6 +540,7 @@ function initialsOf(name: string): string {
 function MemberTile({
   member,
   device,
+  tags = [],
   companyName,
   onUpdated,
   onRemoved,
@@ -501,6 +549,8 @@ function MemberTile({
   member: Member;
   /** The full PC record (OS, id for Activity) when the devices list has it. */
   device: Device | undefined;
+  /** FR-19: kind tags from their week. */
+  tags?: MemberTag[];
   companyName: string | null;
   onUpdated: (member: Member) => void;
   onRemoved: (member: Member) => void;
@@ -569,7 +619,7 @@ function MemberTile({
     });
 
   return (
-    <article className="team-tile" aria-label={member.name}>
+    <article className={cx("team-tile", member.role && `team-tile--${member.role}`)} aria-label={member.name}>
       <header className="team-tile__head">
         <span className="team-tile__avatar" aria-hidden="true">
           {initialsOf(member.name)}
@@ -583,6 +633,19 @@ function MemberTile({
           {PRESENCE_LABEL[status]}
         </span>
       </header>
+
+      {tags.length > 0 ? (
+        <ul className="team-tags" aria-label={`${member.name}'s week`}>
+          {tags.map((t) => (
+            <li key={t.key} className="team-tag" title={t.why}>
+              <span aria-hidden="true">{t.emoji}</span> {t.label}
+              <span className="dash-sr">: {t.why}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <RolePicker member={member} onUpdated={onUpdated} />
 
       <dl className="team-tile__facts">
         <div>
