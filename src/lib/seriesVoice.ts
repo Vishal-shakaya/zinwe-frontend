@@ -24,6 +24,8 @@ export interface SeriesVoice {
   startText?: string;
   /** SAFE BY DESIGN: each episode has a kid-facing Family Card at /family/NN to send on (FamilyShare). */
   familyCards?: boolean;
+  /** The line under the downloads. */
+  filesNote?: string;
 }
 
 const TLF: SeriesVoice = {
@@ -86,6 +88,7 @@ const SBD: SeriesVoice = {
   startTitle: "The same calm care, for your business",
   startText: "At work, Zinwe tells you in plain English when company files leave your team's PCs. Free forever for up to 3 PCs.",
   familyCards: true,
+  filesNote: "For you and your family: print them, stick them on the fridge, share them with the grown-ups who look after your children.",
 };
 
 const VOICES: Record<string, SeriesVoice> = { "the-last-file": TLF, "identity-under-attack": IUA, "safe-by-design": SBD };

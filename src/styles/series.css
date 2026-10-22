@@ -501,3 +501,7 @@ a.sx-next:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   .sx-family { grid-template-columns: 1fr; text-align: left; }
   .sx-family__card img { width: 140px; }
 }
+.sx[data-series="safe-by-design"] .sx-gate { background: #0d2a3a; }
+.sx[data-series="safe-by-design"] .sx-gate__badge { background: rgba(127, 214, 203, 0.16); color: #9be4da; }
+.sx[data-series="safe-by-design"] .sx-files h2,
+.sx[data-series="safe-by-design"] .sx-files__get { color: #0b6b65; }

@@ -224,7 +224,7 @@ export default function EpisodePage(): ReactElement {
                       </li>
                     ))}
                   </ul>
-                  <p className="sx-files__note">For you and your team. Please don't post them publicly.</p>
+                  <p className="sx-files__note">{voice.filesNote ?? "For you and your team. Please don't post them publicly."}</p>
                 </section>
               ) : null}
               {ep.free_preview && !ep.reader ? (
