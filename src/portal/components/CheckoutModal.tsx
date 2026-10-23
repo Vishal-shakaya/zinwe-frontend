@@ -36,6 +36,8 @@ export interface CheckoutModalProps {
   reference?: string;
   /** An upgrade from the current plan: the plan code the payment is for. */
   upgradePlan?: string;
+  /** An offer from the Zinwe team (its id; `quote` is its price): paid online only, straight to Razorpay. */
+  offer?: number;
   /** An upgrade's period: the new plan runs until `until`, with the paid days left on the old one added. */
   period?: { until: string; carriedDays: number } | null;
   /** The last payment wasn't accepted: say why, before the owner pays again. */
@@ -51,7 +53,7 @@ export interface CheckoutModalProps {
 }
 
 /** The price lines (plan price, discount, tax). Shown in the summary; on phones inside "Price details". */
-function PriceLines({ quote, className }: { quote: Quote; className: string }): ReactElement {
+function PriceLines({ quote, className, offer }: { quote: Quote; className: string; offer?: boolean }): ReactElement {
   const money = (amount: string) => formatMoney(amount, quote.currency);
   return (
     <dl className={className}>
@@ -61,7 +63,7 @@ function PriceLines({ quote, className }: { quote: Quote; className: string }): 
       </div>
       {Number(quote.discount_amount) > 0 ? (
         <div className="checkout__minus">
-          <dt>Launch discount</dt>
+          <dt>{offer ? "Your offer" : "Launch discount"}</dt>
           <dd>− {money(quote.discount_amount)}</dd>
         </div>
       ) : null}
@@ -95,6 +97,7 @@ export function CheckoutModal({
   devices,
   reference,
   upgradePlan,
+  offer,
   period = null,
   rejected = null,
   shareQuote = false,
@@ -112,9 +115,12 @@ export function CheckoutModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // "Pay online" (Razorpay) first when it's on; the manual ways (and the receipt) always stay as the fallback.
-  const ways = payWayOptions(instructions, quote.currency, true);
-  const [screen, setScreen] = useState<Screen>("methods");
+  // An offer is paid online only: straight to "Pay online", no other way.
+  const allWays = payWayOptions(instructions, quote.currency, true);
+  const ways = offer ? allWays.filter((w) => w.key === "online") : allWays;
+  const [screen, setScreen] = useState<Screen>(offer && ways.length ? "details" : "methods");
   const [way, setWay] = useState<PayWay>(() => {
+    if (offer) return "online";
     const first = defaultWay(instructions, true);
     return ways.some((w) => w.key === first) ? first : ways[0].key;
   });
@@ -153,7 +159,8 @@ export function CheckoutModal({
     });
   };
 
-  const back = screen === "details" ? "methods" : screen === "receipt" ? (skipped ? "methods" : "details") : null;
+  const back =
+    screen === "details" ? (offer ? null : "methods") : screen === "receipt" ? (skipped ? "methods" : "details") : null;
 
   // The choices for "How did you pay?" (only the ways this customer was offered).
   const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = ways.filter((w) => w.key !== "online").map((w) => ({
@@ -188,7 +195,7 @@ export function CheckoutModal({
           <p className="checkout__payee">Pay to {payee}</p>
           <p className="checkout__plan">
             Zinwe {quote.plan_name}
-            {upgradePlan ? <span className="checkout__tag">Upgrade</span> : null}
+            {upgradePlan ? <span className="checkout__tag">{offer ? "Offer" : "Upgrade"}</span> : null}
           </p>
           <p className="checkout__meta">
             {period
@@ -202,10 +209,10 @@ export function CheckoutModal({
           </p>
           <p className="checkout__total">{total}</p>
 
-          <PriceLines quote={quote} className="checkout__lines" />
+          <PriceLines quote={quote} className="checkout__lines" offer={Boolean(offer)} />
           <details className="checkout__price">
             <summary>Price details</summary>
-            <PriceLines quote={quote} className="checkout__lines checkout__lines--sheet" />
+            <PriceLines quote={quote} className="checkout__lines checkout__lines--sheet" offer={Boolean(offer)} />
           </details>
 
           {reference ? (
@@ -292,6 +299,7 @@ export function CheckoutModal({
                 <OnlinePay
                   total={total}
                   upgradePlan={upgradePlan}
+                  offer={offer}
                   onPaid={async (payment) => {
                     if (payment) await onSubmitted(payment);
                     setPaidOnline("paid");
@@ -302,7 +310,7 @@ export function CheckoutModal({
                     setPaidOnline("pending");
                     go("done");
                   }}
-                  onFallback={() => setWay("upi")}
+                  onFallback={offer ? undefined : () => setWay("upi")}
                   onWindow={(open) => {
                     const dialog = ref.current;
                     if (!dialog) return;

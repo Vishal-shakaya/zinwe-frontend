@@ -18,6 +18,7 @@ type Stage = "idle" | "starting" | "open" | "confirming";
 export function OnlinePay({
   total,
   upgradePlan,
+  offer,
   onPaid,
   onPending,
   onFallback,
@@ -26,12 +27,14 @@ export function OnlinePay({
   /** e.g. "₹1,146". */
   total: string;
   upgradePlan?: string;
+  /** An offer from the Zinwe team (its id): priced and checked again on the server. */
+  offer?: number;
   /** The plan is updated: `payment` is the approved payment (status "verified"). */
   onPaid: (payment: Payment | null) => void | Promise<void>;
   /** Money taken, plan not updated yet ("confirming" / "review"): show `detail`, nothing more to do. */
   onPending: (result: OnlineResult) => void | Promise<void>;
-  /** Pay another way (UPI / bank transfer + receipt). */
-  onFallback: () => void;
+  /** Pay another way (UPI / bank transfer + receipt). Omitted (an offer, online only): no other way. */
+  onFallback?: () => void;
   /**
    * Razorpay's window opens (true) / closes (false). A native modal <dialog> is drawn above everything, so a
    * checkout dialog must step aside while Razorpay's window is open, or the customer can't reach it.
@@ -53,13 +56,17 @@ export function OnlinePay({
     setStage("starting");
     let order;
     try {
-      order = await createOnlineOrder(upgradePlan);
+      order = await createOnlineOrder(upgradePlan, offer);
     } catch (err) {
       setStage("idle");
       // 503 (off / Razorpay down) or a network failure: offer the manual ways.
       if (!(err instanceof ApiError) || err.status === 503 || err.status === 0) {
         setOffline(true);
-        setError("Online payment isn't available right now. You can pay by UPI or bank transfer instead.");
+        setError(
+          onFallback
+            ? "Online payment isn't available right now. You can pay by UPI or bank transfer instead."
+            : "Online payment isn't available right now. Please try again in a few minutes.",
+        );
       } else {
         setError(errorMessage(err));
       }
@@ -143,7 +150,7 @@ export function OnlinePay({
               ? "Confirming your payment…"
               : `Pay ${total} securely`}
       </button>
-      {offline || error ? (
+      {onFallback && (offline || error) ? (
         <button type="button" className="dash-link online-pay__alt" onClick={onFallback}>
           Pay by UPI or bank transfer instead
         </button>

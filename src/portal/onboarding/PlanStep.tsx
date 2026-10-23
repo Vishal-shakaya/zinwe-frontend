@@ -1,4 +1,5 @@
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
+import { DashIcon } from "../../dashboard/components/DashIcon";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { onboardingFor } from "../../auth/steps";
@@ -10,8 +11,10 @@ import {
   ApiError,
   createSubscription,
   errorMessage,
+  getOffer,
   getSubscription,
   getUpgradeQuote,
+  type Offer,
   type Plan,
   type UpgradeQuote,
 } from "../../lib/api";
@@ -39,6 +42,8 @@ import { useSubscriptionInfo } from "../useSubscriptionInfo";
  *   checked, 2026-10-17): the plans, read only, so nobody pays twice.
  * `?plan=<code>` preselects a plan (links from the dashboard, the website and emails). "How many PCs?"
  * (starting from the company's team size) marks the smallest plan that fits.
+ * `?offer=<id>` (with `?plan=`): an offer the Zinwe team sent from the admin panel (a dashboard notification bar).
+ * Its own price (GET payments/offer/<id>/), paid online only; the checkout opens with it on arrival.
  */
 export default function PlanStep(): ReactElement {
   const { account, refresh } = useAuth();
@@ -102,15 +107,38 @@ export default function PlanStep(): ReactElement {
   const [picked, setPicked] = useState<string | null>(null);
   const selected = reviewing ? suggested : (picked ?? suggested);
 
+  // An offer from a dashboard bar: only for the plan it names, while upgrading. The order checks it all again.
+  const offerId = Number(params.get("offer")) || 0;
+  const offerCode = upgrading && offerId > 0 && asked && eligible.includes(asked) ? asked : null;
+  const loadOffer = useCallback(
+    (signal: AbortSignal): Promise<Offer | null> =>
+      offerCode ? getOffer(offerId, offerCode, signal) : Promise.resolve(null),
+    [offerId, offerCode],
+  );
+  const offerRes = useResource(loadOffer, { resetKey: `${offerId}:${offerCode ?? ""}` });
+  // Usable here: online payment is on (the offer is paid online only).
+  const offer = offerRes.data && offerRes.data.online_enabled && info.data?.instructions.online ? offerRes.data : null;
+  const offerGone = offerCode !== null && offerRes.error instanceof ApiError && offerRes.error.kind === "not_found";
+
   // `?checkout=1` opens the checkout for the plan waiting for payment. Latched on arrival: once the receipt is
   // sent the step moves on (payment_review), and the modal must stay open to say so.
   // Latched with how it was opened: after an upgrade's receipt is sent the plan is "being checked", and the
   // modal must stay an upgrade to show "Receipt sent".
-  const [checkout, setCheckout] = useState<{ code: string; upgrade: boolean } | null>(() =>
+  const [checkout, setCheckout] = useState<{ code: string; upgrade: boolean; offer?: boolean } | null>(() =>
     params.get("checkout") === "1" && pending ? { code: pending, upgrade: false } : null,
   );
   const openCode = checkout?.code ?? null;
   const openUpgrade = checkout?.upgrade ?? false;
+  const openOffer = checkout?.offer && offer && offer.plan_code === openCode ? offer : null;
+
+  // The offer's checkout opens on arrival, once (closing it leaves the page as it is).
+  const offerOpened = useRef(false);
+  useEffect(() => {
+    if (!offer || offerOpened.current) return;
+    offerOpened.current = true;
+    setPicked(offer.plan_code);
+    setCheckout({ code: offer.plan_code, upgrade: true, offer: true });
+  }, [offer]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -135,7 +163,7 @@ export default function PlanStep(): ReactElement {
     setPicked(plan.code);
     setError(null);
     if (upgrading || plan.code === pending) {
-      setCheckout({ code: plan.code, upgrade: upgrading });
+      setCheckout({ code: plan.code, upgrade: upgrading, offer: upgrading && offer?.plan_code === plan.code });
       return;
     }
     setBusy(plan.code);
@@ -224,7 +252,11 @@ export default function PlanStep(): ReactElement {
   const pendingInfo = info.data?.subscription?.plan.code === openCode ? info.data?.subscription : null;
   const upgradeData = upgrade.data ?? null;
   const upgradeSettled = !openUpgrade || (!upgrade.pending && !upgrade.error) || upgradeData !== null;
-  const quote = openUpgrade ? (upgradeData?.quote ?? openPlan?.quote) : (pendingInfo?.amount_due ?? openPlan?.quote);
+  const quote = openOffer
+    ? openOffer.due
+    : openUpgrade
+      ? (upgradeData?.quote ?? openPlan?.quote)
+      : (pendingInfo?.amount_due ?? openPlan?.quote);
   const checkoutReady = Boolean(openPlan && quote && info.data && (openUpgrade || pendingInfo) && upgradeSettled);
   const instructions = info.data
     ? openUpgrade
@@ -249,6 +281,25 @@ export default function PlanStep(): ReactElement {
           payment={rejected}
           next={pending ? "Choose Continue to payment to pay again and send the new receipt." : "You can pay for the upgrade again below."}
         />
+      ) : null}
+      {offer ? (
+        <div className="dash-banner dash-banner--ok" role="status">
+          <DashIcon name="card" />
+          <span>
+            <b>{offer.title}</b> Zinwe {offer.plan_name} for {formatMoney(offer.due.total, offer.due.currency)}
+            {offer.due.taxes.length ? " including GST" : ""}, paid online
+            {offer.ends_at ? `, until ${formatDate(offer.ends_at)}` : ""}. Renewals are at the normal price.
+          </span>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => setCheckout({ code: offer.plan_code, upgrade: true, offer: true })}
+          >
+            Use the offer
+          </button>
+        </div>
+      ) : offerGone ? (
+        <FormAlert message={errorMessage(offerRes.error)} />
       ) : null}
       <FormAlert message={error} />
       {openUpgrade && upgradeRefused ? <FormAlert message={errorMessage(upgrade.error)} /> : null}
@@ -317,6 +368,7 @@ export default function PlanStep(): ReactElement {
           devices={planDevices(openPlan)}
           reference={account?.company?.name || undefined}
           upgradePlan={openUpgrade ? openPlan.code : undefined}
+          offer={openOffer?.id}
           period={
             upgradeData ? { until: upgradeData.covers_until, carriedDays: upgradeData.carried_days } : null
           }

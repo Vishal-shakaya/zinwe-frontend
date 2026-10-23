@@ -1,6 +1,6 @@
 /** Online payment (Razorpay Standard Checkout), z_payments. The manual ways to pay stay in billing.ts. */
 import { authedRequest } from "./http";
-import type { Payment } from "./types";
+import type { Payment, Quote } from "./types";
 
 /** POST payments/razorpay/order/: what Razorpay's checkout needs. `key_id` is public; secrets stay on the server. */
 export interface OnlineOrder {
@@ -27,11 +27,31 @@ export interface OnlineResult {
 }
 
 /** 503 with `fallback: true` = online payment is off or Razorpay is down: use UPI / bank transfer. */
-export function createOnlineOrder(upgradePlan?: string): Promise<OnlineOrder> {
+export function createOnlineOrder(upgradePlan?: string, offer?: number): Promise<OnlineOrder> {
   return authedRequest<OnlineOrder>("/api/payments/razorpay/order/", {
     method: "POST",
-    body: { accept_terms: true, ...(upgradePlan ? { upgrade_plan: upgradePlan } : {}) },
+    body: { accept_terms: true, ...(upgradePlan ? { upgrade_plan: upgradePlan } : {}), ...(offer ? { offer } : {}) },
   });
+}
+
+/**
+ * GET payments/offer/<id>/?plan=: an offer the Zinwe team sent this owner (a dashboard notification bar), with its
+ * price. 404 when it has ended, isn't theirs, or was used. Paid online only; the order checks it all again.
+ */
+export interface Offer {
+  id: number;
+  title: string;
+  plan_code: string;
+  plan_name: string;
+  ends_at: string | null;
+  online_only: true;
+  /** False when online payment is off right now (the offer can't be used until it's back). */
+  online_enabled: boolean;
+  due: Quote;
+}
+
+export function getOffer(id: number, planCode: string, signal?: AbortSignal): Promise<Offer> {
+  return authedRequest<Offer>(`/api/payments/offer/${id}/?plan=${encodeURIComponent(planCode)}`, { signal });
 }
 
 export function verifyOnlinePayment(body: {
