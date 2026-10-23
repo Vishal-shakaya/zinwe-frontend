@@ -566,50 +566,101 @@
   font-weight: 600;
 }
 
-/* "Show prices in": rupees or US dollars, above the cards. */
-.plans-currency {
+/* "How many PCs?" and "Show prices in" in one row above the cards (stacked on narrow screens). */
+.plans-tools {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px 16px;
-  margin: 0 0 16px;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px 16px;
+  margin: 0 auto 28px;
 }
 
-.plans-currency__field {
-  display: inline-flex;
+.plans-tools .pc-pick {
+  flex: 1 1 520px;
+  max-width: 760px;
+  margin: 0;
+}
+
+.plans-currency {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
+  gap: 8px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.plans-currency__label {
+  font-size: 0.95rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.plans-currency__field select {
+.plans-currency select {
   min-height: 40px;
-  padding: 0 36px 0 12px;
+  padding: 0 32px 0 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--paper, #fff);
   color: inherit;
   font: inherit;
+  font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
 }
 
-.plans-currency__note {
-  margin: 0;
-  font-size: 0.85rem;
+/* The (i): its tip (data-tip) also opens on tap and keyboard focus, not only on hover. */
+.plans-currency__info {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
   color: var(--mute);
+  cursor: help;
 }
 
-.plans-currency__note a {
+.plans-currency__info:hover,
+.plans-currency__info:focus-visible {
   color: var(--orange-text);
-  font-weight: 600;
+  background: var(--paper, #f6f6f3);
+}
+
+.plans-currency__info .dash-ico {
+  width: 17px;
+  height: 17px;
+}
+
+.plans-currency__info[data-tip]:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  width: max-content;
+  max-width: 240px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 @media (max-width: 560px) {
   .plans-currency {
-    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
   }
 }
 

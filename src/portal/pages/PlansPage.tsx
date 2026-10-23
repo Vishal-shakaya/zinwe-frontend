@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { hasSettledPlan } from "../../auth/steps";
 import { Smoke } from "../../components/ui/Smoke";
+import { DashIcon } from "../../dashboard/components/DashIcon";
 import { ErrorState } from "../../dashboard/components/States";
 import { seoFor } from "../../content/seo";
 import { usePageMeta } from "../../hooks/usePageMeta";
@@ -59,6 +60,13 @@ export default function PlansPage(): ReactElement {
   const billed = (plans.data?.find((p) => p.quote)?.quote?.currency ?? null) as ShowCurrency | null;
   const [chosen, setChosen] = useState<ShowCurrency | null>(() => storedCurrency());
   const currency: ShowCurrency = chosen ?? billed ?? guessCurrency();
+  // The (i) beside "Show prices in": what the owner actually pays in, and why.
+  const billedName = billed === "USD" ? "US dollars" : "rupees";
+  const currencyTip = billed
+    ? `You're billed in ${billedName}, from the country on your company profile.${
+        billed !== currency ? " These prices are for comparison." : ""
+      }`
+    : `You pay in the currency of your company's country: rupees in India (monthly${gst ? ", plus GST" : ""}), US dollars everywhere else (yearly).`;
   const choose = (value: ShowCurrency) => {
     setChosen(value);
     try {
@@ -104,22 +112,22 @@ export default function PlansPage(): ReactElement {
         <div className="wrap">
           {plans.data ? (
             <>
-              <div className="plans-currency">
-                <label className="plans-currency__field">
-                  <span>Show prices in</span>
-                  <select value={currency} onChange={(e) => choose(e.target.value as ShowCurrency)}>
+              {/* "How many PCs?" and "Show prices in", side by side (stacked on phones). */}
+              <div className="plans-tools">
+                <PcPicker plans={plans.data} pcs={pcs} onPcs={setTyped} fromTeamSize={typed === undefined && teamPcs !== null} />
+                <div className="plans-currency">
+                  <label className="plans-currency__label" htmlFor="plans-currency">
+                    Show prices in
+                  </label>
+                  <button type="button" className="plans-currency__info" data-tip={currencyTip} aria-label={currencyTip}>
+                    <DashIcon name="help" />
+                  </button>
+                  <select id="plans-currency" value={currency} onChange={(e) => choose(e.target.value as ShowCurrency)}>
                     <option value="INR">₹ Indian rupees (INR)</option>
                     <option value="USD">$ US dollars (USD)</option>
                   </select>
-                </label>
-                {billed && billed !== currency ? (
-                  <p className="plans-currency__note">
-                    You're billed in {billed === "INR" ? "rupees" : "US dollars"}, from the country on your{" "}
-                    <Link to="/app/settings/company">company profile</Link>.
-                  </p>
-                ) : null}
+                </div>
               </div>
-              <PcPicker plans={plans.data} pcs={pcs} onPcs={setTyped} fromTeamSize={typed === undefined && teamPcs !== null} />
               <PlanCards plans={plans.data} renderAction={ctaFor} fit={fit} currency={currency} />
             </>
           ) : plans.error ? (
