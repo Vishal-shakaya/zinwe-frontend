@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { getUpiQr, type OnlineResult, type Payment, type PaymentInstructions } from "../../lib/api";
 import { defaultWay, manualWayOptions, methodForWay, payWayOptions, type PayWay } from "../payWays";
+import { DashIcon } from "../../dashboard/components/DashIcon";
 import { OnlinePay } from "./OnlinePay";
 import { PaymentWays } from "./PaymentWays";
 import { ReceiptForm } from "./ReceiptForm";
@@ -36,6 +37,13 @@ export function PayPanel({
   const [pending, setPending] = useState<OnlineResult | null>(null);
   // Razorpay failed here: the manual ways only.
   const [fallback, setFallback] = useState(false);
+  // Why: online payment unavailable right now (null = the customer chose another way after a failed payment).
+  const [unavailable, setUnavailable] = useState<string | null>(null);
+  const toManual = (reason: string | null) => {
+    setFallback(true);
+    setUnavailable(reason);
+    setWay(manualWayOptions(instructions, currency)[0].key);
+  };
   const ways = payWayOptions(instructions, currency, !fallback);
   const usd = (currency ?? instructions.currency) === "USD";
   const way = ways.some((w) => w.key === picked) ? picked : ways[0].key;
@@ -58,6 +66,15 @@ export function PayPanel({
             </p>
           </div>
         </div>
+        {unavailable ? (
+          <div className="dash-banner dash-banner--warn" role="status">
+            <DashIcon name="alert" />
+            <span>
+              {unavailable} Pay one of these ways instead: your plan switches on once we confirm the payment, usually
+              within one working day.
+            </span>
+          </div>
+        ) : null}
         <PaymentWays
           instructions={instructions}
           total={total}
@@ -82,10 +99,8 @@ export function PayPanel({
                 onPending={(result) => setPending(result)}
                 currency={usd ? "USD" : "INR"}
                 otherWays={usd ? "a US bank transfer through Skydo" : "UPI or bank transfer"}
-                onFallback={() => {
-                  setFallback(true);
-                  setWay(manualWayOptions(instructions, currency)[0].key);
-                }}
+                onFallback={() => toManual(null)}
+                onUnavailable={(reason) => toManual(reason)}
               />
             )
           }

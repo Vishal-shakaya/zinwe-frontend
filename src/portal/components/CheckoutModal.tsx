@@ -114,11 +114,13 @@ export function CheckoutModal({
     // Once per opening of the modal.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // "Pay online" (Razorpay) first when it's on; the manual ways (and the receipt) always stay as the fallback.
   // Online first (2026-10-23): the checkout opens on "Pay online", with the one manual way that suits the customer
   // (bank transfer; Skydo abroad) as a link under it. When Razorpay is off, or fails here (`fallback`), every manual
   // way is listed instead. An offer is paid online only: no other way.
   const [fallback, setFallback] = useState(false);
+  // Why the manual ways are shown (Razorpay unavailable), and whether a payment just failed (declined, refused).
+  const [unavailable, setUnavailable] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const manual = manualWayOptions(instructions, quote.currency);
   const allWays = fallback ? manual : payWayOptions(instructions, quote.currency, true);
   const ways = offer ? allWays.filter((w) => w.key === "online") : allWays;
@@ -176,6 +178,14 @@ export function CheckoutModal({
             : { screen: "methods" }
           : { screen: "details" }
         : null;
+  const toManual = (reason: string | null) => {
+    setFallback(true);
+    setUnavailable(reason);
+    setWay(manual[0].key);
+    go("methods");
+  };
+  const otherWaysText = usd ? "a US bank transfer through Skydo" : "UPI or bank transfer";
+
   const goBack = () => {
     if (!back) return;
     if (back.way) setWay(back.way);
@@ -275,6 +285,15 @@ export function CheckoutModal({
                 {rejected ? (
                   <RejectedBanner payment={rejected} next="Pay again below and send the new receipt." />
                 ) : null}
+                {unavailable ? (
+                  <div className="dash-banner dash-banner--warn" role="status">
+                    <DashIcon name="alert" />
+                    <span>
+                      {unavailable} Pay one of these ways instead: your plan switches on once we confirm the payment,
+                      usually within one working day.
+                    </span>
+                  </div>
+                ) : null}
                 <ul className="checkout__methods">
                   {ways.map((m) => (
                     <li key={m.key}>
@@ -332,18 +351,11 @@ export function CheckoutModal({
                     setPaidOnline("pending");
                     go("done");
                   }}
-                  otherWays={usd ? "a US bank transfer through Skydo" : "UPI or bank transfer"}
+                  otherWays={otherWaysText}
                   currency={quote.currency}
-                  onFallback={
-                    offer
-                      ? undefined
-                      : () => {
-                          // Razorpay is off, down or blocked here: every manual way, from the list.
-                          setFallback(true);
-                          setWay(manual[0].key);
-                          go("methods");
-                        }
-                  }
+                  // Razorpay off, down or refusing us, or its window blocked: every manual way, with why.
+                  onUnavailable={offer ? undefined : (reason) => toManual(reason)}
+                  onFailed={() => setFailed(true)}
                   onWindow={(open) => {
                     const dialog = ref.current;
                     if (!dialog) return;
@@ -353,7 +365,13 @@ export function CheckoutModal({
                 />
                 {offer ? null : (
                   <div className="checkout__other">
-                    {otherWays.map((w) => (
+                    {failed ? (
+                      // A payment didn't go through: every manual way (UPI too), not just the one beside online.
+                      <button type="button" className="dash-link" onClick={() => toManual(null)}>
+                        Pay by {otherWaysText} instead
+                      </button>
+                    ) : null}
+                    {(failed ? [] : otherWays).map((w) => (
                       <button
                         key={w.key}
                         type="button"

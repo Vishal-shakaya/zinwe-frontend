@@ -24,6 +24,8 @@ export function OnlinePay({
   onPaid,
   onPending,
   onFallback,
+  onUnavailable,
+  onFailed,
   onWindow,
 }: {
   /** e.g. "₹1,146". */
@@ -41,6 +43,13 @@ export function OnlinePay({
   onPending: (result: OnlineResult) => void | Promise<void>;
   /** Pay another way (UPI / bank transfer + receipt). Omitted (an offer, online only): no other way. */
   onFallback?: () => void;
+  /**
+   * Online payment can't be used right now (off, Razorpay down or refusing us, the window blocked), with why. Given,
+   * the parent takes the customer to the manual ways itself (instead of this panel's "pay another way" link).
+   */
+  onUnavailable?: (reason: string) => void;
+  /** A payment didn't go through (declined, or the order was refused): the parent can point to the other ways. */
+  onFailed?: () => void;
   /**
    * Razorpay's window opens (true) / closes (false). A native modal <dialog> is drawn above everything, so a
    * checkout dialog must step aside while Razorpay's window is open, or the customer can't reach it.
@@ -67,6 +76,10 @@ export function OnlinePay({
       setStage("idle");
       // 503 (off / Razorpay down) or a network failure: offer the manual ways.
       if (!(err instanceof ApiError) || err.status === 503 || err.status === 0) {
+        if (onUnavailable) {
+          onUnavailable("Online payment isn't available right now.");
+          return;
+        }
         setOffline(true);
         setError(
           onFallback
@@ -75,6 +88,7 @@ export function OnlinePay({
         );
       } else {
         setError(errorMessage(err));
+        onFailed?.();
       }
       return;
     }
@@ -86,6 +100,10 @@ export function OnlinePay({
       outcome = await openCheckout(order);
     } catch {
       setStage("idle");
+      if (onUnavailable) {
+        onUnavailable("The secure payment window couldn't load (a blocker or a slow connection can stop it).");
+        return;
+      }
       setOffline(true);
       setError("The secure payment window couldn't load (a blocker or a slow connection can stop it).");
       return;
@@ -99,6 +117,7 @@ export function OnlinePay({
     if (outcome.kind === "failed") {
       setStage("idle");
       setError(`${outcome.reason} Nothing was charged. Try again, or pay another way.`);
+      onFailed?.();
       return;
     }
     setStage("confirming");
