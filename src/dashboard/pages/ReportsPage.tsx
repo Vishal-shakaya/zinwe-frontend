@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState, type ReactElement } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useState, type ReactElement } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import {
@@ -8,14 +8,14 @@ import {
   getReport,
   listMembers,
   type MetricTopItem,
-  type ReportDay,
   type ReportPerson,
   type TeamReport,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { axisDuration, formatDate, friendlyDuration } from "../../lib/format";
+import { formatDate, friendlyDuration } from "../../lib/format";
 import { DashIcon } from "../components/DashIcon";
 import { PlanLock } from "../components/PlanLock";
+import { ReportChart } from "../components/reports/ReportChart";
 import { ReportDeliveries } from "../components/reports/ReportDeliveries";
 import { ReportSchedules } from "../components/reports/ReportSchedules";
 import { ShareReportDialog } from "../components/reports/ShareReportDialog";
@@ -23,7 +23,6 @@ import { StatTiles, type StatTile } from "../components/StatTiles";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton } from "../components/States";
 import { Modal } from "../components/Modal";
 import { Toast } from "../components/Toast";
-import { UsageChart } from "../components/UsageChart";
 import { useEntitlements } from "../features/entitlements";
 import { formatBytes } from "../features/metrics";
 import { clockOf, dayLabel } from "../features/reportFormat";
@@ -42,7 +41,7 @@ const PRESETS: ReadonlyArray<{ key: Preset; label: string }> = [
   { key: "last_week", label: "Last week" },
   { key: "month", label: "This month" },
   { key: "last_month", label: "Last month" },
-  { key: "custom", label: "Pick dates" },
+  { key: "custom", label: "Custom dates" },
 ];
 
 const VIEWS: ReadonlyArray<{ key: View; label: string; icon: "file" | "clock" | "mail" }> = [
@@ -106,40 +105,6 @@ function TopList({
           </li>
         ))}
       </ol>
-    </section>
-  );
-}
-
-/** Hours worked (and active on the PC) each day, when the period has more than one day. */
-function Trend({ daily, person }: { daily: ReportDay[]; person: boolean }): ReactElement | null {
-  const rows = useMemo(
-    () =>
-      daily.map((d) => ({
-        label:
-          daily.length > 7
-            ? formatDate(d.date).replace(/ \d{4}$/, "")
-            : new Date(`${d.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short" }),
-        t: new Date(`${d.date}T00:00:00`).getTime(),
-        Worked: d.worked_seconds,
-        "Active on PC": d.active_seconds,
-      })),
-    [daily],
-  );
-  if (daily.length < 2) return null;
-  const hasActive = daily.some((d) => d.active_seconds > 0);
-  return (
-    <section className="dash-card" aria-label="Day by day">
-      <UsageChart
-        rows={rows}
-        specs={[
-          { category: "work", field: "seconds", label: "Worked" },
-          ...(hasActive ? [{ category: "active", field: "seconds" as const, label: "Active on PC" }] : []),
-        ]}
-        format={friendlyDuration}
-        axisFormat={axisDuration}
-        caption={person ? "Their hours, day by day" : "The team's hours, day by day"}
-        emptyHint="Nothing recorded on these days yet."
-      />
     </section>
   );
 }
@@ -326,6 +291,7 @@ export default function ReportsPage(): ReactElement {
   const pro = has("reports_pro");
   const today = isoDay(new Date(useNow(60_000)));
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const view: View = params.get("view") === "schedules" ? "schedules" : params.get("view") === "sent" ? "sent" : "report";
   const memberParam = Number(params.get("member"));
   const memberId = Number.isInteger(memberParam) && memberParam > 0 ? memberParam : null;
@@ -335,6 +301,11 @@ export default function ReportsPage(): ReactElement {
   const [preset, setPreset] = useState<Preset>(linked ? "custom" : "week");
   const [custom, setCustom] = useState<[string, string]>(() => linked ?? periodFor("week", today));
   const [from, to] = preset === "custom" ? custom : periodFor(preset, today);
+  // Custom dates start from the period on screen, so the calendar opens on what you were looking at.
+  const pickPreset = (next: Preset) => {
+    if (next === "custom" && preset !== "custom") setCustom([from, to]);
+    setPreset(next);
+  };
   const [downloading, setDownloading] = useState<"csv" | "pdf" | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
@@ -475,30 +446,45 @@ export default function ReportsPage(): ReactElement {
                 ) : null}
               </select>
             </label>
-            <div className="rpt-period" role="group" aria-label="Period">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  className={cx("rpt-chip", preset === p.key && "is-on")}
-                  aria-pressed={preset === p.key}
-                  onClick={() => setPreset(p.key)}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div className="rpt-when">
+              <label className="dash-filter rpt-period-pick">
+                <span>Period</span>
+                <select value={preset} onChange={(e) => pickPreset(e.target.value as Preset)}>
+                  {PRESETS.map((p) => (
+                    <option key={p.key} value={p.key}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className={cx("rpt-cal", preset === "custom" && "is-on")}
+                aria-pressed={preset === "custom"}
+                aria-label="Pick your own dates"
+                title="Pick your own dates"
+                onClick={() => pickPreset(preset === "custom" ? "week" : "custom")}
+              >
+                <DashIcon name="calendar" />
+              </button>
             </div>
             {preset === "custom" ? (
               <span className="rpt-dates">
                 <label className="dash-filter">
                   <span>From</span>
-                  <input type="date" value={custom[0]} max={today} onChange={(e) => e.target.value && setCustom([e.target.value, custom[1]])} />
+                  <input type="date" value={custom[0]} max={custom[1]} onChange={(e) => e.target.value && setCustom([e.target.value, custom[1]])} />
                 </label>
                 <label className="dash-filter">
                   <span>To</span>
-                  <input type="date" value={custom[1]} max={today} onChange={(e) => e.target.value && setCustom([custom[0], e.target.value])} />
+                  <input type="date" value={custom[1]} min={custom[0]} max={today} onChange={(e) => e.target.value && setCustom([custom[0], e.target.value])} />
                 </label>
               </span>
+            ) : null}
+            {r ? (
+              <p className="rpt-range">
+                {periodText(r)} · {r.days} {r.days === 1 ? "day" : "days"}
+                {r.from !== from ? " (your plan keeps history from this day)" : ""}
+              </p>
             ) : null}
           </div>
 
@@ -518,13 +504,6 @@ export default function ReportsPage(): ReactElement {
             </div>
           ) : null}
 
-          {r ? (
-            <p className="dash-note rpt-range">
-              {title} · {periodText(r)} · {r.days} {r.days === 1 ? "day" : "days"}
-              {r.from !== from ? " (your plan keeps history from this day)" : ""}
-            </p>
-          ) : null}
-
           {r === undefined ? (
             report.error ? (
               <ErrorState message={errorMessage(report.error)} onRetry={report.reload} retrying={report.pending} />
@@ -533,8 +512,12 @@ export default function ReportsPage(): ReactElement {
             )
           ) : (
             <>
-              <StatTiles wide label="The period at a glance" tiles={tilesFor(r)} />
-              <Trend daily={r.daily} person={Boolean(r.member)} />
+              <StatTiles wide className="rpt-tiles" label="The period at a glance" tiles={tilesFor(r)} />
+              <ReportChart
+                report={r}
+                onPerson={(id) => setMember(id)}
+                onDay={(date) => r.member && navigate(`/app/activity?member=${r.member.id}&date=${date}`)}
+              />
               {r.member ? <PersonDays report={r} /> : <PeopleTable report={r} onOpen={(p) => setMember(p.member_id)} />}
               <div className="rpt-tops">
                 <TopList title="Top apps" items={r.top_apps} nameOf={appSource} value={(i) => friendlyDuration(i.seconds)} />

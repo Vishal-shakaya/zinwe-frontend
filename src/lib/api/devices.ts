@@ -621,6 +621,24 @@ export interface ReportDay {
   /** One person's report only: when they started and finished (minutes after midnight). */
   first_in: number | null;
   last_out: number | null;
+  /** Team report only: each person's numbers that day, most worked first (the chart's bars and hover detail). */
+  by_person?: ReportDayPerson[];
+}
+
+/** One person on one day of the team report. */
+export interface ReportDayPerson {
+  /** "m12" for a team member, "d5" for a PC that isn't linked to anyone. */
+  key: string;
+  member_id: number | null;
+  name: string;
+  worked_seconds: number;
+  break_seconds: number;
+  breaks: number;
+  active_seconds: number;
+  data_bytes: number;
+  alerts: number;
+  first_in: number | null;
+  last_out: number | null;
 }
 
 export interface ReportTotals {

@@ -24,14 +24,17 @@ export function StatTiles({
   tiles,
   label = "Summary",
   wide = false,
+  className,
 }: {
   tiles: StatTile[];
   label?: string;
   /** Auto-fits more than 3 tiles (e.g. a 5-up presence row). */
   wide?: boolean;
+  /** A page-specific variant (e.g. Reports' compact one-line numbers). */
+  className?: string;
 }): ReactElement {
   return (
-    <ul className={cx("dash-stats", wide && "dash-stats--wide")} aria-label={label}>
+    <ul className={cx("dash-stats", wide && "dash-stats--wide", className)} aria-label={label}>
       {tiles.map((tile) => {
         const body: ReactNode = (
           <>

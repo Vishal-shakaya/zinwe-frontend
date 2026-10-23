@@ -42,6 +42,7 @@ export type DashIconName =
   | "chevron"
   | "qr"
   | "bell"
+  | "calendar"
   | "user";
 
 const strokeProps = {
@@ -54,6 +55,13 @@ const strokeProps = {
 
 function paths(name: DashIconName): ReactElement {
   switch (name) {
+    case "calendar":
+      return (
+        <>
+          <rect x="4" y="5" width="16" height="15" rx="2" />
+          <path d="M4 10h16M9 3v4M15 3v4M8 14h2M14 14h2M8 17h2" />
+        </>
+      );
     case "bell":
       return (
         <>
