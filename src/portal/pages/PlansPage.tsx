@@ -6,24 +6,34 @@ import { Smoke } from "../../components/ui/Smoke";
 import { ErrorState } from "../../dashboard/components/States";
 import { seoFor } from "../../content/seo";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { errorMessage, type Plan } from "../../lib/api";
+import { errorMessage, type BillingCycle, type Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { PcPicker } from "../components/PcPicker";
 import { PlanCards, PlanCardsLoading } from "../components/PlanCards";
-import { planChargesGst, planCtaLabel, planForPcs, pcsForTeamSize, type ShowCurrency } from "../plan";
+import { CycleToggle } from "../components/CycleToggle";
+import { bestYearlySaving, planChargesGst, planCtaLabel, planForPcs, pcsForTeamSize, type ShowCurrency } from "../plan";
 import { usePlans } from "../usePlans";
 import "../../styles/dashboard.css";
 import "../../styles/portal.css";
 
 const CURRENCY_KEY = "zinwe.plans-currency";
+const CYCLE_KEY = "zinwe.plans-cycle";
 
-/** The visitor's last "Show prices in" choice (storage can throw: private mode, blocked site data). */
-function storedCurrency(): ShowCurrency | null {
+/** The visitor's last choice of `key`, when it's one of `allowed` (storage can throw: private mode, blocked data). */
+function stored<T extends string>(key: string, allowed: readonly T[]): T | null {
   try {
-    const value = window.localStorage.getItem(CURRENCY_KEY);
-    return value === "INR" || value === "USD" ? value : null;
+    const value = window.localStorage.getItem(key);
+    return allowed.includes(value as T) ? (value as T) : null;
   } catch {
     return null;
+  }
+}
+
+function remember(key: string, value: string): void {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable: the choice lasts until the page closes.
   }
 }
 
@@ -57,7 +67,7 @@ export default function PlansPage(): ReactElement {
   const gst = plans.data ? plans.data.some((p) => planChargesGst(p)) : false;
   // The owner's own billing currency (signed in, with a company): what they'd actually pay in.
   const billed = (plans.data?.find((p) => p.quote)?.quote?.currency ?? null) as ShowCurrency | null;
-  const [chosen, setChosen] = useState<ShowCurrency | null>(() => storedCurrency());
+  const [chosen, setChosen] = useState<ShowCurrency | null>(() => stored(CURRENCY_KEY, ["INR", "USD"]));
   const currency: ShowCurrency = chosen ?? billed ?? guessCurrency();
   // The currency picker's title: what the owner actually pays in, and why.
   const billedName = billed === "USD" ? "US dollars" : "rupees";
@@ -65,14 +75,17 @@ export default function PlansPage(): ReactElement {
     ? `You're billed in ${billedName}, from the country on your company profile.${
         billed !== currency ? " These prices are for comparison." : ""
       }`
-    : `You pay in the currency of your company's country: rupees in India (monthly${gst ? ", plus GST" : ""}), US dollars everywhere else (yearly).`;
+    : `You pay in the currency of your company's country: rupees in India${gst ? " (plus GST)" : ""}, US dollars internationally.`;
+  // Monthly or yearly: the visitor's last choice, else monthly in rupees and yearly in dollars.
+  const [chosenCycle, setChosenCycle] = useState<BillingCycle | null>(() => stored(CYCLE_KEY, ["monthly", "yearly"]));
+  const cycle: BillingCycle = chosenCycle ?? (currency === "USD" ? "yearly" : "monthly");
+  const chooseCycle = (value: BillingCycle) => {
+    setChosenCycle(value);
+    remember(CYCLE_KEY, value);
+  };
   const choose = (value: ShowCurrency) => {
     setChosen(value);
-    try {
-      window.localStorage.setItem(CURRENCY_KEY, value);
-    } catch {
-      // Storage unavailable: the choice lasts until the page closes.
-    }
+    remember(CURRENCY_KEY, value);
   };
 
   const ctaFor = (plan: Plan, highlighted: boolean): ReactElement => {
@@ -80,7 +93,7 @@ export default function PlansPage(): ReactElement {
     if (token) {
       const inApp = onboarding ? hasSettledPlan(onboarding.step) : false;
       return (
-        <Link className={className} to={inApp ? "/app/settings/billing" : "/onboarding/plan"}>
+        <Link className={className} to={inApp ? "/app/settings/billing" : `/onboarding/plan?plan=${plan.code}&cycle=${cycle}`}>
           {inApp ? "See your plan" : planCtaLabel(plan)}
         </Link>
       );
@@ -111,22 +124,25 @@ export default function PlansPage(): ReactElement {
         <div className="wrap">
           {plans.data ? (
             <>
-              {/* "How many PCs?" and the currency, side by side. */}
+              {/* "How many PCs?", monthly / yearly and the currency, in one row. */}
               <div className="plans-tools">
                 <PcPicker plans={plans.data} pcs={pcs} onPcs={setTyped} fromTeamSize={typed === undefined && teamPcs !== null} />
-                {/* Just the currency: what it means for billing is in its hover title and the screen-reader label. */}
-                <select
-                  className="plans-currency"
-                  value={currency}
-                  onChange={(e) => choose(e.target.value as ShowCurrency)}
-                  aria-label={`Show prices in. ${currencyTip}`}
-                  title={currencyTip}
-                >
-                  <option value="INR">₹ INR</option>
-                  <option value="USD">$ USD</option>
-                </select>
+                <div className="plans-tools__end">
+                  <CycleToggle value={cycle} onChange={chooseCycle} saving={bestYearlySaving(plans.data, currency)} upTo />
+                  {/* Just the currency: what it means for billing is in its hover title and the screen-reader label. */}
+                  <select
+                    className="plans-currency"
+                    value={currency}
+                    onChange={(e) => choose(e.target.value as ShowCurrency)}
+                    aria-label={`Show prices in. ${currencyTip}`}
+                    title={currencyTip}
+                  >
+                    <option value="INR">₹ INR</option>
+                    <option value="USD">$ USD</option>
+                  </select>
+                </div>
               </div>
-              <PlanCards plans={plans.data} renderAction={ctaFor} fit={fit} currency={currency} />
+              <PlanCards plans={plans.data} renderAction={ctaFor} fit={fit} currency={currency} cycle={cycle} />
             </>
           ) : plans.error ? (
             <div className="dash-card">
@@ -141,9 +157,10 @@ export default function PlansPage(): ReactElement {
             <PlanCardsLoading />
           )}
           <p className="plans-note">
-            In India: rupees, billed monthly{gst ? ", plus 18% GST" : ""}; pay online (UPI apps, cards, netbanking) or by
-            bank transfer. Outside India: US dollars, billed yearly, no Indian GST; pay by card or US bank transfer. You
-            pay in the currency of the country on your company profile.{" "}
+            Billed monthly or yearly, your choice. In India: rupees{gst ? ", plus 18% GST" : ""}; pay online with
+            Razorpay (UPI apps, cards, netbanking, wallets) or by bank transfer. International: US dollars, no Indian GST;
+            pay by card with Razorpay or by bank transfer through Skydo. You pay in the currency of the country on your
+            company profile.{" "}
             {gst ? "You get a GST invoice for every payment." : "You get an invoice for every payment."} Questions?{" "}
             <Link to="/contact">Talk to us</Link>
           </p>

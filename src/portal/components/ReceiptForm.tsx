@@ -2,7 +2,7 @@ import { useRef, useState, type ChangeEvent, type DragEvent, type FormEvent, typ
 import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
 import { PAYMENT_TERMS } from "../../content/legal";
 import { DashIcon } from "../../dashboard/components/DashIcon";
-import { submitPayment, type Payment, type PaymentField, type PaymentMethod } from "../../lib/api";
+import { submitPayment, type BillingCycle, type Payment, type PaymentField, type PaymentMethod } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { compactErrors, focusFirstInvalid, type FieldErrorMap } from "../../lib/validation";
 import { apiFieldErrors, apiFormError } from "../failure";
@@ -32,6 +32,8 @@ interface ReceiptFormProps {
   onSubmitted: (payment: Payment) => void | Promise<void>;
   /** Dashboard upgrade: the plan code this payment is for. */
   upgradePlan?: string;
+  /** Monthly or yearly, as chosen at checkout (default: the subscription's own). */
+  billingCycle?: BillingCycle;
   /** Step number shown before the title ("2"), when the page numbers its steps. */
   step?: string;
   /** No heading of its own (the checkout modal titles the screen). */
@@ -47,6 +49,7 @@ export function ReceiptForm({
   askMethod,
   onSubmitted,
   upgradePlan,
+  billingCycle,
   step,
   bare = false,
 }: ReceiptFormProps): ReactElement {
@@ -101,6 +104,7 @@ export function ReceiptForm({
         method: (askMethod ? paidBy : null) ?? method,
         proof,
         upgrade_plan: upgradePlan,
+        billing_cycle: billingCycle,
         accept_terms: accepted,
       });
       await onSubmitted(payment);

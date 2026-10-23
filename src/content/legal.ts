@@ -9,7 +9,8 @@
  * (ConsentStore.CurrentVersion) have their own versions — bump those only when their texts change.
  */
 
-// 2026-10-23: online payment through Razorpay (billing, refund timelines, delivery, grievances), the Teams plan.
+// 2026-10-23: online payment through Razorpay (billing, refund timelines, delivery, grievances), the Teams plan,
+// and monthly or yearly billing (the same day: owners who accepted today's earlier text aren't asked again).
 export const LEGAL_VERSION = "2026-10-23";
 export const LEGAL_UPDATED = "23 October 2026";
 // 2026-10-17: names the analytics tools (Google Analytics 4, PostHog, Microsoft Clarity), so everyone chooses again, informed.
@@ -69,8 +70,8 @@ const TERMS: LegalDoc = {
       heading: "Accounts, Subscriptions & Billing",
       blocks: [
         "You're responsible for keeping your login credentials confidential and for all activity under your account. Tell us promptly about any unauthorized use.",
-        "Zinwe is priced flat by the number of PCs you protect — not per seat. Plans currently are: Free forever (up to 3 PCs), Startups (up to 10 PCs, ₹971 a month: 28% off the ₹1,349 list price), Teams (up to 25 PCs, ₹1,799 a month: 28% off the ₹2,499 list price) and Businesses (up to 50 PCs, ₹2,834 a month: 30% off the ₹4,049 list price), with custom pricing above 50 PCs. What each plan includes is on our pricing page. These prices are in Indian rupees; customers outside India pay the US-dollar prices on our pricing page. Discounts are offered at our discretion and may end with notice; you keep the price you signed up at until we tell you otherwise. Current plans and prices are on our pricing page and may change with notice; continued use after a change means you accept the new price for future billing cycles.",
-        "Customers in India are billed in Indian rupees one month at a time, with GST added at the applicable rate. Customers outside India are billed in US dollars one year at a time, without Indian GST (an export of services). The currency follows the country on your company profile.",
+        "Zinwe is priced flat by the number of PCs you protect — not per seat. Plans currently are: Free forever (up to 3 PCs), Startups (up to 10 PCs, ₹971 a month: 28% off the ₹1,349 list price), Teams (up to 25 PCs, ₹1,799 a month: 28% off the ₹2,499 list price) and Businesses (up to 50 PCs, ₹2,834 a month: 30% off the ₹4,049 list price), with custom pricing above 50 PCs. What each plan includes is on our pricing page. These are monthly prices in Indian rupees; paying for a year at once costs less, and customers outside India pay the US-dollar prices, all on our pricing page. Discounts are offered at our discretion and may end with notice; you keep the price you signed up at until we tell you otherwise. Current plans and prices are on our pricing page and may change with notice; continued use after a change means you accept the new price for future billing cycles.",
+        "You choose to be billed monthly or yearly, each time you pay. Customers in India are billed in Indian rupees, with GST added at the applicable rate. International customers are billed in US dollars, without Indian GST (an export of services). The currency follows the country on your company profile; your renewal follows the billing period you last paid for.",
         "You can pay online through our payment partner Razorpay Software Private Limited — UPI apps, cards, netbanking or wallets in India, and cards from abroad — and your plan is activated as soon as Razorpay confirms the payment. You can also pay by bank transfer (India) or by card or US bank transfer through our payment partner Skydo (outside India) and send us the receipt in your dashboard; we activate or renew your plan once we've confirmed it, usually within one working day. Every payment gets an invoice (a GST invoice in India).",
         "Each payment is a one-off payment for one billing period: nothing is charged automatically, and we never see or store your card number, UPI PIN or banking password. Online payments are handled by Razorpay under its own Terms of Use (razorpay.com/terms) and Privacy Policy (razorpay.com/privacy-policy). We'll email a reminder before your paid period ends; if you don't renew, the plan expires at the end of the paid period and you can move to the Free forever plan or renew at any time.",
       ],
@@ -178,7 +179,7 @@ const REFUND: LegalDoc = {
     {
       heading: "Cancellations & Billing",
       blocks: [
-        "There's nothing to cancel: paid plans run one billing period at a time (a month in India, a year outside India) and only continue when you pay for the next one. To stop, simply don't renew, or tell us at hello@zinwe.io and we'll confirm it within 5 business days. Stopping doesn't refund the period you've already paid for — you keep paid features until it ends; after that, the plan expires and you can move to the Free forever plan.",
+        "There's nothing to cancel: paid plans run one billing period at a time (a month or a year, as you chose) and only continue when you pay for the next one. To stop, simply don't renew, or tell us at hello@zinwe.io and we'll confirm it within 5 business days. Stopping doesn't refund the period you've already paid for — you keep paid features until it ends; after that, the plan expires and you can move to the Free forever plan.",
         "You pay online through Razorpay (UPI apps, cards, netbanking or wallets; cards from abroad), or by bank transfer (India) or through Skydo (outside India) and send the receipt in your dashboard. Every payment is a one-off: nothing is auto-charged to a stored card. We'll email a renewal reminder before each paid period ends.",
       ],
     },

@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
 import { Icon } from "../../components/ui/Icon";
-import type { Plan } from "../../lib/api";
+import type { BillingCycle, Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import {
   hasTrial,
@@ -29,6 +29,8 @@ interface PlanCardsProps {
   fit?: { code: string; pcs: number } | null;
   /** Show every price in this currency (the /plans page's choice); omitted = the owner's own, or both for visitors. */
   currency?: ShowCurrency;
+  /** Monthly or yearly prices (the page's switch); omitted = monthly in India, yearly in dollars. */
+  cycle?: BillingCycle;
 }
 
 /**
@@ -44,12 +46,13 @@ export function PlanCards({
   unavailable = [],
   fit = null,
   currency,
+  cycle,
 }: PlanCardsProps): ReactElement {
   return (
     <ul className="plans">
       {plans.map((plan) => {
-        const price = planPrice(plan, currency);
-        const discount = planDiscount(plan, currency);
+        const price = planPrice(plan, currency, cycle);
+        const discount = planDiscount(plan, currency, cycle);
         const alt = planAltPrice(plan, currency);
         const isSelected = selected === plan.code;
         const isCurrent = current === plan.code;

@@ -108,6 +108,8 @@ export interface Plan {
   /** Outside India: per month, billed yearly ("0.00" = not sold in USD). */
   price_usd_monthly?: string;
   list_price_usd_monthly?: string;
+  /** Every price by currency and cycle (monthly / yearly), for the plan cards' switches. */
+  prices?: { INR: CurrencyPrices; USD: CurrencyPrices };
   /** What the signed-in owner would pay (their country's currency, cycle and tax); null for visitors. */
   quote?: Quote | null;
   trial_days: number;
@@ -218,6 +220,21 @@ export interface UpgradeQuote {
   /** Paid days left on the current plan, added to the new one. */
   carried_days: number;
   upi_uri: string;
+  /** How much a year saves on this plan in the owner's currency, in whole percent (0 = none). */
+  yearly_saving_percent?: number;
+}
+
+/** One cycle's price for a whole cycle, before tax: the struck-through list price and what's paid. */
+export interface CyclePrice {
+  list: string;
+  price: string;
+}
+
+/** A plan's prices in one currency: monthly, yearly (the whole year) and how much a year saves. */
+export interface CurrencyPrices {
+  monthly: CyclePrice;
+  yearly: CyclePrice;
+  yearly_saving_percent: number;
 }
 
 /**
@@ -358,6 +375,8 @@ export interface PaymentPayload {
   proof: File | null;
   /** Dashboard upgrade: the plan code this payment moves the owner up to. */
   upgrade_plan?: string;
+  /** Monthly or yearly, as chosen at checkout (default: the subscription's own). */
+  billing_cycle?: BillingCycle;
   /** The payment-terms checkbox (billing terms + refund policy); required by the server. */
   accept_terms: boolean;
 }

@@ -13,21 +13,21 @@ import {
   errorMessage,
   getOffer,
   getSubscription,
-  getUpgradeQuote,
+  type BillingCycle,
   type Offer,
   type Plan,
-  type UpgradeQuote,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { formatDate, formatMoney } from "../../lib/format";
 import { clearPlanIntent, planCodeParam, readPlanIntent } from "../../lib/planIntent";
 import { CheckoutModal } from "../components/CheckoutModal";
+import { CycleToggle } from "../components/CycleToggle";
 import { FormAlert } from "../components/FormAlert";
 import { PcPicker } from "../components/PcPicker";
 import { PlanCards, PlanCardsLoading } from "../components/PlanCards";
 import { RejectedBanner } from "../components/RejectedBanner";
 import { apiFailureMessage } from "../failure";
-import { hasTrial, planCtaLabel, planDevices, planForPcs, pcsForTeamSize } from "../plan";
+import { bestYearlySaving, hasTrial, planCtaLabel, planCurrency, planDevices, planForPcs, pcsForTeamSize } from "../plan";
 import { usePlans } from "../usePlans";
 import { useSubscriptionInfo } from "../useSubscriptionInfo";
 
@@ -37,11 +37,13 @@ import { useSubscriptionInfo } from "../useSubscriptionInfo";
  *   once, a paid plan opens the checkout modal (`?checkout=1` opens it for the plan waiting for payment);
  * - on a plan (`complete`): an upgrade. Every plan is shown in full; the current one is flagged, it and the
  *   lower ones only have their button disabled, and the first plan above it is preselected. Paying opens
- *   the same checkout modal, priced by GET subscription/upgrade/<plan>/ (carried-over days, its own UPI QR);
+ *   the same checkout modal, priced by GET subscription/checkout/?plan= (carried-over days, its own UPI QR);
  * - payment being checked (`payment_review`, or an active plan whose upgrade / renewal payment is being
  *   checked, 2026-10-17): the plans, read only, so nobody pays twice.
  * `?plan=<code>` preselects a plan (links from the dashboard, the website and emails). "How many PCs?"
  * (starting from the company's team size) marks the smallest plan that fits.
+ * Monthly or yearly (2026-10-23): the switch above the cards (`?cycle=` from the plans page) sets the prices
+ * shown and the cycle the checkout opens on; the checkout can still change it.
  * `?offer=<id>` (with `?plan=`): an offer the Zinwe team sent from the admin panel (a dashboard notification bar).
  * Its own price (GET payments/offer/<id>/), paid online only; the checkout opens with it on arrival.
  */
@@ -107,6 +109,20 @@ export default function PlanStep(): ReactElement {
   const [picked, setPicked] = useState<string | null>(null);
   const selected = reviewing ? suggested : (picked ?? suggested);
 
+  // Monthly or yearly: `?cycle=` (the plans page's switch), else the subscription's own, else by currency.
+  const currency = plans.data?.[0] ? planCurrency(plans.data[0]) : "INR";
+  const askedCycle = params.get("cycle");
+  const [chosenCycle, setChosenCycle] = useState<BillingCycle | null>(
+    askedCycle === "monthly" || askedCycle === "yearly" ? askedCycle : null,
+  );
+  const cycle: BillingCycle =
+    chosenCycle ??
+    (subscription?.billing_cycle === "yearly" || subscription?.billing_cycle === "monthly"
+      ? subscription.billing_cycle
+      : currency === "USD"
+        ? "yearly"
+        : "monthly");
+
   // An offer from a dashboard bar: only for the plan it names, while upgrading. The order checks it all again.
   const offerId = Number(params.get("offer")) || 0;
   const offerCode = upgrading && offerId > 0 && asked && eligible.includes(asked) ? asked : null;
@@ -141,21 +157,6 @@ export default function PlanStep(): ReactElement {
   }, [offer]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // An upgrade's own price, period and UPI QR. An older backend (404) falls back to the plan's quote, without a QR.
-  const upgradeCode = openUpgrade ? openCode : null;
-  const loadUpgrade = useCallback(
-    (signal: AbortSignal): Promise<UpgradeQuote | null> =>
-      upgradeCode
-        ? getUpgradeQuote(upgradeCode, signal).catch((err: unknown) => {
-            if (err instanceof ApiError && err.kind === "not_found") return null;
-            throw err;
-          })
-        : Promise.resolve(null),
-    [upgradeCode],
-  );
-  const upgrade = useResource(loadUpgrade, { resetKey: upgradeCode ?? "" });
-  const upgradeRefused = upgrade.error instanceof ApiError && upgrade.error.kind === "conflict";
 
   const closeCheckout = () => setCheckout(null);
 
@@ -233,7 +234,7 @@ export default function PlanStep(): ReactElement {
       : `${subscription?.plan.name}`;
   const lede = upgrading
     ? eligible.length
-      ? `You're on ${subscription?.plan.name}. Pick a bigger plan: it starts once we've confirmed the payment, and any paid days left carry over.`
+      ? `You're on ${subscription?.plan.name}. Pick a bigger plan, monthly or yearly: pay with Razorpay and it switches on at once, and any paid days left carry over.`
       : `You're on ${subscription?.plan.name}, our biggest plan. Need more? Email hello@zinwe.io.`
     : checking && latest
       ? `We're checking your payment of ${formatMoney(latest.amount_inr, latest.currency)} for ${checkingWhat}, sent ${formatDate(
@@ -247,24 +248,12 @@ export default function PlanStep(): ReactElement {
             ? `Your ${subscription?.plan.name} plan ended. Choose it again to renew, or pick another plan. Your devices and settings are saved.`
             : "Start free. You can change your plan later.";
 
-  // The checkout: an upgrade is priced by its own quote; a new subscription from what's due on it.
+  // The checkout prices itself (GET subscription/checkout/, both cycles); the card's quote shows meanwhile.
   const openPlan = openCode && plans.data ? plans.data.find((p) => p.code === openCode) : undefined;
   const pendingInfo = info.data?.subscription?.plan.code === openCode ? info.data?.subscription : null;
-  const upgradeData = upgrade.data ?? null;
-  const upgradeSettled = !openUpgrade || (!upgrade.pending && !upgrade.error) || upgradeData !== null;
-  const quote = openOffer
-    ? openOffer.due
-    : openUpgrade
-      ? (upgradeData?.quote ?? openPlan?.quote)
-      : (pendingInfo?.amount_due ?? openPlan?.quote);
-  const checkoutReady = Boolean(openPlan && quote && info.data && (openUpgrade || pendingInfo) && upgradeSettled);
-  const instructions = info.data
-    ? openUpgrade
-      ? // The subscription's own UPI link holds what's due on it, not the upgrade's amount (the QR is fetched
-        // for the upgrade itself: CheckoutModal's upgradePlan).
-        { ...info.data.instructions, upi_uri: upgradeData?.upi_uri ?? "" }
-      : info.data.instructions
-    : null;
+  const initialQuote = openUpgrade ? openPlan?.quote : (pendingInfo?.amount_due ?? openPlan?.quote);
+  const checkoutReady = Boolean(openPlan && info.data && (openUpgrade || pendingInfo));
+  const instructions = info.data?.instructions ?? null;
 
   return (
     <section className="onb__wide" aria-labelledby="onb-plan-title">
@@ -302,16 +291,20 @@ export default function PlanStep(): ReactElement {
         <FormAlert message={errorMessage(offerRes.error)} />
       ) : null}
       <FormAlert message={error} />
-      {openUpgrade && upgradeRefused ? <FormAlert message={errorMessage(upgrade.error)} /> : null}
 
       {plans.data && !reviewing && plans.data.length > 1 ? (
-        <PcPicker
-          plans={plans.data}
-          pcs={pcs}
-          onPcs={setTyped}
-          fromTeamSize={typed === undefined && teamPcs !== null}
-          current={upgrading ? (plans.data.find((p) => p.code === current) ?? null) : null}
-        />
+        <div className="plans-tools">
+          <PcPicker
+            plans={plans.data}
+            pcs={pcs}
+            onPcs={setTyped}
+            fromTeamSize={typed === undefined && teamPcs !== null}
+            current={upgrading ? (plans.data.find((p) => p.code === current) ?? null) : null}
+          />
+          <div className="plans-tools__end">
+            <CycleToggle value={cycle} onChange={setChosenCycle} saving={bestYearlySaving(plans.data, currency)} upTo />
+          </div>
+        </div>
       ) : null}
 
       {plans.data ? (
@@ -324,6 +317,7 @@ export default function PlanStep(): ReactElement {
           current={current}
           unavailable={unavailable}
           fit={fit}
+          cycle={cycle}
           renderAction={action}
         />
       ) : plans.error ? (
@@ -352,26 +346,15 @@ export default function PlanStep(): ReactElement {
           retrying={info.pending}
         />
       ) : null}
-      {openUpgrade && upgrade.error && !upgradeRefused && !upgradeData ? (
-        <ErrorState
-          title="We couldn't price the upgrade"
-          message={errorMessage(upgrade.error)}
-          onRetry={upgrade.reload}
-          retrying={upgrade.pending}
-        />
-      ) : null}
-
-      {checkoutReady && openPlan && quote && instructions ? (
+      {checkoutReady && openPlan && instructions ? (
         <CheckoutModal
-          quote={quote}
+          initialQuote={initialQuote ?? undefined}
+          initialCycle={cycle}
           instructions={instructions}
           devices={planDevices(openPlan)}
           reference={account?.company?.name || undefined}
           upgradePlan={openUpgrade ? openPlan.code : undefined}
-          offer={openOffer?.id}
-          period={
-            upgradeData ? { until: upgradeData.covers_until, carriedDays: upgradeData.carried_days } : null
-          }
+          offer={openOffer ? { id: openOffer.id, quote: openOffer.due } : undefined}
           rejected={rejected}
           shareQuote={!openUpgrade}
           ownerEmail={account?.user.email ?? "you"}

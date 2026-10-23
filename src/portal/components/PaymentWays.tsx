@@ -187,7 +187,7 @@ export function PayWayDetails({
               <div>
                 <p className="ways__cta-title">Pay online through Skydo</p>
                 <p className="ways__cta-text">
-                  Card or US bank transfer, from anywhere. Pay {total} and keep the receipt Skydo shows you.
+                  Card or international bank transfer, from anywhere. Pay {total} and keep the receipt Skydo shows you.
                 </p>
               </div>
               <a className="btn btn--primary dash-btn-sm" href={link} target="_blank" rel="noopener noreferrer">
@@ -198,7 +198,7 @@ export function PayWayDetails({
           ) : null}
           {skydo ? (
             <>
-              <p className="ways__sub">{link ? "Or send" : "Send"} an ACH or wire transfer to our US account</p>
+              <p className="ways__sub">{link ? "Or send" : "Send"} an international bank transfer (ACH or wire) to our Skydo account</p>
               <dl className="pay-rows pay-rows--grid">
                 <Row label="Account name" value={skydo.account_name} />
                 <Row label="Bank" value={skydo.bank_name} />

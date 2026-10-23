@@ -1,6 +1,6 @@
 /** Online payment (Razorpay Standard Checkout), z_payments. The manual ways to pay stay in billing.ts. */
 import { authedRequest } from "./http";
-import type { Payment, Quote } from "./types";
+import type { BillingCycle, Payment, Quote } from "./types";
 
 /** POST payments/razorpay/order/: what Razorpay's checkout needs. `key_id` is public; secrets stay on the server. */
 export interface OnlineOrder {
@@ -27,10 +27,15 @@ export interface OnlineResult {
 }
 
 /** 503 with `fallback: true` = online payment is off or Razorpay is down: use UPI / bank transfer. */
-export function createOnlineOrder(upgradePlan?: string, offer?: number): Promise<OnlineOrder> {
+export function createOnlineOrder(upgradePlan?: string, offer?: number, cycle?: BillingCycle): Promise<OnlineOrder> {
   return authedRequest<OnlineOrder>("/api/payments/razorpay/order/", {
     method: "POST",
-    body: { accept_terms: true, ...(upgradePlan ? { upgrade_plan: upgradePlan } : {}), ...(offer ? { offer } : {}) },
+    body: {
+      accept_terms: true,
+      ...(upgradePlan ? { upgrade_plan: upgradePlan } : {}),
+      ...(offer ? { offer } : {}),
+      ...(cycle && !offer ? { billing_cycle: cycle } : {}),
+    },
   });
 }
 

@@ -1,4 +1,4 @@
-import type { Plan, TeamSize } from "../lib/api";
+import type { BillingCycle, Plan, TeamSize } from "../lib/api";
 import { formatDate, formatInr, formatMoney, isZero } from "../lib/format";
 
 const DAY_MS = 86_400_000;
@@ -46,7 +46,7 @@ export function trialEndDate(plan: Plan, from = Date.now()): string {
   return formatDate(new Date(from + plan.trial_days * DAY_MS).toISOString());
 }
 
-/** A currency the plans can be shown in (the two we bill in): the /plans page's "Show prices in" choice. */
+/** A currency the plans can be shown in (the two we bill in): the /plans page's currency choice. */
 export type ShowCurrency = "INR" | "USD";
 
 /**
@@ -59,9 +59,37 @@ function inUsd(plan: Plan, show?: ShowCurrency): boolean {
   return plan.quote?.currency === "USD" && hasUsd;
 }
 
+/** The currency a plan card shows: the chosen one, else the owner's own, else rupees. */
+export function planCurrency(plan: Plan, show?: ShowCurrency): ShowCurrency {
+  return inUsd(plan, show) ? "USD" : "INR";
+}
+
+/** The best yearly saving across these plans, in whole percent ("Save up to 17%"); 0 when a year saves nothing. */
+export function bestYearlySaving(plans: readonly Plan[], currency: ShowCurrency): number {
+  return plans.reduce((best, p) => Math.max(best, p.prices?.[currency]?.yearly_saving_percent ?? 0), 0);
+}
+
+/** A year's price for this plan (whole year, before tax), when the server sent prices; null otherwise. */
+function yearly(plan: Plan, currency: ShowCurrency): { list: number; price: number } | null {
+  const year = plan.prices?.[currency]?.yearly;
+  if (!year) return null;
+  return { list: Number(year.list), price: Number(year.price) };
+}
+
 /** The discount to show: the struck-through list price and "28% off", or null when there's none. */
-export function planDiscount(plan: Plan, show?: ShowCurrency): { was: string; percent: number } | null {
-  if (inUsd(plan, show)) {
+export function planDiscount(
+  plan: Plan,
+  show?: ShowCurrency,
+  cycle?: BillingCycle,
+): { was: string; percent: number } | null {
+  const currency = planCurrency(plan, show);
+  const year = cycle === "yearly" ? yearly(plan, currency) : null;
+  if (year) {
+    // A year against 12 months at the list price, shown per month like the price.
+    if (!(year.list > year.price) || year.price <= 0) return null;
+    return { was: formatMoney(Math.round(year.list / 12), currency), percent: Math.round((1 - year.price / year.list) * 100) };
+  }
+  if (currency === "USD") {
     const list = Number(plan.list_price_usd_monthly ?? 0);
     const price = Number(plan.price_usd_monthly ?? 0);
     if (!(list > price) || price <= 0) return null;
@@ -75,33 +103,39 @@ export function planDiscount(plan: Plan, show?: ShowCurrency): { was: string; pe
 
 /**
  * The other currency's price, for visitors who aren't signed in (we don't know their country):
- * "Outside India: $12 a month, billed yearly ($144)". Null once the owner's country is known, or when a
- * currency was chosen (`show`).
+ * "International: $12 a month". Null once the owner's country is known, or when a currency was chosen (`show`).
  */
 export function planAltPrice(plan: Plan, show?: ShowCurrency): string | null {
   if (show || plan.quote || isZero(plan.price_inr_monthly)) return null;
   const usd = Number(plan.price_usd_monthly ?? 0);
   if (!(usd > 0)) return null;
-  return `Outside India: ${formatMoney(usd, "USD")} a month, billed yearly (${formatMoney(usd * 12, "USD")})`;
+  return `International: ${formatMoney(usd, "USD")} a month`;
 }
 
 /**
- * "₹971" + "a month + GST" (India), "$12" + "a month, billed yearly ($144)" (outside India),
- * "₹0" + "free forever", or a trial's "₹2,999" + "a month after 3 months free".
+ * The price on a plan card: "₹971" + "a month + GST", "$12" + "a month", or billed yearly, the year as a monthly
+ * price: "₹809" + "a month, billed yearly (₹9,710 + GST)". Also "₹0" + "free forever", or a trial's "₹2,999" +
+ * "a month after 3 months free". `cycle` omitted = monthly in India, yearly for owners billed in dollars.
  */
-export function planPrice(plan: Plan, show?: ShowCurrency): { big: string; small: string } {
-  if (inUsd(plan, show) && !isZero(plan.price_inr_monthly)) {
-    const usd = Number(plan.price_usd_monthly ?? 0);
-    return { big: formatMoney(usd, "USD"), small: `a month, billed yearly (${formatMoney(usd * 12, "USD")})` };
-  }
+export function planPrice(plan: Plan, show?: ShowCurrency, cycle?: BillingCycle): { big: string; small: string } {
+  const currency = planCurrency(plan, show);
   if (isZero(plan.price_inr_monthly)) {
     // Owners billed in dollars see "$0". Legacy zero-price trial plans (early-access) still appear on old subscriptions.
     const big = (show ?? plan.quote?.currency) === "USD" ? formatMoney(0, "USD") : "₹0";
     return { big, small: plan.trial_days > 0 ? `for ${trialSpan(plan)}` : "free forever" };
   }
+  const gst = currency === "INR" && planChargesGst(plan) ? " + GST" : "";
+  const year = (cycle ?? (currency === "USD" ? "yearly" : "monthly")) === "yearly" ? yearly(plan, currency) : null;
+  if (year && year.price > 0) {
+    return {
+      big: formatMoney(Math.round(year.price / 12), currency),
+      small: `a month, billed yearly (${formatMoney(year.price, currency)}${gst})`,
+    };
+  }
+  if (currency === "USD") return { big: formatMoney(Number(plan.price_usd_monthly ?? 0), "USD"), small: "a month" };
   const big = formatInr(plan.price_inr_monthly);
   if (hasTrial(plan)) return { big, small: `a month after ${trialSpan(plan)} free` };
-  return { big, small: planChargesGst(plan) ? "a month + GST" : "a month" };
+  return { big, small: `a month${gst}` };
 }
 
 /**

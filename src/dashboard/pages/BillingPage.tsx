@@ -1,12 +1,12 @@
 import { useCallback, useState, type ReactElement, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { downloadInvoicePdf, errorMessage, getPaymentHistory, type Payment, type Subscription } from "../../lib/api";
 import { formatDate, formatInr, formatMoney } from "../../lib/format";
 import { formatDateTime } from "../time";
 import { PaymentDetails, PaymentStatusPill, ReceiptLink } from "../../portal/components/PaymentDetails";
-import { PayPanel } from "../../portal/components/PayPanel";
+import { CheckoutModal } from "../../portal/components/CheckoutModal";
 import { QuoteShare } from "../../portal/components/QuoteShare";
 import { QuoteSummary } from "../../portal/components/QuoteSummary";
 import { RejectedBanner } from "../../portal/components/RejectedBanner";
@@ -214,6 +214,9 @@ export default function BillingPage(): ReactElement {
     : "";
   const reference = account?.company?.name || undefined;
   const [renewing, setRenewing] = useState(false);
+  // The checkout (Razorpay first, or manual; monthly or yearly): for a renewal, or the payment a plan is waiting for.
+  const [paying, setPaying] = useState<"renew" | "due" | null>(null);
+  const navigate = useNavigate();
   const loadHistory = useCallback((signal: AbortSignal) => getPaymentHistory(signal), []);
   const history = useResource(loadHistory);
 
@@ -259,17 +262,14 @@ export default function BillingPage(): ReactElement {
           {canRenew ? (
             <RenewCard subscription={subscription} open={renewing} onOpen={() => setRenewing(true)}>
               {due ? <QuoteSummary quote={due} title="Renewal" /> : null}
-              <PayPanel
-                instructions={info.data.instructions}
-                total={dueTotal}
-                reference={reference}
-                currency={due?.currency ?? subscription.currency}
-                onSubmitted={async (next) => {
-                  setRenewing(false);
-                  await info.submitted(subscription, next);
-                  history.reload();
-                }}
-              />
+              <div className="bill-pay">
+                <button type="button" className="btn btn--primary" onClick={() => setPaying("renew")}>
+                  Renew now <span className="arr">→</span>
+                </button>
+                <p className="dash-note">
+                  Pay with Razorpay and it renews at once, or pay manually. Monthly or yearly: you choose next.
+                </p>
+              </div>
               <QuoteShare ownerEmail={user?.email ?? "your email"} />
             </RenewCard>
           ) : null}
@@ -278,22 +278,39 @@ export default function BillingPage(): ReactElement {
             <>
               {payment?.status === "rejected" ? <RejectedBanner payment={payment} /> : null}
               {due ? <QuoteSummary quote={due} /> : null}
-              <PayPanel
-                instructions={info.data.instructions}
-                total={dueTotal}
-                reference={reference}
-                currency={due?.currency ?? subscription.currency}
-                onSubmitted={async (next) => {
-                  await info.submitted(subscription, next);
-                  history.reload();
-                }}
-              />
+              <div className="dash-card bill-pay">
+                <button type="button" className="btn btn--primary" onClick={() => setPaying("due")}>
+                  Pay {dueTotal} <span className="arr">→</span>
+                </button>
+                <p className="dash-note">
+                  Pay with Razorpay and your plan switches on at once, or pay manually. Monthly or yearly: you choose
+                  next.
+                </p>
+              </div>
               <section className="dash-card">
                 <QuoteShare ownerEmail={user?.email ?? "your email"} />
               </section>
             </>
           ) : null}
           {history.data && history.data.length > 0 ? <PaymentHistory payments={history.data} /> : null}
+          {paying ? (
+            <CheckoutModal
+              initialQuote={due ?? undefined}
+              instructions={info.data.instructions}
+              reference={reference}
+              renewal={paying === "renew"}
+              rejected={paying === "due" && payment?.status === "rejected" ? payment : null}
+              shareQuote={paying === "due"}
+              ownerEmail={user?.email ?? "you"}
+              onClose={() => setPaying(null)}
+              onSubmitted={async (next) => {
+                setRenewing(false);
+                await info.submitted(subscription, next);
+                history.reload();
+              }}
+              onDone={() => navigate("/app")}
+            />
+          ) : null}
           <p className="dash-note">
             Need your GSTIN on an invoice? Add it in{" "}
             <Link className="dash-link" to="/app/settings/company">

@@ -100,12 +100,12 @@ export function payWayOptions(instructions: PaymentInstructions, currency?: stri
 /** The manual way beside online payment: named for who it's for, and that it takes a receipt. */
 const OTHER_WAY: Partial<Record<PayWay, Pick<WayOption, "label" | "hint" | "short">>> = {
   bank: { label: "Bank transfer", hint: "NEFT, IMPS or RTGS, then upload the receipt", short: "NEFT, IMPS or RTGS" },
-  intl: { label: "US bank transfer", hint: "ACH or wire through Skydo, then upload the receipt", short: "ACH or wire" },
+  intl: { label: "International transfer", hint: "Bank transfer through Skydo, then upload the receipt", short: "Through Skydo" },
 };
 
 /** The link to the manual way, under the online button, e.g. "Pay by bank transfer instead". */
 export function otherWayLink(way: PayWay): string {
-  return way === "intl" ? "Pay by US bank transfer (ACH or wire) through Skydo" : "Pay by bank transfer instead";
+  return way === "intl" ? "Pay by international bank transfer through Skydo" : "Pay by bank transfer instead";
 }
 
 /** UPI, bank transfer and Skydo: paid outside Zinwe, then the receipt is uploaded. Never depend on Razorpay. */
@@ -113,8 +113,8 @@ export function manualWayOptions(instructions: PaymentInstructions, currency?: s
   if (paysInUsd(instructions, currency)) {
     const intl: WayOption = {
       key: "intl",
-      label: "Card or US bank",
-      hint: "Pay online through Skydo, from anywhere",
+      label: "International card or transfer",
+      hint: "Through Skydo, from anywhere",
       short: "Through Skydo",
       icon: "globe",
     };
@@ -131,7 +131,7 @@ export function manualWayOptions(instructions: PaymentInstructions, currency?: s
     {
       key: "intl",
       label: "International",
-      hint: "Only if you're paying from outside India: card or US bank, through Skydo",
+      hint: "Only if you're paying from outside India: card or bank transfer, through Skydo",
       short: "From outside India",
       icon: "globe",
     },
