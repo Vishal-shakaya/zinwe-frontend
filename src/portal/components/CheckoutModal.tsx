@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { LegalDialog } from "../../components/legal/LegalDialog";
+import { Brand } from "../../components/ui/Brand";
 import { PAYMENT_TERMS } from "../../content/legal";
 import { DashIcon } from "../../dashboard/components/DashIcon";
 import {
@@ -303,8 +304,9 @@ export function CheckoutModal({
     >
       <div className="checkout__panel">
         <aside className="checkout__summary" aria-label="What you're paying for">
-          <p className="checkout__brand" aria-hidden="true">
-            <b>Z</b>inwe
+          {/* The official Zinwe wordmark, light lettering for the dark summary. */}
+          <p className="checkout__brand">
+            <Brand variant="static" tone="light" height={26} />
           </p>
           <p className="checkout__payee">Pay to {payee}</p>
           <p className="checkout__plan">
