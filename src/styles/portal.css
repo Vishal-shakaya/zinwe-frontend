@@ -3318,7 +3318,7 @@
 .co-pay {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .co-cycle {
@@ -3339,7 +3339,7 @@
 .co-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .co-option {
@@ -3591,8 +3591,8 @@
 .co-accept {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 2px;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 .co-accept__label {
@@ -3718,7 +3718,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding-top: 12px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
   font-size: 0.88rem;
   font-weight: 600;
@@ -3729,7 +3729,7 @@
 .co-manual {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
 }
 
 .co-howto {

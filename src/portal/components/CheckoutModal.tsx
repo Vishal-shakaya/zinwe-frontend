@@ -251,7 +251,7 @@ export function CheckoutModal({
   });
   const busy = pay.stage !== "idle";
 
-  const back: Screen | null = screen === "manual" ? "pay" : screen === "receipt" ? (skipped ? "pay" : "manual") : null;
+  const back: Screen | null = screen === "manual" ? "pay" : screen === "receipt" ? "manual" : null;
 
   // The choices for "How did you pay?": every manual way that suits the customer.
   const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = manual.map((w) => ({
@@ -462,21 +462,11 @@ export function CheckoutModal({
                   </button>
                   . Online payments are processed by Razorpay; Zinwe never sees your card or bank details.
                 </p>
-                {offer ? null : (
+                {!offer && shareQuote ? (
                   <div className="co-foot">
-                    <button
-                      type="button"
-                      className="dash-link"
-                      onClick={() => {
-                        setSkipped(true);
-                        go("receipt");
-                      }}
-                    >
-                      Already paid? Upload the receipt
-                    </button>
-                    {shareQuote ? <QuoteShare ownerEmail={ownerEmail} variant="slip" /> : null}
+                    <QuoteShare ownerEmail={ownerEmail} variant="slip" />
                   </div>
-                )}
+                ) : null}
               </div>
             ) : screen === "manual" ? (
               <div className="co-manual">
@@ -526,10 +516,30 @@ export function CheckoutModal({
                     loadQr={() => getUpiQr(upgradePlan, cycle)}
                   />
                 </div>
-                <button type="button" className="btn btn--primary btn--block co-paid" onClick={() => go("receipt")}>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--block co-paid"
+                  onClick={() => {
+                    setSkipped(false);
+                    go("receipt");
+                  }}
+                >
                   I've paid {total} <span className="arr">→</span>
                 </button>
                 <p className="checkout__hint">Next, upload the receipt your app shows. Keep this window open while you pay.</p>
+                <div className="co-foot">
+                  {/* Paid earlier (or another way): straight to the receipt, which asks how they paid. */}
+                  <button
+                    type="button"
+                    className="dash-link"
+                    onClick={() => {
+                      setSkipped(true);
+                      go("receipt");
+                    }}
+                  >
+                    Already paid? Upload the receipt
+                  </button>
+                </div>
               </div>
             ) : screen === "receipt" ? (
               <ReceiptForm
