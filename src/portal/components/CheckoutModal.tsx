@@ -3,7 +3,7 @@ import { CopyButton } from "../../dashboard/components/CopyButton";
 import { DashIcon } from "../../dashboard/components/DashIcon";
 import { getUpiQr, type Payment, type PaymentInstructions, type PaymentMethod, type Quote } from "../../lib/api";
 import { formatDate, formatMoney } from "../../lib/format";
-import { defaultWay, intlReady, methodForWay, payWayOptions, type PayWay } from "../payWays";
+import { intlReady, manualWayOptions, methodForWay, otherWayLink, payWayOptions, type PayWay } from "../payWays";
 import { OnlinePay } from "./OnlinePay";
 import { PayWayDetails } from "./PaymentWays";
 import { PlanSteps } from "./PlanSteps";
@@ -115,15 +115,17 @@ export function CheckoutModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // "Pay online" (Razorpay) first when it's on; the manual ways (and the receipt) always stay as the fallback.
-  // An offer is paid online only: straight to "Pay online", no other way.
-  const allWays = payWayOptions(instructions, quote.currency, true);
+  // Online first (2026-10-23): the checkout opens on "Pay online", with the one manual way that suits the customer
+  // (bank transfer; Skydo abroad) as a link under it. When Razorpay is off, or fails here (`fallback`), every manual
+  // way is listed instead. An offer is paid online only: no other way.
+  const [fallback, setFallback] = useState(false);
+  const manual = manualWayOptions(instructions, quote.currency);
+  const allWays = fallback ? manual : payWayOptions(instructions, quote.currency, true);
   const ways = offer ? allWays.filter((w) => w.key === "online") : allWays;
-  const [screen, setScreen] = useState<Screen>(offer && ways.length ? "details" : "methods");
-  const [way, setWay] = useState<PayWay>(() => {
-    if (offer) return "online";
-    const first = defaultWay(instructions, true);
-    return ways.some((w) => w.key === first) ? first : ways[0].key;
-  });
+  const onlineFirst = ways[0]?.key === "online";
+  const otherWays = offer ? [] : ways.slice(1);
+  const [screen, setScreen] = useState<Screen>(onlineFirst ? "details" : "methods");
+  const [way, setWay] = useState<PayWay>(() => ways[0].key);
   // How it ended: paid online (plan on now), paid online but still being applied, or a receipt sent.
   const [paidOnline, setPaidOnline] = useState<"paid" | "pending" | null>(null);
   const [pendingNote, setPendingNote] = useState("");
@@ -159,19 +161,39 @@ export function CheckoutModal({
     });
   };
 
-  const back =
-    screen === "details" ? (offer ? null : "methods") : screen === "receipt" ? (skipped ? "methods" : "details") : null;
+  // Where Back goes. Online first, "Pay online" is the start: a manual way and "Already paid?" lead back to it.
+  const back: { screen: Screen; way?: PayWay } | null =
+    screen === "details"
+      ? way === "online" && onlineFirst
+        ? null
+        : onlineFirst
+          ? { screen: "details", way: "online" }
+          : { screen: "methods" }
+      : screen === "receipt"
+        ? skipped
+          ? onlineFirst
+            ? { screen: "details", way: "online" }
+            : { screen: "methods" }
+          : { screen: "details" }
+        : null;
+  const goBack = () => {
+    if (!back) return;
+    if (back.way) setWay(back.way);
+    go(back.screen);
+  };
 
-  // The choices for "How did you pay?" (only the ways this customer was offered).
-  const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = ways.filter((w) => w.key !== "online").map((w) => ({
+  // The choices for "How did you pay?": every manual way that suits the customer (they may have paid by UPI).
+  const askMethod: ReadonlyArray<{ value: PaymentMethod; label: string }> = manual.map((w) => ({
     value: methodForWay(w.key, instructions),
     label: w.key === "intl" ? (usd ? "Card or US bank (Skydo)" : "From outside India (Skydo)") : w.label,
   }));
 
-  const secure = usd && intlReady(instructions)
-    ? `Paid through Skydo to ${payee}. The invoice is emailed once we confirm the payment.`
-    : ways.some((w) => w.key === "online")
-      ? `Pay online through Razorpay, or straight to ${payee}'s bank account. The invoice is emailed either way.`
+  const secure = ways.some((w) => w.key === "online")
+    ? usd
+      ? `Pay by card through Razorpay, or by US bank transfer through Skydo. The invoice is emailed either way.`
+      : `Pay online through Razorpay, or straight to ${payee}'s bank account. The invoice is emailed either way.`
+    : usd && intlReady(instructions)
+      ? `Paid through Skydo to ${payee}. The invoice is emailed once we confirm the payment.`
       : `Goes straight to ${payee}'s bank account. The invoice is emailed once we confirm it.`;
 
   return (
@@ -235,7 +257,7 @@ export function CheckoutModal({
           <PlanSteps current={screen === "done" ? 2 : 1} className="checkout__steps" />
           <header className="checkout__head">
             {back ? (
-              <button type="button" className="checkout__icon-btn" onClick={() => go(back)} aria-label="Back">
+              <button type="button" className="checkout__icon-btn" onClick={goBack} aria-label="Back">
                 <DashIcon name="back" />
               </button>
             ) : null}
@@ -310,7 +332,18 @@ export function CheckoutModal({
                     setPaidOnline("pending");
                     go("done");
                   }}
-                  onFallback={offer ? undefined : () => setWay("upi")}
+                  otherWays={usd ? "a US bank transfer through Skydo" : "UPI or bank transfer"}
+                  currency={quote.currency}
+                  onFallback={
+                    offer
+                      ? undefined
+                      : () => {
+                          // Razorpay is off, down or blocked here: every manual way, from the list.
+                          setFallback(true);
+                          setWay(manual[0].key);
+                          go("methods");
+                        }
+                  }
                   onWindow={(open) => {
                     const dialog = ref.current;
                     if (!dialog) return;
@@ -318,6 +351,33 @@ export function CheckoutModal({
                     else if (!open && !dialog.open) dialog.showModal();
                   }}
                 />
+                {offer ? null : (
+                  <div className="checkout__other">
+                    {otherWays.map((w) => (
+                      <button
+                        key={w.key}
+                        type="button"
+                        className="dash-link"
+                        onClick={() => {
+                          setWay(w.key);
+                          go("details");
+                        }}
+                      >
+                        {otherWayLink(w.key)}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="dash-link"
+                      onClick={() => {
+                        setSkipped(true);
+                        go("receipt");
+                      }}
+                    >
+                      Already paid? Upload the receipt
+                    </button>
+                  </div>
+                )}
               </div>
             ) : screen === "details" ? (
               <>

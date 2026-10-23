@@ -19,6 +19,8 @@ export function OnlinePay({
   total,
   upgradePlan,
   offer,
+  otherWays = "UPI or bank transfer",
+  currency = "INR",
   onPaid,
   onPending,
   onFallback,
@@ -29,6 +31,10 @@ export function OnlinePay({
   upgradePlan?: string;
   /** An offer from the Zinwe team (its id): priced and checked again on the server. */
   offer?: number;
+  /** The manual ways `onFallback` leads to, e.g. "UPI or bank transfer" or "a US bank transfer through Skydo". */
+  otherWays?: string;
+  /** "USD": cards from abroad only (no UPI, netbanking or wallets). */
+  currency?: string;
   /** The plan is updated: `payment` is the approved payment (status "verified"). */
   onPaid: (payment: Payment | null) => void | Promise<void>;
   /** Money taken, plan not updated yet ("confirming" / "review"): show `detail`, nothing more to do. */
@@ -64,7 +70,7 @@ export function OnlinePay({
         setOffline(true);
         setError(
           onFallback
-            ? "Online payment isn't available right now. You can pay by UPI or bank transfer instead."
+            ? `Online payment isn't available right now. You can pay by ${otherWays} instead.`
             : "Online payment isn't available right now. Please try again in a few minutes.",
         );
       } else {
@@ -117,10 +123,12 @@ export function OnlinePay({
   return (
     <div className="online-pay">
       <ul className="online-pay__ways" aria-label="You can pay with">
-        <li>UPI apps</li>
-        <li>Cards</li>
-        <li>Netbanking</li>
-        <li>Wallets</li>
+        {(currency === "USD"
+          ? ["Visa", "Mastercard", "Most international cards"]
+          : ["UPI apps", "Cards", "Netbanking", "Wallets"]
+        ).map((name) => (
+          <li key={name}>{name}</li>
+        ))}
       </ul>
       <p className="online-pay__lede">
         Pay {total} in Razorpay's secure window. Your plan updates as soon as it's paid, and the invoice comes by
@@ -152,7 +160,7 @@ export function OnlinePay({
       </button>
       {onFallback && (offline || error) ? (
         <button type="button" className="dash-link online-pay__alt" onClick={onFallback}>
-          Pay by UPI or bank transfer instead
+          Pay by {otherWays} instead
         </button>
       ) : null}
       <p className="online-pay__note">Payments are processed by Razorpay. Zinwe never sees your card or bank details.</p>

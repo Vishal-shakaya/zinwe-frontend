@@ -2618,6 +2618,19 @@
   font-weight: 600;
 }
 
+/* Under "Pay online": the one manual way and "Already paid?", as quiet links. */
+.checkout__other {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
 .checkout__details {
   padding: 18px;
   border: 1px solid var(--line);

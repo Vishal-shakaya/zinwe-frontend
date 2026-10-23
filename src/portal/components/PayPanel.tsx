@@ -1,13 +1,14 @@
 import { useState, type ReactElement } from "react";
 import { getUpiQr, type OnlineResult, type Payment, type PaymentInstructions } from "../../lib/api";
-import { defaultWay, methodForWay, payWayOptions, type PayWay } from "../payWays";
+import { defaultWay, manualWayOptions, methodForWay, payWayOptions, type PayWay } from "../payWays";
 import { OnlinePay } from "./OnlinePay";
 import { PaymentWays } from "./PaymentWays";
 import { ReceiptForm } from "./ReceiptForm";
 
 /**
- * The whole "pay" step in one card: 1. pay by UPI, bank transfer or internationally (tabs),
- * 2. upload the receipt. Used by Billing (paying again, renewals).
+ * The whole "pay" step in one card: 1. pay online (Razorpay), or by the one manual way beside it (bank transfer;
+ * Skydo abroad), as tabs; 2. for a manual way, upload the receipt. When Razorpay is off or fails, every manual way
+ * (UPI too) is a tab. Used by Billing (paying again, renewals).
  */
 export function PayPanel({
   instructions,
@@ -33,7 +34,10 @@ export function PayPanel({
   const [picked, setWay] = useState<PayWay>(() => defaultWay(instructions, true));
   // Paid online but not applied yet ("confirming" / "review"): say so instead of offering to pay again.
   const [pending, setPending] = useState<OnlineResult | null>(null);
-  const ways = payWayOptions(instructions, currency, true);
+  // Razorpay failed here: the manual ways only.
+  const [fallback, setFallback] = useState(false);
+  const ways = payWayOptions(instructions, currency, !fallback);
+  const usd = (currency ?? instructions.currency) === "USD";
   const way = ways.some((w) => w.key === picked) ? picked : ways[0].key;
   const payee = instructions.payee_name || "SKYTECHNO";
   return (
@@ -64,7 +68,7 @@ export function PayPanel({
           currency={currency}
           loadQr={() => getUpiQr(upgradePlan)}
           online={
-            pending ? (
+            fallback ? undefined : pending ? (
               <p className="online-pay__pending" role="status">
                 {pending.detail}
               </p>
@@ -76,7 +80,12 @@ export function PayPanel({
                   if (payment) await onSubmitted(payment);
                 }}
                 onPending={(result) => setPending(result)}
-                onFallback={() => setWay("upi")}
+                currency={usd ? "USD" : "INR"}
+                otherWays={usd ? "a US bank transfer through Skydo" : "UPI or bank transfer"}
+                onFallback={() => {
+                  setFallback(true);
+                  setWay(manualWayOptions(instructions, currency)[0].key);
+                }}
               />
             )
           }

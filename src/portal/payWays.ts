@@ -1,18 +1,25 @@
 /** Ways to pay on the payment page and the public quote (see components/PaymentWays.tsx). */
 import type { PaymentInstructions, PaymentMethod } from "../lib/api";
 
-/** The ways to pay, as tabs: online (Razorpay, when on) then the manual ways, which always stay. */
+/**
+ * The ways to pay (2026-10-23): online (Razorpay) is THE way, for rupees (UPI apps, cards, netbanking, wallets) and
+ * US dollars (cards from abroad); one manual way stays beside it for customers whose accounts team pays by transfer
+ * (India: bank transfer; abroad: Skydo, ACH or wire). Every manual way comes back when Razorpay is off or fails.
+ */
 export type PayWay = "online" | "upi" | "bank" | "intl";
 
-/** Online payment (Razorpay) is offered: on, rupees, and a signed-in page that can create orders. */
-export function onlineReady(instructions: PaymentInstructions, currency?: string, allowOnline = false): boolean {
-  return allowOnline && Boolean(instructions.online?.key_id) && !paysInUsd(instructions, currency);
+/**
+ * Online payment (Razorpay) is offered: a signed-in page that can create orders, and the server sent a key for this
+ * customer's currency (it leaves it out when Razorpay is off or doesn't take the currency).
+ */
+export function onlineReady(instructions: PaymentInstructions, allowOnline = false): boolean {
+  return allowOnline && Boolean(instructions.online?.key_id);
 }
 
-/** India opens on online payment when it's offered, else UPI; customers billed in USD open on International. */
+/** Online when it's offered; else UPI in India, Skydo for customers billed in US dollars. */
 export function defaultWay(instructions: PaymentInstructions, allowOnline = false): PayWay {
-  if (instructions.region === "INTL") return "intl";
-  return onlineReady(instructions, undefined, allowOnline) ? "online" : "upi";
+  if (onlineReady(instructions, allowOnline)) return "online";
+  return instructions.region === "INTL" ? "intl" : "upi";
 }
 
 /** What the receipt is recorded as, for the way the owner had open. */
@@ -60,27 +67,49 @@ export interface WayOption {
 }
 
 /**
- * The ways to pay, in the order this customer should see them (2026-10-17): India = UPI, bank, then
- * International last ("only if you're paying from outside India"); US dollars = Skydo first, and the
- * India-only ways left out (or tagged "India only" when nothing international is set up yet).
+ * The ways to pay, in the order this customer should see them:
+ * - online offered: Pay online first, then the one manual way that suits them (India: bank transfer; US dollars:
+ *   Skydo). Manual UPI is left out: the online way already takes every UPI app, at once and without a receipt;
+ * - online not offered (off, or a page that can't create orders): every manual way (`manualWayOptions`).
  */
 export function payWayOptions(instructions: PaymentInstructions, currency?: string, allowOnline = false): WayOption[] {
   const manual = manualWayOptions(instructions, currency);
-  if (!onlineReady(instructions, currency, allowOnline)) return manual;
-  return [
-    {
-      key: "online",
-      label: "Pay online",
-      hint: "UPI apps, cards, netbanking or wallets. Your plan updates at once",
-      short: "Instant",
-      icon: "card",
-    },
-    ...manual,
-  ];
+  if (!onlineReady(instructions, allowOnline)) return manual;
+  const usd = paysInUsd(instructions, currency);
+  const online: WayOption = usd
+    ? {
+        key: "online",
+        label: "Pay by card",
+        hint: "Visa, Mastercard and most international cards. Your plan updates at once",
+        short: "Instant",
+        icon: "card",
+      }
+    : {
+        key: "online",
+        label: "Pay online",
+        hint: "UPI apps, cards, netbanking or wallets. Your plan updates at once",
+        short: "Instant",
+        icon: "card",
+      };
+  const other = usd
+    ? manual.filter((w) => w.key === "intl" && intlReady(instructions))
+    : manual.filter((w) => w.key === "bank");
+  return [online, ...other.map((w) => ({ ...w, ...OTHER_WAY[w.key] }))];
+}
+
+/** The manual way beside online payment: named for who it's for, and that it takes a receipt. */
+const OTHER_WAY: Partial<Record<PayWay, Pick<WayOption, "label" | "hint" | "short">>> = {
+  bank: { label: "Bank transfer", hint: "NEFT, IMPS or RTGS, then upload the receipt", short: "NEFT, IMPS or RTGS" },
+  intl: { label: "US bank transfer", hint: "ACH or wire through Skydo, then upload the receipt", short: "ACH or wire" },
+};
+
+/** The link to the manual way, under the online button, e.g. "Pay by bank transfer instead". */
+export function otherWayLink(way: PayWay): string {
+  return way === "intl" ? "Pay by US bank transfer (ACH or wire) through Skydo" : "Pay by bank transfer instead";
 }
 
 /** UPI, bank transfer and Skydo: paid outside Zinwe, then the receipt is uploaded. Never depend on Razorpay. */
-function manualWayOptions(instructions: PaymentInstructions, currency?: string): WayOption[] {
+export function manualWayOptions(instructions: PaymentInstructions, currency?: string): WayOption[] {
   if (paysInUsd(instructions, currency)) {
     const intl: WayOption = {
       key: "intl",

@@ -205,7 +205,7 @@ export interface PaymentInstructions {
   payment_link?: string;
   /** The `upi://pay?...` link with the exact amount (a "Pay in a UPI app" button on phones); "" = none. */
   upi_uri?: string;
-  /** Online payment (Razorpay) for rupee customers; null / missing = only the manual ways. */
+  /** Online payment (Razorpay), rupees or US dollars; null / missing = only the manual ways. */
   online?: { provider: "razorpay"; key_id: string } | null;
 }
 

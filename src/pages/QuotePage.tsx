@@ -153,6 +153,22 @@ export default function QuotePage(): ReactElement {
                       Pay {total}
                     </h2>
                     <p className="pay-section__sub">Use any one of these. Every option pays {q.seller.name}, the company behind Zinwe.</p>
+                    {q.instructions.online ? (
+                      <p className="pay-section__sub">
+                        Faster:{" "}
+                        {signedIn ? (
+                          <Link className="dash-link" to="/app/settings/billing">
+                            pay online from Billing
+                          </Link>
+                        ) : (
+                          <Link className="dash-link" to="/login" state={{ from: "/app/settings/billing" }}>
+                            sign in to pay online
+                          </Link>
+                        )}{" "}
+                        ({q.quote.currency === "USD" ? "card" : "UPI apps, card or netbanking"}). Your plan switches on
+                        at once, with no receipt to upload.
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <PaymentWays
