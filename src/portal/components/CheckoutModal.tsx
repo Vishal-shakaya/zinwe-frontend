@@ -339,6 +339,7 @@ export function CheckoutModal({
               </details>
             </>
           ) : null}
+          <AcceptedBrands currency={currency} className="co-accept--summary" />
         </aside>
 
         <section className="checkout__main">
@@ -452,7 +453,7 @@ export function CheckoutModal({
                   )}
                 </div>
 
-                <AcceptedBrands currency={currency} />
+                <AcceptedBrands currency={currency} className="co-accept--inline" />
                 <TrustRow gst={Boolean(quote?.taxes.length)} />
 
                 <p className="co-legal">

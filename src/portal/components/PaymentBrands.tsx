@@ -18,11 +18,14 @@ type Logo = keyof typeof LOGOS;
 const INDIA: readonly Logo[] = ["upi", "gpay", "phonepe", "paytm", "rupay", "visa", "mastercard", "amex"];
 const INTERNATIONAL: readonly Logo[] = ["visa", "mastercard", "amex"];
 
-/** "We accept": the payment brands Razorpay takes for this currency, plus netbanking and wallets in India. */
-export function AcceptedBrands({ currency }: { currency: string }): ReactElement {
+/**
+ * "We accept": the payment brands Razorpay takes for this currency, plus netbanking and wallets in India.
+ * `className` places it: the checkout's dark summary (compact) on wide screens, the pay screen on phones.
+ */
+export function AcceptedBrands({ currency, className }: { currency: string; className?: string }): ReactElement {
   const india = currency !== "USD";
   return (
-    <div className="co-accept">
+    <div className={className ? `co-accept ${className}` : "co-accept"}>
       <p className="co-accept__label">We accept</p>
       <ul className="co-accept__logos">
         {(india ? INDIA : INTERNATIONAL).map((key) => (
