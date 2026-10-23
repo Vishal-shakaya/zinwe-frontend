@@ -46,14 +46,22 @@ export function trialEndDate(plan: Plan, from = Date.now()): string {
   return formatDate(new Date(from + plan.trial_days * DAY_MS).toISOString());
 }
 
-/** Owners outside India (the plan's quote says so) see USD prices. */
-function inUsd(plan: Plan): boolean {
-  return plan.quote?.currency === "USD" && Number(plan.price_usd_monthly ?? 0) > 0;
+/** A currency the plans can be shown in (the two we bill in): the /plans page's "Show prices in" choice. */
+export type ShowCurrency = "INR" | "USD";
+
+/**
+ * USD prices: the currency chosen on /plans (`show`), else the owner's own (their quote says so). A plan with no
+ * USD price stays in rupees.
+ */
+function inUsd(plan: Plan, show?: ShowCurrency): boolean {
+  const hasUsd = Number(plan.price_usd_monthly ?? 0) > 0;
+  if (show) return show === "USD" && hasUsd;
+  return plan.quote?.currency === "USD" && hasUsd;
 }
 
 /** The discount to show: the struck-through list price and "28% off", or null when there's none. */
-export function planDiscount(plan: Plan): { was: string; percent: number } | null {
-  if (inUsd(plan)) {
+export function planDiscount(plan: Plan, show?: ShowCurrency): { was: string; percent: number } | null {
+  if (inUsd(plan, show)) {
     const list = Number(plan.list_price_usd_monthly ?? 0);
     const price = Number(plan.price_usd_monthly ?? 0);
     if (!(list > price) || price <= 0) return null;
@@ -67,10 +75,11 @@ export function planDiscount(plan: Plan): { was: string; percent: number } | nul
 
 /**
  * The other currency's price, for visitors who aren't signed in (we don't know their country):
- * "Outside India: $12 a month, billed yearly ($144)". Null once the owner's country is known.
+ * "Outside India: $12 a month, billed yearly ($144)". Null once the owner's country is known, or when a
+ * currency was chosen (`show`).
  */
-export function planAltPrice(plan: Plan): string | null {
-  if (plan.quote || isZero(plan.price_inr_monthly)) return null;
+export function planAltPrice(plan: Plan, show?: ShowCurrency): string | null {
+  if (show || plan.quote || isZero(plan.price_inr_monthly)) return null;
   const usd = Number(plan.price_usd_monthly ?? 0);
   if (!(usd > 0)) return null;
   return `Outside India: ${formatMoney(usd, "USD")} a month, billed yearly (${formatMoney(usd * 12, "USD")})`;
@@ -80,14 +89,14 @@ export function planAltPrice(plan: Plan): string | null {
  * "₹971" + "a month + GST" (India), "$12" + "a month, billed yearly ($144)" (outside India),
  * "₹0" + "free forever", or a trial's "₹2,999" + "a month after 3 months free".
  */
-export function planPrice(plan: Plan): { big: string; small: string } {
-  if (inUsd(plan) && !isZero(plan.price_inr_monthly)) {
+export function planPrice(plan: Plan, show?: ShowCurrency): { big: string; small: string } {
+  if (inUsd(plan, show) && !isZero(plan.price_inr_monthly)) {
     const usd = Number(plan.price_usd_monthly ?? 0);
     return { big: formatMoney(usd, "USD"), small: `a month, billed yearly (${formatMoney(usd * 12, "USD")})` };
   }
   if (isZero(plan.price_inr_monthly)) {
     // Owners billed in dollars see "$0". Legacy zero-price trial plans (early-access) still appear on old subscriptions.
-    const big = plan.quote?.currency === "USD" ? formatMoney(0, "USD") : "₹0";
+    const big = (show ?? plan.quote?.currency) === "USD" ? formatMoney(0, "USD") : "₹0";
     return { big, small: plan.trial_days > 0 ? `for ${trialSpan(plan)}` : "free forever" };
   }
   const big = formatInr(plan.price_inr_monthly);

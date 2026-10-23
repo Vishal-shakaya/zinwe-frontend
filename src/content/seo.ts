@@ -196,9 +196,9 @@ const PAGES: readonly SeoPage[] = [
   {
     path: "/legal",
     title: "Legal: terms, privacy and policies | Zinwe",
-    description: "Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies, and our Disclaimer.",
+    description: "Zinwe's Terms, Privacy, Refund, Shipping and Delivery, Cookie and Acceptable Use policies, and our Disclaimer.",
     h1: "Legal",
-    intro: ["Zinwe's Terms, Privacy, Refund, Cookie and Acceptable Use policies, and our Disclaimer."],
+    intro: ["Zinwe's Terms, Privacy, Refund, Shipping and Delivery, Cookie and Acceptable Use policies, and our Disclaimer."],
     sitemap: true,
   },
 ];

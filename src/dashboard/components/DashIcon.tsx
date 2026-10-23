@@ -16,6 +16,7 @@ export type DashIconName =
   | "clock"
   | "home"
   | "card"
+  | "wallet"
   | "building"
   | "globe"
   | "swap"
@@ -152,6 +153,14 @@ function paths(name: DashIconName): ReactElement {
         <>
           <rect x="3" y="5" width="18" height="14" rx="2" />
           <path d="M3 10h18M7 15h4" />
+        </>
+      );
+    case "wallet":
+      return (
+        <>
+          <path d="M4 7a2 2 0 0 1 2-2h11v4" />
+          <path d="M4 7v11a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2z" />
+          <path d="M16 14.5h1.5" />
         </>
       );
     case "building":

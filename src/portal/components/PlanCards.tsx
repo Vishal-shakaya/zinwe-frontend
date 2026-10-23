@@ -2,7 +2,16 @@ import type { ReactElement, ReactNode } from "react";
 import { Icon } from "../../components/ui/Icon";
 import type { Plan } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { hasTrial, planAltPrice, planDevices, planDiscount, planFeatures, planPrice, trialBadge } from "../plan";
+import {
+  hasTrial,
+  planAltPrice,
+  planDevices,
+  planDiscount,
+  planFeatures,
+  planPrice,
+  trialBadge,
+  type ShowCurrency,
+} from "../plan";
 
 interface PlanCardsProps {
   plans: Plan[];
@@ -18,6 +27,8 @@ interface PlanCardsProps {
   unavailable?: readonly string[];
   /** The smallest plan for the owner's PC count ("How many PCs?"): flagged, and highlighted when nothing is selected. */
   fit?: { code: string; pcs: number } | null;
+  /** Show every price in this currency (the /plans page's choice); omitted = the owner's own, or both for visitors. */
+  currency?: ShowCurrency;
 }
 
 /**
@@ -32,12 +43,14 @@ export function PlanCards({
   current = null,
   unavailable = [],
   fit = null,
+  currency,
 }: PlanCardsProps): ReactElement {
   return (
     <ul className="plans">
       {plans.map((plan) => {
-        const price = planPrice(plan);
-        const discount = planDiscount(plan);
+        const price = planPrice(plan, currency);
+        const discount = planDiscount(plan, currency);
+        const alt = planAltPrice(plan, currency);
         const isSelected = selected === plan.code;
         const isCurrent = current === plan.code;
         const off = unavailable.includes(plan.code);
@@ -72,7 +85,7 @@ export function PlanCards({
             <p className="plan__price">
               <b>{price.big}</b> <span>{price.small}</span>
             </p>
-            {planAltPrice(plan) ? <p className="plan__alt">{planAltPrice(plan)}</p> : null}
+            {alt ? <p className="plan__alt">{alt}</p> : null}
             <p className="plan__devices">{planDevices(plan)}</p>
             <ul className="plan__features">
               {planFeatures(plan).map((feature) => (

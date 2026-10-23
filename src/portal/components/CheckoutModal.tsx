@@ -52,6 +52,12 @@ export interface CheckoutModalProps {
   onDone: () => void;
 }
 
+/** The total tax rate: 18 for CGST 9% + SGST 9%, or IGST 18%. */
+function taxRate(quote: Quote): string {
+  const rate = quote.taxes.reduce((sum, tax) => sum + Number(tax.rate), 0);
+  return Number.isInteger(rate) ? String(rate) : rate.toFixed(2).replace(/0+$/, "");
+}
+
 /** The price lines (plan price, discount, tax). Shown in the summary; on phones inside "Price details". */
 function PriceLines({ quote, className, offer }: { quote: Quote; className: string; offer?: boolean }): ReactElement {
   const money = (amount: string) => formatMoney(amount, quote.currency);
@@ -67,14 +73,27 @@ function PriceLines({ quote, className, offer }: { quote: Quote; className: stri
           <dd>− {money(quote.discount_amount)}</dd>
         </div>
       ) : null}
-      {quote.taxes.map((tax) => (
-        <div key={tax.label}>
-          <dt>
-            {tax.label} {tax.rate}%
-          </dt>
-          <dd>{money(tax.amount)}</dd>
-        </div>
-      ))}
+      {quote.taxes.length ? (
+        <>
+          {/* Tax, its type (GST) and the rate; the CGST + SGST split under it when there is one. */}
+          <div className="checkout__tax">
+            <dt>
+              Tax <span className="checkout__tax-type">GST</span> {taxRate(quote)}%
+            </dt>
+            <dd>{money(quote.tax_total)}</dd>
+          </div>
+          {quote.taxes.length > 1
+            ? quote.taxes.map((tax) => (
+                <div key={tax.label} className="checkout__tax-part">
+                  <dt>
+                    {tax.label} {tax.rate}%
+                  </dt>
+                  <dd>{money(tax.amount)}</dd>
+                </div>
+              ))
+            : null}
+        </>
+      ) : null}
       {quote.export ? (
         <div>
           <dt>Tax</dt>

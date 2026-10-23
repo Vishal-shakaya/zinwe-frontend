@@ -566,6 +566,53 @@
   font-weight: 600;
 }
 
+/* "Show prices in": rupees or US dollars, above the cards. */
+.plans-currency {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+}
+
+.plans-currency__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.plans-currency__field select {
+  min-height: 40px;
+  padding: 0 36px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper, #fff);
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.plans-currency__note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--mute);
+}
+
+.plans-currency__note a {
+  color: var(--orange-text);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .plans-currency {
+    justify-content: flex-start;
+  }
+}
+
 /* ========== Onboarding shell ========== */
 
 .onb {
@@ -2394,6 +2441,33 @@
   color: #7fd9a6;
 }
 
+/* "Tax [GST] 18%": the type as a small chip, then its CGST / SGST parts, indented and quieter. */
+.checkout__tax dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkout__tax-type {
+  padding: 1px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.checkout__lines > .checkout__tax-part {
+  padding-left: 12px;
+  font-size: 0.8rem;
+}
+
+.checkout__tax-part dt,
+.checkout__tax-part dd {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .checkout__ref {
   margin-top: 18px;
   display: flex;
@@ -3065,12 +3139,27 @@
 }
 
 .online-pay__ways li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--white);
   font-size: 0.8rem;
   color: var(--ink-2);
+}
+
+.online-pay__ways .dash-ico {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--orange-text);
+}
+
+.online-pay__note a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .online-pay__lede {

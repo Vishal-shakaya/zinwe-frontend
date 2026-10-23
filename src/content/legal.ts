@@ -9,11 +9,15 @@
  * (ConsentStore.CurrentVersion) have their own versions — bump those only when their texts change.
  */
 
-export const LEGAL_VERSION = "2026-10-17";
-export const LEGAL_UPDATED = "15 October 2026";
+// 2026-10-23: online payment through Razorpay (billing, refund timelines, delivery, grievances), the Teams plan.
+export const LEGAL_VERSION = "2026-10-23";
+export const LEGAL_UPDATED = "23 October 2026";
 // 2026-10-17: names the analytics tools (Google Analytics 4, PostHog, Microsoft Clarity), so everyone chooses again, informed.
 export const COOKIE_POLICY_VERSION = "2026-10-17";
 export const LEGAL_CONTACT = "hello@zinwe.io";
+/** Razorpay's own terms and privacy policy, which cover online payments (linked, never copied: they change). */
+export const RAZORPAY_TERMS_URL = "https://razorpay.com/terms/";
+export const RAZORPAY_PRIVACY_URL = "https://razorpay.com/privacy-policy/";
 
 export type LegalBlock = string | { list: string[] };
 
@@ -32,7 +36,7 @@ export interface LegalDoc {
   updated?: string;
 }
 
-export type LegalSlug = "terms" | "privacy" | "refund" | "cookies" | "acceptable-use" | "disclaimer";
+export type LegalSlug = "terms" | "privacy" | "refund" | "delivery" | "cookies" | "acceptable-use" | "disclaimer";
 
 const TERMS: LegalDoc = {
   slug: "terms",
@@ -65,8 +69,10 @@ const TERMS: LegalDoc = {
       heading: "Accounts, Subscriptions & Billing",
       blocks: [
         "You're responsible for keeping your login credentials confidential and for all activity under your account. Tell us promptly about any unauthorized use.",
-        "Zinwe is priced flat by the number of PCs you protect — not per seat. Plans currently are: Free forever (up to 3 PCs, with USB drive and file-copy alerts only), Startups (up to 10 PCs, every data-protection module, ₹971 a month: 28% off the ₹1,349 list price) and Businesses (up to 50 PCs, everything in Startups plus work hours, app usage, team chat and priority support, ₹2,834 a month: 30% off the ₹4,049 list price), with custom pricing above 50 PCs. Prices are in Indian rupees. Discounts are offered at our discretion and may end with notice; you keep the price you signed up at until we tell you otherwise. Current plans and prices are on our pricing page and may change with notice; continued use after a change means you accept the new price for future billing cycles.",
-        "Customers in India are billed in Indian rupees one month at a time, with GST added at the applicable rate, and pay by UPI or bank transfer. Customers outside India are billed in US dollars one year at a time, without Indian GST (an export of services), and pay by card or US bank transfer through our payment partner Skydo. Payment is currently confirmed manually: you submit the payment reference in your Zinwe dashboard, and we activate or renew your plan once we've confirmed it, then issue a GST invoice — this is not an automatic recurring card charge. We'll email a reminder before your paid period ends; if you don't renew, the plan expires at the end of the paid period and you can move to the Free forever plan or renew at any time.",
+        "Zinwe is priced flat by the number of PCs you protect — not per seat. Plans currently are: Free forever (up to 3 PCs), Startups (up to 10 PCs, ₹971 a month: 28% off the ₹1,349 list price), Teams (up to 25 PCs, ₹1,799 a month: 28% off the ₹2,499 list price) and Businesses (up to 50 PCs, ₹2,834 a month: 30% off the ₹4,049 list price), with custom pricing above 50 PCs. What each plan includes is on our pricing page. These prices are in Indian rupees; customers outside India pay the US-dollar prices on our pricing page. Discounts are offered at our discretion and may end with notice; you keep the price you signed up at until we tell you otherwise. Current plans and prices are on our pricing page and may change with notice; continued use after a change means you accept the new price for future billing cycles.",
+        "Customers in India are billed in Indian rupees one month at a time, with GST added at the applicable rate. Customers outside India are billed in US dollars one year at a time, without Indian GST (an export of services). The currency follows the country on your company profile.",
+        "You can pay online through our payment partner Razorpay Software Private Limited — UPI apps, cards, netbanking or wallets in India, and cards from abroad — and your plan is activated as soon as Razorpay confirms the payment. You can also pay by bank transfer (India) or by card or US bank transfer through our payment partner Skydo (outside India) and send us the receipt in your dashboard; we activate or renew your plan once we've confirmed it, usually within one working day. Every payment gets an invoice (a GST invoice in India).",
+        "Each payment is a one-off payment for one billing period: nothing is charged automatically, and we never see or store your card number, UPI PIN or banking password. Online payments are handled by Razorpay under its own Terms of Use (razorpay.com/terms) and Privacy Policy (razorpay.com/privacy-policy). We'll email a reminder before your paid period ends; if you don't renew, the plan expires at the end of the paid period and you can move to the Free forever plan or renew at any time.",
       ],
     },
     {
@@ -85,10 +91,17 @@ const TERMS: LegalDoc = {
       ],
     },
     {
+      heading: "Customer Support & Grievances",
+      blocks: [
+        "For help, billing questions or a complaint, write to hello@zinwe.io or use the form at zinwe.io/contact. Our Grievance Officer is Vishal Shakaya, SKYTECHNO, New Delhi, India (hello@zinwe.io). We acknowledge every complaint within 2 business days and respond with a resolution within 5 business days of receiving it.",
+        "For a problem with an online payment itself (for example, money taken but no plan update), write to us first; we'll check it with Razorpay and fix it or refund it as set out in our Return and Refund Policy.",
+      ],
+    },
+    {
       heading: "Indemnification & General Provisions",
       blocks: [
         "You agree to indemnify and hold SKYTECHNO harmless from claims, damages, and costs (including reasonable legal fees) arising from your breach of the Permitted Use section, your failure to obtain required notice or consent for monitoring, or your violation of applicable law in how you use the Service.",
-        "Neither party is liable for delay or failure to perform caused by circumstances beyond reasonable control (force majeure). You may not assign these Terms without our written consent; we may assign them in connection with a merger, acquisition, or sale of the business. If any provision of these Terms is found unenforceable, the rest remain in effect. These Terms, together with our Privacy Policy, Return and Refund Policy, Cookie Policy, Disclaimer, and Acceptable Use Policy, are the entire agreement between us.",
+        "Neither party is liable for delay or failure to perform caused by circumstances beyond reasonable control (force majeure). You may not assign these Terms without our written consent; we may assign them in connection with a merger, acquisition, or sale of the business. If any provision of these Terms is found unenforceable, the rest remain in effect. These Terms, together with our Privacy Policy, Return and Refund Policy, Shipping and Delivery Policy, Cookie Policy, Disclaimer, and Acceptable Use Policy, are the entire agreement between us.",
       ],
     },
   ],
@@ -99,7 +112,8 @@ const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
   summary: "What we collect, how we use and share it, how long we keep it, and your rights.",
   // v1.1: names website time and internet data used (the PC's consent notice asks members again).
-  updated: "2026-10-22",
+  // 2026-10-23: names the payment partners (Razorpay, Skydo).
+  updated: "23 October 2026",
   sections: [
     {
       heading: "What We Collect",
@@ -119,6 +133,7 @@ const PRIVACY: LegalDoc = {
       blocks: [
         "We use data to provide, operate, bill for, and improve the Service, to give support, to meet legal obligations, and — in aggregate, anonymized form — to understand product usage. We do not sell personal data or Monitored User Data, and we don't share it with anyone for marketing or advertising.",
         "We share data only with: cloud hosting providers (to run the Service), payment partners (for billing), and law enforcement or regulators where legally required.",
+        "Our payment partners are Razorpay (online payments: UPI, cards, netbanking, wallets) and Skydo (international card and bank transfers). When you pay online, you enter your payment details in Razorpay's secure window, not on Zinwe: Razorpay processes them under its own Privacy Policy (razorpay.com/privacy-policy), and we receive only the payment's status, amount and reference — never your card number, UPI PIN or banking password.",
         "Legal basis: for India-based processing, your Account Data is processed under the DPDP Act's provisions for performing our contract with you; the Service is built to help you establish valid consent for Monitored User Data under the Act (our built-in consent screen). For US customers, our processing of your Account Data rests on performing our contract with you and our legitimate business interest in running the Service; your own legal basis for monitoring your employees (consent, notice, or another basis recognized by your state) is your responsibility, as described in our Terms. Enterprise customers needing a separate Data Processing Agreement can request one from us.",
       ],
     },
@@ -157,21 +172,55 @@ const REFUND: LegalDoc = {
       heading: "Policy Summary",
       blocks: [
         "Subscription fees for Zinwe are final and non-refundable, except as set out below or where the law requires otherwise. Zinwe is a digital service — access to paid features is granted as soon as payment is confirmed, so there's nothing physical to return.",
-        "Before paying, try Zinwe on the Free forever plan (up to 3 PCs, USB drive and file-copy alerts) to confirm it's a fit.",
+        "Before paying, try Zinwe on the Free forever plan (up to 3 PCs) to confirm it's a fit.",
       ],
     },
     {
       heading: "Cancellations & Billing",
       blocks: [
-        "There's nothing to cancel: paid plans run one month at a time and only continue when you pay for the next month. To stop, simply don't renew (or tell us at hello@zinwe.io). Stopping doesn't refund the month you've already paid for — you keep paid features until the end of that month; after that, the plan expires and you can move to the Free forever plan.",
-        "Billing is currently handled manually: you pay by UPI/bank transfer (India, monthly) or by card/US bank transfer through Skydo (outside India, yearly) and submit the payment in your dashboard; nothing is auto-charged to a stored card. We'll email a renewal reminder before each paid period ends.",
+        "There's nothing to cancel: paid plans run one billing period at a time (a month in India, a year outside India) and only continue when you pay for the next one. To stop, simply don't renew, or tell us at hello@zinwe.io and we'll confirm it within 5 business days. Stopping doesn't refund the period you've already paid for — you keep paid features until it ends; after that, the plan expires and you can move to the Free forever plan.",
+        "You pay online through Razorpay (UPI apps, cards, netbanking or wallets; cards from abroad), or by bank transfer (India) or through Skydo (outside India) and send the receipt in your dashboard. Every payment is a one-off: nothing is auto-charged to a stored card. We'll email a renewal reminder before each paid period ends.",
       ],
     },
     {
       heading: "Exceptions & Contact",
       blocks: [
-        "We may issue a refund or credit for: a duplicate or erroneous charge caused by a billing error, a confirmed unauthorized transaction on your payment method, or where mandated by applicable consumer protection law — including Indian consumer protection law and the consumer protection laws of your US state. Submit requests in writing, within a reasonable time of the charge, to the contact below.",
+        "We may issue a refund or credit for: a duplicate or erroneous charge caused by a billing error (for example, paying twice for the same period), a payment we took but couldn't apply to your plan, a confirmed unauthorized transaction on your payment method, or where mandated by applicable consumer protection law — including Indian consumer protection law and the consumer protection laws of your US state. Submit requests in writing, within a reasonable time of the charge, to the contact below.",
+        "Refund timelines: we reply to a refund request within 5 business days. An approved refund is started within 5 business days of approval and goes back the way you paid — to your card, UPI or bank account for online payments through Razorpay, or to the account you paid from for a bank transfer or Skydo payment. Your bank may take a further 5 to 7 business days to show it.",
         "Billing questions: hello@zinwe.io · SKYTECHNO, New Delhi, India.",
+      ],
+    },
+  ],
+};
+
+const DELIVERY: LegalDoc = {
+  slug: "delivery",
+  title: "Shipping and Delivery Policy",
+  summary: "Zinwe is delivered online: nothing is shipped, and paid plans switch on as soon as payment is confirmed.",
+  sections: [
+    {
+      heading: "Nothing Is Shipped",
+      blocks: [
+        "Zinwe is software delivered online. We don't sell or ship physical goods, so there are no shipping charges, couriers or delivery addresses.",
+      ],
+    },
+    {
+      heading: "When Your Plan Starts",
+      blocks: [
+        {
+          list: [
+            "Paid online through Razorpay: your plan is active as soon as the payment is confirmed, usually within a minute. You'll see it in your dashboard and get the invoice by email.",
+            "Paid by bank transfer or through Skydo: your plan is active once we've confirmed the payment, usually within one working day, and we'll email you when it is.",
+            "Free forever plan: active as soon as you sign up.",
+          ],
+        },
+        "The Zinwe app for your PCs is downloaded from your dashboard; you can install it on as many PCs as your plan covers.",
+      ],
+    },
+    {
+      heading: "If Something Doesn't Arrive",
+      blocks: [
+        "If you've paid and your plan hasn't switched on within the times above, or the invoice email hasn't arrived, write to hello@zinwe.io with your payment reference. We respond within 5 business days, and usually much sooner.",
       ],
     },
   ],
@@ -303,7 +352,7 @@ const ACCEPTABLE_USE: LegalDoc = {
 };
 
 /** Every policy, in the order the website lists them. */
-export const LEGAL_DOCS: readonly LegalDoc[] = [TERMS, PRIVACY, REFUND, COOKIES, ACCEPTABLE_USE, DISCLAIMER];
+export const LEGAL_DOCS: readonly LegalDoc[] = [TERMS, PRIVACY, REFUND, DELIVERY, COOKIES, ACCEPTABLE_USE, DISCLAIMER];
 
 export function legalDoc(slug: string | undefined): LegalDoc | undefined {
   return LEGAL_DOCS.find((d) => d.slug === slug);
@@ -312,7 +361,7 @@ export function legalDoc(slug: string | undefined): LegalDoc | undefined {
 /** What the sign-up checkbox accepts. */
 export const SIGNUP_DOCS: readonly LegalDoc[] = [TERMS, PRIVACY, ACCEPTABLE_USE];
 
-/** What the payment checkbox accepts: the billing terms plus the refund policy. */
+/** What the payment checkbox accepts: the billing terms, the refund policy and when the plan starts. */
 export const PAYMENT_TERMS: LegalDoc = {
   slug: "refund",
   title: "Payment terms",
@@ -320,5 +369,6 @@ export const PAYMENT_TERMS: LegalDoc = {
   sections: [
     TERMS.sections.find((s) => s.heading === "Accounts, Subscriptions & Billing")!,
     ...REFUND.sections,
+    DELIVERY.sections.find((s) => s.heading === "When Your Plan Starts")!,
   ],
 };

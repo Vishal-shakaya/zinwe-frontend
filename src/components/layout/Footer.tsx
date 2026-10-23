@@ -62,6 +62,7 @@ export function Footer(): ReactElement {
         <Link to="/legal/terms">Terms</Link>
         <Link to="/legal/privacy">Privacy</Link>
         <Link to="/legal/refund">Refunds</Link>
+        <Link to="/legal/delivery">Shipping &amp; delivery</Link>
         <Link to="/legal/cookies">Cookies</Link>
         <Link to="/legal/acceptable-use">Acceptable use</Link>
         <Link to="/legal/disclaimer">Disclaimer</Link>

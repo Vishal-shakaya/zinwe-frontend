@@ -1,7 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
-import { PAYMENT_TERMS } from "../../content/legal";
-import { DashIcon } from "../../dashboard/components/DashIcon";
+import { PAYMENT_TERMS, RAZORPAY_PRIVACY_URL, RAZORPAY_TERMS_URL } from "../../content/legal";
+import { DashIcon, type DashIconName } from "../../dashboard/components/DashIcon";
 import { ApiError, errorMessage, type Payment } from "../../lib/api";
 import { createOnlineOrder, verifyOnlinePayment, type OnlineResult } from "../../lib/api/payments";
 import { trackEvent } from "../../lib/analytics";
@@ -9,6 +9,19 @@ import { openCheckout } from "../razorpay";
 import { FormAlert } from "./FormAlert";
 
 type Stage = "idle" | "starting" | "open" | "confirming";
+
+/** What Razorpay's window takes, as chips: rupees (India) and US dollars (cards from abroad). */
+const INR_WAYS: ReadonlyArray<[string, DashIconName]> = [
+  ["UPI apps", "phone"],
+  ["Cards", "card"],
+  ["Netbanking", "building"],
+  ["Wallets", "wallet"],
+];
+const USD_WAYS: ReadonlyArray<[string, DashIconName]> = [
+  ["Visa", "card"],
+  ["Mastercard", "card"],
+  ["Most international cards", "globe"],
+];
 
 /**
  * "Pay online" (Razorpay): UPI apps, cards, netbanking or wallets, confirmed at once. If anything goes wrong on
@@ -142,11 +155,11 @@ export function OnlinePay({
   return (
     <div className="online-pay">
       <ul className="online-pay__ways" aria-label="You can pay with">
-        {(currency === "USD"
-          ? ["Visa", "Mastercard", "Most international cards"]
-          : ["UPI apps", "Cards", "Netbanking", "Wallets"]
-        ).map((name) => (
-          <li key={name}>{name}</li>
+        {(currency === "USD" ? USD_WAYS : INR_WAYS).map(([name, icon]) => (
+          <li key={name}>
+            <DashIcon name={icon} />
+            {name}
+          </li>
         ))}
       </ul>
       <p className="online-pay__lede">
@@ -182,7 +195,17 @@ export function OnlinePay({
           Pay by {otherWays} instead
         </button>
       ) : null}
-      <p className="online-pay__note">Payments are processed by Razorpay. Zinwe never sees your card or bank details.</p>
+      <p className="online-pay__note">
+        Payments are processed by Razorpay, under its{" "}
+        <a href={RAZORPAY_TERMS_URL} target="_blank" rel="noopener noreferrer">
+          Terms
+        </a>{" "}
+        and{" "}
+        <a href={RAZORPAY_PRIVACY_URL} target="_blank" rel="noopener noreferrer">
+          Privacy Policy
+        </a>
+        . Zinwe never sees your card or bank details.
+      </p>
     </div>
   );
 }
