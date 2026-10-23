@@ -582,86 +582,24 @@
   margin: 0;
 }
 
+/* The currency picker: just "₹ INR" / "$ USD", no box or label around it. */
 .plans-currency {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--white);
-}
-
-.plans-currency__label {
-  font-size: 0.95rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.plans-currency select {
-  min-height: 40px;
-  padding: 0 32px 0 12px;
+  align-self: center;
+  min-height: 42px;
+  padding: 0 32px 0 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper, #fff);
+  background: var(--white);
   color: inherit;
   font: inherit;
-  font-size: 0.92rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
-/* The (i): its tip (data-tip) also opens on tap and keyboard focus, not only on hover. */
-.plans-currency__info {
-  display: inline-grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--mute);
-  cursor: help;
-}
-
-.plans-currency__info:hover,
-.plans-currency__info:focus-visible {
-  color: var(--orange-text);
-  background: var(--paper, #f6f6f3);
-}
-
-.plans-currency__info .dash-ico {
-  width: 17px;
-  height: 17px;
-}
-
-.plans-currency__info[data-tip]:focus::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  z-index: 30;
-  width: max-content;
-  max-width: 240px;
-  padding: 7px 10px;
-  border-radius: 6px;
-  background: var(--ink);
-  color: var(--white);
-  font-size: 0.76rem;
-  font-weight: 500;
-  line-height: 1.4;
-  text-align: left;
-  white-space: normal;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
-@media (max-width: 560px) {
-  .plans-currency {
-    flex-wrap: wrap;
-    width: 100%;
-  }
+.plans-currency:focus-visible {
+  outline: 2px solid var(--orange-text);
+  outline-offset: 2px;
 }
 
 /* ========== Onboarding shell ========== */
