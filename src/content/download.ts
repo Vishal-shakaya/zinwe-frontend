@@ -1,6 +1,6 @@
 /**
  * The /download page: the Windows installer, what a PC needs, the four setup steps and the questions
- * people ask before installing. Copy rules as everywhere (.claude/claude-zinwe/marketing/context.md):
+ * people ask before installing. Copy rules as everywhere (.claude/marketing/context.md):
  * plain English, only what ships, consent first.
  */
 

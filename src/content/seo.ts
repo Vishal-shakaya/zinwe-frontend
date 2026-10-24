@@ -8,7 +8,7 @@
  * imports — the build runs it in Node — and of big imports: it's in the home page's bundle (the legal
  * pages' entries are built from legal.ts by `legalSeo`, in the build and on the legal page).
  *
- * Copy rules (.claude/claude-zinwe/marketing/context.md §3): only features that ship, no surveillance
+ * Copy rules (.claude/marketing/context.md §3): only features that ship, no surveillance
  * words, no prices (they live in the plan catalogue), India and the US treated equally.
  */
 export const SITE_URL = "https://zinwe.io";
