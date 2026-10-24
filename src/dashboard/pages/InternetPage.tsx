@@ -19,11 +19,13 @@ import { usePolicy } from "../features/usePolicy";
 import { useResource } from "../useResource";
 import { StatTiles } from "../components/StatTiles";
 import { appSource, mergeBySource, siteSource } from "../features/usageSources";
-import { formatBytes } from "../features/metrics";
+import { formatBytes, formatHours } from "../features/metrics";
 import { InternetUsage } from "../components/InternetUsage";
 import { useEntitlements } from "../features/entitlements";
 
-const SPECS: SeriesSpec[] = [{ category: "web.domain", field: "count", label: "Websites visited" }];
+// The agent credits a site with the time its tab is in front (sampled every few seconds); the sample count is
+// not a number of visits, so only time is shown (FIX-014).
+const SPECS: SeriesSpec[] = [{ category: "web.domain", field: "seconds", label: "Time on websites" }];
 // Internet data used over time (FR-04): bytes sent + received by every app on the PCs.
 const DATA_SPECS: SeriesSpec[] = [{ category: "web.data.app", field: "bytes", label: "Data used" }];
 const TYPES = FEATURE_EVENT_TYPES.internet;
@@ -89,7 +91,7 @@ function InternetPageContent(): ReactElement {
   const alerts = filterEvents(events.data, TYPES);
   const rows = metrics.data ? toChartRows(metrics.data.series, SPECS, days) : [];
   const dataRows = metrics.data ? toChartRows(metrics.data.series, DATA_SPECS, days) : [];
-  const websites = metrics.data ? totalFor(metrics.data.categories, ["web.domain"], "total_count") : 0;
+  const siteSeconds = metrics.data ? totalFor(metrics.data.categories, ["web.domain"], "total_seconds") : 0;
 
   return (
     <>
@@ -102,7 +104,7 @@ function InternetPageContent(): ReactElement {
 
       <StatTiles
         tiles={[
-          { value: metrics.data ? String(websites) : "–", label: "page loads tracked", icon: "globe", hint: "Pages opened in a browser on your PCs, over the chosen range." },
+          { value: metrics.data ? formatHours(siteSeconds) : "–", label: "time on websites", icon: "globe", hint: "Time a website was open in front in a browser on your PCs, over the chosen range." },
           { value: events.data ? String(alerts.length) : "–", label: "blocked attempts", tone: alerts.length > 0 ? "warn" : "good", icon: "shield", hint: "Times someone tried to open a site your rules block." },
           { value: metrics.data ? formatBytes(dataUsed) : "–", label: "internet data used", icon: "activity", hint: "Data sent and received by apps on your PCs, over the chosen range." },
         ]}
@@ -122,13 +124,13 @@ function InternetPageContent(): ReactElement {
           <UsageChart
             rows={rows}
             specs={SPECS}
-            format={(v) => String(Math.round(v))}
-            caption="Page loads recorded over time"
+            format={formatHours}
+            caption="Time on websites over time"
             loading={metrics.data === undefined}
             emptyHint={
               scope.person
                 ? `No website activity from ${scope.person.name} in this range.`
-                : "No website visits recorded yet. They appear once your PCs run the latest Zinwe app (each member can update from the Zinwe window)."
+                : "No website time recorded yet. They appear once your PCs run the latest Zinwe app (each member can update from the Zinwe window)."
             }
           />
         )}
@@ -221,7 +223,7 @@ function InternetPageContent(): ReactElement {
           <h2 className="dash-card__title" id="net-top-title">
             Internet usage
           </h2>
-          <p className="dash-card__sub">Every website and app: how long, how often and how much data · {scope.label}</p>
+          <p className="dash-card__sub">Every website and app: how long it was open and how much data it used · {scope.label}</p>
         </div>
         {sites.error || appTime.error ? (
           <ErrorState

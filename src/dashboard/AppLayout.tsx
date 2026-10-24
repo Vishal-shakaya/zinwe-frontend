@@ -221,7 +221,7 @@ export default function AppLayout(): ReactElement {
   // An upgrade (or renewal) payment being checked: nothing offers the upgrade again until it's confirmed (J3-01).
   const inCheck = paymentInCheck(subscription);
   const rejected = rejectedPayment(subscription);
-  const canUpgrade = inCheck ? false : plans.data ? higherPlans(plans.data, currentPlan?.code).length > 0 : true;
+  const canUpgrade = inCheck ? false : plans.data ? higherPlans(plans.data, currentPlan?.code, subscription ?? {}).length > 0 : true;
   const [now] = useState(() => Date.now());
   const lastPaidAt = subscription?.latest_payment?.status === "verified" ? subscription.latest_payment.reviewed_at : null;
   const quiet = withinDays(user?.date_joined, QUIET_DAYS, now) || withinDays(lastPaidAt, QUIET_DAYS, now);

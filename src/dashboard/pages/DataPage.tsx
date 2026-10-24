@@ -20,7 +20,7 @@ const DATA_COLLECTED = [
   { label: "USB copies", detail: "When files are copied to a pen drive — how many and the total size, plus which drive." },
   { label: "Network-share copies", detail: "Files copied to another PC or shared folder — count, size and the destination." },
   { label: "Email attachments", detail: "Attachments sent from classic desktop Outlook — count and total size." },
-  { label: "Web uploads", detail: "Data sent to websites and webmail (Gmail, New Outlook, Drive…) by domain and size — coming soon." },
+  { label: "Web uploads", detail: "Data sent from browsers and mail apps to websites and webmail (Gmail, New Outlook, Drive…) — the site name and size only, while Online protection is on. A large upload to one site shows under Data alerts." },
   { label: "USB rule in force", detail: "Whether USB drives are allowed, read-only, or blocked on each PC." },
 ];
 const DATA_NEVER = [
@@ -75,7 +75,7 @@ export default function DataPage(): ReactElement {
         tiles={[
           { value: metrics.data ? formatBytes(totalBytes) : "–", label: "data moved out", icon: "share", hint: "Copied to USB drives, shared folders and email, over the chosen range." },
           { value: metrics.data ? formatBytes(usbBytes) : "–", label: "copied to USB", icon: "usb", hint: "Data copied onto pen drives and other USB storage." },
-          { value: events.data ? String(alerts.length) : "–", label: "data alerts", tone: alerts.length > 0 ? "warn" : "good", icon: "alert", hint: "Large copies, blocked USB drives and other data warnings." },
+          { value: events.data ? String(alerts.length) : "–", label: "data alerts", tone: alerts.length > 0 ? "warn" : "good", icon: "alert", hint: "Large copies, large uploads to websites, blocked USB drives and other data warnings." },
         ]}
       />
 
@@ -113,7 +113,7 @@ export default function DataPage(): ReactElement {
             Data alerts
           </h2>
           <p className="dash-card__sub">
-            Large copies, USB switched to read-only and other USB activity worth a look, newest first.
+            Large copies, large uploads to websites, USB switched to read-only and other USB activity worth a look, newest first.
           </p>
         </div>
         <AlertsTable

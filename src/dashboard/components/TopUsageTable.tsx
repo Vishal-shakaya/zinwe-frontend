@@ -11,7 +11,7 @@ interface TopUsageTableProps {
   keyLabel: string;
   /** "time" → seconds/formatHours (sites, apps); "bytes" → bytes/formatBytes (transfers). */
   metric?: TopMetric;
-  /** Show the count column (visits / files / sends). */
+  /** Show the count column (files / sends). Not for web.domain or app.foreground: their count is sample ticks. */
   showCount?: boolean;
   /** Header for the count column when shown. */
   countLabel?: string;
@@ -30,7 +30,7 @@ export function TopUsageTable({
   keyLabel,
   metric = "time",
   showCount,
-  countLabel = "Visits",
+  countLabel = "Count",
   loading,
   emptyText,
   caption,

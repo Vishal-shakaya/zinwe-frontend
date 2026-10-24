@@ -3,7 +3,15 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { upgradeBeingChecked } from "../../auth/steps";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { decideBreak, errorMessage, getWorkLog, listMembers, type Member } from "../../lib/api";
+import {
+  BREAK_NOTE_MAX,
+  breakNoteLength,
+  decideBreak,
+  errorMessage,
+  getWorkLog,
+  listMembers,
+  type Member,
+} from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { DashIcon } from "../components/DashIcon";
 import { Modal } from "../components/Modal";
@@ -18,6 +26,7 @@ import { useResource } from "../useResource";
 
 /** Same words as the member's Zinwe widget: Log in · Take a break · I'm back · Log out. */
 const KIND_LABEL: Record<TimelineItem["kind"], string> = {
+  carry: "Still working from yesterday",
   start: "Logged in",
   break: "Went on a break",
   back: "Back from break",
@@ -70,7 +79,7 @@ function ActivityPageContent(): ReactElement {
   const members = useResource(loadMembers);
 
   const people = useMemo(
-    () => (log.data ? summarizeDay(log.data.entries, isToday, now) : []),
+    () => (log.data ? summarizeDay(log.data, isToday, now) : []),
     [log.data, isToday, now],
   );
   const byMember = useMemo(() => new Map((members.data ?? []).map((m) => [m.id, m] as const)), [members.data]);
@@ -90,7 +99,7 @@ function ActivityPageContent(): ReactElement {
   const [y, m, d] = day.split("-").map(Number);
   const label = dayLabel(new Date(y, m - 1, d), now);
   const onBreakNow = isToday ? people.filter((p) => p.current === "on_break").length : 0;
-  const breaks = people.reduce((sum, p) => sum + p.breaks.length, 0);
+  const breaks = people.reduce((sum, p) => sum + p.breakCount, 0);
   const finished = people.filter((p) => p.endedAt).length;
   const toReview = people.reduce((sum, p) => sum + pendingOf(p), 0);
 
@@ -270,8 +279,9 @@ function PersonRow({
     if (!focused) return;
     box.current?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [focused]);
-  // Today the widget's own totals are exact (no missed short breaks); past days use the log.
-  const live = isToday ? member?.device?.worked_seconds ?? 0 : 0;
+  // FIX-011: the server's totals, split at midnight like reports. An older API without them: today the widget's
+  // own total, past days this day's log.
+  const live = !person.fromServer && isToday ? member?.device?.worked_seconds ?? 0 : 0;
   const worked = live > 0 ? live : person.workedSeconds;
   const status =
     person.current === "on_break" && isToday
@@ -309,14 +319,22 @@ function PersonRow({
           </span>
         </span>
         <span data-label="Logged in" title={formatDateTime(person.startedAt)}>
-          {person.startedAt ? formatTime(person.startedAt) : "—"}
+          {person.startedAt ? (
+            formatTime(person.startedAt)
+          ) : person.carriedIn ? (
+            <span className="wd-muted" title={`Since ${formatDateTime(person.carriedIn.at)}`}>
+              From yesterday
+            </span>
+          ) : (
+            "—"
+          )}
         </span>
         <span data-label="Breaks">
-          {person.breaks.length === 0 ? (
+          {person.breakCount === 0 && person.breakSeconds === 0 ? (
             "None"
           ) : (
             <>
-              {person.breaks.length} · {formatDuration(person.breakSeconds)}
+              {person.breakCount} · {formatDuration(person.breakSeconds)}
             </>
           )}
         </span>
@@ -325,14 +343,21 @@ function PersonRow({
             formatTime(person.endedAt)
           ) : person.openEnded ? (
             <span className="wd-warn">Didn't log out</span>
+          ) : person.continues && !isToday ? (
+            <span className="wd-muted">After midnight</span>
           ) : isToday ? (
             <span className="wd-muted">Not yet</span>
           ) : (
             "—"
           )}
         </span>
-        <span data-label="Worked" className="wd-worked">
+        <span
+          data-label="Worked"
+          className="wd-worked"
+          title={person.openEnded ? "Time after the last change isn't counted: no log-out was recorded." : undefined}
+        >
           {formatDuration(worked)}
+          {person.openEnded ? <span aria-hidden="true">*</span> : null}
         </span>
       </button>
 
@@ -342,11 +367,29 @@ function PersonRow({
             const brk = item.kind === "break" ? person.breaks.find((b) => b.start === item.at) : undefined;
             const out = item.kind === "end" ? person.logouts.find((l) => l.at === item.at) : undefined;
             return (
-              <li key={`${item.at}-${i}`} className={`wd-step wd-step--${item.kind}`}>
+              <li
+                key={`${item.at}-${i}`}
+                className={cx("wd-step", `wd-step--${item.kind}`, item.state === "on_break" && "is-break")}
+              >
                 <time dateTime={item.at}>{formatTime(item.at)}</time>
                 <span className="wd-step__dot" aria-hidden="true" />
                 <span className="wd-step__text">
-                  <b>{KIND_LABEL[item.kind]}</b>
+                  <b>
+                    {item.kind === "carry" && item.state === "on_break"
+                      ? "Still on a break from yesterday"
+                      : KIND_LABEL[item.kind]}
+                  </b>
+                  {item.kind === "carry" ? (
+                    <>
+                      {item.state === "on_break" && item.reason ? <span className="wd-reason">{item.reason}</span> : null}
+                      {item.since ? (
+                        <small>
+                          {item.state === "on_break" ? "Break" : "Logged in"} at {formatTime(item.since)} yesterday; the
+                          time after midnight counts on this day
+                        </small>
+                      ) : null}
+                    </>
+                  ) : null}
                   {item.kind === "break" ? (
                     <>
                       {item.reason ? <span className="wd-reason">{item.reason}</span> : <span className="wd-muted">No reason given</span>}
@@ -377,8 +420,28 @@ function PersonRow({
           })}
         </ol>
       ) : null}
+      {open && person.openEnded ? (
+        <p className="dash-note wd-warn wd-day-note">
+          * No log-out was recorded
+          {person.openEndedFrom ? ` after ${formatTime(person.openEndedFrom)}` : ""}, so that time isn't counted — they
+          probably forgot to press Log out. Ask them if you need the exact finish time.
+        </p>
+      ) : null}
+      {open && person.continues && !isToday ? (
+        <p className="dash-note wd-day-note">Still going at midnight: the time after midnight counts on the next day.</p>
+      ) : null}
     </div>
   );
+}
+
+/**
+ * Keep a decision note within BREAK_NOTE_MAX as the API counts it (code points after trimming, FIX-012), so an
+ * emoji counts once and leading or trailing spaces don't count. Longer text is cut, not refused.
+ */
+function clampNote(value: string): string {
+  if (breakNoteLength(value) <= BREAK_NOTE_MAX) return value;
+  const start = value.length - value.trimStart().length;
+  return value.slice(0, start) + [...value.slice(start)].slice(0, BREAK_NOTE_MAX).join("");
 }
 
 /** Breaks and log-outs (FR-16) still waiting for the owner's OK. */
@@ -457,11 +520,14 @@ function BreakDecision({
           <textarea
             id={`brk-note-${brk.id}`}
             rows={2}
-            maxLength={300}
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => setNote(clampNote(e.target.value))}
+            aria-describedby={`brk-note-count-${brk.id}`}
             placeholder={asking === "approved" ? "Thanks for letting me know." : "Lunch was 50 min — please keep it to 30."}
           />
+          <small className="fb__count" id={`brk-note-count-${brk.id}`}>
+            {breakNoteLength(note)}/{BREAK_NOTE_MAX}
+          </small>
         </div>
         {error ? (
           <p className="form__err" role="alert">

@@ -4291,6 +4291,21 @@ button.wd-row:hover {
   background: var(--ink);
 }
 
+/* FIX-011: a stretch carried in from yesterday, shown at 00:00 — a hollow dot in the stretch's colour. */
+.wd-step--carry .wd-step__dot {
+  background: var(--white);
+  border: 2px solid var(--dash-green-dot);
+}
+
+.wd-step--carry.is-break .wd-step__dot {
+  border-color: var(--dash-amber-dot);
+}
+
+.wd-day-note {
+  margin: 0 0 10px;
+  padding-left: 32px;
+}
+
 .wd-step__text {
   display: flex;
   align-items: baseline;

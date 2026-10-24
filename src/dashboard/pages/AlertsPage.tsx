@@ -10,6 +10,7 @@ import {
   listMembers,
   type Device,
   type DeviceEvent,
+  type EventCounts,
   type Member,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
@@ -29,6 +30,7 @@ import {
 import { detailOf, groupAlerts, type AlertGroup } from "../features/alertGroups";
 import { SendAlertMenu } from "../components/SendAlertMenu";
 import { UsbRestore } from "../components/UsbRestore";
+import { useEventCounts } from "../features/useEventCounts";
 import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
 import { dayGroup, formatDateTime, formatRelative, formatTime, useNow } from "../time";
 import { useResource } from "../useResource";
@@ -47,7 +49,7 @@ export default function AlertsPage(): ReactElement {
   const [limit, setLimit] = useState(EVENTS_DEFAULT_LIMIT);
   const now = useNow();
 
-  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
+  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal, { includeRemoved: true }), []);
   const devices = useResource(loadDevices);
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
   const members = useResource(loadMembers);
@@ -56,12 +58,27 @@ export default function AlertsPage(): ReactElement {
   const [type, setType] = useState<FeatureKey | "all">("all");
   const [changed, setChanged] = useState<Record<number, DeviceEvent>>({});
 
+  // Alerts only, filtered on the server (FIX-013): rule confirmations can't use up the limit.
   const loadEvents = useCallback(
-    (signal: AbortSignal) => listEvents({ device: deviceId, limit }, signal),
+    (signal: AbortSignal) => listEvents({ device: deviceId, kind: "alert", limit }, signal),
     [deviceId, limit],
   );
   // "Show older" keeps the list on screen; a different PC starts from a clean slate.
   const events = useResource(loadEvents, { pollMs: 60_000, resetKey: deviceId ?? "all" });
+  // "To check" asks the server for not-handled alerts only, so handled ones can't crowd it out either.
+  const loadOpen = useCallback(
+    (signal: AbortSignal) =>
+      listEvents({ device: deviceId, kind: "alert", handled: false, limit: EVENTS_MAX_LIMIT }, signal),
+    [deviceId],
+  );
+  const openEvents = useResource(loadOpen, { pollMs: 60_000, resetKey: deviceId ?? "all" });
+  // Account-wide totals counted on the server (all PCs), for the line above the list.
+  const totals = useEventCounts();
+  const reloadAll = () => {
+    events.reload();
+    openEvents.reload();
+    totals.reload();
+  };
 
   const deviceList = devices.data ?? [];
   const selectedDevice = deviceList.find((d) => d.id === deviceId);
@@ -77,7 +94,11 @@ export default function AlertsPage(): ReactElement {
 
   // Rule confirmations aren't alerts (J5-01); handled / messaged here shows at once.
   const list = alertsOnly(events.data).map((e) => changed[e.id] ?? e);
-  const onChanged = (next: DeviceEvent) => setChanged((c) => ({ ...c, [next.id]: next }));
+  const openList = alertsOnly(openEvents.data).map((e) => changed[e.id] ?? e);
+  const onChanged = (next: DeviceEvent) => {
+    setChanged((c) => ({ ...c, [next.id]: next }));
+    totals.reload();
+  };
 
   // device → person, for the "PC · person" column and the Send mail recipient.
   const personFor = useMemo(() => {
@@ -94,31 +115,43 @@ export default function AlertsPage(): ReactElement {
     return (deviceId: number) => byDevice.get(deviceId);
   }, [members.data, devices.data]);
 
+  // The feed has no offset: a full page means older alerts may exist, so those chip counts read "n+".
+  const listFull = (events.data?.length ?? 0) >= limit;
+  const openFull = (openEvents.data?.length ?? 0) >= EVENTS_MAX_LIMIT;
   const counts: Record<Priority, number> = { all: list.length, check: 0, critical: 0, warning: 0, info: 0 };
-  for (const e of list) {
-    counts[severityOf(e)] += 1;
-    if (needsAttention(e)) counts.check += 1;
-  }
-  const shown = list.filter(
+  for (const e of list) counts[severityOf(e)] += 1;
+  counts.check = (openEvents.data ? openList : list).filter(needsAttention).length;
+  const more: Record<Priority, boolean> = {
+    all: listFull,
+    check: openEvents.data ? openFull : listFull,
+    critical: listFull,
+    warning: listFull,
+    info: listFull,
+  };
+  const source = priority === "check" && openEvents.data ? openList : list;
+  const shown = source.filter(
     (e) =>
       (priority === "all" || (priority === "check" ? needsAttention(e) : severityOf(e) === priority)) &&
       (type === "all" || eventMeta(e.type).feature === type),
   );
-  const canLoadMore = events.data !== undefined && (events.data?.length ?? 0) >= limit && limit < EVENTS_MAX_LIMIT;
+  const canLoadMore = priority !== "check" && events.data !== undefined && listFull && limit < EVENTS_MAX_LIMIT;
 
   return (
     <>
       <PageHeader
         title="Alerts"
         lede="Every alert on your PCs, newest first. Filter by priority or type, and alert the person on their PC, by email, or both."
-        actions={<RefreshButton onClick={events.reload} pending={events.pending} />}
+        actions={<RefreshButton onClick={reloadAll} pending={events.pending || openEvents.pending} />}
       />
 
       <section className="dash-card" aria-labelledby="feed-title">
         <div className="dash-card__head dash-card__head--split">
-          <h2 className="dash-card__title" id="feed-title">
-            {selectedDevice ? `Alerts on ${selectedDevice.hostname}` : "All alerts"}
-          </h2>
+          <div>
+            <h2 className="dash-card__title" id="feed-title">
+              {selectedDevice ? `Alerts on ${selectedDevice.hostname}` : "All alerts"}
+            </h2>
+            {totals.data && deviceId === undefined ? <AlertTotals counts={totals.data} /> : null}
+          </div>
         </div>
 
         {events.data === undefined ? (
@@ -163,6 +196,7 @@ export default function AlertsPage(): ReactElement {
               priority={priority}
               type={type}
               counts={counts}
+              more={more}
               onPriority={setPriority}
               onType={setType}
             />
@@ -198,11 +232,16 @@ export default function AlertsPage(): ReactElement {
                   disabled={events.pending}
                   onClick={() => setLimit((l) => Math.min(l + EVENTS_DEFAULT_LIMIT, EVENTS_MAX_LIMIT))}
                 >
-                  {events.pending ? "Loading…" : "Show older activity"}
+                  {events.pending ? "Loading…" : "Show older alerts"}
                 </button>
               </div>
-            ) : list.length >= EVENTS_MAX_LIMIT ? (
-              <p className="dash-note">Showing the latest {EVENTS_MAX_LIMIT} events.</p>
+            ) : priority === "check" && openFull ? (
+              <p className="dash-note">Showing the latest {EVENTS_MAX_LIMIT} alerts not handled yet.</p>
+            ) : priority !== "check" && list.length >= EVENTS_MAX_LIMIT ? (
+              <p className="dash-note">
+                Showing the latest {EVENTS_MAX_LIMIT}
+                {totals.data && deviceId === undefined ? ` of ${totals.data.alerts.toLocaleString()}` : ""} alerts.
+              </p>
             ) : null}
           </>
         )}
@@ -254,6 +293,17 @@ function FeedEmpty({
     <EmptyState icon="shield" title="All quiet">
       Nothing has happened on your PCs yet. When someone plugs in a USB drive or a rule changes, you'll see it here.
     </EmptyState>
+  );
+}
+
+/** Server-counted totals for all PCs (FIX-013): they don't stop at the feed's limit. */
+function AlertTotals({ counts }: { counts: EventCounts }): ReactElement {
+  const n = (v: number) => v.toLocaleString();
+  return (
+    <p className="dash-card__sub">
+      {n(counts.alerts)} {counts.alerts === 1 ? "alert" : "alerts"} in all · {n(counts.unhandled)} not handled yet
+      {counts.critical_unhandled > 0 ? ` · ${n(counts.critical_unhandled)} “Needs attention” still open` : ""}
+    </p>
   );
 }
 
@@ -485,6 +535,7 @@ function ActivityFilters({
   priority,
   type,
   counts,
+  more,
   onPriority,
   onType,
 }: {
@@ -493,6 +544,8 @@ function ActivityFilters({
   priority: Priority;
   type: FeatureKey | "all";
   counts: Record<Priority, number>;
+  /** The count is a floor: the loaded page was full, so older ones may exist. */
+  more: Record<Priority, boolean>;
   onPriority: (value: Priority) => void;
   onType: (value: FeatureKey | "all") => void;
 }): ReactElement {
@@ -507,7 +560,7 @@ function ActivityFilters({
             aria-pressed={priority === value}
             onClick={() => onPriority(value)}
           >
-            {value === "all" ? "All" : `${FILTER_LABEL[value]} (${counts[value]})`}
+            {value === "all" ? "All" : `${FILTER_LABEL[value]} (${counts[value]}${more[value] ? "+" : ""})`}
           </button>
         ))}
       </div>

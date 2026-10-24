@@ -38,7 +38,7 @@ export function useFeatureData(days: number, member: number | null, types: reado
   );
   const events = useResource(loadEvents, { pollMs: 60_000, resetKey: member ?? "all" });
 
-  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
+  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal, { includeRemoved: true }), []);
   const devices = useResource(loadDevices, { pollMs: 60_000 });
 
   const now = useNow();

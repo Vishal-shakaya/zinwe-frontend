@@ -4,7 +4,7 @@
  * flow returns to /app with `UpgradeDoneState`, and AppLayout shows the dialog.
  */
 import { createContext, useContext } from "react";
-import type { Plan } from "../../lib/api";
+import type { BillingCycle, Currency, Plan } from "../../lib/api";
 
 export interface UpgradeApi {
   open: () => void;
@@ -31,9 +31,39 @@ export function priceOf(plan: Plan): number {
   return Number(plan.price_inr_monthly) || 0;
 }
 
-/** Plans priced above the current one, cheapest first. No current plan → every paid plan. */
-export function higherPlans(plans: readonly Plan[], currentCode: string | null | undefined): Plan[] {
+/** How the subscriber pays: compared in their own currency and billing cycle (defaults: rupees, monthly). */
+export interface PaysIn {
+  currency?: Currency | string | null;
+  billing_cycle?: BillingCycle | string | null;
+}
+
+/** One whole billing cycle's price in that currency (0 = not sold there, or an older API without `prices`). */
+function cyclePrice(plan: Plan, pays: PaysIn): number {
+  const currency = pays.currency === "USD" ? "USD" : "INR";
+  const cycle = pays.billing_cycle === "yearly" ? "yearly" : "monthly";
+  return Number(plan.prices?.[currency]?.[cycle]?.price) || 0;
+}
+
+/**
+ * `plan` costs more than `current`, the way the server decides an upgrade (z_auth/billing.py costs_more,
+ * FIX-004c): in the subscriber's own currency and cycle, falling back to the rupee monthly price when either
+ * plan has no price there.
+ */
+export function costsMore(plan: Plan, current: Plan, pays: PaysIn): boolean {
+  const next = cyclePrice(plan, pays);
+  const now = cyclePrice(current, pays);
+  if (next <= 0 || (now <= 0 && current.requires_payment)) return priceOf(plan) > priceOf(current);
+  return next > now;
+}
+
+/**
+ * Plans the owner can upgrade to: paid plans that cost more than the current one as they pay, cheapest first.
+ * No current plan → every paid plan.
+ */
+export function higherPlans(plans: readonly Plan[], currentCode: string | null | undefined, pays: PaysIn = {}): Plan[] {
   const current = plans.find((p) => p.code === currentCode);
-  const floor = current ? priceOf(current) : 0;
-  return plans.filter((p) => priceOf(p) > floor).sort((a, b) => priceOf(a) - priceOf(b));
+  const sortKey = (p: Plan) => cyclePrice(p, pays) || priceOf(p);
+  return plans
+    .filter((p) => p.requires_payment && priceOf(p) + cyclePrice(p, pays) > 0 && (!current || costsMore(p, current, pays)))
+    .sort((a, b) => sortKey(a) - sortKey(b));
 }

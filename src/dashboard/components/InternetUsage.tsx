@@ -10,30 +10,30 @@ type View = "sites" | "apps";
 interface Row {
   name: string;
   seconds: number;
-  visits: number;
   bytes: number;
 }
 
-/** Time rows (seconds/visits) and data rows (bytes) for the same thing, joined by its friendly name. */
+/**
+ * Time rows (seconds) and data rows (bytes) for the same thing, joined by its friendly name. A time row's `count`
+ * is how many foreground samples the PC took, not how many times the site was opened, so it isn't shown (FIX-014).
+ */
 function join(time: readonly MetricTopItem[], data: readonly MetricTopItem[], nameOf: (key: string) => string): Row[] {
   const rows = new Map<string, Row>();
   const row = (name: string) => {
-    const existing = rows.get(name) ?? { name, seconds: 0, visits: 0, bytes: 0 };
+    const existing = rows.get(name) ?? { name, seconds: 0, bytes: 0 };
     rows.set(name, existing);
     return existing;
   };
   for (const i of mergeBySource(time, nameOf, 500)) {
-    const r = row(i.key);
-    r.seconds += i.seconds;
-    r.visits += i.count;
+    row(i.key).seconds += i.seconds;
   }
   for (const i of mergeBySource(data, nameOf, 500)) row(i.key).bytes += i.bytes;
   return [...rows.values()].sort((a, b) => b.seconds - a.seconds || b.bytes - a.bytes || a.name.localeCompare(b.name));
 }
 
 /**
- * FR-18: the whole picture of internet and app use — every website with how long it was open, how often and how
- * much data it used, and every app with its time and data — searchable, for whoever and whatever range the
+ * FR-18: the whole picture of internet and app use — every website with how long it was open and how much
+ * data it used, and every app with its time and data — searchable, for whoever and whatever range the
  * page's header picked.
  */
 export function InternetUsage({
@@ -96,12 +96,11 @@ export function InternetUsage({
       ) : (
         <div className="rpt-scroll iu__list">
           <table className="rpt-table">
-            <caption className="dash-sr">{view === "sites" ? "Websites: time, visits and data used" : "Apps: time and data used"}</caption>
+            <caption className="dash-sr">{view === "sites" ? "Websites: time and data used" : "Apps: time and data used"}</caption>
             <thead>
               <tr>
                 <th scope="col">{view === "sites" ? "Website or service" : "App"}</th>
                 <th scope="col">Time</th>
-                {view === "sites" ? <th scope="col">Visits</th> : null}
                 <th scope="col">Data used</th>
               </tr>
             </thead>
@@ -110,7 +109,6 @@ export function InternetUsage({
                 <tr key={r.name}>
                   <th scope="row">{r.name}</th>
                   <td>{r.seconds > 0 ? friendlyDuration(r.seconds) : "—"}</td>
-                  {view === "sites" ? <td>{r.visits > 0 ? r.visits : "—"}</td> : null}
                   <td>{r.bytes > 0 ? formatBytes(r.bytes) : "—"}</td>
                 </tr>
               ))}

@@ -2,7 +2,15 @@ import { useCallback, useMemo, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { getPolicy, listDevices, listEvents, listMembers, type DeviceEvent, type Member } from "../../lib/api";
+import {
+  EVENTS_MAX_LIMIT,
+  getPolicy,
+  listDevices,
+  listEvents,
+  listMembers,
+  type DeviceEvent,
+  type Member,
+} from "../../lib/api";
 import { AlertsTable } from "../components/AlertsTable";
 import { GetProtected } from "../components/GetProtected";
 import { StatTiles } from "../components/StatTiles";
@@ -11,6 +19,7 @@ import { PlanLock } from "../components/PlanLock";
 import { useEntitlements } from "../features/entitlements";
 import { LoadingState, PageHeader } from "../components/States";
 import { makeMemberResolver, needsAttention } from "../features/events";
+import { useEventCounts } from "../features/useEventCounts";
 import { consentOf, formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
 import { formatRelative, useNow } from "../time";
 import { useResource } from "../useResource";
@@ -43,12 +52,18 @@ export default function OverviewPage(): ReactElement {
   usePageMeta({ title: "Overview — Zinwe", description: "Who's working, your plan and the latest alerts, at a glance." });
   const { account } = useAuth();
 
-  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
+  const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal, { includeRemoved: true }), []);
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  const loadEvents = useCallback((signal: AbortSignal) => listEvents({ limit: 100 }, signal), []);
+  // Not-handled alerts only, filtered on the server (FIX-013): confirmations and handled alerts can't use up the
+  // limit, so "to check today" is right on a busy account (up to EVENTS_MAX_LIMIT open alerts).
+  const loadEvents = useCallback(
+    (signal: AbortSignal) => listEvents({ kind: "alert", handled: false, limit: EVENTS_MAX_LIMIT }, signal),
+    [],
+  );
   const devices = useResource(loadDevices, { pollMs: 60_000 });
   const members = useResource(loadMembers, { pollMs: 60_000 });
   const events = useResource(loadEvents, { pollMs: 60_000 });
+  const totals = useEventCounts();
   const loadPolicy = useCallback((signal: AbortSignal) => getPolicy(signal), []);
   const policy = useResource(loadPolicy);
   const now = useNow(60_000);
@@ -69,6 +84,11 @@ export default function OverviewPage(): ReactElement {
   const open = (events.data ?? []).filter((e) => !handledHere.has(e.id));
   const alerts = events.data ? actionable(open) : [];
   const todays = events.data ? toCheckToday(open, now) : null;
+  // A full page whose oldest row is still from today: there may be more, so the number is a floor.
+  const oldest = events.data?.[events.data.length - 1];
+  const todaysMore =
+    (events.data?.length ?? 0) >= EVENTS_MAX_LIMIT && oldest !== undefined && Date.parse(oldest.occurred_at) >= startOfToday(now);
+  const todaysText = todays !== null ? `${todays}${todaysMore ? "+" : ""}` : null;
   const resolveMember = useMemo(() => makeMemberResolver(devices.data), [devices.data]);
 
   const loaded = members.data !== undefined;
@@ -135,7 +155,7 @@ export default function OverviewPage(): ReactElement {
             hint: "PC switched off or without internet. Its rules still apply.",
           },
           {
-            value: todays !== null ? String(todays) : "–",
+            value: todaysText ?? "–",
             label: todays === 1 ? "alert to check today" : "alerts to check today",
             tone: todays !== null && todays > 0 ? (todays >= 10 ? "bad" : "warn") : "good",
             icon: "alert",
@@ -196,7 +216,10 @@ export default function OverviewPage(): ReactElement {
               <p className="dash-card__sub">
                 {todays === 0
                   ? "Nothing new to check today."
-                  : `${todays} ${todays === 1 ? "alert" : "alerts"} to check today.`}
+                  : `${todaysText} ${todays === 1 && !todaysMore ? "alert" : "alerts"} to check today.`}
+                {totals.data && totals.data.unhandled > 0
+                  ? ` ${totals.data.unhandled.toLocaleString()} not marked handled in all.`
+                  : ""}
               </p>
             ) : null}
           </div>
@@ -221,6 +244,7 @@ export default function OverviewPage(): ReactElement {
             onDevicesChanged={devices.reload}
             onChanged={(event) => {
               if (event.handled_at) setHandledHere((s) => new Set(s).add(event.id));
+              totals.reload();
             }}
           />
         )}

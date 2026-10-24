@@ -240,10 +240,47 @@ export interface WorkLogEntry {
   decision_note?: string;
 }
 
+/**
+ * FIX-011: one person's figures for the day, counted on the server and split at midnight the same way reports are
+ * (a 22:00–02:00 shift is 2 h on each day). `key` is "m<member id>" or "d<device id>" (no member).
+ */
+export interface WorkDayTotal {
+  key: string;
+  member_id: number | null;
+  device_id: number;
+  worked_seconds: number;
+  break_seconds: number;
+  /** Breaks that began this day. */
+  breaks: number;
+  /** Started a shift this day (the "day worked" rule). */
+  logged_in: boolean;
+  /** A stretch began this day that couldn't be counted: a forgotten log-out. */
+  open_ended: boolean;
+  /** The day's last stretch runs on past midnight into the next day. */
+  continues: boolean;
+  /** The id of yesterday's change (in `carried_in`) whose stretch was still running at midnight, or null. */
+  carried_in: number | null;
+}
+
 export interface WorkLog {
   /** yyyy-mm-dd (server-local day). */
   date: string;
   entries: WorkLogEntry[];
+  /** FIX-011: yesterday's changes whose stretch was still running at this day's midnight (absent on older APIs). */
+  carried_in?: WorkLogEntry[];
+  /** FIX-011: one row per person with the day's figures (absent on older APIs). */
+  totals?: WorkDayTotal[];
+}
+
+/**
+ * The longest note the decision endpoint accepts: BreakDecisionSerializer.note max_length, which DRF checks in
+ * Unicode code points after trimming. Count with breakNoteLength(), not `.length` (an emoji is 2 UTF-16 units).
+ */
+export const BREAK_NOTE_MAX = 280;
+
+/** A decision note's length as the API counts it: code points, after trimming. */
+export function breakNoteLength(note: string): number {
+  return [...note.trim()].length;
 }
 
 /** POST /api/devices/work-log/<id>/decision/ — approve or deny a break; the member is told in their widget. */
@@ -272,9 +309,13 @@ export function emailAlert(eventId: number, wording: { label: string; suggested:
   return authedRequest<AlertEmailResult>(`/api/devices/events/${eventId}/email/`, { method: "POST", body: wording });
 }
 
-/** GET /api/devices/ — the owner's PCs with online status. */
-export function listDevices(signal?: AbortSignal): Promise<Device[]> {
-  return authedRequest<Device[]>("/api/devices/", { signal });
+/**
+ * GET /api/devices/ — the owner's PCs in use, with online status. Removed PCs are left out (FIX-005) unless
+ * `includeRemoved`: history views (Alerts, Overview, feature pages) pass it so an old alert from a removed PC can
+ * still name its person and the PC filter can show "(removed)". Team & devices uses the default list.
+ */
+export function listDevices(signal?: AbortSignal, { includeRemoved = false }: { includeRemoved?: boolean } = {}): Promise<Device[]> {
+  return authedRequest<Device[]>("/api/devices/", { query: { include_revoked: includeRemoved ? 1 : undefined }, signal });
 }
 
 /** GET /api/devices/members/ — the people the owner has added, newest first. */
@@ -421,23 +462,50 @@ export async function updatePolicy(patch: PolicyUpdate): Promise<Policy> {
 export const EVENTS_DEFAULT_LIMIT = 50;
 export const EVENTS_MAX_LIMIT = 200;
 
+export interface EventFeedParams {
+  device?: number;
+  member?: number;
+  types?: readonly string[];
+  /** 1..200 (EVENTS_MAX_LIMIT); the server default is 50. There is no offset: "show older" asks for more. */
+  limit?: number;
+  /** "alert" = rule confirmations left out on the server, so they can't use up the limit. */
+  kind?: "alert" | "confirmation";
+  /** true = only handled, false = only not handled yet; omitted = both. */
+  handled?: boolean;
+}
+
 /**
  * GET /api/devices/events/ — newest first, the owner's PCs only. Optionally one PC, one team member's
- * PCs, and/or only some event types (a feature page asks for its own, so other alerts can't crowd it out).
+ * PCs, only some event types (a feature page asks for its own, so other alerts can't crowd it out),
+ * only alerts or only confirmations, and/or only handled / not-handled ones.
  */
-export function listEvents(
-  params: { device?: number; member?: number; types?: readonly string[]; limit?: number } = {},
-  signal?: AbortSignal,
-): Promise<DeviceEvent[]> {
+export function listEvents(params: EventFeedParams = {}, signal?: AbortSignal): Promise<DeviceEvent[]> {
   return authedRequest<DeviceEvent[]>("/api/devices/events/", {
     query: {
       device: params.device,
       member: params.member,
       types: params.types?.length ? params.types.join(",") : undefined,
       limit: params.limit,
+      kind: params.kind,
+      handled: params.handled === undefined ? undefined : String(params.handled),
     },
     signal,
   });
+}
+
+/** Account-wide alert totals (rule confirmations excluded), over the plan's history window. */
+export interface EventCounts {
+  /** Every alert. */
+  alerts: number;
+  /** Alerts nobody has marked handled yet (any priority, "For info" included). */
+  unhandled: number;
+  /** "Needs attention" alerts nobody has handled yet. */
+  critical_unhandled: number;
+}
+
+/** GET /api/devices/events/counts/ — counted on the server, so they don't stop at the feed's limit. */
+export function getEventCounts(signal?: AbortSignal): Promise<EventCounts> {
+  return authedRequest<EventCounts>("/api/devices/events/counts/", { signal });
 }
 
 // ---------------------------------------------------------------------------

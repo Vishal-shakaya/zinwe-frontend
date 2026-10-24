@@ -64,7 +64,7 @@ export default function PlanStep(): ReactElement {
   const reviewing = step === "payment_review" || checking;
   const pending = step === "payment" ? (subscription?.plan.code ?? null) : null;
   const current = onPlan ? (subscription?.plan.code ?? null) : null;
-  const eligible = upgrading && plans.data ? higherPlans(plans.data, current).map((p) => p.code) : [];
+  const eligible = upgrading && plans.data ? higherPlans(plans.data, current, subscription ?? {}).map((p) => p.code) : [];
   const unavailable = upgrading && plans.data ? plans.data.map((p) => p.code).filter((c) => !eligible.includes(c)) : [];
   // The plan the payment being checked is for (an upgrade names it; otherwise the owner's plan).
   const checkingCode =

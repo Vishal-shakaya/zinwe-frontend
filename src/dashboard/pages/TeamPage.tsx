@@ -130,7 +130,8 @@ export default function TeamPage(): ReactElement {
   const list = members.data ? sortMembers(members.data) : [];
   const active = list.filter((m) => m.is_active);
   const removed = list.filter((m) => !m.is_active);
-  const live = (devices.data ?? []).filter((d) => !d.is_revoked);
+  // GET /devices/ leaves removed PCs out by default (FIX-005), so every PC here is one in use.
+  const live = devices.data ?? [];
   // Pair each PC with its person by member_id; older backends only sent the name, so fall back to that.
   const deviceOf = (member: Member) =>
     live.find((d) =>
