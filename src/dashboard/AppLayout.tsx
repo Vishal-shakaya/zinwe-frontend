@@ -22,7 +22,7 @@ import { useResource } from "./useResource";
 import { usePlans } from "../portal/usePlans";
 import { useOwnerNotifications } from "./features/useOwnerNotifications";
 import { listNotes, markNotesRead } from "./fixtures/notifications";
-import { countTasksWaiting } from "./fixtures/tasks";
+import { countTasksWaiting, TASKS_CHANGED_EVENT } from "./fixtures/tasks";
 import { DashNav } from "./shell/DashNav";
 import { PhoneShell } from "./shell/PhoneShell";
 import { activeFor, ShellContext, type ShellState } from "./shell/shellContext";
@@ -227,7 +227,12 @@ export default function AppLayout(): ReactElement {
   const loadNotes = useCallback((signal: AbortSignal) => listNotes(signal), []);
   const notes = useResource(loadNotes);
   const setNotes = notes.setData;
-  const tasksWaiting = countTasksWaiting();
+  const [tasksWaiting, setTasksWaiting] = useState(countTasksWaiting);
+  useEffect(() => {
+    const update = () => setTasksWaiting(countTasksWaiting());
+    window.addEventListener(TASKS_CHANGED_EVENT, update);
+    return () => window.removeEventListener(TASKS_CHANGED_EVENT, update);
+  }, []);
 
   // Back from the upgrade flow: confirm the payment was sent, once.
   const upgradedTo = isUpgradeDone(location.state) ? location.state.upgradedTo : null;
