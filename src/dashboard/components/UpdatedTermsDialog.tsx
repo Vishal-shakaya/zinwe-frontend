@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactElement } from "react";
 import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
 import { LEGAL_UPDATED, SIGNUP_DOCS } from "../../content/legal";
 import { acceptTerms } from "../../lib/api";
+import { Spinner } from "../ui/States";
 import { Modal } from "./Modal";
 
 /**
@@ -49,7 +50,7 @@ export function UpdatedTermsDialog({
       title={firstTime ? "Please accept our Terms" : "We've updated our Terms"}
       sub={`Updated ${LEGAL_UPDATED}`}
     >
-      <form className="terms-prompt" onSubmit={onSubmit} noValidate>
+      <form className="terms-prompt zn-terms" onSubmit={onSubmit} noValidate>
         <p className="dash-modal__text">
           {firstTime
             ? "Zinwe now asks every account to accept its Terms and Conditions, Privacy Policy and Acceptable Use Policy. Please read and accept them to keep using your dashboard."
@@ -68,12 +69,13 @@ export function UpdatedTermsDialog({
           error={error}
           disabled={busy}
         />
-        <div className="dash-confirm__actions">
-          <button type="submit" className="btn btn--primary dash-btn-sm" disabled={busy}>
-            {busy ? "Saving…" : "Accept and continue"}
-          </button>
-          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onSignOut} disabled={busy}>
+        <div className="zn-sheet-acts">
+          <button type="button" className="z-btn" onClick={onSignOut} disabled={busy}>
             Sign out
+          </button>
+          <button type="submit" className="z-btn pri" disabled={busy}>
+            {busy ? <Spinner size={16} tone="on-orange" /> : null}
+            {busy ? "Saving…" : "Accept and continue"}
           </button>
         </div>
       </form>

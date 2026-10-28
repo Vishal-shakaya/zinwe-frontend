@@ -22,13 +22,29 @@ export function browserNotifyOn(): boolean {
   }
 }
 
+/**
+ * The owner switched notifications off in Settings → Notifications on this browser (CompNotify "In the browser tab":
+ * then the tab shows no count and no dot). Unlike browserNotifyOn, the browser's permission doesn't matter here.
+ */
+export function browserNotifySwitchedOff(): boolean {
+  try {
+    return localStorage.getItem(SWITCH_KEY) === "off";
+  } catch {
+    return false;
+  }
+}
+
 export function setBrowserNotify(on: boolean): void {
   try {
     localStorage.setItem(SWITCH_KEY, on ? "on" : "off");
   } catch {
     // private window: the browser permission alone decides
   }
+  window.dispatchEvent(new Event(NOTIFY_SWITCH_EVENT));
 }
+
+/** Fired when the switch changes, so the tab count follows straight away. */
+export const NOTIFY_SWITCH_EVENT = "zinwe:notify-switch";
 
 /** Ask the browser (must be called from a click). Resolves to the new permission. */
 export async function askNotifyPermission(): Promise<NotifyPermission> {

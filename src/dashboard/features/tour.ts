@@ -3,7 +3,7 @@
  * (`user.tour_done`, POST tour/done/), so the tour plays once per account, not once per browser
  * (J5-25). The browser flag stays as a fallback for an older backend without the field.
  */
-import type { DashIconName } from "../components/DashIcon";
+import type { IconName } from "../ui/icons";
 import { markTourDoneOnServer, type User } from "../../lib/api";
 
 export interface TourStep {
@@ -11,13 +11,13 @@ export interface TourStep {
   target: string;
   title: string;
   body: string;
-  icon: DashIconName;
+  icon: IconName;
   /** The last step's main button: where finishing the tour takes the owner. */
   cta?: { label: string; to: string };
 }
 
 /**
- * The first-visit walk through the dashboard. Targets are `data-tour` hooks in AppLayout. It ends on
+ * The first-visit walk through the dashboard. Targets are `data-tour` hooks (DashNav rows, the Support button). It ends on
  * the one thing a new owner has to do: add the first person (J5-06).
  */
 export const DASHBOARD_TOUR: readonly TourStep[] = [
@@ -25,19 +25,19 @@ export const DASHBOARD_TOUR: readonly TourStep[] = [
     target: '[data-tour="overview"]',
     title: "Your day at a glance",
     body: "Overview shows who's working, who's on a break and the alerts that need you — start here each morning.",
-    icon: "home",
+    icon: "overview",
   },
   {
     target: '[data-tour="alerts"]',
     title: "Alerts that need you",
     body: "Every risky thing on your PCs, in plain words, with what it means. One click messages the person about it.",
-    icon: "alert",
+    icon: "alerts",
   },
   {
     target: '[data-tour="protection"]',
     title: "Choose what to protect",
     body: "Online protection, Data safety and App monitoring start with safe settings. One setup covers every PC.",
-    icon: "shield",
+    icon: "protection",
   },
   {
     target: '[data-tour="chat"]',
@@ -54,7 +54,7 @@ export const DASHBOARD_TOUR: readonly TourStep[] = [
   {
     target: '[data-tour="support"]',
     title: "We're here to help",
-    body: "Stuck? Message the Zinwe team from here, or from Support in your account menu (bottom left). Replay this tour from How to use.",
+    body: "Stuck? Message the Zinwe team from here. If you hide this button, Help & support brings it back. Replay this tour from Help & support.",
     icon: "help",
   },
   {
@@ -62,7 +62,7 @@ export const DASHBOARD_TOUR: readonly TourStep[] = [
     title: "Add your first person",
     body: "Add their name and work email. Zinwe gives them their own ID; install Zinwe on their PC with it and they show up here.",
     icon: "team",
-    cta: { label: "Add your first person", to: "/app/team?add=1" },
+    cta: { label: "Add your first person", to: "/app/team#add=1" },
   },
 ];
 
@@ -102,7 +102,7 @@ export function markTourDone(): void {
   });
 }
 
-/** Ask the dashboard shell to replay the tour (How to use → "Take the tour"). */
+/** Ask the dashboard shell to replay the tour (Help & support → "Take the tour"). */
 export function startTour(): void {
   window.dispatchEvent(new Event("zinwe:tour"));
 }

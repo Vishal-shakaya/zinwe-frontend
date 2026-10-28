@@ -1,14 +1,23 @@
 /**
- * The floating Support button: shown by default (a new owner sees it from their first visit), hidden
- * once the owner closes it with its ×. Support is always one tap away in the account menu, which
- * opens the same conversation panel. The choice is remembered per account on this browser.
+ * The floating Support button (board DashFloat): shown by default (a new owner sees it from their first visit),
+ * hidden once the owner closes it with its ×. Help & support brings it back ("Hid the Support button? Show it
+ * again", board DashHelp) and can open the same conversation panel. The choice is remembered per account on
+ * this browser.
  */
 
-/** The account menu asks the Support widget to open with this event. */
+/** Help & support (or anything else) asks the Support widget to open with this event. */
 export const SUPPORT_OPEN_EVENT = "zinwe:support";
+
+/** Help & support → "Show it again" asks the hidden Support button to come back with this event. */
+export const SUPPORT_SHOW_EVENT = "zinwe-show-support";
 
 export function openSupport(): void {
   window.dispatchEvent(new Event(SUPPORT_OPEN_EVENT));
+}
+
+/** Bring the Support button back (DashHelp `showSupportBtn`); the widget forgets the account's "hidden" choice. */
+export function showSupportButton(): void {
+  window.dispatchEvent(new Event(SUPPORT_SHOW_EVENT));
 }
 
 const key = (userId: number) => `zinwe.support.fabHidden.${userId}`;

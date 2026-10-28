@@ -1,19 +1,24 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import type { Member } from "../../lib/api";
-import { cx } from "../../lib/cx";
-import { PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
-import { DashIcon } from "./DashIcon";
+import { PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
+import { avatarStyle, dotColor, initialsOf, statusLine } from "../float/people";
+import { announcePanel, inFloat, useFloatSlot, useOtherPanel, usePanelEscape } from "../float/slots";
+import { Sk } from "../ui/States";
+import { ZIcon } from "../ui/ZIcon";
+import "../../styles/dash13/float.css";
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+const P_CHAT = "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z";
+
+function replies(n: number): string {
+  return `${n} new ${n === 1 ? "reply" : "replies"}`;
 }
 
 /**
- * Floating "Chat" button (beside Support): shows unread replies, and opens a
- * small picker of your team — people with new replies first. Picking someone
- * opens the chat bubble with them.
+ * The orange floating "Chat" button (board DashFloat), left of Support: the unread count, and a picker of your team,
+ * people with new replies first. Picking someone opens their docked chat window (the list stays open, like the
+ * board). Hidden on a phone, where Chat is a tab in the bottom bar.
  */
 export function ChatLauncher({
   members,
@@ -21,99 +26,125 @@ export function ChatLauncher({
 }: {
   members: Member[] | undefined;
   onPick: (member: Member) => void;
-}): ReactElement {
+}): ReactElement | null {
+  const fabSlot = useFloatSlot("chat");
+  const panelSlot = useFloatSlot("panel");
   const [open, setOpen] = useState(false);
-  const wrap = useRef<HTMLDivElement>(null);
+  const fab = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useOtherPanel("chat", close);
+
   const active = (members ?? [])
     .filter((m) => m.is_active)
     .sort((a, b) => (b.unread ?? 0) - (a.unread ?? 0) || a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
   const unread = active.reduce((sum, m) => sum + (m.unread ?? 0), 0);
 
+  // A click anywhere outside the floating corner closes the list.
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+    const onDown = (e: globalThis.MouseEvent) => {
+      if (!inFloat(e.target)) setOpen(false);
     };
     document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  return (
-    <div className={cx("cl", open && "is-open")} ref={wrap}>
-      {open ? (
-        <section className="cl__panel" aria-label="Chat with your team">
-          <header className="cl__head">
-            <b>Chat with your team</b>
-            <small>{unread > 0 ? `${unread} new ${unread === 1 ? "reply" : "replies"}` : "Messages go to their PC, and by email if you choose."}</small>
-          </header>
-          {members === undefined ? (
-            <p className="dash-note cl__empty">Loading…</p>
-          ) : active.length === 0 ? (
-            <p className="dash-note cl__empty">
-              No one to chat with yet.{" "}
-              <Link className="dash-link" to="/app/team" onClick={() => setOpen(false)}>
-                Add your team
-              </Link>
-            </p>
-          ) : (
-            <ul className="cl__list">
-              {active.map((m) => {
-                const status = presenceOf(m.device);
-                const count = m.unread ?? 0;
-                return (
-                  <li key={m.id}>
-                    <button
-                      type="button"
-                      className={cx("cl__person", count > 0 && "is-unread")}
-                      onClick={() => {
-                        setOpen(false);
-                        onPick(m);
-                      }}
-                    >
-                      <span className="cb-avatar cl__avatar" aria-hidden="true">
-                        {initialsOf(m.name)}
-                        <i className={`tchat__dot tchat__dot--${status === "online" ? "online" : PRESENCE_CLASS[status]}`} />
-                      </span>
-                      <span className="cl__who">
-                        <b>{m.name}</b>
-                        <small>
-                          {PRESENCE_LABEL[status]}
-                          {m.device?.hostname ? ` · ${m.device.hostname}` : ""}
-                        </small>
-                      </span>
-                      {count > 0 ? <span className="sup__badge sup__badge--inline">{count}</span> : null}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          <Link className="cl__all" to="/app/chat" onClick={() => setOpen(false)}>
-            Open full chat <DashIcon name="arrow" />
-          </Link>
-        </section>
-      ) : null}
+  const toggle = () => {
+    if (!open) announcePanel("chat");
+    setOpen(!open);
+  };
+  const escape = useCallback(() => {
+    setOpen(false);
+    fab.current?.focus();
+  }, []);
+  usePanelEscape(open, escape);
 
-      <button
-        type="button"
-        className="sup__fab cl__fab"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-label={unread > 0 ? `Chat with your team, ${unread} new ${unread === 1 ? "reply" : "replies"}` : "Chat with your team"}
-        data-tour="chat-fab"
-      >
-        <DashIcon name={open ? "close" : "team"} />
-        <span className="sup__fab-label">{open ? "Close" : "Chat"}</span>
-        {unread > 0 && !open ? <span className="sup__badge">{unread}</span> : null}
-      </button>
-    </div>
+  if (!fabSlot || !panelSlot) return null;
+
+  const panel = open ? (
+    <section className="zf-panel zf-panel--chat" aria-label="Chat with your team">
+      <header className="zf-phead">
+        <b>Chat with your team</b>
+        <small>{unread > 0 ? `${replies(unread)} · people with new replies first` : "Messages go to their PC, and by email if you choose."}</small>
+      </header>
+      {members === undefined ? (
+        <div className="zf-plist" role="status" aria-busy="true">
+          <span className="z-sr">Loading your team</span>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="zf-row zf-row--sk" aria-hidden="true">
+              <Sk w={34} h={34} round />
+              <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                <Sk w={`${60 - i * 8}%`} h={12} />
+                <Sk w="45%" h={10} />
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : active.length === 0 ? (
+        <div className="zf-pempty">
+          <b>No one to chat with yet.</b>
+          <Link className="z-btn sm pri" to="/app/team#add=1" onClick={close}>
+            Add your team
+          </Link>
+        </div>
+      ) : (
+        <ul className="zf-plist">
+          {active.map((m) => {
+            const status = presenceOf(m.device);
+            const n = m.unread ?? 0;
+            return (
+              <li key={m.id}>
+                <button
+                  type="button"
+                  className="zf-row"
+                  aria-label={`Chat with ${m.name}, ${PRESENCE_LABEL[status]}${n ? `, ${n} new` : ""}`}
+                  onClick={() => onPick(m)}
+                >
+                  <span className="zf-av" aria-hidden="true" style={avatarStyle(m.role, 34)}>
+                    {initialsOf(m.name)}
+                    <span className="zf-dot" style={{ background: dotColor(status) }} />
+                  </span>
+                  <span className="zf-who">
+                    <b style={{ fontWeight: n ? 700 : 600 }}>{m.name}</b>
+                    <small>{statusLine(m)}</small>
+                  </span>
+                  {n > 0 ? <span className="zf-count">{n}</span> : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <Link className="zf-pall" to="/app/chat" onClick={close}>
+        Open full chat <span aria-hidden="true">→</span>
+      </Link>
+    </section>
+  ) : null;
+
+  return (
+    <>
+      {panel ? createPortal(panel, panelSlot) : null}
+      {createPortal(
+        <button
+          ref={fab}
+          type="button"
+          className="zf-fab zf-chat"
+          onClick={toggle}
+          aria-expanded={open}
+          aria-label={open ? "Close chat" : `Chat with your team${unread ? `, ${replies(unread)}` : ""}`}
+          data-tour="chat-fab"
+        >
+          <ZIcon d={open ? "M6 6l12 12M18 6 6 18" : P_CHAT} size={20} stroke={2} />
+          <span className="zf-label">{open ? "Close" : "Chat"}</span>
+          {unread > 0 && !open ? (
+            <span className="zf-badge" aria-hidden="true">
+              {unread}
+            </span>
+          ) : null}
+        </button>,
+        fabSlot,
+      )}
+    </>
   );
 }
 
