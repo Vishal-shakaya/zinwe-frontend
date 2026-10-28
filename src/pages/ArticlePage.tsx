@@ -2,15 +2,12 @@ import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { Link, useParams } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
-import { NewsletterSignup } from "../components/blog/NewsletterSignup";
-import { SeriesPickCard } from "../components/series/SeriesPickCard";
-import { GuidePickCard } from "../components/guides/GuideCard";
-import "../styles/guides.css";
+import { SiteSubscribe } from "../components/site/SiteSubscribe";
+import { trackEvent } from "../lib/analytics";
 import { ApiError, errorMessage } from "../lib/api";
 import { blogAsset, getArticle, withAssetBase, type Article } from "../lib/api/blog";
 import { formatDate } from "../lib/format";
-import { cx } from "../lib/cx";
-import "../styles/blog.css";
+import "../styles/site-blog.css";
 
 const SITE = "https://zinwe.io";
 
@@ -73,7 +70,11 @@ function useArticleHead(article: Article | undefined): void {
   }, [article]);
 }
 
-/** Public /blog/:slug: one published article, styled for reading, with related articles. */
+/**
+ * Public /blog/:slug, v3 (board SiteArticle): the article on a white sheet (breadcrumb, title, summary, byline, cover,
+ * body from the API), a dark "send it as a task" call to action, and a side column with Share, the closest free guide
+ * (or series episode) and the newsletter; then "Keep reading". Loading, not-found and error states as before.
+ */
 export default function ArticlePage(): ReactElement {
   const { slug = "" } = useParams();
   const load = useCallback((signal: AbortSignal) => getArticle(slug, signal), [slug]);
@@ -90,16 +91,31 @@ export default function ArticlePage(): ReactElement {
   if (res.error && !article) {
     const missing = res.error instanceof ApiError && res.error.kind === "not_found";
     return (
-      <div className="wrap blog-empty blog-empty--page">
-        <b>{missing ? "This article isn't here" : "The article didn't load"}</b>
-        <span>{missing ? "It may have moved or been unpublished." : errorMessage(res.error)}</span>
-        <Link className="btn btn--ghost" to="/blog">
-          All articles
-        </Link>
+      <div className="zs-wrap za-wrap">
+        <div className="zs-state">
+          <b>{missing ? "This article isn't here" : "The article didn't load"}</b>
+          <span>{missing ? "It may have moved or been unpublished." : errorMessage(res.error)}</span>
+          <span className="za-state__acts">
+            {missing ? null : (
+              <button type="button" className="zs-btn zs-btn--sm" onClick={res.reload}>
+                Try again
+              </button>
+            )}
+            <Link className="zs-btn zs-btn--sm" to="/blog">
+              All articles
+            </Link>
+          </span>
+        </div>
       </div>
     );
   }
-  if (!article) return <div className="wrap article-skeleton" aria-busy="true" />;
+  if (!article) {
+    return (
+      <div className="zs-wrap za-wrap" aria-busy="true">
+        <div className="zs-skel za-skel" />
+      </div>
+    );
+  }
 
   const share = `${SITE}/blog/${article.slug}`;
   const copy = async () => {
@@ -111,108 +127,110 @@ export default function ArticlePage(): ReactElement {
       /* clipboard blocked: the link is still in the address bar */
     }
   };
+  const guide = article.guide_pick;
+  const pick = article.series_pick;
 
   return (
-    <article className="article">
-      <header className="wrap article__head">
-        <nav className="article__crumbs" aria-label="Breadcrumb">
-          <Link to="/blog">Blog</Link>
-          <span aria-hidden="true">/</span>
-          <Link to={`/blog?type=${article.type}`}>{article.type_label}</Link>
-        </nav>
-        <span className={cx("kind-tag", `kind--${article.type}`)}>{article.type_label}</span>
-        <h1 className="h-display article__title">{article.title}</h1>
-        {article.summary ? <p className="article__summary">{article.summary}</p> : null}
-        <p className="blog-meta">
-          {article.author_name ? <span>{article.author_name}</span> : null}
-          {article.author_name ? <span aria-hidden="true">·</span> : null}
-          <time dateTime={article.published_at}>{formatDate(article.published_at)}</time>
-          <span aria-hidden="true">·</span>
-          {article.reading_minutes} min read
-        </p>
-      </header>
-
-      {article.cover ? (
-        <div className="wrap article__cover-wrap">
-          <img className="article__cover" src={blogAsset(article.cover.url)} alt={article.cover_alt} fetchPriority="high" />
-        </div>
-      ) : null}
-
-      <div className="wrap article__layout">
-        <div className="article__body" dangerouslySetInnerHTML={{ __html: withAssetBase(article.body_html) }} />
-
-        <aside className="article__aside">
-          <div className="article__share">
-            <b>Share</b>
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share)}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              LinkedIn
-            </a>
-            <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(share)}&text=${encodeURIComponent(article.title)}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              X
-            </a>
-            <a href={`https://wa.me/?text=${encodeURIComponent(`${article.title} ${share}`)}`} target="_blank" rel="noreferrer">
-              WhatsApp
-            </a>
-            <button type="button" onClick={() => void copy()}>
-              {copied ? "Link copied" : "Copy link"}
-            </button>
+    <>
+      <article className="zs-wrap za-wrap">
+        <div className="za-paper">
+          <nav aria-label="Breadcrumb" className="za-crumbs">
+            <Link className="zs-link" to="/blog">
+              Blog
+            </Link>
+            <span aria-hidden="true">/</span>
+            <Link to={`/blog?type=${article.type}`}>{article.type_label}</Link>
+          </nav>
+          <h1 className="za-h1">{article.title}</h1>
+          {article.summary ? <p className="za-sum">{article.summary}</p> : null}
+          <div className="za-by">
+            <span className="za-by__z" aria-hidden="true">
+              Z
+            </span>
+            {article.author_name || "Zinwe team"} · <time dateTime={article.published_at}>{formatDate(article.published_at)}</time> · {article.reading_minutes} min read
           </div>
-          {article.tags.length ? (
-            <div className="article__tags">
-              {article.tags.map((t) => (
-                <span key={t}>#{t}</span>
-              ))}
-            </div>
-          ) : null}
-          {article.guide_pick ? <GuidePickCard guide={article.guide_pick} /> : null}
-          {article.series_pick ? <SeriesPickCard pick={article.series_pick} /> : null}
-          <NewsletterSignup compact />
-        </aside>
-      </div>
-
-      <section className="wrap article__cta">
-        <div>
-          <b>Protect your team's PCs in minutes</b>
-          <span>Free forever for up to 3 PCs. No card needed.</span>
+          {article.cover ? <img className="za-cover" src={blogAsset(article.cover.url)} alt={article.cover_alt} fetchPriority="high" /> : null}
+          <div className="zs-prose za-prose" dangerouslySetInnerHTML={{ __html: withAssetBase(article.body_html) }} />
+          <div className="za-cta">
+            <span>
+              <b>Send this week's change as a task.</b> Chat, tasks and data safety, free for up to 3 PCs.
+            </span>
+            <Link className="zs-btn zs-btn--pri zs-btn--flat" to="/signup?plan=free">
+              Start free
+            </Link>
+          </div>
         </div>
-        <Link className="btn btn--primary" to="/signup?plan=free">
-          Start free
-        </Link>
-      </section>
+
+        <aside className="za-aside">
+          <div className="zb-side">
+            <span className="za-k">SHARE</span>
+            <div className="za-share">
+              <a className="za-sh" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share)}`} target="_blank" rel="noreferrer">
+                LinkedIn
+              </a>
+              <a className="za-sh" href={`https://wa.me/?text=${encodeURIComponent(`${article.title} ${share}`)}`} target="_blank" rel="noreferrer">
+                WhatsApp
+              </a>
+              <button type="button" className="za-sh" onClick={() => void copy()}>
+                {copied ? "Link copied" : "Copy link"}
+              </button>
+            </div>
+          </div>
+          {guide ? (
+            <Link
+              className="za-pick"
+              to={`/blog/guides/${guide.slug}`}
+              onClick={() => trackEvent("select_promotion", { promotion_name: "guide_pick", item_id: guide.slug })}
+            >
+              {guide.cover ? (
+                <img className="za-pick__img" src={blogAsset(guide.cover.url)} alt="" loading="lazy" />
+              ) : (
+                <span className="za-pick__book" aria-hidden="true">
+                  <span />
+                </span>
+              )}
+              <span className="za-pick__t">
+                <span className="zs-mono za-pick__k">FREE GUIDE · {guide.page_count} PAGES</span>
+                <b>{guide.title}</b>
+              </span>
+            </Link>
+          ) : null}
+          {pick ? (
+            <Link
+              className="za-pick"
+              to={`/blog/series/${pick.series_slug}/${pick.slug}`}
+              onClick={() => trackEvent("select_promotion", { promotion_name: "tlf_article_pick", item_id: pick.slug })}
+            >
+              <span className="za-pick__book za-pick__book--series" aria-hidden="true">
+                <span />
+              </span>
+              <span className="za-pick__t">
+                <span className="zs-mono za-pick__k">{pick.series_title.toUpperCase()} · {pick.label.toUpperCase()}</span>
+                <b>{pick.title}</b>
+              </span>
+            </Link>
+          ) : null}
+          <SiteSubscribe variant="side" />
+        </aside>
+      </article>
 
       {article.related.length ? (
-        <section className="wrap article__related" aria-labelledby="related-title">
-          <h2 id="related-title">Keep reading</h2>
-          <div className="blog-grid">
+        <section className="zs-wrap za-more" aria-labelledby="za-more-h">
+          <h2 id="za-more-h">Keep reading</h2>
+          <div className="za-more__grid">
             {article.related.map((a) => (
-              <Link key={a.slug} to={`/blog/${a.slug}`} className="blog-card">
-                {a.cover ? (
-                  <img className="blog-cover" src={blogAsset(a.cover.url)} alt={a.cover_alt} loading="lazy" />
-                ) : (
-                  <div className={cx("blog-cover blog-cover--empty", `kind--${a.type}`)} aria-hidden="true">
-                    <span>{a.type_label}</span>
-                  </div>
-                )}
-                <div className="blog-card__body">
-                  <span className={cx("kind-tag", `kind--${a.type}`)}>{a.type_label}</span>
-                  <h3>{a.title}</h3>
-                  <p className="blog-meta">
-                    {formatDate(a.published_at)} · {a.reading_minutes} min read
-                  </p>
-                </div>
+              <Link key={a.slug} to={`/blog/${a.slug}`} className="za-more__a">
+                <span>
+                  {a.type_label} · {a.reading_minutes} min
+                </span>
+                <b>{a.title}</b>
               </Link>
             ))}
           </div>
         </section>
-      ) : null}
-    </article>
+      ) : (
+        <div className="za-more za-more--empty" />
+      )}
+    </>
   );
 }
