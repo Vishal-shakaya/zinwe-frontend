@@ -59,6 +59,7 @@ function setMeta(html: string, attr: "name" | "property", key: string, content: 
 /** Links every static page carries, so a crawler can walk the site without JavaScript. */
 const NAV_LINKS: ReadonlyArray<[string, string]> = [
   ["/", "Home"],
+  ["/product", "Product"],
   ["/plans", "Plans and pricing"],
   ["/download", "Download for Windows"],
   ["/blog", "Blog"],

@@ -23,10 +23,12 @@ const EpisodePage = lazyPage(() => import("./pages/EpisodePage"));
 const NewsletterPage = lazyPage(() => import("./pages/NewsletterPage"));
 const QuotePage = lazyPage(() => import("./pages/QuotePage"));
 const DownloadPage = lazyPage(() => import("./pages/DownloadPage"));
+// Website v3 (29 Oct 2026): the Product page, and the public Plans page as a marketing page (src/pages).
+const ProductPage = lazyPage(() => import("./pages/ProductPage"));
+const PlansPage = lazyPage(() => import("./pages/PlansPage"));
 
 // The portal (sign up, log in, onboarding, dashboard) ships as separate
 // chunks, so marketing visitors never download it.
-const PlansPage = lazyPage(() => import("./portal/pages/PlansPage"));
 const SignupPage = lazyPage(() => import("./portal/pages/SignupPage"));
 const LoginPage = lazyPage(() => import("./portal/pages/LoginPage"));
 const ForgotPasswordPage = lazyPage(() => import("./portal/pages/ForgotPasswordPage"));
@@ -71,7 +73,7 @@ function ChunkFallback(): ReactElement {
 
 /**
  * Site map (contract §5):
- * - marketing (shared Layout): /  /plans  /download  /early-access  /contact  /whats-new  /quote/:token (shared quote), and the 404
+ * - marketing (shared Layout): /  /product  /plans  /download  /early-access  /contact  /whats-new  /quote/:token (shared quote), and the 404
  * - blog: /blog  /blog/:slug  /blog/series (members-only series)  /blog/series/:slug  /blog/series/:slug/:episode
  *   /blog/guides (free e-guides)  /blog/guides/:slug
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
@@ -92,6 +94,7 @@ export function AppRoutes(): ReactElement {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
+          <Route path="product" element={<ProductPage />} />
           <Route path="plans" element={<PlansPage />} />
           {/* The installer itself is /download/ZinweAgent.msi, served by nginx (not this app). */}
           <Route path="download" element={<DownloadPage />} />

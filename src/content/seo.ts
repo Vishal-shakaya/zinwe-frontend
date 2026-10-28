@@ -53,35 +53,36 @@ export const NOINDEX_FILES: ReadonlyArray<{ file: string; page: SeoPage }> = [
   { file: "404.html", page: { path: "/404", title: "Page not found — Zinwe", description: "This page doesn't exist. Head back to the Zinwe home page or get in touch.", h1: "Page not found", intro: ["The link may be old, or the address mistyped."], sitemap: false, noindex: true } },
 ];
 
-/** The homepage FAQ: shown on the page and sent as FAQPage structured data. */
+/**
+ * The homepage questions (board SiteHome, 29 Oct 2026): shown on the page and sent as FAQPage structured data.
+ * The price answer here has no numbers (prices live in the plan catalogue); on the page it is completed from the
+ * plans API (`HOME_PRICE_Q`, pages/HomePage.tsx).
+ */
+export const HOME_PRICE_Q = "How much does it cost?";
 export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   {
-    q: "What is Zinwe?",
-    a: "Zinwe is data protection and activity monitoring for small businesses without an IT team. A small agent on each Windows PC flags things like USB copies, files leaving the office, remote-access tools and new software, and you read every alert in plain English on one dashboard.",
-  },
-  {
     q: "Is Zinwe spyware?",
-    a: "No. Zinwe protects company data on company PCs, with your team's knowledge. Every employee sees the Zinwe widget and agrees on their own PC before anything is recorded. Zinwe never records keystrokes, screens, or what's inside files, emails or messages.",
+    a: "No. Each person sees exactly what Zinwe records and agrees on their own PC first. Zinwe never records keystrokes, screens, the camera, file contents or full web addresses.",
   },
   {
     q: "Do I need an IT person to set it up?",
-    a: "No. You answer a few questions, install Zinwe on each PC and connect it with the person's Member ID, and your rules reach every PC within about a minute. Most small offices are set up in an afternoon.",
+    a: "No. Add a person in your dashboard, they install Zinwe and type their email and Member ID. Most offices finish in an afternoon.",
   },
   {
-    q: "Does it help with India's DPDP Act and US monitoring laws?",
-    a: "It helps. Each employee gives their own consent on their PC, and you can see who agreed and when. Zinwe doesn't make a business compliant on its own, so check what your state or sector requires.",
+    q: "Can I use Zinwe just for chat and tasks?",
+    a: "Yes. Switch on only what you need. Many owners start with chat, tasks and work hours, and turn on data protection later.",
   },
   {
-    q: "Can I use Zinwe in the United States?",
-    a: "Yes. Zinwe is built for small businesses in India and the United States. Outside India you pay in US dollars, once a year, by card or US bank transfer — with no Indian GST. In India you pay in rupees each month by UPI or bank transfer.",
+    q: "What does my team see?",
+    a: "A small Zinwe window by the clock: their tasks, your messages, their work time and the list of what Zinwe records on their PC.",
   },
   {
-    q: "Which computers does it work on?",
-    a: "Windows PCs today. Linux and macOS are on our roadmap, and we'll announce them on the Zinwe blog.",
+    q: "What happens when a PC is offline?",
+    a: "The rules keep working on the PC and work times are saved there. Everything syncs when the internet is back.",
   },
   {
-    q: "How much does Zinwe cost?",
-    a: "Zinwe is free forever for up to 3 PCs. Paid plans are priced by the number of PCs, not per person: in India you pay in rupees each month, elsewhere in US dollars once a year. No card is needed to start.",
+    q: HOME_PRICE_Q,
+    a: "Free forever for up to 3 PCs. Paid plans are priced by the number of PCs, not per person, in rupees in India and US dollars elsewhere.",
   },
 ];
 
@@ -98,6 +99,18 @@ const PAGES: readonly SeoPage[] = [
     intro: [
       "Zinwe is data protection and activity monitoring for small businesses without an IT team. It flags USB copies, files leaving the office, remote-access tools and new software on your team's PCs, and tells you what each one means.",
       "Free forever for up to 3 PCs. No card needed. For teams of 5–50 in India and the United States, on Windows today.",
+    ],
+    sitemap: true,
+  },
+  {
+    path: "/product",
+    title: "Chat, tasks, work hours and data protection | Zinwe",
+    description:
+      "One app for a small office on Windows: chat with each person, send tasks, see work hours and reports, and get plain-English alerts when data leaves.",
+    h1: "One app for a safe, well-run office.",
+    intro: [
+      "The six things owners of small teams ask for, in one place: chat, tasks, work hours, reports, plain-English alerts and data protection. Each one is simple on its own, and better together.",
+      "Nothing starts until each person agrees on their own PC. Free forever for up to 3 PCs.",
     ],
     sitemap: true,
   },
