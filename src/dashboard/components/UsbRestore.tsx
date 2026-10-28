@@ -2,7 +2,7 @@ import { useState, type ReactElement } from "react";
 import { errorMessage, restoreUsb, type Device } from "../../lib/api";
 import { sinceLabel } from "../features/memberStatus";
 import { useNow } from "../time";
-import { DashIcon } from "./DashIcon";
+import { ZIcon } from "../ui/ZIcon";
 
 /**
  * "USB read-only since 2:19 PM · Restore USB" for a PC whose USB Zinwe locked after a large copy (J5-02).
@@ -31,20 +31,20 @@ export function UsbRestore({ device, onRestored }: { device: Device | undefined;
   };
 
   return (
-    <span className="usb-lock">
-      <span className="team-consent team-consent--no">
-        <DashIcon name="usb" />
+    <span className="usb-lock" style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px" }}>
+      <span className="z-pill red">
+        <ZIcon name="usb" size={13} stroke={2} />
         USB read-only {sinceLabel(device.usb_locked_at, now)}
       </span>
       {restoring ? (
-        <small>Restoring — the PC picks it up within about a minute.</small>
+        <small style={{ fontSize: 12.5, color: "#4A443C" }}>Restoring — the PC picks it up within about a minute.</small>
       ) : (
-        <button type="button" className="btn btn--ghost dash-btn-sm" onClick={() => void restore()} disabled={busy}>
+        <button type="button" className="z-btn xs" onClick={() => void restore()} disabled={busy}>
           {busy ? "Restoring…" : "Restore USB"}
         </button>
       )}
       {error ? (
-        <small className="form__err" role="alert">
+        <small className="z-err" role="alert">
           {error}
         </small>
       ) : null}

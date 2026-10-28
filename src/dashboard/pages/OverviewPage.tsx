@@ -1,314 +1,291 @@
-import { useCallback, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import {
   EVENTS_MAX_LIMIT,
   getPolicy,
+  getReportSchedules,
+  getWorkLog,
   listDevices,
   listEvents,
-  listMembers,
   type DeviceEvent,
-  type Member,
 } from "../../lib/api";
-import { AlertsTable } from "../components/AlertsTable";
+import { levelOf, makePersonFor, viewOf, type AlertView } from "../alerts/alertModel";
+import { markMany, useAsks } from "../alerts/useAsks";
 import { GetProtected } from "../components/GetProtected";
-import { StatTiles } from "../components/StatTiles";
-import { DashIcon } from "../components/DashIcon";
 import { PlanLock } from "../components/PlanLock";
+import { groupAlerts } from "../features/alertGroups";
+import { browserNotifyOn } from "../features/browserNotify";
 import { useEntitlements } from "../features/entitlements";
-import { LoadingState, PageHeader } from "../components/States";
-import { makeMemberResolver, needsAttention } from "../features/events";
+import { alertsOnly, isHandled } from "../features/events";
 import { useEventCounts } from "../features/useEventCounts";
-import { consentOf, formatDuration, PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
+import { consentOf, presenceOf } from "../features/memberStatus";
+import { listTasks, TASKS_CHANGED_EVENT } from "../fixtures/tasks";
+import { NeedsCard } from "../overview/NeedsCard";
+import { needsBreakdown, needsCounts } from "../overview/needs";
+import { SetupCard } from "../overview/SetupCard";
+import { TeamToday } from "../overview/TeamToday";
+import { PageHead } from "../shell/PageHead";
+import { useShell } from "../shell/shellContext";
 import { formatRelative, useNow } from "../time";
+import { SkTiles } from "../ui/States";
+import { TipBody } from "../ui/Tooltip";
+import { useTip } from "../ui/useTip";
+import { ZIcon } from "../ui/ZIcon";
 import { useResource } from "../useResource";
+import "../../styles/dash13/overview.css";
 
-/** Overview is a glance: the few newest alerts to check, the rest live in Alerts. */
-const MAX_ALERTS = 5;
-const MAX_PEOPLE = 6;
+/** Short definitions shown in the tile tooltips (label first, in bold). The tile's own sub line keeps the facts. */
+const TILE_DEF: Record<string, string> = {
+  "Needs you": "requests waiting for your OK, Needs you alerts not yet marked as fine, and tasks that need help or your OK.",
+  "Working now": "pressed Start day in the Zinwe app and not on a break right now.",
+  "On a break": "pressed Take a break. Breaks over 45 minutes ask for your OK.",
+  "PCs offline": "switched off or not connected to Zinwe right now.",
+};
 
-function startOfToday(now: number): number {
-  const d = new Date(now);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-/**
- * "Alerts to check today": Worth a look + Needs attention since midnight that nobody has handled yet.
- * Alerts → "To check" counts the same way (J5-11).
- */
-function toCheckToday(events: DeviceEvent[], now: number): number {
-  const from = startOfToday(now);
-  return events.filter((e) => needsAttention(e) && Date.parse(e.occurred_at) >= from).length;
-}
-
-/** The alerts for the main table: still to check, newest first (handled ones leave the list, J5-04). */
-function actionable(events: DeviceEvent[]): DeviceEvent[] {
-  return events.filter(needsAttention).slice(0, MAX_ALERTS);
+function greeting(now: number): string {
+  const h = new Date(now).getHours();
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
 export default function OverviewPage(): ReactElement {
-  usePageMeta({ title: "Overview — Zinwe", description: "Who's working, your plan and the latest alerts, at a glance." });
+  usePageMeta({ title: "Overview — Zinwe", description: "What needs you, who's working and your PCs, at a glance." });
   const { account } = useAuth();
+  const { members, refreshAll, refreshing } = useShell();
+  const { has, maxDevices } = useEntitlements();
+  const workOn = has("work_time");
+  const now = useNow(60_000);
+  const tip = useTip();
 
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal, { includeRemoved: true }), []);
-  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  // Not-handled alerts only, filtered on the server (FIX-013): confirmations and handled alerts can't use up the
-  // limit, so "to check today" is right on a busy account (up to EVENTS_MAX_LIMIT open alerts).
+  const devices = useResource(loadDevices, { pollMs: 60_000 });
+  // Not-handled alerts only, filtered on the server (FIX-013), with the time they arrived ("Updated …").
   const loadEvents = useCallback(
-    (signal: AbortSignal) => listEvents({ kind: "alert", handled: false, limit: EVENTS_MAX_LIMIT }, signal),
+    (signal: AbortSignal) =>
+      listEvents({ kind: "alert", handled: false, limit: EVENTS_MAX_LIMIT }, signal).then((list) => ({ list, at: Date.now() })),
     [],
   );
-  const devices = useResource(loadDevices, { pollMs: 60_000 });
-  const members = useResource(loadMembers, { pollMs: 60_000 });
   const events = useResource(loadEvents, { pollMs: 60_000 });
   const totals = useEventCounts();
   const loadPolicy = useCallback((signal: AbortSignal) => getPolicy(signal), []);
   const policy = useResource(loadPolicy);
-  const now = useNow(60_000);
-  // Marked handled / messaged from this page: off the list at once, before the next poll.
-  const [handledHere, setHandledHere] = useState<ReadonlySet<number>>(() => new Set());
+  // Today's Start day / break / End day changes: requests waiting for your OK, and when each person started.
+  const loadLog = useCallback((signal: AbortSignal) => getWorkLog({}, signal), []);
+  const workLog = useResource(loadLog, { pollMs: 60_000 });
+  const loadSchedules = useCallback(
+    (signal: AbortSignal) => getReportSchedules(signal).catch(() => []),
+    [],
+  );
+  const schedules = useResource(loadSchedules);
+  const asks = useAsks();
+  // Tasks (FR-20 sample), laid onto the real team; any change on Tasks / Chat / here reloads it.
+  const loadTasks = useCallback((signal: AbortSignal) => listTasks(signal, members), [members]);
+  const tasks = useResource(loadTasks);
+  const reloadTasks = tasks.reload;
+  useEffect(() => {
+    window.addEventListener(TASKS_CHANGED_EVENT, reloadTasks);
+    return () => window.removeEventListener(TASKS_CHANGED_EVENT, reloadTasks);
+  }, [reloadTasks]);
 
-  const { has, maxDevices } = useEntitlements();
-  const workOn = has("work_time");
+  // Marked as fine here: off the list at once, before the next poll.
+  const [changed, setChanged] = useState<Record<number, DeviceEvent>>({});
+
   const firstName = account?.user.full_name.trim().split(/\s+/)[0];
-  const company = account?.company;
+  const active = useMemo(() => (members ?? []).filter((m) => m.is_active), [members]);
+  const loaded = members !== undefined;
+  const noTeam = loaded && active.length === 0;
+  // First run: until someone has agreed on their PC, Overview leads with the four setup steps (J5-06).
+  const firstRun = loaded && !active.some((m) => consentOf(m.device) === "given");
 
-  const activeMembers = useMemo(() => (members.data ?? []).filter((m) => m.is_active), [members.data]);
-  const presence = useMemo(() => activeMembers.map((m) => presenceOf(m.device)), [activeMembers]);
+  const personFor = useMemo(() => makePersonFor(members, devices.data), [members, devices.data]);
+  const open = useMemo(
+    () => alertsOnly(events.data?.list).map((e) => changed[e.id] ?? e),
+    [events.data, changed],
+  );
+  const needAlerts: AlertView[] | undefined = useMemo(() => {
+    if (!events.data) return undefined;
+    const needs = open.filter((e) => !isHandled(e) && levelOf(e) === "needs");
+    return groupAlerts(needs).map((g) => viewOf(g, { now, personFor, devices: devices.data, policy: policy.data, asks: asks.data }));
+  }, [events.data, open, now, personFor, devices.data, policy.data, asks.data]);
+  const worth = open.filter((e) => !isHandled(e) && levelOf(e) === "worth").length;
+  const worthMore = (events.data?.list.length ?? 0) >= EVENTS_MAX_LIMIT;
+  const worthText = events.data
+    ? worth
+      ? `${worth.toLocaleString()}${worthMore ? "+" : ""} more ${worth === 1 && !worthMore ? "alert is" : "alerts are"} worth a look`
+      : "Nothing else on Alerts"
+    : null;
+
+  // Breaks and early End days need the work-hours module; without it nothing waits for an OK.
+  const requests = workOn ? workLog.data?.entries : [];
+  const counts = needsCounts(requests, needAlerts, tasks.data);
+  const needsLoaded = needAlerts !== undefined && tasks.data !== undefined;
+
+  const presence = active.map((m) => presenceOf(m.device));
   const working = presence.filter((p) => p === "working").length;
   const onBreak = presence.filter((p) => p === "break").length;
-  const offline = presence.filter((p) => p === "offline").length;
+  const pendingBreaks = (requests ?? []).filter((r) => r.approval === "pending" && r.state === "on_break");
+  const pcs = (devices.data ?? []).filter((d) => !d.is_revoked);
+  const offline = pcs.filter((d) => !d.is_online);
+  const offlineNames = offline.map((d) => {
+    const p = personFor(d.id);
+    const f = p?.name.trim().split(/\s+/)[0];
+    return f ? `${f}’s PC` : d.hostname;
+  });
 
-  const open = (events.data ?? []).filter((e) => !handledHere.has(e.id));
-  const alerts = events.data ? actionable(open) : [];
-  const todays = events.data ? toCheckToday(open, now) : null;
-  // A full page whose oldest row is still from today: there may be more, so the number is a floor.
-  const oldest = events.data?.[events.data.length - 1];
-  const todaysMore =
-    (events.data?.length ?? 0) >= EVENTS_MAX_LIMIT && oldest !== undefined && Date.parse(oldest.occurred_at) >= startOfToday(now);
-  const todaysText = todays !== null ? `${todays}${todaysMore ? "+" : ""}` : null;
-  const resolveMember = useMemo(() => makeMemberResolver(devices.data), [devices.data]);
+  const mark = async (view: AlertView, handled: boolean) => {
+    const before = open.filter((e) => view.ids.includes(e.id));
+    const at = new Date().toISOString();
+    const apply = (list: DeviceEvent[]) => setChanged((c) => ({ ...c, ...Object.fromEntries(list.map((e) => [e.id, e])) }));
+    apply(before.map((e) => ({ ...e, handled_at: handled ? at : null })));
+    try {
+      apply(await markMany(view.ids, handled));
+      totals.reload();
+    } catch (err) {
+      apply(before);
+      throw err;
+    }
+  };
 
-  const loaded = members.data !== undefined;
-  const num = (value: number) => (loaded ? String(value) : "–");
-  // First run: until someone has agreed on their PC, Overview leads with the four setup steps (J5-06).
-  const noTeam = loaded && activeMembers.length === 0;
-  const firstRun = loaded && !activeMembers.some((m) => consentOf(m.device) === "given");
+  const today = new Date(now);
+  const dateLabel = `${today.toLocaleDateString("en-GB", { weekday: "long" })}, ${today.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+
+  const tiles = [
+    {
+      label: "Needs you",
+      value: needsLoaded ? String(counts.total) : "–",
+      sub: counts.total ? needsBreakdown(counts.req, counts.alerts, counts.tasks) : "Nothing waiting",
+      to: "#needs",
+      color: counts.total ? "#C0331C" : "#17663F",
+    },
+    {
+      label: "Working now",
+      value: workOn ? `${working} of ${active.length}` : "–",
+      sub: workOn ? "Pressed Start day, not on a break" : "Work hours aren’t on your plan",
+      to: workOn ? "/app/activity" : "/app/upgrade",
+      color: "#17663F",
+    },
+    {
+      label: "On a break",
+      value: workOn ? String(onBreak) : "–",
+      sub: !workOn
+        ? "Work hours aren’t on your plan"
+        : pendingBreaks.length
+          ? `${pendingBreaks.map((r) => (r.member_name ?? "").split(" ")[0]).join(", ")} · waiting for your OK`
+          : "None waiting for your OK",
+      to: !workOn
+        ? "/app/upgrade"
+        : pendingBreaks[0]?.member_name
+          ? `/app/activity#m=${pendingBreaks[0].member_name.split(" ")[0].toLowerCase()}`
+          : "/app/activity",
+      color: "#8A5300",
+    },
+    {
+      label: "PCs offline",
+      value: devices.data ? `${offline.length} of ${pcs.length}` : "–",
+      sub: offline.length
+        ? `${offlineNames.slice(0, 2).join(", ")}${offlineNames.length > 2 ? ` and ${offlineNames.length - 2} more` : ""}`
+        : pcs.length
+          ? "All online"
+          : "No PCs connected yet",
+      to: "/app/team",
+      color: "#141210",
+    },
+  ];
+
+  const steps = [
+    { label: "Add your team", done: active.length > 0 },
+    { label: "Install Zinwe on their PCs", done: active.length > 0 && active.every((m) => m.device) },
+    { label: "Set your rules", done: (policy.data?.version ?? 1) > 1 },
+    { label: "Turn on notifications", done: browserNotifyOn() },
+    { label: "Schedule a weekly report", done: (schedules.data ?? []).some((s) => s.is_active) },
+  ];
+  const setupReady = loaded && policy.data !== undefined && schedules.data !== undefined;
 
   return (
-    <>
-      <PageHeader
-        title={firstName ? `Welcome, ${firstName}` : "Welcome"}
-        lede={
-          noTeam
-            ? "Let's protect your first PC. It takes about 5 minutes."
-            : company
-              ? `${company.name} · Here's your team today.`
-              : "Here's your team today."
+    <div className="zp-overview">
+      <PageHead
+        label={dateLabel}
+        title={firstName ? `${greeting(now)}, ${firstName}` : greeting(now)}
+        actions={
+          <>
+            <span className="zn-updated">Updated {events.data ? formatRelative(new Date(events.data.at).toISOString(), now) : "…"}</span>
+            <button type="button" className="z-btn sm" onClick={refreshAll} disabled={refreshing}>
+              {refreshing ? "Refreshing…" : "Refresh"}
+            </button>
+            <Link className="z-btn sm zn-desk-only" to="/app/tasks#new=1">
+              New task
+            </Link>
+            <Link className="z-btn sm dark zn-desk-only" to="/app/team#add=1">
+              Add a person
+            </Link>
+          </>
         }
       />
 
       {firstRun ? (
-        <GetProtected
-          members={activeMembers}
-          maxDevices={maxDevices}
-          rulesChanged={(policy.data?.version ?? 1) > 1}
-        />
+        <GetProtected members={active} maxDevices={maxDevices} rulesChanged={(policy.data?.version ?? 1) > 1} />
+      ) : setupReady ? (
+        <SetupCard steps={steps} />
       ) : null}
 
-      {noTeam ? null : (
-      <StatTiles
-        wide
-        label="Team and alerts"
-        tiles={[
-          {
-            value: num(activeMembers.length),
-            label: activeMembers.length === 1 ? "team member" : "team members",
-            icon: "team",
-            hint: "Everyone you've added whose PC Zinwe protects.",
-          },
-          // Plan enforcement: working / on-break come from work hours (Businesses).
-          ...(workOn
-            ? [
-                {
-                  value: num(working),
-                  label: "working now",
-                  tone: working > 0 ? ("good" as const) : undefined,
-                  icon: "activity" as const,
-                  hint: "Pressed Log in in their Zinwe widget and aren't on a break.",
-                },
-                {
-                  value: num(onBreak),
-                  label: "on break",
-                  tone: onBreak > 0 ? ("warn" as const) : undefined,
-                  icon: "clock" as const,
-                  hint: "On a break right now. See why on the Activity page.",
-                },
-              ]
-            : []),
-          {
-            value: num(offline),
-            label: "offline",
-            icon: "pc",
-            hint: "PC switched off or without internet. Its rules still apply.",
-          },
-          {
-            value: todaysText ?? "–",
-            label: todays === 1 ? "alert to check today" : "alerts to check today",
-            tone: todays !== null && todays > 0 ? (todays >= 10 ? "bad" : "warn") : "good",
-            icon: "alert",
-            hint: "“Worth a look” and “Needs attention” alerts since midnight that you haven't handled yet.",
-            to: "/app/alerts?show=check",
-          },
-        ]}
-      />
+      {noTeam ? null : !loaded ? (
+        <SkTiles count={4} label="Loading today in numbers" />
+      ) : (
+        <section aria-label="Today in numbers" className="zn-tiles" data-tip-bound="tiles">
+          {tiles.map((t) => {
+            const body = (
+              <>
+                <span data-tip-at="1" className="zn-tile-l">
+                  {t.label}
+                  <ZIcon name="info" size={13} stroke={2} style={{ color: "#6B6358" }} />
+                </span>
+                <b className="z-num" style={{ color: t.color }}>
+                  {t.value}
+                </b>
+                <span className="zn-tile-sub">{t.sub}</span>
+              </>
+            );
+            const anchor = tip.anchor(`tile-${t.label}`, <TipBody text={<><b>{t.label}</b> — {TILE_DEF[t.label]}</>} />);
+            return (
+              <div key={t.label} style={{ display: "flex", minWidth: 0 }}>
+                {t.to.startsWith("#") ? (
+                  <a className="zn-tile" href={t.to} {...anchor}>
+                    {body}
+                  </a>
+                ) : (
+                  <Link className="zn-tile" to={t.to} {...anchor}>
+                    {body}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </section>
       )}
 
-      {workOn || noTeam ? null : (
-        <PlanLock module="work_time" compact title="Who's working">
-          See who's working, who's on a break and why, and when each person started and finished their day.
-        </PlanLock>
-      )}
-      <section className="dash-card" aria-labelledby="ov-team-title" hidden={!workOn || noTeam}>
-        <div className="dash-card__head dash-card__head--split">
-          <h2 className="dash-card__title" id="ov-team-title">
-            Who's working
-          </h2>
-          <Link className="dash-link" to="/app/team">
-            Team <DashIcon name="arrow" />
-          </Link>
-        </div>
-        {members.data === undefined ? (
-          <LoadingState label="Loading your team…" rows={3} />
-        ) : activeMembers.length === 0 ? (
-          <p className="dash-note">
-            No team members yet.{" "}
-            <Link className="dash-link" to="/app/team">
-              Add your first
-            </Link>{" "}
-            to see who's working.
-          </p>
+      <div className="zn-cards">
+        <NeedsCard
+          requests={requests}
+          alerts={needAlerts}
+          tasks={tasks.data}
+          worthText={worthText}
+          canAsk={has("team_chat")}
+          now={now}
+          tip={tip}
+          onMark={mark}
+          onRequestsChanged={workLog.reload}
+        />
+        {workOn || noTeam ? (
+          <TeamToday members={members} log={workLog.data?.entries} now={now} tip={tip} />
         ) : (
-          <ul className="ov-people">
-            {activeMembers.slice(0, MAX_PEOPLE).map((member) => (
-              <PersonStatus key={member.id} member={member} now={now} />
-            ))}
-            {activeMembers.length > MAX_PEOPLE ? (
-              <li className="ov-person ov-person--more">
-                <Link className="dash-link" to="/app/team">
-                  +{activeMembers.length - MAX_PEOPLE} more <DashIcon name="arrow" />
-                </Link>
-              </li>
-            ) : null}
-          </ul>
+          <PlanLock module="work_time" compact title="Team today">
+            See who's working, who's on a break and why, and when each person started and finished their day.
+          </PlanLock>
         )}
-      </section>
+      </div>
 
-      <section className="dash-card" aria-labelledby="ov-alerts-title">
-        <div className="dash-card__head dash-card__head--split">
-          <div>
-            <h2 className="dash-card__title" id="ov-alerts-title">
-              Alerts to check
-            </h2>
-            {todays !== null ? (
-              <p className="dash-card__sub">
-                {todays === 0
-                  ? "Nothing new to check today."
-                  : `${todaysText} ${todays === 1 && !todaysMore ? "alert" : "alerts"} to check today.`}
-                {totals.data && totals.data.unhandled > 0
-                  ? ` ${totals.data.unhandled.toLocaleString()} not marked handled in all.`
-                  : ""}
-              </p>
-            ) : null}
-          </div>
-          <Link className="dash-link" to="/app/alerts">
-            See all <DashIcon name="arrow" />
-          </Link>
-        </div>
-        {events.data === undefined ? (
-          <LoadingState label="Loading alerts…" rows={3} />
-        ) : (
-          <AlertsTable
-            events={alerts}
-            resolveMember={resolveMember}
-            now={now}
-            caption="Most recent alerts to check"
-            emptyText={
-              noTeam
-                ? "Alerts show here once a PC is connected."
-                : "Nothing to check. Everything looks calm right now."
-            }
-            devices={devices.data}
-            onDevicesChanged={devices.reload}
-            onChanged={(event) => {
-              if (event.handled_at) setHandledHere((s) => new Set(s).add(event.id));
-              totals.reload();
-            }}
-          />
-        )}
-      </section>
-
-      {/* The members' series: for the owner, and for owners they know (the share link is on every episode). */}
-      <section className="dash-card ov-series" aria-labelledby="ov-series-title">
-        <div className="dash-card__head dash-card__head--split">
-          <h2 className="dash-card__title" id="ov-series-title">
-            The Last File · free for business owners
-          </h2>
-          <Link className="dash-link" to="/blog/series/the-last-file">
-            Read the series
-          </Link>
-        </div>
-        <p className="dash-note">
-          Short stories about the small mistakes that put company data at risk, each with a 10-minute fix for your team. Know an
-          owner who'd find it useful? Every episode has a share link.
-        </p>
-      </section>
-
-      {/* Free e-guides: worth handing to the team (scams, communication) as much as reading yourself. */}
-      <section className="dash-card ov-series" aria-labelledby="ov-guides-title">
-        <div className="dash-card__head dash-card__head--split">
-          <h2 className="dash-card__title" id="ov-guides-title">
-            Free guides for you and your team
-          </h2>
-          <Link className="dash-link" to="/blog/guides">
-            See the guides
-          </Link>
-        </div>
-        <p className="dash-note">
-          Plain-English e-guides with workbooks and 30-day plans: protecting your business online, keeping data safe, stopping
-          scams and communicating better at work. Share them with your team.
-        </p>
-      </section>
-    </>
-  );
-}
-
-function PersonStatus({ member, now }: { member: Member; now: number }): ReactElement {
-  const status = presenceOf(member.device);
-  const worked = member.device?.worked_seconds ?? 0;
-  const showWorked = (status === "working" || status === "break") && worked > 0;
-  return (
-    <li className="ov-person">
-      <span className="dash-pc__ico" aria-hidden="true">
-        <DashIcon name="team" />
-      </span>
-      <span className="ov-person__text">
-        <b>{member.name}</b>
-        <small>
-          {member.device
-            ? `${member.device.hostname || "Unnamed PC"} · last seen ${formatRelative(member.device.last_seen_at, now, "never")}`
-            : "No PC connected yet"}
-        </small>
-      </span>
-      <span className="ov-person__status">
-        <span className={`dash-status dash-status--${PRESENCE_CLASS[status]}`}>
-          <i aria-hidden="true" />
-          {PRESENCE_LABEL[status]}
-        </span>
-        {showWorked ? <small>{formatDuration(worked)} today</small> : null}
-      </span>
-    </li>
+      {tip.node}
+    </div>
   );
 }

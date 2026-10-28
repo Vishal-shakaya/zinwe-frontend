@@ -1,0 +1,473 @@
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { BREAK_NOTE_MAX, breakNoteLength, decideBreak, errorMessage, type WorkLogEntry } from "../../lib/api";
+import { AskSheet, type AskTarget } from "../alerts/AskSheet";
+import { firstName, formatTime, KIND_ICON, type AlertView } from "../alerts/alertModel";
+import { LEVEL_DEF } from "../fixtures/majorAlerts";
+import { saveTask, type SampleTask, type TaskStatus } from "../fixtures/tasks";
+import { dayGroup } from "../time";
+import { SkRows } from "../ui/States";
+import { needsLine } from "./needs";
+import { TipBody, type TipRow } from "../ui/Tooltip";
+import type { Tip } from "../ui/useTip";
+import { ZIcon } from "../ui/ZIcon";
+
+/** Needs you shows this many, then "Show all (N)". */
+const NEEDS_FIRST = 7;
+
+const ICON = {
+  task: "M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM8.5 12.5l2.5 2.5 4.5-5",
+  clock: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+  out: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
+};
+
+/** What each level pill in Needs you means (its tooltip). */
+const LEVEL_TEXT: Record<string, string> = {
+  "Needs you": LEVEL_DEF.needs,
+  "Waiting for your OK": "a break or an early End day that needs your Approve or Not approved.",
+  "Task · Needs help": "they asked for help from their Zinwe app.",
+  "Task · Waiting for your OK": "they marked it done. Approve it, or reopen it.",
+};
+
+const TONE = {
+  alert: { bg: "#FCE8E4", fg: "#C0331C" },
+  request: { bg: "#FBF0D9", fg: "#8A5300" },
+  task: { bg: "#FDEBDC", fg: "#8A3A04" },
+} as const;
+
+interface Need {
+  id: string;
+  tone: keyof typeof TONE;
+  icon: string;
+  title: string;
+  level: string;
+  meta: string;
+  /** The detail sentence: screen-reader text on the row and the title's tooltip. */
+  body: string;
+  tip: ReactNode;
+  ask?: { label: string; reply?: string };
+  actions: ReactNode;
+  note?: ReactNode;
+}
+
+interface Last {
+  text: string;
+  undo?: () => void;
+}
+
+function minutesSince(iso: string, now: number): number {
+  return Math.max(0, Math.round((now - Date.parse(iso)) / 60_000));
+}
+
+/** "today, 5:00 PM", "tomorrow", "fri 30 oct". */
+function dueWords(t: SampleTask, now: number): string {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(`${t.due}T00:00:00`);
+  const diff = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  const day =
+    diff === 0
+      ? "Today"
+      : diff === 1
+        ? "Tomorrow"
+        : diff === -1
+          ? "Yesterday"
+          : due.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }).replace(",", "");
+  return `${day}${t.time ? `, ${t.time}` : ""}`;
+}
+
+/**
+ * Needs you (DashOverview): everything waiting on the owner, in a fixed order — requests waiting for your OK
+ * (real work-log breaks and early End days), then Needs you alerts not yet marked as fine (real), then task
+ * sign-offs (FR-20 sample). One compact row each; 7 shown, then Show all (N).
+ */
+export function NeedsCard({
+  requests,
+  alerts,
+  tasks,
+  worthText,
+  canAsk,
+  now,
+  tip,
+  onMark,
+  onRequestsChanged,
+}: {
+  requests: WorkLogEntry[] | undefined;
+  alerts: AlertView[] | undefined;
+  tasks: SampleTask[] | undefined;
+  /** "166 more alerts are worth a look" (null while loading). */
+  worthText: string | null;
+  canAsk: boolean;
+  now: number;
+  tip: Tip;
+  /** Mark an alert row as fine (true) or open it again (false). */
+  onMark: (view: AlertView, handled: boolean) => Promise<void>;
+  onRequestsChanged: () => void;
+}): ReactElement {
+  const [all, setAll] = useState(false);
+  const [decided, setDecided] = useState<Record<number, "approved" | "denied">>({});
+  const [noting, setNoting] = useState<number | null>(null);
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [last, setLast] = useState<Last | null>(null);
+  const [ask, setAsk] = useState<AskTarget | null>(null);
+  const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
+
+  useEffect(() => {
+    if (!last) return;
+    const id = window.setTimeout(() => setLast(null), 8000);
+    return () => window.clearTimeout(id);
+  }, [last]);
+
+  const setRowBusy = (id: string, on: boolean) =>
+    setBusy((b) => {
+      const next = new Set(b);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+  const decide = async (r: WorkLogEntry, decision: "approved" | "denied", what: string) => {
+    const first = firstName(r.member_name) || "They";
+    const note = decision === "denied" ? (notes[r.id] ?? "").trim() : "";
+    setDecided((d) => ({ ...d, [r.id]: decision }));
+    setNoting(null);
+    try {
+      await decideBreak(r.id, decision, note);
+      setLast({
+        text:
+          decision === "approved"
+            ? `Approved ${first}’s ${what}.`
+            : `Not approved: ${first}’s ${what}${note ? ", with your note." : "."} ${first} sees it in the Zinwe app.`,
+      });
+      onRequestsChanged();
+    } catch (err) {
+      setDecided((d) => {
+        const next = { ...d };
+        delete next[r.id];
+        return next;
+      });
+      setLast({ text: `Couldn't save: ${errorMessage(err)}` });
+    }
+  };
+
+  // ---- Requests waiting for your OK ----
+  const reqItems: Need[] = (requests ?? [])
+    .filter((r) => r.approval === "pending" && !decided[r.id])
+    .map((r) => {
+      const name = r.member_name || r.hostname || "Someone";
+      const first = firstName(r.member_name) || name;
+      const isBreak = r.state === "on_break";
+      const what = isBreak ? "break" : "early end of day";
+      const at = formatTime(r.at);
+      const mins = minutesSince(r.at, now);
+      const quote = r.note ? `“${r.note}”` : "";
+      const noteId = `ov-note-${r.id}`;
+      const noteText = notes[r.id] ?? "";
+      const tooLong = breakNoteLength(noteText) > BREAK_NOTE_MAX;
+      const rows: TipRow[] = isBreak
+        ? [
+            { label: "On break since", value: at },
+            { label: "So far", value: `${mins} min` },
+          ]
+        : [{ label: "Pressed End day", value: at }];
+      if (isBreak && r.reason) rows.unshift({ label: "Reason", value: r.reason });
+      return {
+        id: `req-${r.id}`,
+        tone: "request",
+        icon: isBreak ? ICON.clock : ICON.out,
+        title: isBreak
+          ? `${first} wants ${r.reason ? `a ${r.reason.toLowerCase()} break` : "a break"} approved`
+          : `${first} ended the day early`,
+        level: "Waiting for your OK",
+        meta: `${name} · ${r.hostname || "PC"} · ${isBreak ? `since ${at} (${mins} min)` : at}`,
+        body: isBreak
+          ? `Took a break at ${at}${quote ? `: ${quote}` : ""}. ${mins} min so far.`
+          : `Pressed End day at ${at}${quote ? `: ${quote}` : "."}`,
+        tip: <TipBody rows={rows} text={quote || undefined} hint={`${first} sees your answer in the Zinwe app`} />,
+        actions:
+          noting === r.id ? null : (
+            <>
+              <button type="button" className="z-btn xs green" aria-label={`Approve ${first}’s ${what}`} onClick={() => void decide(r, "approved", what)}>
+                Approve
+              </button>
+              <button
+                type="button"
+                className="z-btn xs"
+                aria-label={`Do not approve ${first}’s ${what}, add an optional note`}
+                onClick={() => setNoting(r.id)}
+              >
+                Not approved
+              </button>
+            </>
+          ),
+        note:
+          noting === r.id ? (
+            <div className="zn-ov-note">
+              <label htmlFor={noteId} className="z-sr">
+                Note for {first} (optional)
+              </label>
+              <input
+                id={noteId}
+                value={noteText}
+                placeholder={`Note for ${first} (optional)`}
+                onChange={(e) => setNotes((n) => ({ ...n, [r.id]: e.target.value }))}
+                aria-invalid={tooLong || undefined}
+              />
+              <button type="button" className="z-btn xs dark" disabled={tooLong} onClick={() => void decide(r, "denied", what)}>
+                Send
+              </button>
+              <button type="button" className="z-btn xs" onClick={() => setNoting(null)}>
+                Cancel
+              </button>
+              {tooLong ? <span className="z-err">Keep it under {BREAK_NOTE_MAX} characters.</span> : null}
+            </div>
+          ) : undefined,
+      };
+    });
+
+  // ---- Needs you alerts not yet marked as fine ----
+  const alertItems: Need[] = (alerts ?? [])
+    .filter((a) => !a.done && a.level === "needs")
+    .map((a) => {
+      const key = `al-${a.id}`;
+      const asked = !!a.ask;
+      const reply = a.ask?.reply;
+      const day = dayGroup(a.latest.occurred_at, now).label;
+      const fine = (dark: boolean) => (
+        <button
+          type="button"
+          className={`z-btn xs${dark ? " dark" : ""}`}
+          aria-label={`Mark as fine: ${a.title}`}
+          disabled={busy.has(key)}
+          onClick={async () => {
+            setRowBusy(key, true);
+            try {
+              await onMark(a, true);
+              setLast({
+                text: `Marked “${a.title}” as fine.`,
+                undo: () => {
+                  setLast(null);
+                  void onMark(a, false);
+                },
+              });
+            } catch (err) {
+              setLast({ text: `Couldn't save: ${errorMessage(err)}` });
+            } finally {
+              setRowBusy(key, false);
+            }
+          }}
+        >
+          Mark as fine
+        </button>
+      );
+      const chat = (
+        <Link className="z-btn xs" to={`/app/chat#m=${a.first.toLowerCase()}`} aria-label={`Open your chat with ${a.first}`}>
+          Open chat
+        </Link>
+      );
+      const askBtn =
+        a.person && canAsk ? (
+          <button
+            type="button"
+            className="z-btn xs dark"
+            aria-label={`Ask ${a.first} about: ${a.title}`}
+            aria-haspopup="dialog"
+            onClick={() => {
+              tip.hide();
+              setAsk({
+                ids: a.ids,
+                memberId: a.person?.id ?? 0,
+                first: a.first,
+                title: a.title,
+                severity: "critical",
+                draft: a.draft,
+              });
+            }}
+          >
+            Ask {a.first}
+          </button>
+        ) : null;
+      return {
+        id: key,
+        tone: "alert",
+        icon: KIND_ICON[a.kind],
+        title: a.title,
+        level: "Needs you",
+        meta: `${a.person?.name ?? "No one linked"} · ${a.pc} · ${day === "Today" ? a.time : `${day}, ${a.time}`}`,
+        body: `${a.body}${reply ? ` ${a.first} replied at ${reply.at}: “${reply.text}”` : ""}`,
+        tip: (
+          <TipBody
+            rows={[
+              ...(a.limit ? [{ label: "Size", value: a.limit.text.split(" · ")[0].replace(" copied", "") }] : []),
+              ...(a.count > 1 ? [{ label: "Times", value: String(a.count) }] : []),
+              { label: "PC", value: a.pc },
+            ]}
+            text={a.body}
+          />
+        ),
+        ask: asked ? { label: reply ? "Asked · replied" : "Asked · waiting for reply", reply: reply ? `${a.first}, ${reply.at}: “${reply.text}”` : undefined } : undefined,
+        actions: asked ? (
+          <>
+            {fine(true)}
+            {chat}
+          </>
+        ) : (
+          <>
+            {askBtn}
+            {fine(false)}
+          </>
+        ),
+      };
+    });
+
+  // ---- Task sign-offs: needs help first, then waiting for your OK ----
+  const taskItems: Need[] = (tasks ?? [])
+    .filter((t) => t.status === "help" || t.status === "review")
+    .sort((x, y) => (x.status === "help" ? 0 : 1) - (y.status === "help" ? 0 : 1))
+    .map((t) => {
+      const f = firstName(t.name) || t.name;
+      const help = t.status === "help";
+      const due = dueWords(t, now);
+      const rows: TipRow[] = [];
+      if (t.steps.length) rows.push({ label: "Steps", value: `${t.steps.filter((s) => s.done).length} of ${t.steps.length}` });
+      rows.push({ label: "Due", value: due });
+      const move = (status: TaskStatus, text: string) => {
+        const prev = t.status;
+        saveTask(t.id, { status }, { k: status === "approved" ? "approved" : "reopened" });
+        setLast({
+          text,
+          undo: () => {
+            setLast(null);
+            saveTask(t.id, { status: prev });
+          },
+        });
+      };
+      return {
+        id: `task-${t.id}`,
+        tone: "task",
+        icon: ICON.task,
+        title: help ? `${f} needs help: ${t.title}` : `${f} finished: ${t.title}`,
+        level: help ? "Task · Needs help" : "Task · Waiting for your OK",
+        meta: `${t.name} · due ${due.charAt(0).toLowerCase()}${due.slice(1)}`,
+        body: `“${t.title}”${t.note ? `: “${t.note}”` : ""}`,
+        tip: <TipBody title={t.title} rows={rows} text={t.note ? `“${t.note}”` : undefined} />,
+        actions: help ? (
+          <>
+            <Link className="z-btn xs dark" to={`/app/chat#m=${f.toLowerCase()}`} aria-label={`Reply to ${f} in Chat`}>
+              Reply in chat
+            </Link>
+            <Link className="z-btn xs" to={`/app/tasks#task=${t.id}`} aria-label={`Open ${f}’s task: ${t.title}`}>
+              Open task
+            </Link>
+          </>
+        ) : (
+          <>
+            <button type="button" className="z-btn xs green" aria-label={`Approve ${f}’s task: ${t.title}`} onClick={() => move("approved", `Approved ${f}’s task.`)}>
+              Approve
+            </button>
+            <button type="button" className="z-btn xs" aria-label={`Reopen ${f}’s task: ${t.title}`} onClick={() => move("progress", `Reopened ${f}’s task.`)}>
+              Reopen
+            </button>
+          </>
+        ),
+      };
+    });
+
+  const left = [...reqItems, ...alertItems, ...taskItems];
+  const loading = requests === undefined && alerts === undefined && tasks === undefined;
+  const shown = all ? left : left.slice(0, NEEDS_FIRST);
+
+  return (
+    <section id="needs" className="z-card zn-ov-needs" aria-labelledby="needs-h" data-tip-bound="needs">
+      <div style={{ flex: "none" }}>
+        <h2 id="needs-h" className="zn-ov-h2">
+          Needs you
+        </h2>
+        <span className="z-num" style={{ fontSize: 13, color: "#4A443C", fontWeight: 600 }}>
+          {loading ? "Loading…" : needsLine(left.length, reqItems.length, alertItems.length, taskItems.length)}
+        </span>
+      </div>
+      <div id="needs-list" className="zn-ov-needs-list">
+        {loading ? (
+          <SkRows label="Loading what needs you" rows={4} />
+        ) : left.length === 0 ? (
+          <div className="zn-ov-clear">
+            <span aria-hidden="true">
+              <ZIcon name="check" size={20} stroke={2.6} />
+            </span>
+            <b>Nothing needs you right now.</b>
+          </div>
+        ) : (
+          shown.map((n) => {
+            const tone = TONE[n.tone];
+            const lead = n.level.replace("Task · ", "");
+            return (
+              <article key={n.id} className="zn-need">
+                <span className="zn-need-ico" style={{ background: tone.bg, color: tone.fg }} aria-hidden="true">
+                  <ZIcon d={n.icon} size={15} stroke={2} />
+                </span>
+                <div className="zn-need-main">
+                  <div className="zn-need-top">
+                    <span className="zn-need-t zn-help" tabIndex={0} {...tip.anchor(`need-${n.id}`, n.tip)}>
+                      {n.title}
+                    </span>
+                    <span
+                      className="z-pill zn-help"
+                      tabIndex={0}
+                      style={{ background: tone.bg, color: tone.fg }}
+                      {...tip.anchor(`lv-${n.id}`, <TipBody text={<><b>{lead}</b> — {LEVEL_TEXT[n.level]}</>} />)}
+                    >
+                      {n.level}
+                    </span>
+                  </div>
+                  <span className="z-ell zn-need-meta">{n.meta}</span>
+                  {n.ask ? (
+                    <div className="zn-need-ask">
+                      <span className="z-pill blue">{n.ask.label}</span>
+                      {n.ask.reply ? <span style={{ fontSize: 13, lineHeight: "18px", color: "#3A352E", minWidth: 0 }}>{n.ask.reply}</span> : null}
+                    </div>
+                  ) : null}
+                  <span className="z-sr">{n.body}</span>
+                </div>
+                {n.actions ? <div className="zn-need-act">{n.actions}</div> : null}
+                {n.note ?? null}
+              </article>
+            );
+          })
+        )}
+      </div>
+      {last ? (
+        <div role="status" className="zn-ov-toast">
+          <span>{last.text}</span>
+          {last.undo ? (
+            <button type="button" onClick={last.undo}>
+              Undo
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="zn-ov-foot">
+        <span style={{ color: "#6B6459" }}>{worthText ?? ""}</span>
+        <span className="zn-ov-foot-r">
+          <Link to="/app/alerts" style={{ fontWeight: 600 }}>
+            Open Alerts →
+          </Link>
+          {left.length > NEEDS_FIRST ? (
+            <button type="button" className="z-btn xs" aria-expanded={all} aria-controls="needs-list" onClick={() => setAll((v) => !v)}>
+              {all ? "Show fewer" : `Show all (${left.length})`}
+            </button>
+          ) : null}
+        </span>
+      </div>
+      <AskSheet
+        target={ask}
+        where="here"
+        onClose={() => setAsk(null)}
+        onSent={(t) => {
+          setAsk(null);
+          setLast({ text: `Sent to ${t.first}’s Zinwe app. The reply shows here and in Chat.` });
+        }}
+      />
+    </section>
+  );
+}

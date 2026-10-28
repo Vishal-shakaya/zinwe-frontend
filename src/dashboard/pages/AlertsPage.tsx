@@ -1,583 +1,509 @@
-import { useCallback, useMemo, useState, type ReactElement, type ReactNode } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactElement } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import {
   EVENTS_DEFAULT_LIMIT,
   EVENTS_MAX_LIMIT,
   errorMessage,
+  getPolicy,
   listDevices,
   listEvents,
-  listMembers,
-  type Device,
   type DeviceEvent,
-  type EventCounts,
-  type Member,
 } from "../../lib/api";
-import { cx } from "../../lib/cx";
-import { DashIcon, type DashIconName } from "../components/DashIcon";
-import {
-  alertLabel,
-  alertsOnly,
-  eventMeta,
-  isHandled,
-  needsAttention,
-  severityOf,
-  SEVERITY_LABEL,
-  SEVERITY_ORDER,
-  type FeatureKey,
-  type Severity,
-} from "../features/events";
-import { detailOf, groupAlerts, type AlertGroup } from "../features/alertGroups";
-import { SendAlertMenu } from "../components/SendAlertMenu";
-import { UsbRestore } from "../components/UsbRestore";
+import { AlertRow } from "../alerts/AlertRow";
+import { AskSheet, type AskTarget } from "../alerts/AskSheet";
+import { isDone, kindOf, levelOf, makePersonFor, viewOf, type AlertView } from "../alerts/alertModel";
+import { markMany, useAsks } from "../alerts/useAsks";
+import { groupAlerts } from "../features/alertGroups";
+import { useEntitlements } from "../features/entitlements";
+import { alertsOnly } from "../features/events";
 import { useEventCounts } from "../features/useEventCounts";
-import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
-import { dayGroup, formatDateTime, formatRelative, formatTime, useNow } from "../time";
+import { KIND_LABEL, LEVEL_DEF, type AlertKind } from "../fixtures/majorAlerts";
+import { PageHead } from "../shell/PageHead";
+import { useShell } from "../shell/shellContext";
+import { useNow } from "../time";
+import { EmptyBlock, ErrorBlock, Sheet, SkRows } from "../ui/States";
+import { TipBody } from "../ui/Tooltip";
+import { useTip } from "../ui/useTip";
+import { ZIcon } from "../ui/ZIcon";
 import { useResource } from "../useResource";
+import "../../styles/dash13/alerts.css";
 
-function parseDeviceId(raw: string | null): number | undefined {
+type TabKey = "needs" | "worth" | "done";
+const TABS: ReadonlyArray<readonly [TabKey, string]> = [
+  ["needs", "Needs you"],
+  ["worth", "Worth a look"],
+  ["done", "Done"],
+];
+
+function parseId(raw: string | null): number | undefined {
   if (!raw) return undefined;
   const id = Number(raw);
   return Number.isInteger(id) && id > 0 ? id : undefined;
 }
 
+function tabOf(e: DeviceEvent): TabKey {
+  if (isDone(e)) return "done";
+  return levelOf(e) === "needs" ? "needs" : "worth";
+}
+
+/** Read #alert=<id> from the hash (other pages link to one alert). */
+function hashAlert(hash: string): number | undefined {
+  return parseId(new URLSearchParams(hash.replace(/^#/, "")).get("alert"));
+}
+
 export default function AlertsPage(): ReactElement {
-  usePageMeta({ title: "Alerts — Zinwe", description: "Every alert on your PCs, newest first." });
+  usePageMeta({ title: "Alerts — Zinwe", description: "Every alert on your PCs, in plain English. Act on them here." });
 
   const [params, setParams] = useSearchParams();
-  const deviceId = parseDeviceId(params.get("device"));
-  const [limit, setLimit] = useState(EVENTS_DEFAULT_LIMIT);
+  const location = useLocation();
+  const deviceId = parseId(params.get("device"));
+  const memberId = deviceId === undefined ? parseId(params.get("member")) : undefined;
+  const scopeKey = `${deviceId ?? "-"}|${memberId ?? "-"}`;
   const now = useNow();
+  const tip = useTip();
+  const { members } = useShell();
+  const { has } = useEntitlements();
 
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal, { includeRemoved: true }), []);
   const devices = useResource(loadDevices);
-  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  const members = useResource(loadMembers);
-  // Overview's "alerts to check today" tile opens this page on ?show=check (same count, J5-11).
-  const [priority, setPriority] = useState<Priority>(() => (params.get("show") === "check" ? "check" : "all"));
-  const [type, setType] = useState<FeatureKey | "all">("all");
-  const [changed, setChanged] = useState<Record<number, DeviceEvent>>({});
+  const loadPolicy = useCallback((signal: AbortSignal) => getPolicy(signal), []);
+  const policy = useResource(loadPolicy);
+  const asks = useAsks();
+  const totals = useEventCounts();
 
-  // Alerts only, filtered on the server (FIX-013): rule confirmations can't use up the limit.
-  const loadEvents = useCallback(
-    (signal: AbortSignal) => listEvents({ device: deviceId, kind: "alert", limit }, signal),
-    [deviceId, limit],
-  );
-  // "Show older" keeps the list on screen; a different PC starts from a clean slate.
-  const events = useResource(loadEvents, { pollMs: 60_000, resetKey: deviceId ?? "all" });
-  // "To check" asks the server for not-handled alerts only, so handled ones can't crowd it out either.
+  // Open alerts (Needs you, Worth a look) come filtered on the server: handled ones can't crowd them out (FIX-013).
   const loadOpen = useCallback(
     (signal: AbortSignal) =>
-      listEvents({ device: deviceId, kind: "alert", handled: false, limit: EVENTS_MAX_LIMIT }, signal),
-    [deviceId],
+      listEvents({ device: deviceId, member: memberId, kind: "alert", handled: false, limit: EVENTS_MAX_LIMIT }, signal),
+    [deviceId, memberId],
   );
-  const openEvents = useResource(loadOpen, { pollMs: 60_000, resetKey: deviceId ?? "all" });
-  // Account-wide totals counted on the server (all PCs), for the line above the list.
-  const totals = useEventCounts();
-  const reloadAll = () => {
-    events.reload();
-    openEvents.reload();
-    totals.reload();
-  };
+  const openEvents = useResource(loadOpen, { pollMs: 60_000, resetKey: scopeKey });
+  // Done: alerts marked as fine, newest first; "Show older" asks for more (the feed has no offset).
+  const [limit, setLimit] = useState(EVENTS_DEFAULT_LIMIT);
+  const loadDone = useCallback(
+    (signal: AbortSignal) => listEvents({ device: deviceId, member: memberId, kind: "alert", handled: true, limit }, signal),
+    [deviceId, memberId, limit],
+  );
+  const doneEvents = useResource(loadDone, { pollMs: 60_000, resetKey: scopeKey });
 
-  const deviceList = devices.data ?? [];
-  const selectedDevice = deviceList.find((d) => d.id === deviceId);
-  const hasDevices = deviceList.length > 0;
+  // Marked as fine / reopened here: shows at once, before the next poll.
+  const [changed, setChanged] = useState<Record<number, DeviceEvent>>({});
+  const [userTab, setUserTab] = useState<TabKey | null>(null);
+  const [type, setType] = useState<AlertKind | "all">("all");
+  const [selected, setSelected] = useState<ReadonlySet<number>>(() => new Set());
+  const targetId = hashAlert(location.hash);
+  const [openRow, setOpenRow] = useState<number | null>(() => targetId ?? null);
+  const [flash, setFlash] = useState<number | null>(() => targetId ?? null);
+  const [busy, setBusy] = useState<ReadonlySet<number>>(() => new Set());
+  const [toast, setToast] = useState("");
+  const [ask, setAsk] = useState<AskTarget | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [kbd, setKbd] = useState(false);
 
-  const onFilter = (value: string) => {
-    setLimit(EVENTS_DEFAULT_LIMIT);
-    const next = new URLSearchParams(params);
-    if (value) next.set("device", value);
-    else next.delete("device");
-    setParams(next, { replace: true });
-  };
+  const personFor = useMemo(() => makePersonFor(members, devices.data), [members, devices.data]);
 
-  // Rule confirmations aren't alerts (J5-01); handled / messaged here shows at once.
-  const list = alertsOnly(events.data).map((e) => changed[e.id] ?? e);
-  const openList = alertsOnly(openEvents.data).map((e) => changed[e.id] ?? e);
-  const onChanged = (next: DeviceEvent) => {
-    setChanged((c) => ({ ...c, [next.id]: next }));
-    totals.reload();
-  };
+  const all = useMemo(() => {
+    const byId = new Map<number, DeviceEvent>();
+    for (const e of [...alertsOnly(openEvents.data), ...alertsOnly(doneEvents.data)]) byId.set(e.id, changed[e.id] ?? e);
+    return [...byId.values()].sort((x, y) => Date.parse(y.occurred_at) - Date.parse(x.occurred_at));
+  }, [openEvents.data, doneEvents.data, changed]);
 
-  // device → person, for the "PC · person" column and the Send mail recipient.
-  const personFor = useMemo(() => {
-    const byMember = new Map((members.data ?? []).map((m) => [m.id, m] as const));
-    const byDevice = new Map<number, Member>();
-    for (const d of devices.data ?? []) {
-      // member_id from current backends; older ones only name the member.
-      const person =
-        d.member_id != null
-          ? byMember.get(d.member_id)
-          : (members.data ?? []).find((m) => m.is_active && m.name === d.member_name);
-      if (person) byDevice.set(d.id, person);
-    }
-    return (deviceId: number) => byDevice.get(deviceId);
-  }, [members.data, devices.data]);
+  const base = useMemo(() => all.filter((e) => type === "all" || kindOf(e) === type), [all, type]);
+  // #alert=<id>: open that alert's tab (until the owner picks another).
+  const target = targetId !== undefined ? all.find((e) => e.id === targetId) : undefined;
+  const tab: TabKey = userTab ?? (target ? tabOf(target) : "needs");
 
-  // The feed has no offset: a full page means older alerts may exist, so those chip counts read "n+".
-  const listFull = (events.data?.length ?? 0) >= limit;
   const openFull = (openEvents.data?.length ?? 0) >= EVENTS_MAX_LIMIT;
-  const counts: Record<Priority, number> = { all: list.length, check: 0, critical: 0, warning: 0, info: 0 };
-  for (const e of list) counts[severityOf(e)] += 1;
-  counts.check = (openEvents.data ? openList : list).filter(needsAttention).length;
-  const more: Record<Priority, boolean> = {
-    all: listFull,
-    check: openEvents.data ? openFull : listFull,
-    critical: listFull,
-    warning: listFull,
-    info: listFull,
+  const doneFull = (doneEvents.data?.length ?? 0) >= limit;
+  const count = (k: TabKey) => base.filter((e) => tabOf(e) === k).length;
+  const more = (k: TabKey) => (k === "done" ? doneFull : openFull);
+
+  const views: AlertView[] = useMemo(() => {
+    const shown = base.filter((e) => tabOf(e) === tab);
+    return groupAlerts(shown).map((g) =>
+      viewOf(g, { now, personFor, devices: devices.data, policy: policy.data, asks: asks.data }),
+    );
+  }, [base, tab, now, personFor, devices.data, policy.data, asks.data]);
+
+  const days = useMemo(() => {
+    const out: Array<{ key: string; label: string; items: AlertView[] }> = [];
+    for (const v of views) {
+      const last = out[out.length - 1];
+      if (last && last.key === v.dayKey) last.items.push(v);
+      else out.push({ key: v.dayKey, label: v.dayLabel, items: [v] });
+    }
+    return out;
+  }, [views]);
+
+  const loading = openEvents.data === undefined || (tab === "done" && doneEvents.data === undefined);
+  const loadError = openEvents.data === undefined ? openEvents.error : tab === "done" && doneEvents.data === undefined ? doneEvents.error : undefined;
+
+  // Scroll the linked alert into view once it is on screen (once), then let the outline fade.
+  const targetRow = targetId !== undefined ? views.find((v) => v.ids.includes(targetId))?.id : undefined;
+  const scrolled = useRef(false);
+  useEffect(() => {
+    if (targetRow === undefined || scrolled.current) return;
+    scrolled.current = true;
+    document.getElementById(`al-row-${targetRow}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [targetRow]);
+  const targetVisible = targetRow !== undefined;
+  useEffect(() => {
+    if (flash === null || !targetVisible) return;
+    const id = window.setTimeout(() => setFlash(null), 2200);
+    return () => window.clearTimeout(id);
+  }, [flash, targetVisible]);
+
+  // Toasts clear themselves.
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(""), 5000);
+    return () => window.clearTimeout(id);
+  }, [toast]);
+
+  // Keyboard modality: the tab focus ring shows only after a key was used.
+  useEffect(() => {
+    const on = (e: globalThis.KeyboardEvent) => {
+      if (/^(Tab|Arrow|Home|End)/.test(e.key)) setKbd(true);
+    };
+    const off = () => setKbd(false);
+    document.addEventListener("keydown", on, true);
+    document.addEventListener("pointerdown", off, true);
+    return () => {
+      document.removeEventListener("keydown", on, true);
+      document.removeEventListener("pointerdown", off, true);
+    };
+  }, []);
+
+  const applyChanged = (list: DeviceEvent[]) => setChanged((c) => ({ ...c, ...Object.fromEntries(list.map((e) => [e.id, e])) }));
+
+  const setRowsBusy = (ids: readonly number[], on: boolean) =>
+    setBusy((b) => {
+      const next = new Set(b);
+      for (const id of ids) {
+        if (on) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+
+  /** Mark rows as fine (or reopen): at once on screen, then on the server; put back if it fails. */
+  const mark = async (rows: AlertView[], handled: boolean, doneText: string) => {
+    const ids = rows.flatMap((r) => r.ids);
+    const before = all.filter((e) => ids.includes(e.id));
+    const at = new Date().toISOString();
+    applyChanged(before.map((e) => ({ ...e, handled_at: handled ? (e.handled_at ?? at) : null })));
+    setRowsBusy(ids, true);
+    setSelected((s) => new Set([...s].filter((id) => !rows.some((r) => r.id === id))));
+    try {
+      applyChanged(await markMany(ids, handled));
+      setToast(doneText);
+      totals.reload();
+    } catch (err) {
+      applyChanged(before);
+      setToast(`Couldn't save: ${errorMessage(err)}`);
+    } finally {
+      setRowsBusy(ids, false);
+    }
   };
-  const source = priority === "check" && openEvents.data ? openList : list;
-  const shown = source.filter(
-    (e) =>
-      (priority === "all" || (priority === "check" ? needsAttention(e) : severityOf(e) === priority)) &&
-      (type === "all" || eventMeta(e.type).feature === type),
+
+  const pickTab = (k: TabKey) => {
+    setUserTab(k);
+    setSelected(new Set());
+  };
+  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>) => {
+    const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+    if (!keys.includes(e.key)) return;
+    e.preventDefault();
+    const i = Math.max(0, TABS.findIndex((t) => t[0] === tab));
+    const j = e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
+    const k = TABS[j][0];
+    pickTab(k);
+    window.setTimeout(() => document.getElementById(`al-tab-${k}`)?.focus(), 20);
+  };
+
+  // Person / PC filter: one select (people, then PCs incl. removed ones), kept in the URL.
+  const who = deviceId !== undefined ? `d${deviceId}` : memberId !== undefined ? `m${memberId}` : "all";
+  const setWho = (value: string) => {
+    const next = new URLSearchParams(params);
+    next.delete("device");
+    next.delete("member");
+    if (value.startsWith("d")) next.set("device", value.slice(1));
+    else if (value.startsWith("m")) next.set("member", value.slice(1));
+    setParams(next, { replace: true });
+    setLimit(EVENTS_DEFAULT_LIMIT);
+    setSelected(new Set());
+  };
+  const people = (members ?? []).filter((m) => m.is_active);
+  const pcs = devices.data ?? [];
+  const nFilters = (who !== "all" ? 1 : 0) + (type !== "all" ? 1 : 0);
+  const clearFilters = () => {
+    setWho("all");
+    setType("all");
+  };
+
+  const sel = views.filter((v) => !v.done && selected.has(v.id));
+  const canSelect = tab !== "done" && views.length > 0;
+  const allSelected = views.length > 0 && sel.length === views.length;
+  const shownCount = views.length;
+  const markSelected = () => {
+    if (!sel.length) return;
+    void mark(sel, true, `${sel.length} ${sel.length === 1 ? "alert" : "alerts"} marked as fine. They are in Done.`);
+  };
+
+  const whoSelect = (id: string) => (
+    <select id={id} className="zn-sel" value={who} onChange={(e) => setWho(e.target.value)}>
+      <option value="all">Everyone</option>
+      {people.length ? (
+        <optgroup label="People">
+          {people.map((m) => (
+            <option key={m.id} value={`m${m.id}`}>
+              {m.name}
+            </option>
+          ))}
+        </optgroup>
+      ) : null}
+      {pcs.length ? (
+        <optgroup label="PCs">
+          {pcs.map((d) => (
+            <option key={d.id} value={`d${d.id}`}>
+              {d.hostname}
+              {d.is_revoked ? " (removed)" : ""}
+            </option>
+          ))}
+        </optgroup>
+      ) : null}
+      {deviceId !== undefined && !pcs.some((d) => d.id === deviceId) ? <option value={`d${deviceId}`}>This PC</option> : null}
+    </select>
   );
-  const canLoadMore = priority !== "check" && events.data !== undefined && listFull && limit < EVENTS_MAX_LIMIT;
+  const typeSelect = (id: string) => (
+    <select id={id} className="zn-sel" value={type} onChange={(e) => setType(e.target.value as AlertKind | "all")}>
+      {KIND_LABEL.map(([k, label]) => (
+        <option key={k} value={k}>
+          {label}
+        </option>
+      ))}
+    </select>
+  );
+
+  const emptyTitle = tab === "done" ? "Nothing done yet" : "All caught up";
+  const emptyBody =
+    tab === "done"
+      ? "Alerts you mark as fine, and ones Zinwe handled on its own, stay here for your plan’s history."
+      : "New alerts appear here within a minute of happening.";
 
   return (
-    <>
-      <PageHeader
+    <div className={`zp-alerts${kbd ? " zn-kbd" : ""}`}>
+      <PageHead
         title="Alerts"
-        lede="Every alert on your PCs, newest first. Filter by priority or type, and alert the person on their PC, by email, or both."
-        actions={<RefreshButton onClick={reloadAll} pending={events.pending || openEvents.pending} />}
-      />
-
-      <section className="dash-card" aria-labelledby="feed-title">
-        <div className="dash-card__head dash-card__head--split">
-          <div>
-            <h2 className="dash-card__title" id="feed-title">
-              {selectedDevice ? `Alerts on ${selectedDevice.hostname}` : "All alerts"}
-            </h2>
-            {totals.data && deviceId === undefined ? <AlertTotals counts={totals.data} /> : null}
-          </div>
-        </div>
-
-        {events.data === undefined ? (
-          events.error ? (
-            <ErrorState
-              title="We couldn't load your activity"
-              message={errorMessage(events.error)}
-              onRetry={events.reload}
-              retrying={events.pending}
-            />
-          ) : (
-            <LoadingState label="Loading activity…" rows={4} />
-          )
-        ) : list.length === 0 ? (
-          <FeedEmpty filtered={deviceId !== undefined} hasDevices={hasDevices} onClear={() => onFilter("")} />
-        ) : (
-          <>
-            {events.error ? <StaleBanner message={errorMessage(events.error)} onRetry={events.reload} /> : null}
-            <ActivityFilters
-              pcFilter={
-                hasDevices || deviceId !== undefined ? (
-                  <label className="dash-filter">
-                    <span>PC</span>
-                    <select
-                      value={deviceId !== undefined ? String(deviceId) : ""}
-                      onChange={(e) => onFilter(e.target.value)}
-                    >
-                      <option value="">All PCs</option>
-                      {deviceList.map((d) => (
-                        <option key={d.id} value={String(d.id)}>
-                          {d.hostname}
-                          {d.is_revoked ? " (removed)" : ""}
-                        </option>
-                      ))}
-                      {deviceId !== undefined && !selectedDevice ? (
-                        <option value={String(deviceId)}>This PC</option>
-                      ) : null}
-                    </select>
-                  </label>
-                ) : null
-              }
-              priority={priority}
-              type={type}
-              counts={counts}
-              more={more}
-              onPriority={setPriority}
-              onType={setType}
-            />
-            {shown.length === 0 ? (
-              <p className="dash-note">
-                Nothing matches these filters.{" "}
-                <button
-                  type="button"
-                  className="dash-link"
-                  onClick={() => {
-                    setPriority("all");
-                    setType("all");
-                  }}
-                >
-                  Show everything
-                </button>
-              </p>
-            ) : (
-              <AlertTable
-                events={shown}
-                now={now}
-                personFor={personFor}
-                devices={devices.data}
-                onDevicesChanged={devices.reload}
-                onChanged={onChanged}
-              />
-            )}
-            {canLoadMore ? (
-              <div className="dash-more">
-                <button
-                  type="button"
-                  className="btn btn--ghost dash-btn-sm"
-                  disabled={events.pending}
-                  onClick={() => setLimit((l) => Math.min(l + EVENTS_DEFAULT_LIMIT, EVENTS_MAX_LIMIT))}
-                >
-                  {events.pending ? "Loading…" : "Show older alerts"}
-                </button>
-              </div>
-            ) : priority === "check" && openFull ? (
-              <p className="dash-note">Showing the latest {EVENTS_MAX_LIMIT} alerts not handled yet.</p>
-            ) : priority !== "check" && list.length >= EVENTS_MAX_LIMIT ? (
-              <p className="dash-note">
-                Showing the latest {EVENTS_MAX_LIMIT}
-                {totals.data && deviceId === undefined ? ` of ${totals.data.alerts.toLocaleString()}` : ""} alerts.
-              </p>
-            ) : null}
-          </>
-        )}
-      </section>
-    </>
-  );
-}
-
-function FeedEmpty({
-  filtered,
-  hasDevices,
-  onClear,
-}: {
-  filtered: boolean;
-  hasDevices: boolean;
-  onClear: () => void;
-}): ReactElement {
-  if (filtered) {
-    return (
-      <EmptyState
-        icon="activity"
-        title="Nothing from this PC yet"
-        action={
-          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onClear}>
-            Show all PCs
-          </button>
-        }
-      >
-        When someone plugs in a USB drive or a rule changes on this PC, it shows up here.
-      </EmptyState>
-    );
-  }
-  if (!hasDevices) {
-    return (
-      <EmptyState
-        icon="pc"
-        title="No activity yet"
-        action={
-          <Link className="btn btn--primary dash-btn-sm" to="/app/team">
-            Add your first PC <span className="arr">→</span>
+        lede="Everything that happened on your PCs, in plain English. This is where you act on alerts. Repeats are grouped; Zinwe's own updates are hidden."
+        actions={
+          <Link className="z-btn sm" to="/app/rules#limits">
+            Change limits
           </Link>
         }
-      >
-        Alerts appear here once Zinwe is installed on a PC and the person has agreed.
-      </EmptyState>
-    );
-  }
-  return (
-    <EmptyState icon="shield" title="All quiet">
-      Nothing has happened on your PCs yet. When someone plugs in a USB drive or a rule changes, you'll see it here.
-    </EmptyState>
-  );
-}
+      />
 
-/** Server-counted totals for all PCs (FIX-013): they don't stop at the feed's limit. */
-function AlertTotals({ counts }: { counts: EventCounts }): ReactElement {
-  const n = (v: number) => v.toLocaleString();
-  return (
-    <p className="dash-card__sub">
-      {n(counts.alerts)} {counts.alerts === 1 ? "alert" : "alerts"} in all · {n(counts.unhandled)} not handled yet
-      {counts.critical_unhandled > 0 ? ` · ${n(counts.critical_unhandled)} “Needs attention” still open` : ""}
-    </p>
-  );
-}
-
-/** The filter chips: everything, what's still to check, or one severity (same words as everywhere, J5-11). */
-type Priority = "all" | "check" | Severity;
-
-const PRIORITY_CLASS: Record<Severity, string> = { critical: "high", warning: "medium", info: "low" };
-const FILTERS: readonly Priority[] = ["all", "check", ...SEVERITY_ORDER];
-const FILTER_LABEL: Record<Priority, string> = { all: "All", check: "To check", ...SEVERITY_LABEL };
-
-const TYPE_LABEL: Record<FeatureKey, string> = {
-  internet: "Online protection",
-  data: "Data safety",
-  remote: "App monitoring",
-  other: "System",
-};
-const TYPE_ORDER: readonly FeatureKey[] = ["internet", "data", "remote", "other"];
-
-const TYPE_ICON: Record<FeatureKey, DashIconName> = {
-  internet: "globe",
-  data: "usb",
-  remote: "screen",
-  other: "shield",
-};
-
-/**
- * The alerts list: grouped by day, repeats of the same alert on the same PC
- * folded into one row, a plain detail line, who it's about, priority, when,
- * and "Send alert" to reach that person (widget, email or both).
- */
-function AlertTable({
-  events,
-  now,
-  personFor,
-  devices,
-  onDevicesChanged,
-  onChanged,
-}: {
-  events: DeviceEvent[];
-  now: number;
-  personFor: (deviceId: number) => Member | undefined;
-  devices: Device[] | undefined;
-  onDevicesChanged: () => void;
-  onChanged: (event: DeviceEvent) => void;
-}): ReactElement {
-  const [open, setOpen] = useState<number | null>(null);
-  const groups = groupAlerts(events);
-  const days: Array<{ key: string; label: string; rows: AlertGroup[] }> = [];
-  for (const g of groups) {
-    const { key, label } = dayGroup(g.latest.occurred_at, now);
-    const last = days[days.length - 1];
-    if (last && last.key === key) last.rows.push(g);
-    else days.push({ key, label, rows: [g] });
-  }
-
-  return (
-    <div className="al-table">
-      <div className="al-row al-row--head" aria-hidden="true">
-        <span>Alert</span>
-        <span>Person · PC</span>
-        <span>Status</span>
-        <span>When</span>
-        <span />
-      </div>
-      {days.map((day) => (
-        <section key={day.key} className="al-day" aria-label={day.label}>
-          <h3 className="al-day__label">
-            {day.label}
-            <small>
-              {dayCount(day.rows)} alert{dayCount(day.rows) === 1 ? "" : "s"}
-              {dayToCheck(day.rows) > 0 ? ` · ${dayToCheck(day.rows)} to check` : ""}
-            </small>
-          </h3>
-          {day.rows.map((g) => (
-            <AlertRow
-              key={g.latest.id}
-              group={g}
-              now={now}
-              person={personFor(g.latest.device_id)}
-              device={devices?.find((d) => d.id === g.latest.device_id)}
-              onDevicesChanged={onDevicesChanged}
-              onChanged={onChanged}
-              open={open === g.latest.id}
-              onToggle={() => setOpen(open === g.latest.id ? null : g.latest.id)}
-            />
-          ))}
-        </section>
-      ))}
-    </div>
-  );
-}
-
-function dayCount(rows: AlertGroup[]): number {
-  return rows.reduce((n, g) => n + g.count, 0);
-}
-
-/** Same rule as Overview's "alerts to check today": Worth a look / Needs attention, not handled. */
-function dayToCheck(rows: AlertGroup[]): number {
-  return rows.reduce((n, g) => n + g.events.filter(needsAttention).length, 0);
-}
-
-function AlertRow({
-  group,
-  now,
-  person,
-  device,
-  onDevicesChanged,
-  onChanged,
-  open,
-  onToggle,
-}: {
-  group: AlertGroup;
-  now: number;
-  person: Member | undefined;
-  device: Device | undefined;
-  onDevicesChanged: () => void;
-  onChanged: (event: DeviceEvent) => void;
-  open: boolean;
-  onToggle: () => void;
-}): ReactElement {
-  const event = group.latest;
-  const meta = eventMeta(event.type);
-  const severity = severityOf(event);
-  const priority = PRIORITY_CLASS[severity];
-  const handled = isHandled(event);
-  const recent = now - Date.parse(event.occurred_at) < 12 * 3_600_000;
-  const spanMin = Math.max(1, Math.round((Date.parse(group.lastAt) - Date.parse(group.firstAt)) / 60_000));
-  const detail = detailOf(event);
-  // The drive / tool / site shows once: as a chip only when the sentence doesn't already name it.
-  const subjectChip =
-    group.subject && !detail.toLowerCase().includes(group.subject.toLowerCase()) ? group.subject : null;
-  const detailId = `al-detail-${event.id}`;
-
-  return (
-    <div className={cx("al-item", open && "is-open", handled && "is-handled")}>
-    <div className={`al-row al-row--${priority}`}>
-      <span className="al-alert">
-        <span className={`act-mark act-mark--${priority}`} aria-hidden="true">
-          <DashIcon name={priority === "low" ? TYPE_ICON[meta.feature] : "alert"} />
-        </span>
-        <span className="al-alert__text">
-          <button type="button" className="al-toggle" aria-expanded={open} aria-controls={detailId} onClick={onToggle}>
-            <b>
-              {alertLabel(event)}
-              {subjectChip ? <span className="al-subject">{subjectChip}</span> : null}
-            </b>
-            <small className="al-detail">{detail}</small>
-          </button>
-          <span className="al-chips">
-            <span className="al-chip">
-              <DashIcon name={TYPE_ICON[meta.feature]} />
-              {TYPE_LABEL[meta.feature]}
-            </span>
-            {group.count > 1 ? (
-              <span
-                className="al-chip al-chip--repeat"
-                data-tip={`Same alert ${group.count} times on this PC, ${formatTime(group.firstAt)}–${formatTime(group.lastAt)}`}
+      <div className="zn-tabrow">
+        <div role="tablist" aria-label="Alert level" className="zn-tabs">
+          {TABS.map(([k, label]) => {
+            const n = count(k);
+            const on = tab === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                id={`al-tab-${k}`}
+                tabIndex={on ? 0 : -1}
+                className={`zn-tab-btn${on ? " on" : ""}`}
+                aria-selected={on}
+                onClick={() => pickTab(k)}
+                onKeyDown={onTabKey}
+                {...tip.anchor(`tab-${k}`, <TipBody text={<><b>{label}</b> — {LEVEL_DEF[k]}</>} />)}
               >
-                ×{group.count} in {spanMin < 60 ? `${spanMin} min` : `${Math.round(spanMin / 60)} h`}
-              </span>
-            ) : null}
-          </span>
-        </span>
-      </span>
-      <span className="al-who" data-label="Person · PC">
-        {person ? <b>{person.name}</b> : <b className="al-muted">No one linked</b>}
-        <small>{event.hostname || "A PC"}</small>
-      </span>
-      <span data-label="Status" className="al-status">
-        <span className={`act-pri act-pri--${priority}`}>{SEVERITY_LABEL[severity]}</span>
-        {handled ? (
-          <small className="dash-alerts__handled">
-            <DashIcon name="check" />
-            Handled
-          </small>
-        ) : null}
-      </span>
-      <span className="al-when" data-label="When">
-        <time dateTime={event.occurred_at} title={formatDateTime(event.occurred_at)}>
-          {recent ? formatRelative(event.occurred_at, now) : formatTime(event.occurred_at)}
-        </time>
-        {recent ? <small>{formatTime(event.occurred_at)}</small> : null}
-      </span>
-      <span className="al-action">
-        <SendAlertMenu
-          event={event}
-          person={person ? { id: person.id, name: person.name, email: person.email } : undefined}
-          onChanged={onChanged}
-        />
-      </span>
-    </div>
-      {event.type === "data.usb_locked_down" && device?.usb_locked_at ? (
-        <div className="al-usb">
-          <UsbRestore device={device} onRestored={onDevicesChanged} />
+                {label}{" "}
+                <span className={`zn-count z-num${k === "needs" && n ? " red" : on ? " ink" : ""}`}>
+                  {openEvents.data === undefined ? "–" : `${n.toLocaleString()}${more(k) && n ? "+" : ""}`}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      ) : null}
-      {open ? (
-        <div className="dash-alerts__detail al-more" id={detailId}>
-          <p className="dash-alerts__full">{detail}</p>
-          {meta.meaning ? (
-            <p className="dash-alerts__meaning">
-              <b>What it means</b> {meta.meaning}
-            </p>
-          ) : null}
-          {meta.suggested ? (
-            <p className="dash-alerts__meaning">
-              <b>Suggested message</b> {meta.suggested}
-            </p>
-          ) : null}
-          <p className="dash-alerts__when">
-            {formatDateTime(event.occurred_at)} · {event.hostname || "a PC"}
-            {person ? ` · ${person.name}` : ""}
-            {handled && event.handled_by ? ` · handled by ${event.handled_by}` : ""}
-          </p>
-          <p className="dash-alerts__links">
-            <Link className="dash-link" to={meta.reviewTo}>
-              {meta.reviewTo === "/app/team" ? "Restore USB on Team & devices" : "Review the rule"} <DashIcon name="arrow" />
-            </Link>
-          </p>
+        <button type="button" className="z-btn sm zn-phone-only zn-al-filterbtn" aria-haspopup="dialog" onClick={() => setFiltersOpen(true)}>
+          <ZIcon d="M4 6h16M7 12h10M10 18h4" size={15} stroke={2} />
+          {nFilters ? `Filters · ${nFilters}` : "Filters"}
+        </button>
+        <div className="zn-desk-only zn-al-filters">
+          <label className="z-sr" htmlFor="f-person">
+            Person or PC
+          </label>
+          {whoSelect("f-person")}
+          <label className="z-sr" htmlFor="f-type">
+            Type
+          </label>
+          {typeSelect("f-type")}
         </div>
-      ) : null}
-    </div>
-  );
-}
+      </div>
 
-/** Priority, PC and type filters, in one row above the table. */
-function ActivityFilters({
-  pcFilter,
-  priority,
-  type,
-  counts,
-  more,
-  onPriority,
-  onType,
-}: {
-  /** The "which PC" picker, kept in the same row. */
-  pcFilter: ReactNode;
-  priority: Priority;
-  type: FeatureKey | "all";
-  counts: Record<Priority, number>;
-  /** The count is a floor: the loaded page was full, so older ones may exist. */
-  more: Record<Priority, boolean>;
-  onPriority: (value: Priority) => void;
-  onType: (value: FeatureKey | "all") => void;
-}): ReactElement {
-  return (
-    <div className="act-filters">
-      <div className="dash-range" role="group" aria-label="Filter by priority">
-        {FILTERS.map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={cx("dash-range__btn", priority === value && "is-on")}
-            aria-pressed={priority === value}
-            onClick={() => onPriority(value)}
-          >
-            {value === "all" ? "All" : `${FILTER_LABEL[value]} (${counts[value]}${more[value] ? "+" : ""})`}
-          </button>
-        ))}
-      </div>
-      <div className="act-filters__end">
-        {pcFilter}
-        <label className="dash-filter">
-          <span>Type</span>
-          <select value={type} onChange={(e) => onType(e.target.value as FeatureKey | "all")}>
-            <option value="all">All types</option>
-            {TYPE_ORDER.map((key) => (
-              <option key={key} value={key}>
-                {TYPE_LABEL[key]}
-              </option>
-            ))}
-          </select>
+      {toast ? (
+        <div role="status" className="zn-al-toast">
+          {toast}
+        </div>
+      ) : null}
+
+      <section className="z-card zn-al-card" aria-label={TABS.find((t) => t[0] === tab)?.[1]} data-tip-bound="list">
+        {canSelect && !loading ? (
+          <div className="zn-al-selbar">
+            <label>
+              <input type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(views.map((v) => v.id)))} />
+              {sel.length ? `${sel.length} selected` : `Select all ${shownCount}`}
+            </label>
+            <div className="zn-desk-only" style={{ display: "flex", gap: 8 }}>
+              <button type="button" className="z-btn sm" disabled={sel.length === 0} onClick={markSelected}>
+                Mark as fine
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {loading ? (
+          loadError ? (
+            <ErrorBlock
+              title="We couldn't load your alerts"
+              message={errorMessage(loadError)}
+              onRetry={() => {
+                openEvents.reload();
+                doneEvents.reload();
+              }}
+            />
+          ) : (
+            <SkRows label="Loading alerts…" rows={5} />
+          )
+        ) : views.length === 0 ? (
+          <div className="zn-al-empty">
+            {nFilters && all.length ? (
+              <EmptyBlock icon="filter" title="Nothing matches these filters" action={<button type="button" className="z-btn sm" onClick={clearFilters}>Clear filters</button>}>
+                {emptyBody}
+              </EmptyBlock>
+            ) : (
+              <>
+                <b style={{ fontSize: 16 }}>{emptyTitle}</b>
+                <span style={{ color: "#6B6459" }}>{emptyBody}</span>
+              </>
+            )}
+          </div>
+        ) : (
+          days.map((day) => (
+            <div key={day.key}>
+              <div className="z-lbl" style={{ padding: "12px 16px 6px" }}>
+                {day.label}
+              </div>
+              {day.items.map((a) => (
+                <AlertRow
+                  key={a.id}
+                  a={a}
+                  open={openRow !== null && a.ids.includes(openRow)}
+                  flash={flash !== null && a.ids.includes(flash)}
+                  selected={selected.has(a.id)}
+                  busy={a.ids.some((id) => busy.has(id))}
+                  canAsk={has("team_chat")}
+                  tip={tip}
+                  onToggleOpen={() => setOpenRow(openRow !== null && a.ids.includes(openRow) ? null : a.id)}
+                  onToggleSelect={() =>
+                    setSelected((s) => {
+                      const next = new Set(s);
+                      if (next.has(a.id)) next.delete(a.id);
+                      else next.add(a.id);
+                      return next;
+                    })
+                  }
+                  onAsk={() => {
+                    if (!a.person) return;
+                    tip.hide();
+                    setToast("");
+                    setAsk({
+                      ids: a.ids,
+                      memberId: a.person.id,
+                      first: a.first,
+                      title: a.title,
+                      severity: a.level === "needs" ? "critical" : a.level === "worth" ? "warning" : "info",
+                      draft: a.draft,
+                    });
+                  }}
+                  onFine={() => void mark([a], true, `“${a.title}” marked as fine. It is in Done.`)}
+                  onReopen={() => void mark([a], false, `“${a.title}” is open again.`)}
+                  onDevicesChanged={devices.reload}
+                  onChanged={(next) => {
+                    applyChanged([next]);
+                    totals.reload();
+                  }}
+                />
+              ))}
+            </div>
+          ))
+        )}
+
+        {!loading && tab === "done" && doneFull && limit < EVENTS_MAX_LIMIT ? (
+          <div className="zn-al-foot">
+            <button
+              type="button"
+              className="z-btn sm"
+              disabled={doneEvents.pending}
+              onClick={() => setLimit((l) => Math.min(l + EVENTS_DEFAULT_LIMIT, EVENTS_MAX_LIMIT))}
+            >
+              {doneEvents.pending ? "Loading…" : "Show older alerts"}
+            </button>
+          </div>
+        ) : !loading && tab !== "done" && openFull ? (
+          <p className="zn-al-foot zn-al-note">Showing the latest {EVENTS_MAX_LIMIT} alerts not marked as fine yet.</p>
+        ) : null}
+        {!loading && totals.data && who === "all" ? (
+          <p className="zn-al-foot zn-al-note z-num">
+            {totals.data.alerts.toLocaleString()} {totals.data.alerts === 1 ? "alert" : "alerts"} in your plan’s history ·{" "}
+            {totals.data.unhandled.toLocaleString()} not marked as fine yet
+          </p>
+        ) : null}
+
+        {tab !== "done" && sel.length > 0 ? (
+          <div className="zn-sticky">
+            <button type="button" className="z-btn dark" onClick={markSelected}>
+              Mark {sel.length} {sel.length === 1 ? "alert" : "alerts"} as fine
+            </button>
+          </div>
+        ) : null}
+      </section>
+
+      {tip.node}
+
+      <AskSheet
+        target={ask}
+        where="alert"
+        onClose={() => setAsk(null)}
+        onSent={(t) => {
+          setAsk(null);
+          setToast(`Sent to ${t.first}’s Zinwe app. The reply shows on this alert and in Chat.`);
+        }}
+      />
+
+      <Sheet open={filtersOpen} title="Filters" onClose={() => setFiltersOpen(false)} labelledBy="al-sheet-h">
+        <label htmlFor="fs-person" style={{ fontSize: 13, fontWeight: 600 }}>
+          Person or PC
         </label>
-      </div>
+        {whoSelect("fs-person")}
+        <label htmlFor="fs-type" style={{ fontSize: 13, fontWeight: 600 }}>
+          Type
+        </label>
+        {typeSelect("fs-type")}
+        <div className="zn-sheet-acts">
+          <button type="button" className="z-btn sm" onClick={clearFilters}>
+            Clear
+          </button>
+          <button type="button" className="z-btn sm dark" onClick={() => setFiltersOpen(false)}>
+            Show {shownCount} {shownCount === 1 ? "alert" : "alerts"}
+          </button>
+        </div>
+      </Sheet>
     </div>
   );
 }

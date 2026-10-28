@@ -33,7 +33,7 @@ export function SendAlertMenu(props: SendAlertMenuProps): ReactElement {
   const plan = upgradeFor("alert_to_employee");
   return (
     <Link
-      className={cx("btn btn--ghost dash-btn-sm sam__btn", props.compact && "sam__btn--compact")}
+      className={cx("z-btn sm sam__btn", props.compact && "sam__btn--compact")}
       to={plan ? `/app/upgrade?plan=${encodeURIComponent(plan.code)}` : "/app/upgrade"}
       data-tip={`Emailing an alert to the employee is on the ${plan?.name ?? "next"} plan`}
     >
@@ -135,11 +135,7 @@ function SendAlertMenuInner({ event, person, hostname, compact = false, onChange
       <button
         ref={button}
         type="button"
-        className={cx(
-          "btn dash-btn-sm sam__btn",
-          sent || handled ? "btn--ghost is-sent" : "btn--ink",
-          compact && "sam__btn--compact",
-        )}
+        className={cx("z-btn sm sam__btn", sent || handled ? "is-sent" : "dark", compact && "sam__btn--compact")}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         aria-controls={menuId}
