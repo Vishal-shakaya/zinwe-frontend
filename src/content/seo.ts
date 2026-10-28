@@ -95,9 +95,9 @@ const PAGES: readonly SeoPage[] = [
       "Data protection for small businesses with no IT team: know when files go to a USB drive, a remote-access tool runs or new software appears. Free for 3 PCs.",
     ogTitle: "Zinwe — IT Is OK. Data protection for small businesses.",
     ogDescription: "Know what's happening to your company's data. In plain English. No IT department needed.",
-    h1: "Know what's happening to your company's data. In plain English.",
+    h1: "Run a safe, organised office from one screen.",
     intro: [
-      "Zinwe is data protection and activity monitoring for small businesses without an IT team. It flags USB copies, files leaving the office, remote-access tools and new software on your team's PCs, and tells you what each one means.",
+      "Zinwe protects company data on every Windows PC and gives you chat, tasks, work hours and reports in the same place. It flags USB copies, files leaving the office, remote-access tools and new software, and tells you what each one means.",
       "Free forever for up to 3 PCs. No card needed. For teams of 5–50 in India and the United States, on Windows today.",
     ],
     sitemap: true,
@@ -119,7 +119,7 @@ const PAGES: readonly SeoPage[] = [
     title: "Plans and pricing: free for up to 3 PCs | Zinwe",
     description:
       "Start free for up to 3 PCs. Paid plans are priced per PC, not per seat, for 10, 25 or 50 PCs. India: rupees, monthly. Elsewhere: US dollars, yearly.",
-    h1: "Simple plans. Start free.",
+    h1: "Protect every PC and run your team.",
     intro: [
       "Free forever for up to 3 PCs. Startups covers up to 10 PCs, Teams up to 25 and Businesses up to 50, each with every feature and a longer history. Not sure? Tell the page how many PCs you have and it points to the plan that fits.",
       "Every plan has plain-English alerts, employee consent on every PC and a setup you can finish in an afternoon.",
@@ -131,7 +131,7 @@ const PAGES: readonly SeoPage[] = [
     title: "Download Zinwe for Windows 10 and 11",
     description:
       "Download the Zinwe installer for Windows 10 and 11. Install it on each PC, connect it with the person's email and Member ID, and it shows up in your dashboard.",
-    h1: "Download Zinwe for Windows.",
+    h1: "Zinwe for Windows.",
     intro: [
       "One small app on each Windows 10 or 11 PC. Install it, connect it with the person's work email and Member ID from your dashboard, and the PC shows up within about a minute.",
       "Every employee sees the Zinwe widget and agrees on their own PC before anything is recorded. Linux and macOS are on our roadmap.",
@@ -154,7 +154,7 @@ const PAGES: readonly SeoPage[] = [
     title: "Contact Zinwe: talk to a person, not a ticket",
     description:
       "Questions about setup, pricing or whether Zinwe fits your business? Write to hello@zinwe.io and hear back from the founder within a working day.",
-    h1: "Talk to a person, not a ticket.",
+    h1: "A person, not a ticket.",
     intro: [
       "Questions about setup, pricing, or whether Zinwe fits your business. You'll hear back from the founder within a working day.",
       "Email hello@zinwe.io. SKYTECHNO, New Delhi, India.",
@@ -175,7 +175,7 @@ const PAGES: readonly SeoPage[] = [
     title: "Data protection guides for small businesses | Zinwe blog",
     description:
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos and Zinwe news, for small businesses in India and the US.",
-    h1: "Guides, releases and news",
+    h1: "Short reads for a safer, calmer office.",
     intro: [
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos, product releases and news.",
     ],
@@ -210,7 +210,7 @@ const PAGES: readonly SeoPage[] = [
     path: "/legal",
     title: "Legal: terms, privacy and policies | Zinwe",
     description: "Zinwe's Terms, Privacy, Refund, Shipping and Delivery, Cookie and Acceptable Use policies, and our Disclaimer.",
-    h1: "Legal",
+    h1: "Terms and policies, in plain words.",
     intro: ["Zinwe's Terms, Privacy, Refund, Shipping and Delivery, Cookie and Acceptable Use policies, and our Disclaimer."],
     sitemap: true,
   },
