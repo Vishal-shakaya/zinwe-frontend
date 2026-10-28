@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import type { PlanModule } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { MODULE_TITLES, useEntitlements } from "../features/entitlements";
-import { DashIcon } from "./DashIcon";
-import { PageHeader } from "./States";
+import { PageHead } from "../shell/PageHead";
+import { ZIcon } from "../ui/ZIcon";
+import "../../styles/dash13/protection.css";
 
 interface PlanLockProps {
   module: PlanModule;
@@ -24,22 +25,22 @@ export function PlanLock({ module, children, title, compact = false }: PlanLockP
   const { upgradeFor } = useEntitlements();
   const plan = upgradeFor(module);
   return (
-    <div className={cx("dash-state dash-state--lock", compact && "dash-state--lock-compact")} role="region" aria-label={title ?? MODULE_TITLES[module]}>
-      <span className="dash-state__mark">
-        <DashIcon name="lock" />
+    <div className={cx("z-card zlock", compact && "zlock--compact")} role="region" aria-label={title ?? MODULE_TITLES[module]}>
+      <span className="zlock__mark" aria-hidden="true">
+        <ZIcon name="lock" size={compact ? 18 : 20} stroke={2} />
       </span>
-      <h3 className="dash-state__title">{title ?? MODULE_TITLES[module]}</h3>
-      <div className="dash-state__body">
-        {children}
+      <div className="zlock__text">
+        <h3 className="zlock__title">{title ?? MODULE_TITLES[module]}</h3>
+        <div className="zlock__body">{children}</div>
         {plan ? (
-          <p className="dash-lock__plan">
+          <p className="zlock__plan">
             Included in the <b>{plan.name}</b> plan.
           </p>
         ) : null}
       </div>
-      <Link className="btn btn--primary dash-btn-sm" to={plan ? `/app/upgrade?plan=${encodeURIComponent(plan.code)}` : "/app/upgrade"}>
-        <DashIcon name="arrow" />
+      <Link className={cx("z-btn pri", compact && "sm")} to={plan ? `/app/upgrade?plan=${encodeURIComponent(plan.code)}` : "/app/upgrade"}>
         {plan ? `Upgrade to ${plan.name}` : "See plans"}
+        <ZIcon name="arrowRight" size={15} stroke={2.2} />
       </Link>
     </div>
   );
@@ -91,7 +92,7 @@ export function PagePlanGate({
   if (has(module)) return <>{children}</>;
   return (
     <>
-      <PageHeader title={title} lede={lede} />
+      <PageHead title={title} lede={lede} />
       <PlanLock module={module}>{lock}</PlanLock>
     </>
   );

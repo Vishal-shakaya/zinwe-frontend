@@ -1,5 +1,6 @@
-import type { ReactElement } from "react";
-import { DashIcon } from "./DashIcon";
+import { useId, type ReactElement } from "react";
+import { ZIcon } from "../ui/ZIcon";
+import "../../styles/dash13/protection.css";
 
 /** One line of what is / isn't collected. */
 export interface DiscloseRow {
@@ -33,9 +34,9 @@ const INTERNET_NEVER: string[] = [
 ];
 
 /**
- * Plain-language disclosure of exactly which metrics the agent collects and
- * shares with the admin, and what it never records. Defaults to the internet
- * copy; pass props to reuse it on other feature pages (e.g. data protection).
+ * Plain-language disclosure of exactly which metrics the agent collects and shares with the admin, and what it
+ * never records (v1.3: a quiet card that opens on click, so it never pushes the page's numbers down). Defaults to
+ * the internet copy; pass props to reuse it on other pages (e.g. Data safety).
  */
 export function MetricsDisclosure({
   title = "What Zinwe shares with you",
@@ -43,21 +44,29 @@ export function MetricsDisclosure({
   collected = INTERNET_COLLECTED,
   never = INTERNET_NEVER,
 }: MetricsDisclosureProps = {}): ReactElement {
+  const id = useId();
   return (
-    <section className="dash-card" aria-labelledby="net-disclosure-title">
-      <div className="dash-card__head">
-        <h2 className="dash-card__title" id="net-disclosure-title">
-          {title}
-        </h2>
-        <p className="dash-card__sub">{sub}</p>
-      </div>
-
-      <div className="dash-disclose">
-        <div className="dash-disclose__col">
-          <h3 className="dash-disclose__h dash-disclose__h--ok">
-            <DashIcon name="check" /> Collected &amp; shared with the admin
+    <details className="z-card zdisc">
+      <summary className="zdisc__sum">
+        <span className="zdisc__mark" aria-hidden="true">
+          <ZIcon d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6zM9 12l2 2 4-4" size={16} stroke={2} />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <b id={`${id}-t`} className="zdisc__title">
+            {title}
+          </b>
+          <span className="zdisc__sub">{sub}</span>
+        </span>
+        <span className="zdisc__chev" aria-hidden="true">
+          <ZIcon name="chevronDown" size={16} stroke={2} />
+        </span>
+      </summary>
+      <div className="zdisc__cols">
+        <div>
+          <h3 className="zdisc__h ok">
+            <ZIcon name="check" size={14} stroke={2.4} /> Collected &amp; shared with the admin
           </h3>
-          <ul className="dash-disclose__list">
+          <ul className="zdisc__list">
             {collected.map((row) => (
               <li key={row.label}>
                 <b>{row.label}</b>
@@ -66,15 +75,17 @@ export function MetricsDisclosure({
             ))}
           </ul>
         </div>
-        <div className="dash-disclose__col">
-          <h3 className="dash-disclose__h dash-disclose__h--no">Never collected</h3>
-          <ul className="dash-disclose__list dash-disclose__list--no">
+        <div>
+          <h3 className="zdisc__h no">
+            <ZIcon name="close" size={14} stroke={2.4} /> Never collected
+          </h3>
+          <ul className="zdisc__list no">
             {never.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </div>
       </div>
-    </section>
+    </details>
   );
 }
