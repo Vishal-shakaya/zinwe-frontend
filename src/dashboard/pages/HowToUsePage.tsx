@@ -1,68 +1,94 @@
-import type { ReactElement } from "react";
-import { Link } from "react-router-dom";
-import { FAQS, GUIDE_STEPS } from "../../content/help";
+import { useState, type ReactElement } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { DashIcon } from "../components/DashIcon";
-import { PageHeader } from "../components/States";
-import { startTour } from "../features/tour";
+import { FeedbackForm } from "../components/FeedbackForm";
+import { GetStarted } from "../help/GetStarted";
+import { PoliciesCard } from "../help/PoliciesCard";
+import { SupportTab } from "../help/SupportTab";
+import { WhatsNewList } from "../help/WhatsNewList";
+import { SectionNav, type Section } from "../settings/SectionNav";
+import { PageHead } from "../shell/PageHead";
+import "../../styles/dash13/help.css";
+
+/** Tabs and the hash names other pages link with: /app/help#tab=get-started|support|policies|whats-new|feedback. */
+const TABS = [
+  { key: "get-started", label: "Get started", desc: "" },
+  { key: "support", label: "Support", desc: "Message a person, and common questions" },
+  { key: "policies", label: "Policies", desc: "The documents you agreed to" },
+  { key: "whats-new", label: "What’s new", desc: "Zinwe 1.3 and earlier updates" },
+  { key: "feedback", label: "Feedback", desc: "Rate Zinwe and tell us what to improve" },
+] as const;
+type Tab = (typeof TABS)[number]["key"];
+
+/** Board names too (DashHelp state keys). */
+const ALIAS: Record<string, Tab> = { start: "get-started", news: "whats-new", "how-to-use": "get-started" };
+
+function tabFromHash(hash: string): Tab | null {
+  const raw = new URLSearchParams(hash.slice(1)).get("tab")?.toLowerCase() ?? "";
+  if ((TABS as readonly { key: string }[]).some((t) => t.key === raw)) return raw as Tab;
+  return ALIAS[raw] ?? null;
+}
 
 /**
- * How to use (/app/help, from the account menu): four steps from sign-up to protected, then the
- * questions owners ask most. Getting help from a person is the floating Support chat.
+ * Help & support (board DashHelp, /app/help): Get started (setup checklist, the tour, the website), Support (message
+ * the team, the floating Support panel, common questions), Policies, What's new and Feedback. The account menu's
+ * Settings / Help & support / Log out replaced the old sidebar menu; this page holds its help items.
+ * `#tab=<name>` picks a tab; on a phone the tabs are a row list and a row opens its section with a back arrow.
  */
 export default function HowToUsePage(): ReactElement {
-  usePageMeta({ title: "How to use Zinwe", description: "Get your team protected in four steps." });
+  usePageMeta({ title: "Help & support — Zinwe", description: "Setup steps, a real person when you need one, and the documents you agreed to." });
+  const { hash } = useLocation();
+  const navigate = useNavigate();
+  const { account } = useAuth();
+  const user = account?.user;
+  const fromHash = tabFromHash(hash);
+  const tab: Tab = fromHash ?? "get-started";
+  // Phone only: false = the row list, true = one section open. A #tab= link opens that section.
+  const [open, setOpen] = useState(fromHash !== null);
+  const [seenHash, setSeenHash] = useState(hash);
+  if (hash !== seenHash) {
+    setSeenHash(hash);
+    setOpen(fromHash !== null);
+  }
+
+  const sections: Section[] = TABS.map((t) => ({ key: t.key, label: t.label, desc: t.key === "get-started" ? "Get fully set up, the tour and the website" : t.desc }));
 
   return (
-    <>
-      <PageHeader
-        title="How to use"
-        lede="Get your team protected, step by step. Still stuck? Message us from Support at the bottom right."
-      />
-      <section className="dash-card" aria-labelledby="guide-title">
-        <div className="dash-card__head">
-          <h2 className="dash-card__title" id="guide-title">
-            Get protected in four steps
-          </h2>
-          <p className="dash-card__sub">About 5 minutes per PC. No IT skills needed.</p>
+    <div className={`zp-help${open ? " zn-open" : ""}`}>
+      <PageHead title="Help & support" lede="Setup steps, a real person when you need one, and the documents you agreed to." />
+      <div className="zp-col">
+        <SectionNav
+          label="Help"
+          backLabel="Back to Help & support"
+          sections={sections}
+          current={tab}
+          idPrefix="hp-tab-"
+          panelId="hp-panel"
+          onPick={(key) => {
+            setOpen(true);
+            navigate({ hash: `tab=${key}` }, { replace: true });
+          }}
+          onBack={() => {
+            setOpen(false);
+            navigate({ hash: "" }, { replace: true });
+          }}
+        />
+        <div id="hp-panel" className="zp-panel" role="tabpanel" aria-labelledby={`hp-tab-${tab}`}>
+          {tab === "get-started" ? <GetStarted userId={user?.id} /> : null}
+          {tab === "support" ? <SupportTab email={user?.email ?? ""} /> : null}
+          {tab === "policies" ? <PoliciesCard /> : null}
+          {tab === "whats-new" ? <WhatsNewList /> : null}
+          {tab === "feedback" ? (
+            <section className="z-card zp-card mid" aria-label="Feedback">
+              <FeedbackForm page="/app/help#tab=feedback" heading />
+              <Link to="/app/feedback" style={{ fontWeight: 600, fontSize: 13, alignSelf: "flex-start" }}>
+                Your past feedback
+              </Link>
+            </section>
+          ) : null}
         </div>
-        <div>
-          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={startTour}>
-            <DashIcon name="help" />
-            Take the 1-minute tour
-          </button>
-        </div>
-        <ol className="help-steps">
-          {GUIDE_STEPS.map((step, i) => (
-            <li key={step.title} className="help-step">
-              <span className="help-step__num" aria-hidden="true">
-                {i + 1}
-              </span>
-              <div className="help-step__text">
-                <b>{step.title}</b>
-                <p>{step.body}</p>
-                <Link className="dash-link" to={step.to}>
-                  {step.cta} <DashIcon name="arrow" />
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="dash-card" aria-labelledby="faq-title">
-        <h2 className="dash-card__title" id="faq-title">
-          Common questions
-        </h2>
-        <div className="help-faq">
-          {FAQS.map((faq) => (
-            <details key={faq.q} className="help-faq__item">
-              <summary>{faq.q}</summary>
-              <p>{faq.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }

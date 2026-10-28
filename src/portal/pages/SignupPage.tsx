@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
 import { signupSource } from "../../lib/attribution";
 import { Link, useSearchParams } from "react-router-dom";
-import { Field } from "../../components/forms/Field";
+import { cx } from "../../lib/cx";
+import { OrDivider, SocialSignIn } from "../v13/SocialSignIn";
+import { ZField } from "../v13/ZField";
+import { ZPassword } from "../v13/ZPassword";
 import { PLAN_INTENT_COPY } from "../../content/portal";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { signup, signupVerify, type SignupField } from "../../lib/api";
@@ -17,7 +20,6 @@ import {
 import { AuthShell } from "../components/AuthShell";
 import { CodeStep } from "../components/CodeStep";
 import { FormAlert } from "../components/FormAlert";
-import { PasswordField } from "../components/PasswordField";
 import { TermsCheckbox } from "../../components/legal/TermsCheckbox";
 import { SIGNUP_DOCS } from "../../content/legal";
 import { failureMessage } from "../failure";
@@ -113,9 +115,11 @@ export default function SignupPage(): ReactElement {
   return (
     <AuthShell
       footer={
-        <>
-          Already have an account? <Link to="/login">Log in</Link>
-        </>
+        codeSent ? null : (
+          <>
+            Already have an account? <Link to="/login">Log in</Link>
+          </>
+        )
       }
     >
       {codeSent ? (
@@ -133,53 +137,67 @@ export default function SignupPage(): ReactElement {
           onSignedIn={clearSignupCode}
         />
       ) : (
-        <form className="auth-form" onSubmit={onSubmit} noValidate>
-          <div>
-            <h1 className="auth__title">Create your account</h1>
-            <p className="auth__lede">Set up Zinwe for your business in a few minutes.</p>
+        <form className="zau-form" onSubmit={onSubmit} noValidate>
+          <div className="zau-head">
+            <h1 className="zau-title">Create your account</h1>
+            <p className="zau-lede">Free forever for up to 3 PCs. No card needed.</p>
           </div>
           {planCode && PLAN_INTENT_COPY[planCode] ? (
-            <p className="dash-banner dash-banner--info">{PLAN_INTENT_COPY[planCode]}</p>
+            <p className="zau-note" role="status">
+              {PLAN_INTENT_COPY[planCode]}
+            </p>
           ) : null}
 
-          <Field error={errors.full_name}>
-            <label htmlFor="su-name">Your name</label>
+          <SocialSignIn />
+          <OrDivider />
+
+          <ZField error={errors.full_name} errorId="su-name-error">
+            <label className="zau-lab" htmlFor="su-name">
+              Your name
+            </label>
             <input
               ref={nameRef}
               id="su-name"
               name="name"
+              className={cx("zau-inp", errors.full_name && "err")}
               autoComplete="name"
               autoFocus
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               aria-invalid={errors.full_name ? true : undefined}
+              aria-describedby={errors.full_name ? "su-name-error" : undefined}
             />
-          </Field>
+          </ZField>
 
-          <Field error={errors.email}>
-            <label htmlFor="su-email">Work email</label>
+          <ZField error={errors.email} errorId="su-email-error">
+            <label className="zau-lab" htmlFor="su-email">
+              Work email
+            </label>
             <input
               ref={emailRef}
               id="su-email"
               name="email"
               type="email"
               inputMode="email"
+              className={cx("zau-inp", errors.email && "err")}
               autoComplete="email"
+              placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? "su-email-error" : undefined}
             />
-          </Field>
-          {emailTaken ? (
-            <p className="auth__fine auth__fine--tight">
-              <Link to="/login" state={{ email: email.trim() }}>
-                Log in instead
-              </Link>{" "}
-              or <Link to="/forgot-password">reset your password</Link>.
-            </p>
-          ) : null}
+            {emailTaken ? (
+              <span className="zau-hint">
+                <Link to="/login" state={{ email: email.trim() }}>
+                  Log in instead
+                </Link>{" "}
+                or <Link to="/forgot-password">reset your password</Link>.
+              </span>
+            ) : null}
+          </ZField>
 
-          <PasswordField
+          <ZPassword
             id="su-password"
             label="Password"
             value={password}
@@ -187,30 +205,32 @@ export default function SignupPage(): ReactElement {
             error={errors.password}
             autoComplete="new-password"
             inputRef={passwordRef}
+            meter
           />
 
-          <TermsCheckbox
-            id="su-terms"
-            checked={accepted}
-            onChange={(value) => {
-              setAccepted(value);
-              if (value && errors.accept_terms) setErrors((e) => ({ ...e, accept_terms: undefined }));
-            }}
-            docs={SIGNUP_DOCS}
-            dialogTitle="Before you create your account"
-            lead="I agree to Zinwe's"
-            error={errors.accept_terms}
-            inputRef={termsRef}
-            disabled={pending}
-          />
+          <div className="zau-terms">
+            <TermsCheckbox
+              id="su-terms"
+              checked={accepted}
+              onChange={(value) => {
+                setAccepted(value);
+                if (value && errors.accept_terms) setErrors((e) => ({ ...e, accept_terms: undefined }));
+              }}
+              docs={SIGNUP_DOCS}
+              dialogTitle="Before you create your account"
+              lead="I agree to the"
+              error={errors.accept_terms}
+              inputRef={termsRef}
+              disabled={pending}
+            />
+          </div>
 
           <FormAlert message={formError} />
 
-          <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
+          <button type="submit" className="zau-btn pri full" disabled={pending}>
+            {pending ? <span className="zau-spin" aria-hidden="true" /> : null}
             {pending ? "Creating your account…" : "Create account"}
-            {pending ? null : <span className="arr">→</span>}
           </button>
-          <p className="auth__fine">We'll email you a code to confirm it's you.</p>
         </form>
       )}
     </AuthShell>

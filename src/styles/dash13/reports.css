@@ -1,0 +1,735 @@
+/* Reports (board DashReports). Board classes keep their names with an rp- prefix, scoped under .zp-reports. */
+
+.zn-main:has(> .zp-reports) {
+  gap: 18px;
+}
+
+.zp-reports .rp-tab {
+  flex: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-weight: 600;
+  color: #4a443c;
+  white-space: nowrap;
+}
+
+.zp-reports .rp-tab.on {
+  color: #141210;
+  border-bottom-color: #f26a0a;
+}
+
+.zp-reports .rp-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  border-bottom: 1px solid #e7e3da;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.zp-reports .rp-segs {
+  display: inline-flex;
+  gap: 2px;
+  background: #efece5;
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.zp-reports .rp-seg {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-reports .rp-seg.on {
+  background: #fff;
+  color: #141210;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.zp-reports .rp-sel {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.zp-reports .rp-fl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zp-reports .rp-k {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-reports .rp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.zp-reports .rp-mono {
+  font-family: "Geist Mono", ui-monospace, monospace;
+}
+
+.zp-reports .rp-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tables */
+.zp-reports .rp-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.zp-reports .rp-tbl th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6459;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e7e3da;
+  white-space: nowrap;
+}
+
+.zp-reports .rp-tbl td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #f0ede6;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.zp-reports .rp-tbl tr:hover td {
+  background: #fbfaf7;
+}
+
+.zp-reports .rp-tbl tr.hl td {
+  background: #fff4ec;
+}
+
+.zp-reports .rp-ptbl {
+  min-width: 600px;
+}
+
+.zp-reports .rp-wt {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f2efe8;
+  color: #4a443c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.zp-reports .rp-lnk {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  text-align: left;
+  color: #141210;
+  text-decoration: underline;
+  text-decoration-color: #dcd6cb;
+  text-underline-offset: 3px;
+}
+
+.zp-reports .rp-lnk:hover {
+  color: #a84505;
+  text-decoration-color: #a84505;
+}
+
+.zp-reports .rp-def {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: help;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  border-radius: 4px;
+}
+
+/* Switch, icon button */
+.zp-reports .rp-toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: 0;
+  padding: 3px;
+  display: inline-flex;
+  flex: none;
+  background: #c9c1b3;
+  justify-content: flex-start;
+}
+
+.zp-reports .rp-toggle[aria-checked="true"] {
+  background: #17663f;
+  justify-content: flex-end;
+}
+
+.zp-reports .rp-toggle > span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.zp-reports .rp-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.zp-reports .rp-icbtn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0;
+}
+
+.zp-reports .rp-icbtn:hover,
+.zp-reports .rp-icbtn.on {
+  border-color: #141210;
+}
+
+/* Tiles */
+.zp-reports .rp-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@container (max-width: 620px) {
+  .zp-reports .rp-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.zp-reports .rp-tile {
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zp-reports .rp-tv {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.zp-reports .rp-tl {
+  font-size: 13px;
+  color: #4a443c;
+  font-weight: 500;
+}
+
+.zp-reports .rp-ts {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+/* Who worked when */
+.zp-reports .rp-ww-stack {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: min(52px, 64%);
+}
+
+.zp-reports .rp-ww-seg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border: 0;
+  padding: 0;
+  background-clip: padding-box;
+  transition: opacity 0.15s;
+  cursor: pointer;
+}
+
+.zp-reports .rp-ww-seg:focus-visible {
+  outline: 2px solid #141210;
+  outline-offset: 1px;
+  z-index: 2;
+}
+
+.zp-reports .rp-axl {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  font-size: 11px;
+  color: #6b6459;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.zp-reports .rp-xl {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #6b6459;
+  white-space: nowrap;
+}
+
+.zp-reports .rp-lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 0 11px 0 9px;
+  border: 1px solid #e7e3da;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.zp-reports .rp-lg:hover {
+  border-color: #141210;
+}
+
+.zp-reports .rp-lg.on {
+  border-color: #141210;
+  box-shadow: inset 0 0 0 1px #141210;
+}
+
+/* Performance */
+.zp-reports .rp-pcol {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 8px;
+}
+
+.zp-reports .rp-pcol:hover {
+  background: #fbf4ec;
+}
+
+.zp-reports .rp-pcol.on {
+  background: #fdebdc;
+}
+
+.zp-reports .rp-pname {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #4a443c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zp-reports .rp-pname.on {
+  color: #141210;
+  font-weight: 700;
+}
+
+.zp-reports .rp-li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid #f4f1eb;
+  font-size: 13px;
+}
+
+.zp-reports .rp-li:first-of-type {
+  border-top: 0;
+}
+
+/* Schedules, sent */
+.zp-reports .rp-srow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid #f0ede6;
+}
+
+.zp-reports .rp-isel {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid #dcd6cb;
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 600;
+}
+
+.zp-reports .rp-isel:hover {
+  border-color: #141210;
+}
+
+.zp-reports .rp-emails {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 34px;
+  padding: 3px 6px;
+  border: 1px solid #dcd6cb;
+  border-radius: 8px;
+  background: #fff;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.zp-reports .rp-emails:focus-within {
+  border-color: #141210;
+}
+
+.zp-reports .rp-emails input {
+  border: 0;
+  outline: 0;
+  min-width: 130px;
+  flex: 1;
+  font-size: 13px;
+  padding: 4px 2px;
+  background: transparent;
+}
+
+.zp-reports .rp-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px dashed #c9c1b3;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.zp-reports .rp-preset:hover:not(:disabled) {
+  border: 1px solid #141210;
+}
+
+.zp-reports .rp-preset:disabled {
+  background: #f7f6f2;
+  border-style: solid;
+  border-color: #e7e3da;
+  color: #6b6459;
+  cursor: default;
+}
+
+/* Calendar pop-over */
+.zp-reports .rp-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 304px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  box-shadow: 0 14px 36px rgba(20, 18, 16, 0.16);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-weight: 400;
+  outline: none;
+}
+
+.zp-reports .rp-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px 0;
+}
+
+.zp-reports .rp-wk {
+  font-size: 11px;
+  color: #6b6459;
+  text-align: center;
+  padding-bottom: 2px;
+}
+
+.zp-reports .rp-cd {
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 0;
+}
+
+.zp-reports .rp-cd:hover:not(:disabled) {
+  background: #f2efe8;
+}
+
+.zp-reports .rp-cd:disabled {
+  color: #cfc8bb;
+  cursor: default;
+}
+
+.zp-reports .rp-cd.today {
+  box-shadow: inset 0 0 0 1px #141210;
+}
+
+.zp-reports .rp-cd.in {
+  background: #fdebdc;
+  border-radius: 0;
+}
+
+.zp-reports .rp-cd.edge {
+  background: #f26a0a;
+  color: #141210;
+  font-weight: 700;
+}
+
+.zp-reports .rp-cd.blank {
+  visibility: hidden;
+}
+
+.zp-reports .rp-chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e7e3da;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.zp-reports .rp-chip:hover {
+  border-color: #141210;
+}
+
+.zp-reports .rp-nav {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e7e3da;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zp-reports .rp-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Download menu */
+.zp-reports .rp-dlwrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.zp-reports .rp-dlmenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px -16px rgba(13, 13, 14, 0.28);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.zp-reports .rp-dlmenu button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.zp-reports .rp-dlmenu button:hover,
+.zp-reports .rp-dlmenu button:focus-visible {
+  background: #f7f6f2;
+}
+
+.zp-reports .rp-dlmenu button span {
+  font-weight: 400;
+  font-size: 12px;
+  color: #6b6358;
+}
+
+/* Phone-only pieces: cards in place of tables, the "Show chart" button and the sticky Email report bar. */
+.zp-reports .rp-ph-only {
+  display: none;
+}
+
+.zp-reports .rp-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px 12px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-reports .rp-pcard {
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zp-reports .rp-pcard.hl {
+  background: #fff4ec;
+  border-color: #f3c7a6;
+}
+
+.zp-reports .rp-pcard dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+
+.zp-reports .rp-pcard dl div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.zp-reports .rp-pcard dt {
+  font-size: 12px;
+  color: #6b6358;
+}
+
+.zp-reports .rp-pcard dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.zp-reports .rp-sticky {
+  position: sticky;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 5;
+  padding: 10px 60px 10px 0;
+  background: linear-gradient(rgba(247, 246, 242, 0), #f7f6f2 30%);
+}
+
+.zp-reports .rp-sticky .z-btn {
+  width: 100%;
+  min-height: 44px;
+}
+
+@media (max-width: 760px) {
+  .zp-reports .rp-ph-only {
+    display: block;
+  }
+
+  .zp-reports .rp-cards.rp-ph-only {
+    display: flex;
+  }
+
+  .zp-reports .rp-ph-hide {
+    display: none !important;
+  }
+
+  .zp-reports .rp-shut {
+    display: none !important;
+  }
+
+  .zp-reports .rp-esheet {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 120;
+    border-radius: 16px 16px 0 0 !important;
+    border-width: 1px 0 0 !important;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom)) !important;
+    box-shadow: 0 -16px 40px -16px rgba(13, 13, 14, 0.35);
+  }
+
+  .zp-reports .rp-esheet .z-btn {
+    flex: 1 1 40%;
+    min-height: 44px;
+  }
+
+  .zp-reports .rp-dlmenu {
+    left: 0;
+    right: auto;
+  }
+
+  .zp-reports .rp-pop {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    top: auto !important;
+    bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+    z-index: 120;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+  }
+
+  .zp-reports .rp-srow .z-btn,
+  .zp-reports .rp-preset,
+  .zp-reports .rp-tab {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-reports .rp-ww-seg,
+  .zp-reports .rp-lg {
+    transition: none;
+  }
+}

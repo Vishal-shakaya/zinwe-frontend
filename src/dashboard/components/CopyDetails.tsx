@@ -2,43 +2,35 @@ import { useEffect, useState, type ReactElement } from "react";
 import { copyText } from "../../lib/clipboard";
 import type { Member } from "../../lib/api";
 import { buildInviteText } from "../features/invite";
-import { DashIcon } from "./DashIcon";
 
 interface CopyDetailsProps {
-  member: Member;
-  companyName?: string | null;
-  /** Compact look for the per-row actions; omit for the larger created-panel. */
-  small?: boolean;
+  member: Pick<Member, "name" | "email" | "member_id">;
+  /** Told what happened ("All three steps copied…"), for the status line under the steps. */
+  onCopied?: (ok: boolean) => void;
 }
 
 /**
- * "Copy details": a member's connect instructions (download link, email, ID) to paste anywhere. The old
- * "Share on text" button is gone (FR-11): the details are emailed to them, and copying covers the rest.
+ * "Copy all" (DashTeam, Add a person → done): the three setup steps for a new person, to paste anywhere.
  */
-export function CopyDetails({ member, companyName, small }: CopyDetailsProps): ReactElement {
-  const [copied, setCopied] = useState<"idle" | "ok" | "fail">("idle");
+export function CopyDetails({ member, onCopied }: CopyDetailsProps): ReactElement {
+  const [copied, setCopied] = useState(false);
+  const first = member.name.trim().split(/\s+/)[0] || member.name;
 
   useEffect(() => {
-    if (copied === "idle") return;
-    const id = window.setTimeout(() => setCopied("idle"), 2200);
+    if (!copied) return;
+    const id = window.setTimeout(() => setCopied(false), 2200);
     return () => window.clearTimeout(id);
   }, [copied]);
 
   const onCopy = async () => {
-    setCopied((await copyText(buildInviteText(member, companyName))) ? "ok" : "fail");
+    const ok = await copyText(buildInviteText(member));
+    setCopied(ok);
+    onCopied?.(ok);
   };
 
   return (
-    <button
-      type="button"
-      className={`btn btn--ghost ${small ? "dash-btn-sm" : ""} ${copied === "ok" ? "is-copied" : ""}`.trim()}
-      onClick={onCopy}
-      aria-label={`Copy connect details for ${member.name}`}
-    >
-      <DashIcon name={copied === "ok" ? "check" : "copy"} />
-      <span aria-live="polite">
-        {copied === "ok" ? "Copied" : copied === "fail" ? "Select and copy instead" : "Copy details"}
-      </span>
+    <button type="button" className="z-btn sm dark" onClick={() => void onCopy()} aria-label={`Copy all three steps for ${first}`}>
+      {copied ? "Copied" : "Copy all"}
     </button>
   );
 }

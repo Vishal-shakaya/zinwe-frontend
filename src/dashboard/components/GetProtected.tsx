@@ -4,12 +4,12 @@ import type { Member } from "../../lib/api";
 import { cx } from "../../lib/cx";
 import { AGENT_MSI_URL } from "../../content/download";
 import { consentOf } from "../features/memberStatus";
-import { DashIcon, type DashIconName } from "./DashIcon";
+import { ZIcon, type IconName } from "../ui/ZIcon";
 
 interface Step {
   title: string;
   body: string;
-  icon: DashIconName;
+  icon: IconName;
   done: boolean;
 }
 
@@ -57,7 +57,7 @@ export function GetProtected({
     {
       title: "Choose what to protect",
       body: "Online protection, Data safety and App monitoring start with safe settings. Change them any time.",
-      icon: "shield",
+      icon: "protection",
       done: rulesChanged,
     },
   ];
@@ -65,34 +65,44 @@ export function GetProtected({
   const next = steps.findIndex((s) => !s.done);
 
   return (
-    <section className="dash-card gp" aria-labelledby="gp-title">
-      <div className="dash-card__head dash-card__head--split">
-        <div>
-          <h2 className="dash-card__title" id="gp-title">
+    <section className="z-card zn-gp" aria-labelledby="gp-title">
+      <div className="zn-gp-head">
+        <div style={{ minWidth: 0 }}>
+          <h2 id="gp-title" style={{ margin: 0, fontSize: 17 }}>
             Get protected in four steps
           </h2>
-          <p className="dash-card__sub">
+          <span style={{ fontSize: 13, color: "#4A443C" }}>
             About 5 minutes per PC. No IT skills needed. ·{" "}
-            <b>
+            <b className="z-num">
               {maxDevices > 0 ? `${connected} of ${maxDevices} PCs connected` : `${connected} ${connected === 1 ? "PC" : "PCs"} connected`}
             </b>
-          </p>
+          </span>
         </div>
-        <span className="gp__count" aria-label={`${doneCount} of 4 steps done`}>
-          {doneCount}/4
+        <span className="z-pill orange z-num" aria-label={`${doneCount} of 4 steps done`}>
+          {doneCount} of 4 done
         </span>
       </div>
+      <div
+        role="progressbar"
+        aria-label="Setup progress"
+        aria-valuemin={0}
+        aria-valuemax={4}
+        aria-valuenow={doneCount}
+        className="zn-ov-bar"
+      >
+        <span style={{ width: `${doneCount * 25}%` }} />
+      </div>
 
-      <ol className="gp__steps">
+      <ol className="zn-gp-steps">
         {steps.map((step, i) => (
-          <li key={step.title} className={cx("gp__step", step.done && "is-done", i === next && "is-next")}>
-            <span className="gp__num" aria-hidden="true">
-              {step.done ? <DashIcon name="check" /> : i + 1}
+          <li key={step.title} className={cx("zn-gp-step", step.done && "is-done", i === next && "is-next")}>
+            <span className="zn-gp-num" aria-hidden="true">
+              {step.done ? <ZIcon name="check" size={14} stroke={2.6} /> : i + 1}
             </span>
-            <span className="gp__text">
+            <span className="zn-gp-text">
               <b>
                 {step.title}
-                {step.done ? <span className="dash-sr"> (done)</span> : null}
+                {step.done ? <span className="z-sr"> (done)</span> : null}
               </b>
               <small>{step.body}</small>
             </span>
@@ -100,35 +110,35 @@ export function GetProtected({
         ))}
       </ol>
 
-      <div className="gp__actions">
+      <div className="zn-gp-acts">
         {next === 0 || next === -1 ? (
-          <Link className="btn btn--primary" to="/app/team?add=1">
-            <DashIcon name="plus" />
+          <Link className="z-btn sm pri" to="/app/team#add=1">
+            <ZIcon name="plus" size={15} stroke={2.2} />
             Add your first person
           </Link>
         ) : next === 1 ? (
           <>
-            <a className="btn btn--primary" href={AGENT_MSI_URL} download>
-              <DashIcon name="download" />
+            <a className="z-btn sm pri" href={AGENT_MSI_URL} download>
+              <ZIcon name="download" size={15} stroke={2.2} />
               Download Zinwe (Windows)
             </a>
-            <Link className="btn btn--ghost" to="/app/team">
-              {waitingName ? `Share ${waitingName}'s ID` : "Open Team & devices"}
+            <Link className="z-btn sm" to="/app/team">
+              {waitingName ? `Share ${waitingName}'s ID` : "Open Team & PCs"}
             </Link>
           </>
         ) : next === 2 ? (
-          <Link className="btn btn--primary" to="/app/team">
-            <DashIcon name="team" />
+          <Link className="z-btn sm pri" to="/app/team">
+            <ZIcon name="team" size={15} />
             See who still needs to agree
           </Link>
         ) : (
-          <Link className="btn btn--primary" to="/app/data">
-            <DashIcon name="shield" />
+          <Link className="z-btn sm pri" to="/app/rules">
+            <ZIcon name="protection" size={15} />
             Set up protection
           </Link>
         )}
         {next > 0 ? (
-          <Link className="dash-link" to="/app/team?add=1">
+          <Link to="/app/team#add=1" style={{ fontSize: 13, fontWeight: 600 }}>
             Add another person
           </Link>
         ) : null}

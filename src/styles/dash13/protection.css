@@ -1,0 +1,1253 @@
+/* Protection boards v1.3 (DashOnline, DashData, DashApps) + the restyled shared StatTiles, PlanLock and
+   MetricsDisclosure. Board classes keep their names with a zp- prefix; page roots are .zp-online / .zp-data /
+   .zp-apps under .zp-prot. Values are the boards' inline styles. */
+
+.zp-prot {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* ---------- Phone sub-tabs (DashSubNav, group protection) ---------- */
+.zp-subnav {
+  gap: 4px;
+  width: 100%;
+  overflow-x: auto;
+  border-bottom: 1px solid #e7e3da;
+  scrollbar-width: none;
+}
+
+.zp-subnav::-webkit-scrollbar {
+  display: none;
+}
+
+.zp-subtab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-bottom: 2px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #4a443c !important;
+}
+
+.zp-subtab.on {
+  color: #141210 !important;
+  border-bottom-color: #f26a0a;
+}
+
+/* ---------- Header filters ---------- */
+.zp-filt {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.zp-sel {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+  color: #141210;
+  max-width: 220px;
+}
+
+.zp-sel.lg {
+  min-height: 44px;
+  width: 100%;
+  max-width: none;
+}
+
+.zp-fl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a443c;
+}
+
+.zp-ta {
+  width: 100%;
+  min-height: 112px;
+  padding: 10px 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 400;
+  color: #141210;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.zn-dialog .zp-ta {
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.zp-acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Scope banner (one person picked) ---------- */
+.zp-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-banner.warn {
+  background: #fbf0d9;
+  border-color: #f0dcae;
+  color: #5c3a00;
+}
+
+.zp-banner b {
+  color: #141210;
+  font-weight: 600;
+}
+
+.zp-banner.warn b {
+  color: #5c3a00;
+}
+
+.zp-banner__avatar {
+  display: inline-flex;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  background: #fdebdc;
+  color: #8a3a04;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.zp-banner__text {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* ---------- Tiles ---------- */
+.zp-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.zp-data .zp-tiles {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.zp-apps .zp-tiles {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.zp-tile {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.zp-data .zp-tile,
+.zp-apps .zp-tile {
+  padding: 16px;
+}
+
+.zp-tile__lbl {
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-tile__val {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.zp-data .zp-tile__val,
+.zp-apps .zp-tile__val {
+  font-size: 28px;
+}
+
+.zp-tile__sub {
+  font-size: 12px;
+  color: #6b6459;
+  font-variant-numeric: tabular-nums;
+}
+
+/* An info-only anchor (definition in the shared tooltip). */
+.zp-def {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: help;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.zp-tile__lbl.zp-def {
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-def.z-pill {
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- Cards, headings ---------- */
+.zp-h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.zp-note {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-empty-line {
+  margin: 0;
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zp-chart-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* The board's .seg (Data / Time, This week / Last week). */
+.zp-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.zp-seg button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-seg.sm button {
+  min-height: 30px;
+}
+
+.zp-seg button[aria-pressed="true"] {
+  background: #141210;
+  color: #fff;
+}
+
+/* ---------- Online: chart ---------- */
+.zp-chartcard {
+  padding: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.zp-chartmain {
+  flex: 999 1 480px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-gl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #efece5;
+}
+
+.zp-ax {
+  position: absolute;
+  top: -8px;
+  right: calc(100% + 8px);
+  font-size: 11px;
+  line-height: 16px;
+  color: #6b6459;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.zp-col {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.zp-col::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed #d9d4ca;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.zp-col:hover::before,
+.zp-col:focus-within::before {
+  opacity: 1;
+}
+
+.zp-hit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.zp-col:hover .zp-hit,
+.zp-hit:focus-visible {
+  background: rgba(20, 18, 16, 0.03);
+}
+
+.zp-stk {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #f26a0a 0%, #f58a3c 100%);
+  border-radius: 6px 6px 2px 2px;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+}
+
+.zp-col:hover .zp-stk,
+.zp-hit:focus-visible .zp-stk {
+  background: #c85407;
+}
+
+.zp-stk.t {
+  background: #141210;
+}
+
+.zp-col:hover .zp-stk.t,
+.zp-hit:focus-visible .zp-stk.t {
+  background: #3a352e;
+}
+
+.zp-stk.dim {
+  opacity: 0.35;
+}
+
+.zp-val {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Most time */
+.zp-most {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-most__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zp-most__list li {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 0;
+  border-top: 1px solid #f0ede6;
+}
+
+.zp-tag {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  background: #efece5;
+  color: #141210;
+}
+
+.zp-tag.site {
+  background: #fdebdd;
+  color: #a84505;
+}
+
+.zp-bar {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: #f2efe8;
+}
+
+.zp-bar > span {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: #f26a0a;
+}
+
+.zp-bar.t5bar {
+  margin-top: 5px;
+}
+
+/* Rule bar */
+.zp-rulebar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #141210 !important;
+}
+
+.zp-rulebar:hover {
+  border-color: #dcd6cb;
+  background: #fbfaf7;
+}
+
+/* ---------- Tables (Websites, Biggest transfers) ---------- */
+.zp-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.zp-tablecard {
+  flex: 999 1 560px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.zp-side {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.zp-tablehead {
+  padding: 14px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.zp-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+}
+
+.zp-search:focus-within {
+  border-color: #f26a0a;
+  box-shadow: 0 0 0 3px #fdebdc;
+}
+
+.zp-search input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  width: 160px;
+  min-height: 34px;
+}
+
+.zp-tbl-wrap {
+  overflow-x: auto;
+}
+
+.zp-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.zp-tbl th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6459;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e7e3da;
+  white-space: nowrap;
+}
+
+.zp-tbl td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0ede6;
+  vertical-align: middle;
+}
+
+.zp-foot {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #6b6459;
+  border-top: 1px solid #f0ede6;
+}
+
+.zp-blocked,
+.zp-rules {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-blocked__row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-top: 1px solid #f0ede6;
+  padding-top: 10px;
+}
+
+.zp-rule {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid #f0ede6;
+  padding-top: 10px;
+}
+
+/* ---------- Data: Where data went ---------- */
+.zp-where {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.zp-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #dcd6cb;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.zp-leg.off {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.zp-sw {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.zp-drow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.zp-dcol {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  transition: opacity 0.15s;
+}
+
+.zp-dcol:hover,
+.zp-dcol:focus-visible {
+  background: rgba(242, 106, 10, 0.05);
+}
+
+.zp-dcol.dim {
+  opacity: 0.35;
+}
+
+.zp-dstack {
+  width: 100%;
+  max-width: 56px;
+  display: flex;
+  flex-direction: column-reverse;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+
+.zp-fu {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.zp-st {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Apps ---------- */
+.zp-privacy {
+  margin: 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-top5card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.zp-t5 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 96px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #f0ede6;
+}
+
+.zp-t5.head {
+  padding: 0 0 6px;
+  border-top: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6459;
+}
+
+.zp-badge {
+  display: inline-flex;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #141210;
+}
+
+.zp-duo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.zp-duo > .z-card {
+  flex: 1 1 440px;
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zp-lgrow {
+  display: flex;
+  gap: 6px 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  color: #4a443c;
+}
+
+.zp-lg {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.zp-lp-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.zp-mini-in {
+  position: relative;
+  padding-left: 32px;
+  min-width: 424px;
+}
+
+.zp-lp-col {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: center;
+}
+
+.zp-lp-col:hover,
+.zp-lp-col:focus-visible {
+  background: rgba(242, 106, 10, 0.05);
+}
+
+.zp-lp-col[aria-pressed="true"] {
+  background: rgba(242, 106, 10, 0.09);
+}
+
+.zp-lp-col[aria-pressed="true"] .zp-lp-lab b {
+  color: #a84505;
+}
+
+.zp-lp-plot {
+  display: block;
+  position: relative;
+  height: 170px;
+  transition: opacity 0.15s;
+}
+
+.zp-lp-col.dim > .zp-lp-plot {
+  opacity: 0.35;
+}
+
+.zp-lp-lab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px 6px;
+  min-width: 0;
+}
+
+.zp-listhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+
+.zp-listhead h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a443c;
+}
+
+.zp-ev {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #f0ede6;
+}
+
+.zp-ev .m {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+/* ---------- StatTiles (shared, restyled to the board tile) ---------- */
+.zst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.zst--wide {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.zst__tile {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.zst__tile.is-link {
+  padding: 0;
+}
+
+.zst__tile.is-link:hover {
+  border-color: #dcd6cb;
+  background: #fbfaf7;
+}
+
+.zst__link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: #141210 !important;
+}
+
+.zst__lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zst__lbl svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.zst__val {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  color: #141210;
+}
+
+.zst__tile.is-good .zst__val {
+  color: #17663f;
+}
+
+.zst__tile.is-warn .zst__val {
+  color: #8a5300;
+}
+
+.zst__tile.is-bad .zst__val {
+  color: #c0331c;
+}
+
+/* ---------- PlanLock (shared) ---------- */
+.zlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 16px;
+  padding: 20px;
+}
+
+.zlock--compact {
+  padding: 16px;
+  gap: 12px 14px;
+}
+
+.zlock__mark {
+  display: inline-flex;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  background: #fdebdc;
+  color: #8a3a04;
+  align-self: flex-start;
+}
+
+.zlock--compact .zlock__mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.zlock__text {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.zlock__title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.zlock--compact .zlock__title {
+  font-size: 15px;
+}
+
+.zlock__body {
+  margin-top: 2px;
+  font-size: 14px;
+  color: #4a443c;
+}
+
+.zlock--compact .zlock__body {
+  font-size: 13px;
+}
+
+.zlock__plan {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zlock__plan b {
+  color: #141210;
+}
+
+/* ---------- MetricsDisclosure (shared) ---------- */
+.zdisc > summary {
+  list-style: none;
+}
+
+.zdisc > summary::-webkit-details-marker {
+  display: none;
+}
+
+.zdisc__sum {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  border-radius: 16px;
+}
+
+.zdisc__sum:hover {
+  background: #fbfaf7;
+}
+
+.zdisc__mark {
+  display: inline-flex;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zdisc__title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.zdisc__sub {
+  display: block;
+  font-size: 12.5px;
+  color: #6b6459;
+}
+
+.zdisc__chev {
+  display: inline-flex;
+  flex: none;
+  color: #4a443c;
+  transition: transform 0.15s;
+}
+
+.zdisc[open] .zdisc__chev {
+  transform: rotate(180deg);
+}
+
+.zdisc__cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  padding: 0 16px 16px 60px;
+}
+
+.zdisc__h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zdisc__h.ok {
+  color: #17663f;
+}
+
+.zdisc__h.no {
+  color: #c0331c;
+}
+
+.zdisc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.zdisc__list li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 0;
+  border-top: 1px solid #f0ede6;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zdisc__list b {
+  font-weight: 600;
+  color: #141210;
+}
+
+/* ---------- Phone (board rules, max-width 760px) ---------- */
+@media (max-width: 760px) {
+  .zp-prot {
+    gap: 16px;
+  }
+
+  .zp-tiles,
+  .zp-data .zp-tiles,
+  .zp-apps .zp-tiles,
+  .zst {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .zp-tile__val,
+  .zst__val {
+    font-size: 20px !important;
+  }
+
+  .zp-data .zp-tile__val,
+  .zp-apps .zp-tile__val {
+    font-size: 22px !important;
+  }
+
+  .zp-chartcard {
+    padding: 14px;
+  }
+
+  .zp-plot {
+    margin-left: 40px !important;
+  }
+
+  .zp-search {
+    flex: 1 1 100%;
+  }
+
+  .zp-search input {
+    width: 100%;
+  }
+
+  .zp-drow {
+    gap: 4px;
+  }
+
+  /* Tables become stacked cards: one card per row, label: value pairs. */
+  .zp-tbl-wrap {
+    overflow: visible;
+  }
+
+  .zp-tbl {
+    min-width: 0;
+  }
+
+  .zp-tbl thead {
+    display: none;
+  }
+
+  .zp-tbl,
+  .zp-tbl tbody,
+  .zp-tbl tr,
+  .zp-tbl td {
+    display: block;
+  }
+
+  .zp-tbl tr {
+    margin: 0 12px 10px;
+    padding: 6px 12px;
+    border: 1px solid #e7e3da;
+    border-radius: 12px;
+  }
+
+  .zp-tbl td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border: 0;
+    text-align: right !important;
+  }
+
+  .zp-tbl td + td {
+    border-top: 1px solid #f0ede6;
+  }
+
+  .zp-tbl td::before {
+    content: attr(data-label);
+    flex: none;
+    color: #6b6459;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .zp-tbl td.fu {
+    flex-wrap: wrap;
+  }
+
+  .zp-duo > .z-card {
+    flex-basis: 100%;
+    padding: 14px !important;
+  }
+
+  .zp-t5 {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+  }
+
+  .zp-t5 .t5bar {
+    display: none;
+  }
+
+  /* Mini charts shrink to the card width (no sideways scroll); the summary line above each keeps the totals. */
+  .zp-mini-in {
+    min-width: 0;
+  }
+
+  .zp-lp-col {
+    min-width: 0;
+  }
+
+  .zp-lp-sub {
+    display: none;
+  }
+
+  .zp-ev .z-btn,
+  .zp-fu .z-btn {
+    min-height: 40px;
+  }
+
+  .zp-seg button,
+  .zp-leg {
+    min-height: 40px;
+  }
+
+  .zdisc__cols {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 16px 16px;
+  }
+
+  .zlock .z-btn {
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+
+  .zp-subnav {
+    display: flex !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-stk,
+  .zp-dcol,
+  .zp-lp-plot,
+  .zdisc__chev {
+    transition: none;
+  }
+}

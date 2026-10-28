@@ -4,7 +4,7 @@
  * a sensible first draft, and each has a default urgency. Alert tags adapt to
  * the alert (the tool, website or app involved).
  */
-import type { DeviceEvent, EventSeverity } from "../../lib/api";
+import type { DeviceEvent, EventSeverity, MessageChannel } from "../../lib/api";
 import type { DashIconName } from "../components/DashIcon";
 import { subjectOf, detailOf } from "./alertGroups";
 import { eventMeta, type FeatureKey } from "./events";
@@ -193,4 +193,26 @@ export function subjectLine(tag: MessageTag | null, event: DeviceEvent | null, f
   const alert = event ? eventMeta(event.type).label : null;
   const parts = [tag ? (tag.subject ?? tag.label) : null, alert].filter(Boolean) as string[];
   return (parts.length ? parts.join(" · ") : fallback).slice(0, 120);
+}
+
+/** How a note reaches the person (same values as the API's MessageChannel). */
+export const DELIVERIES: ReadonlyArray<{ value: MessageChannel; label: string; icon: DashIconName; note: string }> = [
+  { value: "chat", label: "Chat", icon: "chat", note: "The Zinwe widget on their PC" },
+  { value: "chat_email", label: "Chat + email", icon: "share", note: "Their PC, plus a copy in their inbox" },
+  { value: "email", label: "Email only", icon: "mail", note: "Their inbox only, not their PC" },
+];
+
+/** A draft as a one-line preview: without the "Hi Asha, " greeting, capitalised; open-ended drafts end in "…". */
+export function draftPreview(draft: string): string {
+  const text = draft.replace(/^Hi [^,]+, /, "").trim();
+  const capital = text.charAt(0).toUpperCase() + text.slice(1);
+  return capital.endsWith(":") ? `${capital} …` : capital;
+}
+
+/**
+ * Until the owner picks "Send via" themselves, a Normal note goes to the widget only and an Important or
+ * Urgent one also by email, so "Thanks, noted" never lands in someone's inbox (J5-14).
+ */
+export function deliveryFor(urgency: Urgency): MessageChannel {
+  return urgency === "info" ? "chat" : "chat_email";
 }

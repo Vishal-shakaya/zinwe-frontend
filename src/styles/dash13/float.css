@@ -1,0 +1,1669 @@
+/* Owner dashboard v1.3 — the floating corner and shell overlays (boards DashFloat, CompChatBubble, CompNotify,
+   CompOfferBar) + the dialog look for Modal / Tour (.zn-dialog). Values are the boards' exact inline styles.
+   The floating corner (.zf-wrap) is portalled to <body> (src/dashboard/float/slots.ts), outside .zd, so it carries
+   its own font and the token aliases the older chat components (MemberChat, TaggedComposer) read. */
+
+/* ---------- The floating corner ---------- */
+
+.zf-wrap {
+  --ink: #141210;
+  --paper: #f7f6f2;
+  --line: #e7e3da;
+  --orange: #f26a0a;
+  --orange-text: #a84505;
+  --orange-tint: #fdebdc;
+  --orange-ink: #8a3a04;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 90;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 12px;
+  font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #141210;
+  /* The box itself never blocks the page behind it; only its pieces take clicks. */
+  pointer-events: none;
+}
+
+.zf-wrap *,
+.zf-wrap *::before,
+.zf-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* Zero-specificity resets, so every class below wins. */
+:where(.zf-wrap) :where(button, select, textarea, input) {
+  font: inherit;
+  color: inherit;
+}
+
+:where(.zf-wrap) :where(button) {
+  cursor: pointer;
+}
+
+.zf-wrap :focus-visible {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
+}
+
+.zf-win,
+.zf-panel,
+.zf-supwrap,
+.zf-fab,
+.zf-toast,
+.zf-dtoast {
+  pointer-events: auto;
+}
+
+.zf-dock {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.zf-dock:empty {
+  display: none;
+}
+
+.zf-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.zf-slot {
+  display: contents;
+}
+
+.zf-fabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.zf-toasts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.zf-toasts:empty {
+  display: none;
+}
+
+/* ---------- Round buttons: Chat (orange) and Support (dark) ---------- */
+
+.zf-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 0;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -10px rgba(20, 18, 16, 0.45);
+  position: relative;
+}
+
+.zf-chat {
+  background: #f26a0a;
+  color: #141210 !important;
+}
+
+.zf-chat:hover {
+  background: #e86402;
+}
+
+.zf-sup {
+  background: #141210;
+  color: #fff !important;
+}
+
+.zf-sup:hover {
+  background: #2a2622;
+}
+
+.zf-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #c0331c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.zf-supwrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.zf-hide {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #e7e3da;
+  background: #fff;
+  color: #3a352e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.zf-hide::after {
+  content: "";
+  position: absolute;
+  inset: -11px;
+}
+
+.zf-hide:hover {
+  background: #f2efe8;
+}
+
+@media (max-width: 760px) {
+  /* Next to a 44 px round button the × keeps a smaller hit area, so it never covers the button's centre. */
+  .zf-hide::after {
+    inset: -5px;
+  }
+}
+
+/* ---------- Panels (Chat list, Support) ---------- */
+
+.zf-panel {
+  width: 360px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: zf-in 0.18s ease-out;
+}
+
+.zf-panel--chat {
+  height: 500px;
+  max-height: calc(100vh - 120px);
+}
+
+.zf-panel--sup {
+  max-height: 520px;
+}
+
+.zf-phead {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f0ede6;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zf-phead b {
+  font-size: 15px;
+}
+
+.zf-phead small {
+  font-size: 12.5px;
+  color: #6b6358;
+}
+
+.zf-plist {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zf-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+  text-align: left;
+  color: #141210;
+}
+
+.zf-row:hover {
+  background: #f7f6f2;
+}
+
+.zf-row--sk:hover {
+  background: transparent;
+}
+
+.zf-av {
+  position: relative;
+  flex: none;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.zf-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.zf-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.zf-who b {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zf-who small {
+  font-size: 12px;
+  color: #6b6358;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zf-count {
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #c0331c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zf-pall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border-top: 1px solid #f0ede6;
+  color: #a84505 !important;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.zf-pall:hover {
+  background: #fbfaf7;
+}
+
+.zf-pempty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #4a443c;
+}
+
+.zf-pempty b {
+  color: #141210;
+  font-size: 15px;
+}
+
+/* Support */
+
+.zf-shead {
+  padding: 12px 12px 10px 16px;
+  border-bottom: 1px solid #f0ede6;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.zf-sicon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: #3a352e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.zf-sicon:hover {
+  background: #f2efe8;
+}
+
+.zf-stitle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zf-stitle b {
+  font-size: 15px;
+}
+
+.zf-stitle small {
+  font-size: 12.5px;
+  color: #6b6358;
+}
+
+.zf-sbody {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+form.zf-sbody {
+  gap: 10px;
+}
+
+.zf-sintro {
+  margin: 0;
+  font-size: 14px;
+  color: #3a352e;
+}
+
+.zf-sbtn {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 0;
+  background: #f26a0a;
+  color: #141210 !important;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.zf-sbtn:hover {
+  background: #e86402;
+}
+
+.zf-sbtn.is-off {
+  background: #efece5;
+  color: #6b6358 !important;
+  cursor: not-allowed;
+}
+
+.zf-slbl {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #6b6358;
+}
+
+.zf-slist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zf-tk {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #f0ede6;
+  background: #fff;
+  text-align: left;
+  color: #141210;
+}
+
+.zf-tk:hover {
+  background: #f7f6f2;
+}
+
+.zf-tk--sk:hover {
+  background: #fff;
+}
+
+.zf-tk__txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zf-tk__txt b {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.zf-tk.is-unread .zf-tk__txt b {
+  font-weight: 700;
+}
+
+.zf-tk__txt small {
+  font-size: 12px;
+  color: #6b6358;
+}
+
+.zf-spill {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #efece5;
+  color: #4a443c;
+}
+
+.zf-spill.green {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zf-spill.amber {
+  background: #fbf0d9;
+  color: #8a5300;
+}
+
+.zf-slink {
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: #a84505 !important;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.zf-slink:hover {
+  text-decoration: underline;
+}
+
+.zf-serr {
+  margin: 0;
+  font-size: 13px;
+  color: #c0331c;
+}
+
+.zf-sfield {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zf-sfield textarea,
+.zf-sfield select {
+  font-size: 14px;
+  font-weight: 400;
+  border: 1px solid #d9d3c7;
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #141210;
+  width: 100%;
+}
+
+.zf-sfield textarea {
+  resize: vertical;
+}
+
+.zf-ssend {
+  position: relative;
+  align-self: flex-end;
+}
+
+.zf-tip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 12px 40px -16px rgba(13, 13, 14, 0.28);
+  font-size: 13px;
+  color: #141210;
+  width: max-content;
+  max-width: 240px;
+  pointer-events: none;
+}
+
+.zf-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 18px;
+  border: 6px solid transparent;
+  border-top-color: #fff;
+  filter: drop-shadow(0 1px 0 #e7e3da);
+}
+
+.zf-sthread {
+  gap: 10px;
+  flex: 1;
+}
+
+.zf-ssubj {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.zf-ssubj b {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.zf-smsg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  max-width: 88%;
+}
+
+.zf-smsg span {
+  font-size: 14px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.zf-smsg small {
+  font-size: 11.5px;
+  color: #6b6358;
+}
+
+.zf-smsg.is-me {
+  background: #fdebdc;
+  align-self: flex-end;
+}
+
+.zf-smsg.is-them {
+  background: #f7f6f2;
+  align-self: flex-start;
+}
+
+.zf-sreply {
+  flex: none;
+  padding: 8px 10px 10px;
+  border-top: 1px solid #f0ede6;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Message box (Support reply): the rounded .zf-cbox is the field; the textarea has no border, ring or handle. */
+.zf-cbox {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 4px 4px 4px 8px;
+  border: 1px solid #d9d3c7;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.zf-cbox:focus-within {
+  border-color: #f26a0a;
+  box-shadow: 0 0 0 3px #fdebdc;
+}
+
+textarea.zf-msg {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 36px;
+  min-height: 36px;
+  max-height: 110px;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0;
+  outline: none !important;
+  box-shadow: none;
+  resize: none;
+  padding: 8px 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #141210;
+  background: transparent;
+  overflow-y: auto;
+  scrollbar-width: none;
+  field-sizing: content;
+  appearance: none;
+}
+
+textarea.zf-msg::-webkit-scrollbar {
+  display: none;
+}
+
+textarea.zf-msg::placeholder {
+  color: #8a8276;
+  opacity: 1;
+}
+
+.zf-send {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: #f26a0a;
+  color: #141210 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.zf-send:hover {
+  background: #e86402;
+}
+
+.zf-send:disabled {
+  background: #efece5;
+  color: #8a8276 !important;
+  cursor: not-allowed;
+}
+
+/* The dark one-line note (DashFloat toast: "Support button hidden…" with Undo). */
+.zf-dtoast {
+  background: #141210;
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  max-width: 300px;
+  box-shadow: 0 12px 30px -10px rgba(20, 18, 16, 0.45);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  animation: zf-in 0.18s ease-out;
+}
+
+.zf-dtoast button {
+  border: 0;
+  background: transparent;
+  color: #fdb37a !important;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ---------- Toast (CompNotify) ---------- */
+
+.zf-toast {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: zf-in 0.18s ease-out;
+}
+
+.zf-toast.need,
+.zf-toast.error {
+  border: 1.5px solid #141210;
+}
+
+.zf-toast__row {
+  display: flex;
+  gap: 10px;
+  padding: 9px 8px 9px 10px;
+  align-items: flex-start;
+}
+
+.zf-toast__ico {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1f8a4c;
+  color: #fff;
+}
+
+.zf-toast.info .zf-toast__ico {
+  background: #2563eb;
+}
+
+.zf-toast.warn .zf-toast__ico {
+  background: #8a5300;
+}
+
+.zf-toast.need .zf-toast__ico,
+.zf-toast.error .zf-toast__ico {
+  background: #c0331c;
+}
+
+.zf-toast__txt {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.zf-toast__x {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #6b6459 !important;
+  cursor: pointer;
+}
+
+.zf-toast__x::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.zf-toast__x:hover {
+  background: #f2efe8;
+}
+
+.zf-toast__bar {
+  display: block;
+  height: 3px;
+  background: #efece5;
+}
+
+.zf-toast__bar span {
+  display: block;
+  height: 100%;
+  background: #141210;
+  animation-name: zf-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes zf-countdown {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}
+
+@keyframes zf-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ---------- Docked chat windows ---------- */
+
+.zf-win {
+  width: 320px;
+  height: 440px;
+  max-height: calc(100vh - 120px);
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px 14px 12px 12px;
+  box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: zf-in 0.18s ease-out;
+}
+
+.zf-win.is-min {
+  height: auto;
+}
+
+.zf-whd {
+  flex: none;
+  padding: 6px 6px 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.zf-win.is-min .zf-whd {
+  border-bottom: 0;
+}
+
+.zf-whead {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: #141210;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 9px;
+  text-align: left;
+}
+
+.zf-whead:hover {
+  background: #f7f6f2;
+}
+
+.zf-whead .zf-who {
+  line-height: 1.25;
+}
+
+.zf-whead .zf-who small {
+  font-size: 11.5px;
+}
+
+.zf-ib {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 0;
+  background: transparent;
+  color: #3a352e !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.zf-ib:hover {
+  background: #f2efe8;
+  color: #141210 !important;
+}
+
+.zf-wbody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zf-wbody[hidden] {
+  display: none;
+}
+
+.zf-wctx {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 1px solid #f0ede6;
+  background: #fbf0d9;
+  color: #8a5300;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.zf-wctx.is-critical {
+  background: #fce8e4;
+  color: #b02a15;
+}
+
+.zf-wctx.is-info {
+  background: #e6eefb;
+  color: #1b4fb0;
+}
+
+.zf-wctx > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.zf-wctx b {
+  color: #141210;
+  font-size: 13px;
+}
+
+.zf-wctx small {
+  font-size: 12px;
+  color: #4a443c;
+  overflow-wrap: anywhere;
+}
+
+.zf-wctx > svg {
+  margin-top: 2px;
+}
+
+.zf-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  background: #fbfaf7;
+}
+
+/* The real thread (MemberChatThread) in the board's bubbles. */
+.zf-log .team-chat {
+  max-height: none;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: 6px;
+}
+
+.zf-log .team-chat__msg {
+  max-width: 84%;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.zf-log .team-chat__msg--out {
+  background: #fdebdc;
+  border: 0;
+  border-bottom-right-radius: 4px;
+}
+
+.zf-log .team-chat__msg--out.team-chat__msg--email {
+  background: #fff;
+  border: 1px dashed #f3cfae;
+}
+
+.zf-log .team-chat__msg--in {
+  background: #fff;
+  border: 1px solid #efece5;
+  border-bottom-left-radius: 4px;
+}
+
+.zf-log .team-chat__time,
+.zf-log .team-chat__receipt {
+  font-size: 11px;
+  color: #6b6358;
+}
+
+.zf-log .team-chat__msg--out .team-chat__time {
+  align-self: flex-end;
+}
+
+.zf-log .team-chat__receipt.is-seen {
+  color: #a84505;
+  font-weight: 600;
+}
+
+.zf-log .team-chat__empty,
+.zf-log > .dash-note {
+  margin: auto 0;
+  text-align: center;
+  font-size: 13px;
+  color: #6b6358;
+}
+
+.zf-wcomp {
+  flex: none;
+  position: relative;
+  padding: 8px 10px 10px;
+  border-top: 1px solid #f0ede6;
+  background: #fff;
+}
+
+.zf-wcomp .tc__box {
+  border: 1px solid #d9d3c7;
+  border-radius: 14px;
+}
+
+.zf-wcomp .tc__box:focus-within {
+  border-color: #f26a0a;
+  box-shadow: 0 0 0 3px #fdebdc;
+}
+
+.zf-wcomp .tc__box .tc__text {
+  min-height: 40px;
+  max-height: 110px;
+  padding: 8px 10px 2px;
+  font-size: 14px;
+  line-height: 20px;
+  border-radius: 14px 14px 0 0;
+}
+
+.zf-wcomp .tc__tools {
+  padding: 4px 4px 4px 6px;
+}
+
+.zf-wcomp .tc__send {
+  border-radius: 999px;
+}
+
+.zf-wcomp .tc__hint {
+  display: none;
+}
+
+.zf-wcomp .tc-dd__menu {
+  max-height: min(260px, 45vh);
+}
+
+/* "/task" → Create a task. */
+.zf-slash {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(100% + 6px);
+  z-index: 6;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  box-shadow: 0 18px 44px -18px rgba(20, 18, 16, 0.35);
+  padding: 6px;
+}
+
+.zf-slash a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  background: #f7f6f2;
+  text-decoration: none;
+  color: #141210 !important;
+}
+
+.zf-slash__ico {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #fdebdc;
+  color: #8a3a04;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zf-slash__txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.zf-slash__txt b {
+  font-size: 13.5px;
+}
+
+.zf-slash__txt small {
+  font-size: 12px;
+  color: #6b6358;
+}
+
+.zf-slash__cmd {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: #6b6358;
+}
+
+@media (max-width: 1180px) {
+  .zf-win:nth-last-child(n + 3) {
+    display: none;
+  }
+}
+
+/* ---------- Phone ---------- */
+
+@media (max-width: 760px) {
+  /* Chat is a tab in the bottom bar, so only a small round Support button stays, just above the tab bar. */
+  .zf-wrap {
+    right: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    z-index: 72;
+  }
+
+  .zf-chat {
+    display: none !important;
+  }
+
+  .zf-fab {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .zf-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  /* Panels open as bottom sheets that sit on top of the tab bar's edge. */
+  .zf-panel {
+    position: fixed;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: calc(100vh - 140px);
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+
+  /* A chat window opened from a page (e.g. an alert's "Send alert") shows as a bottom sheet too: the newest one. */
+  .zf-dock {
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    display: block;
+  }
+
+  .zf-win {
+    display: none;
+  }
+
+  .zf-win:last-child {
+    display: flex;
+    width: 100%;
+    height: min(520px, calc(100vh - 140px));
+    max-height: calc(100vh - 140px);
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+
+  .zf-win.is-min:last-child {
+    height: auto;
+  }
+
+  .zf-ib {
+    width: 44px;
+    height: 44px;
+  }
+
+  .zf-toast,
+  .zf-dtoast {
+    max-width: calc(100vw - 24px);
+  }
+}
+
+/* ---------- Offer bar (CompOfferBar) ---------- */
+
+.zf-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px 10px 14px;
+  border-radius: 12px;
+  background: #fdebdc;
+  border: 1px solid #fdebdc;
+  color: #141210;
+  font-size: 14px;
+}
+
+.zf-bar.amber {
+  background: #fbf0d9;
+  border-color: #fbf0d9;
+}
+
+.zf-bar.dark {
+  background: #141210;
+  border-color: #141210;
+  color: #ede8de;
+}
+
+.zf-bar__ico {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #a84505;
+}
+
+.zf-bar.amber .zf-bar__ico {
+  color: #8a5300;
+}
+
+.zf-bar.dark .zf-bar__ico {
+  color: #ff9a55;
+}
+
+.zf-bar__txt {
+  flex: 1;
+  min-width: 220px;
+}
+
+.zf-bar__txt > span {
+  color: #3a352e;
+}
+
+.zf-bar.dark .zf-bar__txt b {
+  color: #fff;
+}
+
+.zf-bar.dark .zf-bar__txt > span {
+  color: #ede8de;
+}
+
+.zf-bar__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid #141210;
+  background: #141210;
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.zf-bar__cta.orange {
+  background: #f26a0a;
+  border-color: #f26a0a;
+  color: #141210 !important;
+}
+
+.zf-bar__cta.orange:hover {
+  background: #e05e04;
+}
+
+.zf-bar__link {
+  color: #ff9a55 !important;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.zf-bar__link:hover {
+  text-decoration: underline;
+}
+
+.zf-bar__x {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  color: inherit;
+  cursor: pointer;
+  position: relative;
+}
+
+.zf-bar__x::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+}
+
+.zf-bar__x:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.zf-bar.dark .zf-bar__x:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.zf-barnote {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  background: #141210;
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.zf-barnote button {
+  border: 0;
+  background: none;
+  color: #ff9a55 !important;
+  font-weight: 600;
+  padding: 4px;
+  min-height: 32px;
+}
+
+@media (max-width: 760px) {
+  /* Wraps on a phone with the button below the text; the × stays top right. */
+  .zf-bar {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 10px;
+  }
+
+  .zf-bar__ico {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .zf-bar__txt {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .zf-bar__x {
+    grid-column: 3;
+    grid-row: 1;
+    width: 44px;
+    height: 44px;
+    margin: -8px -8px -8px 0;
+  }
+
+  .zf-bar__cta,
+  .zf-bar__link {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* ---------- Modal: the v1.3 dialog look (.zn-dialog) ---------- */
+
+dialog.zn-modal {
+  width: min(480px, calc(100vw - 48px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.45);
+  color: #141210;
+  font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+dialog.zn-modal--sm {
+  width: min(440px, calc(100vw - 48px));
+}
+
+dialog.zn-modal--md {
+  width: min(560px, calc(100vw - 48px));
+}
+
+dialog.zn-modal--lg {
+  width: min(980px, calc(100vw - 48px));
+}
+
+dialog.zn-modal::backdrop {
+  background: rgba(20, 18, 16, 0.38);
+}
+
+dialog.zn-modal[open] {
+  animation: zf-in 0.18s ease-out;
+}
+
+.zn-modal__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.zn-modal__panel > .zn-dialog-head .z-x {
+  margin: -6px -8px 0 0;
+}
+
+.zn-modal .dash-modal__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a443c;
+}
+
+.zn-modal .dash-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.zn-modal .zn-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 760px) {
+  /* A bottom sheet on a phone. */
+  dialog.zn-modal,
+  dialog.zn-modal--sm,
+  dialog.zn-modal--md,
+  dialog.zn-modal--lg {
+    width: 100%;
+    max-width: 100%;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+
+  .zn-modal__panel {
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .zn-modal .dash-confirm__actions > .z-btn,
+  .zn-modal .dash-confirm__actions > .btn {
+    flex: 1 1 0;
+    min-height: 44px;
+  }
+}
+
+/* ---------- Tour card in the dialog look ---------- */
+
+/* .tour.zn-tour: dashboard.css loads after this file, so the pair outranks its .tour z-index (80). Above the
+   floating corner (90), so the dim covers the Chat / Support buttons too and the ring shows the one it means. */
+.tour.zn-tour {
+  z-index: 95;
+  font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #141210;
+}
+
+.zn-tour .tour__dim {
+  background: rgba(20, 18, 16, 0.38);
+}
+
+.zn-tour .tour__ring {
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px #f26a0a, 0 0 0 9999px rgba(20, 18, 16, 0.38);
+}
+
+.zn-tour .tour__card {
+  width: min(320px, calc(100vw - 32px));
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.45);
+  animation: zf-in 0.18s ease-out;
+}
+
+.zn-tour .tour__icon {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: #fdebdc;
+  color: #8a3a04;
+}
+
+.zn-tour .tour__title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.zn-tour .tour__body {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a443c;
+}
+
+.zn-tour .tour__dots i {
+  background: #dcd6cb;
+}
+
+.zn-tour .tour__dots i.is-on {
+  background: #f26a0a;
+}
+
+.zn-tour .zn-tour__skip {
+  border: 0;
+  background: transparent;
+  padding: 0 6px;
+  min-height: 32px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #a84505;
+  cursor: pointer;
+}
+
+.zn-tour .zn-tour__skip:hover {
+  text-decoration: underline;
+}
+
+.zn-tour button:focus-visible {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .zn-tour .tour__foot .z-btn,
+  .zn-tour .zn-tour__skip {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zf-panel,
+  .zf-win,
+  .zf-toast,
+  .zf-dtoast,
+  dialog.zn-modal[open],
+  .zn-tour .tour__card {
+    animation: none;
+  }
+
+  .zf-toast__bar span {
+    animation: none;
+    width: 100%;
+  }
+}

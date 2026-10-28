@@ -1,14 +1,6 @@
 import { useCallback, useState, type ReactElement } from "react";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import {
-  errorMessage,
-  getNotificationPrefs,
-  saveNotificationPrefs,
-  type AlertNotifyLevel,
-  type NotificationPrefs,
-} from "../../lib/api";
-import { FormAlert } from "../../portal/components/FormAlert";
-import { ErrorState, LoadingState } from "../components/States";
+import { errorMessage, getNotificationPrefs, saveNotificationPrefs, type AlertNotifyLevel, type NotificationPrefs } from "../../lib/api";
 import {
   askNotifyPermission,
   browserNotifyOn,
@@ -18,25 +10,57 @@ import {
   type NotifyPermission,
 } from "../features/browserNotify";
 import { useEntitlements } from "../features/entitlements";
-import { Toggle } from "../features/policyControls";
+import { getNotifyExtras, saveNotifyExtras, type NotifyExtras } from "../fixtures/settings";
+import { ErrorBlock, Sk } from "../ui/States";
 import { useResource } from "../useResource";
 
-const ALERT_LEVELS: ReadonlyArray<{ value: AlertNotifyLevel; label: string }> = [
-  { value: "all", label: "Every alert" },
-  { value: "warning", label: "Warnings and critical alerts" },
-  { value: "critical", label: "Critical alerts only" },
-  { value: "off", label: "No alerts" },
-];
+/** The two alert switches on the board, as the account's one alert level (server: notifications/settings/). */
+function needsOn(level: AlertNotifyLevel): boolean {
+  return level !== "off";
+}
+
+function worthOn(level: AlertNotifyLevel): boolean {
+  return level === "warning" || level === "all";
+}
+
+function Toggle({
+  label,
+  desc,
+  on,
+  onFlip,
+  disabled,
+}: {
+  label: string;
+  desc: string;
+  on: boolean;
+  onFlip: () => void;
+  disabled?: boolean;
+}): ReactElement {
+  return (
+    <div className="zp-nrow">
+      <span>
+        <b>{label}</b>
+        <br />
+        <span className="zp-k">{desc}</span>
+      </span>
+      <button type="button" className="zp-toggle" role="switch" aria-checked={on} aria-label={label} onClick={onFlip} disabled={disabled}>
+        <span />
+      </button>
+    </div>
+  );
+}
 
 /**
- * Profile → Notifications (FR-15): switch on browser notifications in this browser, and choose what they're
- * for (member replies, alerts from a level up, break and log-out requests). The choices are saved on the
- * account, so they follow the owner to every browser; the on/off switch is per browser.
+ * Settings → Notifications (board DashSettings #tab=notifications, FR-15): browser notifications in this browser,
+ * and what they're for. Replies, Break and End day requests and the alert level are saved on the account (they
+ * follow the owner to every browser); the on/off in this browser is per browser. Daily email: SAMPLE (fixtures/settings).
  */
 export default function NotificationsPage(): ReactElement {
-  usePageMeta({ title: "Notifications — Profile", description: "What Zinwe notifies you about in your browser." });
+  usePageMeta({ title: "Notifications — Settings", description: "What Zinwe notifies you about." });
   const load = useCallback((signal: AbortSignal) => getNotificationPrefs(signal), []);
   const prefs = useResource(load);
+  const loadExtras = useCallback((signal: AbortSignal) => getNotifyExtras(signal), []);
+  const extras = useResource(loadExtras);
   const { has } = useEntitlements();
   const [saved, setSaved] = useState<NotificationPrefs | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,96 +81,150 @@ export default function NotificationsPage(): ReactElement {
     }
   };
 
+  const saveExtras = async (patch: Partial<NotifyExtras>) => {
+    if (!extras.data) return;
+    extras.setData({ ...extras.data, ...patch });
+    extras.setData(await saveNotifyExtras(patch));
+  };
+
   const turnOn = async () => {
+    if (permission === "granted") {
+      setBrowserNotify(true);
+      setHere(true);
+      return;
+    }
     const result = await askNotifyPermission();
     setPermission(result);
     setHere(browserNotifyOn());
   };
 
+  const on = permission === "granted" && here;
+  const browserNote =
+    permission === "unsupported"
+      ? "This browser can't show notifications. Try Chrome, Edge or Firefox on a computer."
+      : permission === "denied"
+        ? "Blocked for Zinwe in this browser. Click the lock icon next to the address, allow Notifications, then reload."
+        : on
+          ? "You’ll get a notification even when Zinwe is in a background tab."
+          : "Get a notification while Zinwe is open in a background tab.";
+
   return (
-    <section className="dash-card notify-card" aria-labelledby="notify-title">
-      <div className="dash-card__head">
-        <h2 className="dash-card__title" id="notify-title">
-          Notifications in this browser
-        </h2>
-        <p className="dash-card__sub">
-          While Zinwe is open in a tab, even in the background, your computer shows a notification when something needs
-          you. Click one to go straight to it.
-        </p>
+    <section className="z-card zp-card mid" aria-label="Notifications">
+      <div className="zp-browser">
+        <span>
+          <b>Browser notifications</b>
+          <br />
+          <span className="zp-k">{browserNote}</span>
+        </span>
+        {permission === "unsupported" ? null : (
+          <span className="zp-browser__acts">
+            {on ? (
+              <>
+                <button
+                  type="button"
+                  className="zp-linkbtn"
+                  onClick={() => showNotification("Notifications are on", "This is how Zinwe will let you know.", "zinwe-test")}
+                >
+                  Send a test
+                </button>
+                <button
+                  type="button"
+                  className="zp-linkbtn"
+                  onClick={() => {
+                    setBrowserNotify(false);
+                    setHere(false);
+                  }}
+                >
+                  Turn off here
+                </button>
+              </>
+            ) : null}
+            <button type="button" className="z-btn sm dark" onClick={() => void turnOn()} disabled={on || permission === "denied"}>
+              {on ? "On in this browser" : permission === "denied" ? "Blocked" : "Turn on"}
+            </button>
+          </span>
+        )}
       </div>
 
-      {permission === "unsupported" ? (
-        <p className="dash-note">This browser can't show notifications. Try Chrome, Edge or Firefox on a computer.</p>
-      ) : permission === "denied" ? (
-        <p className="dash-note notify-card__blocked">
-          Notifications are blocked for Zinwe in this browser. Click the lock icon next to the address, allow
-          Notifications, then reload this page.
-        </p>
-      ) : permission === "default" ? (
-        <button type="button" className="btn btn--primary dash-btn-sm" onClick={() => void turnOn()}>
-          Turn on notifications
-        </button>
-      ) : (
-        <div className="notify-card__row">
-          <Toggle
-            label="Show notifications in this browser"
-            description="Switch off here to keep them on your other computers only."
-            checked={here}
-            onChange={(on) => {
-              setBrowserNotify(on);
-              setHere(on);
-            }}
-          />
-          {here ? (
-            <button
-              type="button"
-              className="btn btn--ghost dash-btn-sm"
-              onClick={() => showNotification("Notifications are on", "This is how Zinwe will let you know.", "zinwe-test")}
-            >
-              Send a test
-            </button>
-          ) : null}
-        </div>
-      )}
+      {/* Same three lines, word for word, as the legend on Alerts. */}
+      <div role="note" aria-label="How alerts are sorted" className="zp-legend">
+        <b style={{ fontSize: 14 }}>How alerts are sorted</b>
+        <span>
+          <i aria-hidden="true" style={{ background: "#C0331C" }} />
+          <span>
+            <b>Needs you</b> — a transfer over your limit, a remote-control session, or anything blocked that someone tried again.
+          </span>
+        </span>
+        <span>
+          <i aria-hidden="true" style={{ background: "#8A5300" }} />
+          <span>
+            <b>Worth a look</b> — small copies, new software, and blocked sites.
+          </span>
+        </span>
+        <span>
+          <i aria-hidden="true" style={{ background: "#1B4FB0" }} />
+          <span>
+            <b>Info</b> — normal activity, nothing to do.
+          </span>
+        </span>
+      </div>
 
-      <hr className="notify-card__rule" />
-      <h3 className="notify-card__sub">Notify me about</h3>
-      <FormAlert message={error} />
+      {error ? (
+        <div className="zp-bad" role="alert">
+          {error}
+        </div>
+      ) : null}
+
       {current === undefined ? (
         prefs.error ? (
-          <ErrorState message={errorMessage(prefs.error)} onRetry={prefs.reload} retrying={prefs.pending} />
+          <ErrorBlock title="We couldn't load your choices" message={errorMessage(prefs.error)} onRetry={prefs.reload} />
         ) : (
-          <LoadingState label="Loading your choices…" rows={3} />
+          <div role="status" aria-busy="true" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <span className="z-sr">Loading your choices…</span>
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="zp-nrow">
+                <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                  <Sk w="35%" h={12} />
+                  <Sk w="60%" h={10} />
+                </span>
+                <Sk w={44} h={26} style={{ borderRadius: 999 }} />
+              </div>
+            ))}
+          </div>
         )
       ) : (
-        <div className="notify-card__prefs">
+        <>
           {has("team_chat") ? (
-            <Toggle
-              label="Replies from your team"
-              description="When someone answers you in Chat."
-              checked={current.chat}
-              onChange={(chat) => void save({ chat })}
-            />
+            <Toggle label="Replies from your team" desc="When someone answers you in Chat." on={current.chat} onFlip={() => void save({ chat: !current.chat })} />
           ) : null}
           {has("work_time") ? (
             <Toggle
-              label="Break and log-out requests"
-              description="When someone asks for your OK on Activity."
-              checked={current.approvals}
-              onChange={(approvals) => void save({ approvals })}
+              label="Break and End day requests"
+              desc="When someone is waiting for your OK. On by default so nobody waits."
+              on={current.approvals}
+              onFlip={() => void save({ approvals: !current.approvals })}
             />
           ) : null}
-          <label className="dash-filter notify-card__level">
-            <span>Alerts</span>
-            <select value={current.alerts} onChange={(e) => void save({ alerts: e.target.value as AlertNotifyLevel })}>
-              {ALERT_LEVELS.map((l) => (
-                <option key={l.value} value={l.value}>
-                  {l.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          <Toggle
+            label="Needs you alerts"
+            desc="Tell me as soon as one happens."
+            on={needsOn(current.alerts)}
+            onFlip={() => void save({ alerts: needsOn(current.alerts) ? "off" : worthOn(current.alerts) ? "warning" : "critical" })}
+          />
+          <Toggle
+            label="Worth a look alerts"
+            desc="When off, they wait in Alerts and the daily email."
+            on={worthOn(current.alerts)}
+            onFlip={() => void save({ alerts: worthOn(current.alerts) ? (needsOn(current.alerts) ? "critical" : "off") : "warning" })}
+          />
+          <Toggle
+            label="Daily email summary"
+            desc="One email at 7 PM with the day’s alerts and hours. Info alerts only show here and in Alerts."
+            on={extras.data?.digest ?? false}
+            disabled={extras.data === undefined}
+            onFlip={() => void saveExtras({ digest: !(extras.data?.digest ?? false) })}
+          />
+        </>
       )}
     </section>
   );

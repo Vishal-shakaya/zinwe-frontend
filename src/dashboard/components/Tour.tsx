@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useState, type ReactElement } from "react";
 import { markTourDone, type TourStep } from "../features/tour";
-import { DashIcon } from "./DashIcon";
+import { ZIcon } from "../ui/ZIcon";
+import "../../styles/dash13/float.css";
 
 interface Box {
   top: number;
@@ -20,8 +21,8 @@ function boxOf(selector: string): Box | null {
 }
 
 /**
- * A spotlight tour: dims the page, rings one element, and shows a small card
- * beside it with Back / Next / Skip. Esc or Skip ends it; finishing (or
+ * A spotlight tour: dims the page, rings one element, and shows a small card in the v1.3 dialog look
+ * (`.zn-dialog`: white, radius 16, border #E7E3DA) beside it with Back / Next / Skip. Esc or Skip ends it; finishing (or
  * skipping) is remembered on the account. The last step's button can lead
  * somewhere (`cta`): `onClose` gets that path.
  */
@@ -70,7 +71,7 @@ export function Tour({
 
   // Card beside the target: right of it if there's room, else below, else centred.
   const pad = 8;
-  const cardW = 300;
+  const cardW = 320;
   let cardStyle: React.CSSProperties = { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
   if (box) {
     const roomRight = window.innerWidth - (box.left + box.width);
@@ -85,7 +86,7 @@ export function Tour({
   }
 
   return (
-    <div className="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+    <div className="tour zn-tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       {box ? (
         <div
           className="tour__ring"
@@ -96,7 +97,7 @@ export function Tour({
       )}
       <div className="tour__card" style={cardStyle} key={index}>
         <span className="tour__icon" aria-hidden="true">
-          <DashIcon name={step.icon} />
+          <ZIcon name={step.icon} size={18} stroke={2} />
         </span>
         <h2 className="tour__title" id="tour-title">
           {step.title}
@@ -108,17 +109,17 @@ export function Tour({
               <i key={s.target} className={i === index ? "is-on" : undefined} />
             ))}
           </span>
-          <button type="button" className="dash-link" onClick={() => finish()}>
+          <button type="button" className="zn-tour__skip" onClick={() => finish()}>
             Skip
           </button>
           {index > 0 ? (
-            <button type="button" className="btn btn--ghost dash-btn-sm" onClick={() => setIndex(index - 1)}>
+            <button type="button" className="z-btn sm" onClick={() => setIndex(index - 1)}>
               Back
             </button>
           ) : null}
           <button
             type="button"
-            className="btn btn--primary dash-btn-sm"
+            className="z-btn sm pri"
             onClick={() => (last ? finish(step.cta?.to) : setIndex(index + 1))}
             autoFocus
           >

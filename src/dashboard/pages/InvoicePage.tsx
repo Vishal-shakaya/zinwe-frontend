@@ -3,8 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { downloadInvoicePdf, errorMessage, getInvoice } from "../../lib/api";
 import { formatDate, formatMoney } from "../../lib/format";
-import { DashIcon } from "../components/DashIcon";
-import { ErrorState, LoadingState } from "../components/States";
+import { Busy, ErrorBlock, Spinner } from "../ui/States";
+import { ZIcon } from "../ui/ZIcon";
 import { useResource } from "../useResource";
 
 /**
@@ -38,16 +38,17 @@ export default function InvoicePage(): ReactElement {
   return (
     <>
       <div className="inv-bar">
-        <Link className="dash-link" to="/app/settings/billing">
-          ← Back to billing
+        <Link className="z-btn sm ghost" to="/app/settings/billing">
+          <ZIcon d="m15 6-6 6 6 6" size={16} />
+          Plan &amp; billing
         </Link>
         {invoice.data ? (
           <span className="inv-bar__actions">
-            <button type="button" className="btn btn--ghost dash-btn-sm" onClick={() => window.print()}>
+            <button type="button" className="z-btn sm" onClick={() => window.print()}>
               Print
             </button>
-            <button type="button" className="btn btn--primary dash-btn-sm" onClick={() => void download()} disabled={downloading}>
-              <DashIcon name="card" />
+            <button type="button" className={`z-btn sm dark${downloading ? " is-busy" : ""}`} onClick={() => void download()} disabled={downloading}>
+              {downloading ? <Spinner size={16} tone="on-dark" /> : <ZIcon name="download" size={16} />}
               {downloading ? "Downloading…" : "Download PDF"}
             </button>
           </span>
@@ -55,16 +56,21 @@ export default function InvoicePage(): ReactElement {
       </div>
 
       {invoice.data === undefined ? (
-        <section className="dash-card">
+        <section className="z-card" style={{ padding: 22 }}>
           {invoice.error ? (
-            <ErrorState title="We couldn't load this invoice" message={errorMessage(invoice.error)} onRetry={invoice.reload} retrying={invoice.pending} />
+            <ErrorBlock title="We couldn't load this invoice" message={errorMessage(invoice.error)} onRetry={invoice.reload} />
           ) : (
-            <LoadingState label="Loading invoice…" rows={4} />
+            <Busy label="Loading invoice…" />
           )}
         </section>
       ) : (
         <>
-        {downloadError ? <p className="dash-banner dash-banner--warn">{downloadError}</p> : null}
+        {downloadError ? (
+          <div className="zn-banner warn" role="alert">
+            <ZIcon name="alerts" />
+            <span>{downloadError}</span>
+          </div>
+        ) : null}
         <article className="inv" aria-label={`Invoice ${invoice.data.number}`}>
           <header className="inv__head">
             <div>

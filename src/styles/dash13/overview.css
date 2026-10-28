@@ -1,0 +1,547 @@
+/* DashOverview (route /app). Values copied from the board; scoped under .zp-overview. */
+
+.zp-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.zp-overview a:not(.z-btn):not(.zn-tile):not(.zn-ov-plink):not(.z-chatlink) {
+  color: #a84505;
+}
+
+.zp-overview .zn-ov-h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* ---- Finish setting up / Get protected ---- */
+
+.zp-overview .zn-ov-setup {
+  padding: 16px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  border-left: 4px solid #f26a0a;
+}
+
+.zp-overview .zn-ov-setup-main {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zp-overview .zn-ov-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #efece5;
+  overflow: hidden;
+}
+
+.zp-overview .zn-ov-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #17663f;
+}
+
+.zp-overview .zn-gp {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 4px solid #f26a0a;
+}
+
+.zp-overview .zn-gp-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 16px;
+}
+
+.zp-overview .zn-gp-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+
+.zp-overview .zn-gp-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid #efece5;
+  border-radius: 12px;
+  background: #fbfaf7;
+  min-width: 0;
+}
+
+.zp-overview .zn-gp-step.is-next {
+  border-color: #f26a0a;
+  background: #fff;
+}
+
+.zp-overview .zn-gp-num {
+  display: inline-flex;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: #efece5;
+  color: #3a352e;
+}
+
+.zp-overview .zn-gp-step.is-done .zn-gp-num {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zp-overview .zn-gp-step.is-next .zn-gp-num {
+  background: #fdebdc;
+  color: #8a3a04;
+}
+
+.zp-overview .zn-gp-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.zp-overview .zn-gp-text small {
+  font-size: 12px;
+  color: #6b6459;
+  line-height: 1.4;
+}
+
+.zp-overview .zn-gp-step.is-done .zn-gp-text b {
+  color: #4a443c;
+}
+
+.zp-overview .zn-gp-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+/* ---- Tiles ---- */
+
+.zp-overview .zn-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+.zp-overview .zn-tile {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: #141210;
+}
+
+.zp-overview .zn-tile:hover {
+  border-color: #dcd6cb;
+  color: #141210;
+}
+
+.zp-overview .zn-tile-l {
+  font-size: 13px;
+  color: #4a443c;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+}
+
+.zp-overview .zn-tile b {
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.zp-overview .zn-tile-sub {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+/* ---- Two cards ---- */
+
+.zp-overview .zn-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.zp-overview .zn-ov-needs {
+  min-width: 0;
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-overview .zn-ov-needs-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 2px;
+}
+
+.zp-overview .zn-need {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 9px 6px;
+  border-bottom: 1px solid #f0ede6;
+  border-radius: 8px;
+}
+
+.zp-overview .zn-need:hover {
+  background: #fbfaf7;
+}
+
+.zp-overview .zn-need-ico {
+  display: inline-flex;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.zp-overview .zn-need-main {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zp-overview .zn-need-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.zp-overview .zn-need-t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  line-height: 20px;
+  border-radius: 4px;
+}
+
+.zp-overview .zn-need-meta {
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6358;
+}
+
+.zp-overview .zn-need-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-top: 3px;
+}
+
+.zp-overview .zn-need-act {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+  flex: none;
+}
+
+.zp-overview .zn-ov-note {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-left: 38px;
+}
+
+.zp-overview .zn-ov-note input {
+  min-height: 32px;
+  width: 240px;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.zp-overview .zn-ov-clear {
+  border: 1px dashed #dcd6cb;
+  border-radius: 12px;
+  padding: 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.zp-overview .zn-ov-clear > span {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #e3f4ea;
+  color: #17663f;
+  align-items: center;
+  justify-content: center;
+}
+
+.zp-overview .zn-ov-toast {
+  flex: none;
+  background: #141210;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.zp-overview .zn-ov-toast button {
+  background: none;
+  border: 0;
+  color: #ff9a55;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zp-overview .zn-ov-foot {
+  flex: none;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f0ede6;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 13px;
+}
+
+.zp-overview .zn-ov-foot-r {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+/* ---- Team today ---- */
+
+.zp-overview .zn-ov-team {
+  min-width: 0;
+  max-height: 560px;
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-overview .zn-ov-team-head {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.zp-overview .zn-ov-team-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zp-overview .zn-ov-team-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 2px 2px 22px;
+}
+
+.zp-overview .zn-ov-person {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.zp-overview .zn-ov-plink {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 6px;
+  text-decoration: none;
+  color: #141210;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.zp-overview .zn-ov-plink:hover {
+  color: #141210;
+}
+
+.zp-overview .zn-ov-avatar {
+  display: inline-flex;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #141210;
+}
+
+.zp-overview .zn-ov-pc {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #6b6358;
+}
+
+.zp-overview .zn-ov-dot {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.zp-overview .zn-ov-state {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zp-overview .zn-ptime {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  font-size: 12px;
+  color: #6b6358;
+}
+
+.zp-overview .zn-ptime.wait {
+  color: #8a5300;
+  font-weight: 600;
+}
+
+.zp-overview .zn-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40px;
+  background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+  pointer-events: none;
+}
+
+.zp-overview .zn-ov-empty {
+  margin: 0;
+  padding: 16px 6px;
+  color: #4a443c;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .zp-overview {
+    gap: 16px;
+  }
+
+  .zp-overview .zn-need-act .z-btn {
+    min-height: 40px;
+  }
+
+  .zp-overview .zn-ptime {
+    max-width: 110px;
+  }
+
+  .zp-overview .zn-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .zp-overview .zn-tile {
+    padding: 14px;
+  }
+
+  .zp-overview .zn-tile b {
+    font-size: 26px;
+  }
+
+  .zp-overview .zn-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .zp-overview .zn-cards > .z-card {
+    padding: 16px 14px 12px;
+  }
+
+  .zp-overview .zn-ov-note {
+    padding-left: 0;
+  }
+
+  .zp-overview .zn-ov-note input {
+    width: 100%;
+  }
+
+  .zp-overview .zn-ov-team-head > .z-btn {
+    min-height: 44px;
+  }
+}

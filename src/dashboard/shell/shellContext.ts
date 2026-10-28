@@ -1,0 +1,90 @@
+import { createContext, useContext } from "react";
+import type { Member } from "../../lib/api";
+import type { OwnerNote } from "../fixtures/notifications";
+
+/** What the shell (DashNav, bell, phone bars) knows and pages may read: counts, members, notes, a few actions. */
+export interface ShellState {
+  /** Open "Needs you" alerts (server: critical_unhandled). */
+  alerts: number;
+  /** Unread member messages (sum of members[].unread). */
+  unread: number;
+  /** Tasks waiting for your OK or help (sample until FR-20). */
+  tasksWaiting: number;
+  members: Member[] | undefined;
+  reloadMembers: () => void;
+  notes: OwnerNote[] | undefined;
+  markNotesRead: (ids: readonly string[] | "all") => void;
+  openFeedback: () => void;
+  /** Reload everything on the page (remounts the outlet). */
+  refreshAll: () => void;
+  refreshing: boolean;
+}
+
+const noop = () => {};
+
+export const ShellContext = createContext<ShellState>({
+  alerts: 0,
+  unread: 0,
+  tasksWaiting: 0,
+  members: undefined,
+  reloadMembers: noop,
+  notes: undefined,
+  markNotesRead: noop,
+  openFeedback: noop,
+  refreshAll: noop,
+  refreshing: false,
+});
+
+export function useShell(): ShellState {
+  return useContext(ShellContext);
+}
+
+/** Which menu row a dashboard path belongs to (DashNav `active`). */
+export type NavKey =
+  | "overview"
+  | "alerts"
+  | "team"
+  | "activity"
+  | "websites"
+  | "data"
+  | "apps"
+  | "chat"
+  | "tasks"
+  | "reports"
+  | "rules"
+  | "settings"
+  | "help";
+
+export function activeFor(pathname: string): NavKey {
+  const p = pathname.replace(/\/+$/, "");
+  const starts = (x: string) => p === x || p.startsWith(`${x}/`);
+  if (p === "/app" || p === "") return "overview";
+  if (starts("/app/alerts")) return "alerts";
+  if (starts("/app/activity")) return "activity";
+  if (starts("/app/team")) return "team";
+  if (starts("/app/internet")) return "websites";
+  if (starts("/app/data")) return "data";
+  if (starts("/app/remote")) return "apps";
+  if (starts("/app/chat")) return "chat";
+  if (starts("/app/tasks")) return "tasks";
+  if (starts("/app/reports")) return "reports";
+  if (starts("/app/rules") || starts("/app/setup")) return "rules";
+  if (starts("/app/settings") || starts("/app/invoice")) return "settings";
+  return "help";
+}
+
+export const NAV_TITLE: Record<NavKey, string> = {
+  overview: "Overview",
+  alerts: "Alerts",
+  team: "Team",
+  activity: "Today's activity",
+  websites: "Internet usage",
+  data: "Data safety",
+  apps: "Apps & remote",
+  chat: "Chat",
+  tasks: "Tasks",
+  reports: "Reports",
+  rules: "Rules",
+  settings: "Settings",
+  help: "Help & support",
+};

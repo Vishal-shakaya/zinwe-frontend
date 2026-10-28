@@ -1,0 +1,664 @@
+/* DashActivity (Today's activity) — Prototype v2.2. Board classes keep their names with a za- prefix, scoped to .zp-act. */
+
+.zp-act {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.zp-act .za-muted {
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zp-act .za-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b6459;
+}
+
+.zp-act .za-warn {
+  color: #8a5300;
+  font-weight: 600;
+}
+
+.za-linkbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  color: #a84505;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.za-linkbtn:hover {
+  color: #7a3203;
+}
+
+/* Header */
+.zp-act .za-headtext {
+  flex: 1 1 320px;
+}
+
+.zp-act .za-titlerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.zp-act .za-titlerow h1 {
+  margin: 0;
+}
+
+.zp-act .za-headtext > p {
+  max-width: 70ch;
+}
+
+.zp-act .za-okchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid #f0cf94;
+  background: #fff4df;
+  color: #8a5300;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.zp-act .za-okchip:hover {
+  border-color: #8a5300;
+}
+
+.zp-act .za-daypick {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.zp-act .za-daylabel {
+  position: relative;
+  min-width: 150px;
+  text-align: center;
+}
+
+.zp-act .za-daybtn {
+  border: 0;
+  background: transparent;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font: inherit;
+  color: #141210;
+  text-align: center;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.zp-act .za-daybtn:hover {
+  background: #f2efe8;
+}
+
+.zp-act .za-daybtn span {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-act .za-dateinput {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+}
+
+.zp-act .za-limit {
+  margin: -8px 0 0;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+/* Tiles */
+.zp-act .za-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.zp-act .za-tile {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zp-act .za-tile > span {
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-act .za-tile > b {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+/* Two columns: Everyone + Timeline */
+.zp-act .za-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.zp-act .za-people {
+  flex: 999 1 560px;
+  min-width: 0;
+  overflow: hidden;
+  scroll-margin-top: 16px;
+}
+
+.zp-act .za-ph {
+  padding: 16px 16px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.zp-act .za-ph__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.zp-act .za-ph__text h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.zp-act .za-ph__text span {
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zp-act .za-fbtn {
+  display: none;
+}
+
+.zp-act .za-scroll {
+  overflow-x: auto;
+}
+
+.zp-act .za-stale {
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #8a5300;
+  background: #fff4df;
+}
+
+.zp-act .za-plist {
+  min-width: 760px;
+}
+
+.zp-act .za-prow {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.5fr) repeat(4, minmax(90px, 1fr)) minmax(100px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px 12px 11px;
+}
+
+.zp-act .za-phead {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6459;
+  padding: 10px 14px 10px 11px;
+  border-bottom: 1px solid #e7e3da;
+  border-left: 3px solid transparent;
+}
+
+.zp-act .za-ptile {
+  border-bottom: 1px solid #f0ede6;
+  border-left: 3px solid transparent;
+}
+
+.zp-act .za-c-name {
+  min-width: 0;
+}
+
+.zp-act .za-rowbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  color: #141210;
+  cursor: pointer;
+}
+
+.zp-act .za-rowbtn:hover {
+  text-decoration: underline;
+}
+
+.zp-act .za-pc {
+  font-size: 12px;
+  color: #6b6459;
+  overflow-wrap: anywhere;
+}
+
+.zp-act .za-mlab {
+  display: none;
+}
+
+.zp-act .za-ask {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 12px 11px;
+}
+
+.zp-act .za-ask--done {
+  justify-content: flex-start;
+  gap: 4px 10px;
+}
+
+.zp-act .za-ask__text {
+  min-width: 0;
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.zp-act .za-ask__text b {
+  font-size: 13px;
+  color: #8a5300;
+}
+
+.zp-act .za-quote {
+  display: block;
+  max-width: 60ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-style: italic;
+  color: #4a443c;
+}
+
+.zp-act .za-err {
+  font-size: 12px;
+  color: #b02a15;
+  font-weight: 500;
+}
+
+.zp-act .za-ask__act {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.zp-act .za-ask__act .z-btn.xs {
+  font-size: 13px;
+  padding: 0 11px;
+}
+
+.zp-act .za-note {
+  min-height: 30px;
+  width: 230px;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: #141210;
+  background: #fff;
+}
+
+.zp-act .za-count {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-act .za-sees {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-act .za-empty {
+  padding: 22px 16px;
+  color: #4a443c;
+}
+
+/* Timeline */
+.zp-act .za-tl {
+  scroll-margin-top: 12px;
+  flex: 1 1 300px;
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zp-act .za-tl__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.zp-act .za-tl__head h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.zp-act .za-chat {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.zp-act .za-strip-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+.zp-act .za-strip {
+  position: relative;
+  height: 22px;
+  background: #f2efe8;
+  border-radius: 6px;
+}
+
+.zp-act .za-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+  transition: opacity 0.12s;
+  cursor: default;
+}
+
+.zp-act .za-seg:focus-visible {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
+  z-index: 2;
+}
+
+.zp-act .za-now {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  border-radius: 1px;
+  background: #f26a0a;
+}
+
+.zp-act .za-ticks {
+  position: relative;
+  height: 16px;
+  font-size: 11px;
+  color: #6b6358;
+}
+
+.zp-act .za-ticks span {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.zp-act .za-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: #4a443c;
+}
+
+.zp-act .za-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zp-act .za-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.zp-act .za-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zp-act .za-events li {
+  display: flex;
+  gap: 12px;
+}
+
+.zp-act .za-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.zp-act .za-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+.zp-act .za-line {
+  flex: 1;
+  width: 2px;
+  background: #efece5;
+  min-height: 22px;
+}
+
+.zp-act .za-ev {
+  padding-bottom: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.zp-act .za-ev b {
+  font-weight: 600;
+}
+
+.zp-act .za-t {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-act .za-evnote {
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-act .za-daynote {
+  margin: 0;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-act .za-optdate {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b6358;
+}
+
+.zt-opt.za-optpick input {
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  color: #141210;
+  background: transparent;
+  min-height: 40px;
+}
+
+@media (max-width: 760px) {
+  .zp-act {
+    gap: 16px;
+  }
+
+  .zp-act .za-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .zp-act .za-daypick {
+    display: none !important;
+  }
+
+  .zp-act .za-fseg {
+    display: none !important;
+  }
+
+  .zp-act .za-fbtn {
+    display: inline-flex;
+    min-height: 44px;
+  }
+
+  /* The table becomes one card per person: name and status on top, then label: value pairs. */
+  .zp-act .za-people {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .zp-act .za-ph {
+    padding: 0 0 10px;
+  }
+
+  .zp-act .za-scroll {
+    overflow: visible;
+  }
+
+  .zp-act .za-plist {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .zp-act .za-phead {
+    display: none !important;
+  }
+
+  .zp-act .za-ptile {
+    background: #fff;
+    border: 1px solid #e7e3da;
+    border-left-width: 3px;
+    border-radius: 12px;
+  }
+
+  .zp-act .za-prow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding: 12px 14px 12px 12px;
+  }
+
+  .zp-act .za-prow > .za-c-name {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .zp-act .za-prow > .za-c-now {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .zp-act .za-prow > .za-c-out {
+    display: none;
+  }
+
+  .zp-act .za-prow > .za-c-out.has {
+    display: block;
+  }
+
+  .zp-act .za-mlab {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6b6358;
+  }
+
+  .zp-act .za-rowbtn {
+    min-height: 32px;
+  }
+
+  /* One request: its buttons stay in reach above the tab bar. Several: they stack in the card. */
+  .zp-act .za-asks.one {
+    position: sticky;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    z-index: 2;
+  }
+
+  .zp-act .za-ask {
+    background: #fffcf5;
+    border-top: 1px solid #f3d9b0;
+    border-radius: 0 0 10px 10px;
+    padding: 10px 12px 12px;
+  }
+
+  .zp-act .za-ask__act .z-btn.xs {
+    min-height: 44px;
+    flex: 1 1 0;
+    font-size: 14px;
+  }
+
+  .zp-act .za-ask__act {
+    flex: 1 1 100%;
+  }
+
+  .zp-act .za-note {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .zp-act .za-quote {
+    white-space: normal;
+  }
+
+  .zp-act .za-empty {
+    padding: 16px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-act .za-seg {
+    transition: none;
+  }
+}

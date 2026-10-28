@@ -1,0 +1,76 @@
+/**
+ * THE sample-data seam (v1.3 UI build, 29 Oct 2026).
+ *
+ * Screens drawn in Prototype v2.2 that the API does not serve yet read typed sample data from this folder,
+ * always through a loader with the same shape as a real API call — `(signal) => Promise<T>` — so a page uses it
+ * with `useResource` exactly like `lib/api`. When the endpoint ships, the loader body becomes the API call and
+ * nothing in the page changes.
+ *
+ * Every area that still reads sample data is listed in SAMPLE_AREAS (and in .claude/dev/docs/06-website-portal.md).
+ */
+
+export interface SampleArea {
+  /** Fixture module in this folder. */
+  module: string;
+  /** What it stands in for. */
+  what: string;
+  /** The plan row that will serve it. */
+  waitsFor: string;
+}
+
+export const SAMPLE_AREAS: readonly SampleArea[] = [
+  { module: "notifications.ts", what: "Bell: notification history (All / Unread, mark read)", waitsFor: "notification centre API (FR-15 history)" },
+  { module: "tasks.ts", what: "Tasks board stages, task cards in Chat, Overview Tasks card, Tasks badge", waitsFor: "FR-20 tasks API" },
+  { module: "performance.ts", what: "Reports → Performance tab (ranking): tasks done + usual hours are sample, worked time is real", waitsFor: "FR-34" },
+  { module: "majorAlerts.ts", what: "Alerts + Overview Needs you: which alerts were asked about (Asked · waiting / replied), the reply on the alert, legend / Ask / Why-it-matters wording", waitsFor: "FR-35" },
+  { module: "pcs.ts", what: "Two PCs per person on Team & PCs (card block + notice) and its Activity timeline line", waitsFor: "FR-36" },
+  { module: "photos.ts", what: "Profile pictures on Team & PCs (presets, uploaded photo, Add a person photo)", waitsFor: "member photo API" },
+  { module: "settings.ts", what: "Settings: Where you're signed in (this browser only), Daily email summary switch", waitsFor: "sessions API + digest preference" },
+  { module: "releaseNotes.ts", what: "Help → What's new when the API has no published notes (Zinwe 1.3, 1.2, 1.1 from the board)", waitsFor: "release notes published in admin (FR-21)" },
+  { module: "rules.ts", what: "Rules: work-hours OK settings, Social media / Video streaming kinds, Always allowed sites, category site lists, web upload limit, remote tool Allow (no alert) + custom tool names, new-software alerts switch", waitsFor: "policy API fields for these settings" },
+];
+
+/** Resolve sample data like a network call: async, abortable, a short delay so loading states are real. */
+export function sample<T>(data: T, signal?: AbortSignal, ms = 180): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const id = window.setTimeout(() => resolve(structuredClone(data)), ms);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(id);
+        reject(new DOMException("Aborted", "AbortError"));
+      },
+      { once: true },
+    );
+  });
+}
+
+/** Sample stores keep changes for the tab's life (approve a task, mark a note read), like a server would. */
+export function sampleStore<T>(key: string, initial: () => T): { get: () => T; set: (next: T) => void } {
+  const storageKey = `zinwe.sample.${key}`;
+  let value: T | undefined;
+  return {
+    get: () => {
+      if (value !== undefined) return value;
+      try {
+        const raw = sessionStorage.getItem(storageKey);
+        value = raw ? (JSON.parse(raw) as T) : initial();
+      } catch {
+        value = initial();
+      }
+      return value;
+    },
+    set: (next: T) => {
+      value = next;
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        /* storage blocked: changes last until reload */
+      }
+    },
+  };
+}

@@ -89,6 +89,21 @@ const APP_SOURCES: Record<string, string> = {
   spotify: "Spotify",
   anydesk: "AnyDesk",
   teamviewer: "TeamViewer",
+  code: "Visual Studio Code",
+  winword: "Microsoft Word",
+  excel: "Microsoft Excel",
+  powerpnt: "Microsoft PowerPoint",
+  onenote: "Microsoft OneNote",
+  ultraviewer_desktop: "UltraViewer",
+  windowsterminal: "Windows Terminal",
+  notepad: "Notepad",
+  figma: "Figma",
+  photoshop: "Adobe Photoshop",
+  acrord32: "Adobe Acrobat",
+  acrobat: "Adobe Acrobat",
+  tally: "TallyPrime",
+  tallyprime: "TallyPrime",
+  explorer: "File Explorer",
   svchost: "Windows (system services)",
   system: "Windows",
   "zinwe.agent.service": "Zinwe",
@@ -121,4 +136,162 @@ export function mergeBySource(items: readonly MetricTopItem[], nameOf: (key: str
     merged.set(key, row);
   }
   return [...merged.values()].sort((a, b) => b.bytes - a.bytes || a.key.localeCompare(b.key)).slice(0, limit);
+}
+
+/** What kind of site a service is (DashOnline's Category column). Unknown services read "Other". */
+const SITE_CATEGORY: Record<string, string> = {
+  Google: "Search",
+  Gmail: "Email",
+  Outlook: "Email",
+  "Microsoft 365": "Work tools",
+  "OneDrive / SharePoint": "File sharing",
+  "Google Drive": "File sharing",
+  Dropbox: "File sharing",
+  WeTransfer: "File sharing",
+  ChatGPT: "AI tools",
+  Claude: "AI tools",
+  Gemini: "AI tools",
+  Perplexity: "AI tools",
+  WhatsApp: "Messaging",
+  Telegram: "Messaging",
+  Slack: "Messaging",
+  Zoom: "Meetings",
+  YouTube: "Video",
+  Netflix: "Video",
+  "Prime Video": "Video",
+  JioHotstar: "Video",
+  Spotify: "Music",
+  Gaana: "Music",
+  Instagram: "Social",
+  Facebook: "Social",
+  "X (Twitter)": "Social",
+  LinkedIn: "Social",
+  Amazon: "Shopping",
+  Flipkart: "Shopping",
+  "Windows Update": "System",
+  Microsoft: "Work tools",
+  Zinwe: "Work tools",
+};
+
+const DOMAIN_CATEGORY: Record<string, string> = {
+  "github.com": "Work tools",
+  "gitlab.com": "Work tools",
+  "stackoverflow.com": "Work tools",
+  "figma.com": "Work tools",
+  "notion.so": "Work tools",
+  "docs.google.com": "Work tools",
+  "canva.com": "Work tools",
+  "localhost": "Work tools",
+  "bing.com": "Search",
+  "duckduckgo.com": "Search",
+};
+
+/** "YouTube" → "Video"; falls back to the domain, then "Other". */
+export function siteCategory(name: string, domain = ""): string {
+  if (DOMAIN_CATEGORY[domain]) return DOMAIN_CATEGORY[domain];
+  return SITE_CATEGORY[name] ?? "Other";
+}
+
+/** A website (or the service it belongs to): the friendly name, its busiest domain, time and data. */
+export interface SiteRow {
+  name: string;
+  domain: string;
+  seconds: number;
+  bytes: number;
+}
+
+/**
+ * Time rows (web.domain, seconds) and data rows (web.data.site, bytes) joined by friendly name. The time row's
+ * `count` is foreground samples, not visits, so it's never used (FIX-014). Most time first.
+ */
+export function siteRows(time: readonly MetricTopItem[], data: readonly MetricTopItem[]): SiteRow[] {
+  const rows = new Map<string, SiteRow & { best: number }>();
+  const row = (domain: string) => {
+    const name = siteSource(domain);
+    const r = rows.get(name) ?? { name, domain, seconds: 0, bytes: 0, best: -1 };
+    rows.set(name, r);
+    return r;
+  };
+  for (const i of time) {
+    const r = row(i.key);
+    r.seconds += i.seconds;
+    if (i.seconds > r.best) {
+      r.best = i.seconds;
+      r.domain = i.key;
+    }
+  }
+  for (const i of data) row(i.key).bytes += i.bytes;
+  return [...rows.values()]
+    .map(({ best: _best, ...r }) => r)
+    .sort((a, b) => b.seconds - a.seconds || b.bytes - a.bytes || a.name.localeCompare(b.name));
+}
+
+/** Browsers and Windows/Zinwe itself: left out of "apps" lists (a browser's time is its websites). */
+const NOT_AN_APP = new Set([
+  "chrome",
+  "msedge",
+  "firefox",
+  "brave",
+  "opera",
+  "opera_gx",
+  "vivaldi",
+  "chromium",
+  "arc",
+  "explorer",
+  "searchhost",
+  "shellexperiencehost",
+  "startmenuexperiencehost",
+  "lockapp",
+  "applicationframehost",
+  "svchost",
+  "system",
+  "zinwe.agent.service",
+  "zinwe.agent.tray",
+  "zinwe",
+]);
+
+export function isBrowser(process: string): boolean {
+  return ["chrome", "msedge", "firefox", "brave", "opera", "opera_gx", "vivaldi", "chromium", "arc"].includes(process.toLowerCase());
+}
+
+/** Apps worth listing: not Windows itself, not Zinwe (and, when `noBrowsers`, not a browser). */
+export function isCountedApp(process: string, noBrowsers: boolean): boolean {
+  const p = process.toLowerCase();
+  if (!noBrowsers && isBrowser(p)) return true;
+  return !NOT_AN_APP.has(p) && !p.startsWith("zinwe");
+}
+
+/** What kind of app it is (DashApps' Top 5 second line), by friendly name. */
+const APP_KIND: Record<string, string> = {
+  "Google Chrome": "Browser",
+  "Microsoft Edge": "Browser",
+  Firefox: "Browser",
+  Brave: "Browser",
+  Opera: "Browser",
+  Outlook: "Email",
+  "Visual Studio Code": "Code editor",
+  "Windows Terminal": "Command line",
+  "Microsoft Word": "Documents",
+  "Microsoft Excel": "Spreadsheets",
+  "Microsoft PowerPoint": "Presentations",
+  "Microsoft OneNote": "Notes",
+  Notepad: "Notes",
+  "Microsoft Teams": "Meetings",
+  Zoom: "Meetings",
+  Slack: "Messaging",
+  WhatsApp: "Messaging",
+  Telegram: "Messaging",
+  Figma: "Design",
+  "Adobe Photoshop": "Design",
+  "Adobe Acrobat": "Documents",
+  TallyPrime: "Accounting",
+  "File Explorer": "Files",
+  UltraViewer: "Remote control",
+  AnyDesk: "Remote control",
+  TeamViewer: "Remote control",
+  Spotify: "Music",
+};
+
+export function appKind(name: string): string {
+  return APP_KIND[name] ?? "App";
 }
