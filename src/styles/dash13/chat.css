@@ -1,0 +1,591 @@
+/* Chat (board DashChat): conversation list, thread with task cards, composer. Scoped under .zp-chat.
+   The task form it opens uses the shared .zk-* classes in tasks.css. */
+
+.zp-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.zp-chat .cv-box {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 860px;
+}
+
+/* People */
+.zp-chat .cv-list {
+  flex: 1 1 260px;
+  min-width: 0;
+  border-right: 1px solid #efece5;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.zp-chat .conv {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  color: #141210;
+}
+.zp-chat .conv:hover {
+  background: #f2efe8;
+}
+.zp-chat .conv.on {
+  background: #fdebdc;
+}
+.zp-chat .conv-av {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+}
+.zp-chat .conv-av > span:first-child {
+  font-size: 12px !important;
+}
+.zp-chat .conv-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.zp-chat .conv-unread {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #141210;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zp-chat .cv-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Conversation */
+.zp-chat .cv-pane {
+  flex: 999 1 460px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.zp-chat .cv-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid #efece5;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.zp-chat .cv-back {
+  width: 44px;
+  height: 44px;
+  margin-left: -6px;
+  border: 0;
+  background: transparent;
+  color: #141210;
+}
+.zp-chat .cv-thread {
+  flex: 1;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fbfaf7;
+  overflow-y: auto;
+  max-height: 520px;
+  min-height: 380px;
+}
+.zp-chat .cv-sep {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #efece5;
+  color: #4a443c;
+  font-size: 12px;
+  font-weight: 600;
+}
+.zp-chat .msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 14px;
+  background: transparent;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
+}
+.zp-chat .msg.out {
+  align-items: flex-end;
+}
+.zp-chat .msg.in {
+  align-items: flex-start;
+}
+.zp-chat .msg.flash {
+  background: #fdebdc;
+  box-shadow: 0 0 0 4px #fdebdc;
+}
+.zp-chat .mrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.zp-chat .msg.out .mrow {
+  flex-direction: row-reverse;
+}
+.zp-chat .cv-bubble {
+  max-width: 440px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+.zp-chat .cv-bubble.out {
+  background: #141210;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.zp-chat .cv-bubble.in {
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-bottom-left-radius: 4px;
+}
+.zp-chat .cv-bubble.out a {
+  color: #fdba8c;
+}
+.zp-chat .cv-bubble.out .chat-link__copy {
+  color: #f1eee8;
+}
+.zp-chat .quote {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.35;
+  background: #f2efe8;
+  color: #3a352e;
+}
+.zp-chat .cv-bubble.out .quote {
+  background: rgba(255, 255, 255, 0.13);
+  color: #f1eee8;
+}
+.zp-chat .quote-who {
+  font-size: 12px;
+  color: #a84505;
+}
+.zp-chat .cv-bubble.out .quote-who {
+  color: #fdba8c;
+}
+.zp-chat .qt {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zp-chat .rbtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #e7e3da;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a443c;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.zp-chat .rbtn:hover {
+  border-color: #141210;
+  color: #141210;
+}
+.zp-chat .mrow:hover .rbtn,
+.zp-chat .mrow:focus-within .rbtn {
+  opacity: 1;
+}
+@media (hover: none) {
+  .zp-chat .rbtn {
+    opacity: 1;
+  }
+}
+.zp-chat .cv-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #6b6459;
+}
+.zp-chat .cv-rc {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #6b6459;
+}
+.zp-chat .cv-rc.seen {
+  color: #a84505;
+  font-weight: 600;
+}
+
+/* Task card in the thread */
+.zp-chat .cv-card {
+  flex: 0 1 480px;
+  min-width: 0;
+  max-width: 480px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 10px 28px -22px rgba(20, 18, 16, 0.4);
+}
+.zp-chat .cv-card.mem {
+  background: #fbfaf6;
+  border: 1px dashed #cfc8bb;
+  border-bottom-right-radius: 16px;
+  border-bottom-left-radius: 4px;
+  box-shadow: none;
+}
+.zp-chat .tb-head {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: #141210;
+}
+.zp-chat .cv-card__mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #fdebdc;
+  color: #a84505;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.zp-chat .cv-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #6b6459;
+}
+.zp-chat .cv-chev {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a443c;
+  background: #f2efe8;
+  transition: transform 0.15s;
+}
+
+/* Tasks tab */
+.zp-chat .cv-trow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  text-align: left;
+  color: #141210;
+}
+.zp-chat .cv-trow:hover {
+  border-color: #141210;
+}
+
+/* Composer */
+.zp-chat .cv-compose {
+  border-top: 1px solid #efece5;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
+}
+.zp-chat .cv-replying {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 12px;
+  background: #f7f6f2;
+  border: 1px solid #e7e3da;
+  border-radius: 10px;
+}
+.zp-chat .cv-replying__what {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.zp-chat .cv-replying__x {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #4a443c;
+  font-size: 18px;
+}
+.zp-chat .cbox {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #d9d3c7;
+  border-radius: 14px;
+  background: #fff;
+}
+.zp-chat .cbox:focus-within {
+  border-color: #f26a0a;
+  box-shadow: 0 0 0 3px #fdebdc;
+}
+.zp-chat .cv-text {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  max-height: 140px;
+  border: 0;
+  outline: none;
+  resize: none;
+  padding: 10px 4px;
+  font-size: 14.5px;
+  line-height: 1.4;
+  background: transparent;
+  field-sizing: content;
+}
+.zp-chat .cv-text:focus-visible {
+  outline: none;
+}
+.zp-chat .cicon,
+.zp-chat .csend {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.zp-chat .cicon {
+  background: transparent;
+  color: #4a443c;
+}
+.zp-chat .cicon:hover {
+  background: #f2efe8;
+  color: #141210;
+}
+.zp-chat .csend {
+  border-radius: 50%;
+  background: #f26a0a;
+  color: #141210;
+}
+.zp-chat .csend:hover {
+  background: #e86402;
+}
+.zp-chat .csend:disabled {
+  background: #efece5;
+  color: #8a8276;
+  cursor: not-allowed;
+}
+.zp-chat .cv-slash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  box-shadow: 0 18px 44px -18px rgba(20, 18, 16, 0.35);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.zp-chat .cv-slash__head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #6b6358;
+  padding: 4px 8px 2px;
+}
+.zp-chat .cv-slash__mark {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #fdebdc;
+  color: #8a3a04;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.zp-chat .slash-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 9px;
+  background: #f7f6f2;
+  font: inherit;
+  color: #141210;
+  cursor: pointer;
+}
+.zp-chat .cv-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.zp-chat .cv-hint {
+  font-size: 12px;
+  color: #6b6459;
+}
+.zp-chat .cv-hint b {
+  color: #3a352e;
+}
+.zp-chat .cv-err {
+  margin: 0;
+  font-size: 13px;
+  color: #b02a15;
+}
+.zp-chat .cv-ok {
+  margin: 0;
+  font-size: 13px;
+  color: #17663f;
+}
+
+/* Phone: the conversation list is its own screen; a person's thread opens full screen with a back arrow and
+   the composer pinned above the tab bar. */
+@media (max-width: 760px) {
+  .zp-chat .cv-box {
+    min-height: 0;
+    overflow: visible;
+  }
+  .zp-chat .cv-list {
+    flex-basis: 100%;
+    border-right: 0;
+    padding: 6px;
+  }
+  .zp-chat .cv-list .conv {
+    min-height: 60px;
+  }
+  .zp-chat.m-list .cv-pane {
+    display: none;
+  }
+  .zp-chat.m-thread .cv-list {
+    display: none;
+  }
+  .zp-chat.m-thread > .zn-head {
+    display: none;
+  }
+  .zp-chat .cv-head {
+    padding: 10px 12px;
+  }
+  .zp-chat .cv-thread {
+    max-height: none;
+    min-height: 55vh;
+    overflow: visible;
+    padding: 14px 12px;
+  }
+  .zp-chat .cv-compose {
+    position: sticky;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    z-index: 6;
+    padding: 10px 12px;
+    border-radius: 0 0 16px 16px;
+  }
+  .zp-chat .cv-hint {
+    display: none;
+  }
+  .zp-chat .cv-head .z-seg,
+  .zp-chat .rbtn,
+  .zp-chat .cv-tools .tc-dd__btn {
+    min-height: 44px;
+  }
+  .zp-chat .mrow {
+    flex-wrap: wrap;
+  }
+  .zp-chat .cv-bubble {
+    max-width: 100%;
+  }
+  .zp-chat .cv-card {
+    flex: 1 1 100%;
+  }
+  .zp-chat .cv-card .cv-pill {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-chat .msg,
+  .zp-chat .rbtn,
+  .zp-chat .cv-chev {
+    transition: none;
+  }
+}

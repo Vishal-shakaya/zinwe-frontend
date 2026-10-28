@@ -1,0 +1,756 @@
+/* Tasks (board DashTasks) + the task form and drawer shared with Chat (board DashChat).
+   Shared task primitives are .zk-*; page-only classes sit under .zp-tasks. */
+
+/* ---------- Shared task primitives (Tasks page and Chat) ---------- */
+
+.zk-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #dcd6cb;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a352e;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.zk-chip:hover {
+  border-color: #141210;
+}
+.zk-chip.on {
+  background: #141210;
+  border-color: #141210;
+  color: #fff;
+}
+
+.zk-inp {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+.zk-inp:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+}
+
+.zk-sel {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zk-lab {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a352e;
+}
+
+.zk-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6459;
+}
+
+.zk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.zk-ic {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e7e3da;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0;
+  color: #3a352e;
+  flex: none;
+}
+.zk-ic:hover {
+  border-color: #141210;
+}
+
+.zk-xbtn {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b6459;
+  font-size: 16px;
+}
+.zk-xbtn:hover {
+  background: #f2efe8;
+}
+
+.zk-box {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid #c9c1b3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.zk-box.on {
+  border: 0;
+  background: #17663f;
+  color: #fff;
+}
+
+.z-btn.zk-red {
+  background: #b02a15;
+  border-color: #b02a15;
+  color: #fff !important;
+}
+.z-btn.zk-red:hover {
+  background: #8f2210;
+}
+
+.zk-more {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  color: #141210;
+}
+.zk-more:hover {
+  border-color: #141210;
+}
+.zk-more__chev {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f2efe8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+
+.zk-sw {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  font-size: 13px;
+}
+.zk-sw input {
+  width: 18px;
+  height: 18px;
+  accent-color: #141210;
+}
+
+.zk-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  width: 292px;
+  max-width: calc(100vw - 48px);
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  box-shadow: 0 14px 36px rgba(20, 18, 16, 0.16);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.zk-cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px 0;
+}
+.zk-wk {
+  font-size: 11px;
+  color: #6b6459;
+  text-align: center;
+}
+.zk-cd {
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 0;
+}
+.zk-cd:hover:not(:disabled) {
+  background: #f2efe8;
+}
+.zk-cd:disabled {
+  color: #cfc8bb;
+  cursor: default;
+}
+.zk-cd.today {
+  box-shadow: inset 0 0 0 1px #141210;
+}
+.zk-cd.edge {
+  background: #f26a0a;
+  color: #141210;
+  font-weight: 700;
+}
+.zk-cd.blank {
+  visibility: hidden;
+}
+.zk-nav {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e7e3da;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.zk-nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Side drawer (task form, task drawer): desktop panel on the right; phone full-screen sheet above the tab bar. */
+.zk-sheet-bg {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  cursor: default;
+}
+.zk-sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  color: #141210;
+}
+
+.zk-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a84505;
+  text-decoration: underline;
+}
+
+/* The one-line toast with Undo and a close button. */
+.zk-toast-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 96;
+  max-width: calc(100vw - 32px);
+}
+.zk-toast {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 10px 10px 16px;
+  background: #141210;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(20, 18, 16, 0.3);
+  font-size: 13px;
+}
+.zk-toast__undo {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #5a544b;
+  border-radius: 8px;
+  background: transparent;
+  color: #fdba8c !important;
+  font-weight: 700;
+  font-size: 13px;
+}
+.zk-toast__x {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #cfc8bb !important;
+  font-size: 16px;
+}
+
+.zk-m-only {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .zk-m-only {
+    display: inline-flex !important;
+  }
+  .zk-d-only {
+    display: none !important;
+  }
+  .zk-sheet {
+    width: 100% !important;
+    z-index: 121 !important;
+    box-shadow: none !important;
+  }
+  .zk-sheet-bg {
+    z-index: 120 !important;
+  }
+  .zk-sheet-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  .zk-sheet-foot > span:last-child {
+    flex: 1 1 100%;
+  }
+  .zk-sheet-foot .z-btn.pri {
+    flex: 1;
+  }
+  .zk-sheet-foot .z-btn,
+  .zk-sheet .zk-ic,
+  .zk-sheet .zk-chip {
+    min-height: 44px;
+  }
+  .zk-sheet .zk-ic {
+    min-width: 44px;
+  }
+  .zk-toast-wrap {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    z-index: 125;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zk-more__chev {
+    transition: none;
+  }
+}
+
+/* ---------- Tasks page (DashTasks) ---------- */
+
+.zp-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.zp-tasks .tk-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.zp-tasks .tk-qc {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  border-radius: 999px;
+  border: 1px solid #e7e3da;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a352e;
+}
+.zp-tasks .tk-qc:hover {
+  border-color: #141210;
+}
+.zp-tasks .tk-qc.on {
+  border-color: #141210;
+  box-shadow: inset 0 0 0 1px #141210;
+}
+.zp-tasks .tk-qn {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.zp-tasks .tk-skel {
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.zp-tasks .tk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.zp-tasks .tk-search {
+  position: relative;
+  flex: 1 1 200px;
+  min-width: 160px;
+  max-width: 320px;
+}
+.zp-tasks .tk-fend {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.zp-tasks .tk-mbar {
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.zp-tasks .tk-fhead {
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.zp-tasks .tk-fscrim {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(20, 18, 16, 0.36);
+  border: 0;
+  cursor: default;
+}
+
+.zp-tasks .tk-nomatch {
+  background: #fff;
+  border: 1px dashed #dcd6cb;
+  border-radius: 14px;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+/* Board */
+.zp-tasks .tk-board-wrap {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.zp-tasks .tk-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(214px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.zp-tasks .tk-col {
+  background: #efece5;
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.zp-tasks .tk-col-h {
+  margin: 0;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.zp-tasks .tk-col-n {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.zp-tasks .tk-col-empty {
+  margin: 0;
+  padding: 14px 8px;
+  border: 1px dashed #d5cfc4;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #6b6459;
+  text-align: center;
+}
+.zp-tasks .tk-card {
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: box-shadow 0.3s;
+}
+.zp-tasks .tk-cb {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+}
+.zp-tasks .tk-tt {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.zp-tasks .tk-up {
+  font-size: 12px;
+  color: #6b6459;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.zp-tasks .tk-bar {
+  display: block;
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: #efece5;
+  overflow: hidden;
+}
+
+/* List */
+.zp-tasks .tk-list {
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  overflow-x: auto;
+}
+.zp-tasks .tk-list-in {
+  min-width: 1120px;
+}
+.zp-tasks .tk-lk {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  text-align: left;
+  color: #141210;
+}
+.zp-tasks .tk-lk:hover {
+  color: #a84505;
+  text-decoration: underline;
+}
+.zp-tasks .tk-trow {
+  display: grid;
+  /* Fits the 1128 px main column at 1440 (248 px menu): Updated shrinks, the actions keep their width. */
+  grid-template-columns: minmax(200px, 2.2fr) 120px 150px 160px 100px minmax(0, 1.5fr) 172px;
+  align-items: center;
+  gap: 0 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0ede6;
+}
+.zp-tasks .tk-trow:hover {
+  background: #fbfaf7;
+}
+.zp-tasks .tk-thd {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6459;
+  background: #fbfaf7;
+  border-bottom: 1px solid #e7e3da;
+}
+.zp-tasks .tk-ghd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: 1px solid #f0ede6;
+  background: #fff;
+}
+.zp-tasks .tk-ta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.zp-tasks .tk-mlab {
+  display: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6358;
+}
+
+.zp-tasks .tk-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(144px + env(safe-area-inset-bottom));
+  z-index: 85;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: #f26a0a;
+  color: #141210;
+  box-shadow: 0 10px 24px -8px rgba(20, 18, 16, 0.45);
+  align-items: center;
+  justify-content: center;
+}
+
+/* Phone: list rows become cards, filters move into a bottom sheet, "+" floats above the tab bar. */
+@media (max-width: 760px) {
+  .zp-tasks .tk-board {
+    grid-template-columns: repeat(5, minmax(240px, 82vw));
+  }
+  .zp-tasks .tk-quick {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .zp-tasks .tk-quick > * {
+    flex: none;
+  }
+  .zp-tasks .tk-qc {
+    min-height: 44px;
+  }
+  .zp-tasks .tk-filters {
+    display: none;
+  }
+  .zp-tasks .tk-filters.open {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 111;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border-radius: 16px 16px 0 0;
+    border-width: 1px 0 0;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    box-shadow: 0 -14px 36px rgba(20, 18, 16, 0.18);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .zp-tasks .tk-filters.open > * {
+    max-width: none;
+    margin-left: 0;
+  }
+  .zp-tasks .tk-filters .zk-sel {
+    min-height: 44px;
+  }
+  .zp-tasks .tk-filters .z-btn,
+  .zp-tasks .tk-mbar .z-btn {
+    min-height: 44px;
+  }
+  .zp-tasks .tk-list {
+    overflow-x: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+  .zp-tasks .tk-list-in {
+    min-width: 0;
+  }
+  .zp-tasks .tk-list .tk-thd {
+    display: none;
+  }
+  .zp-tasks .tk-list .tk-ghd {
+    background: transparent;
+    border-bottom: 0;
+    padding: 14px 2px 6px;
+  }
+  .zp-tasks .tk-list .tk-trow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+    margin: 0 0 8px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #e7e3da;
+    border-radius: 12px;
+  }
+  .zp-tasks .tk-list .tk-trow > :first-child,
+  .zp-tasks .tk-list .tk-trow > .tk-tw,
+  .zp-tasks .tk-list .tk-trow > .tk-ta {
+    grid-column: 1 / -1;
+  }
+  .zp-tasks .tk-list .tk-tc {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+  }
+  .zp-tasks .tk-list .tk-up {
+    white-space: normal;
+  }
+  .zp-tasks .tk-list .tk-ta .z-btn,
+  .zp-tasks .tk-card .z-btn {
+    min-height: 44px;
+  }
+  .zp-tasks .tk-mlab {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-tasks .tk-card {
+    transition: none;
+  }
+}
+
+/* Every list cell may shrink; long Updated lines end in an ellipsis instead of running under the buttons. */
+@media (min-width: 761px) {
+  .zp-tasks .tk-trow > * {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

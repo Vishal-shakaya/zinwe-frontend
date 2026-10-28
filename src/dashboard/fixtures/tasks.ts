@@ -225,15 +225,25 @@ function changed(): void {
   window.dispatchEvent(new Event(TASKS_CHANGED_EVENT));
 }
 
-/** Lay the sample people onto the account's real active members (in order, wrapping). No members: keep the sample names. */
+/**
+ * Lay the sample people onto the account's real active members (in order, wrapping). No members: keep the sample names.
+ * A task created for a real member (memberId set, see createTask) stays with that member while they are active.
+ */
 export function withPeople(tasks: SampleTask[], members: readonly Member[] | undefined): SampleTask[] {
   const real = (members ?? []).filter((m) => m.is_active);
   if (!real.length) return tasks;
   const index = new Map(SAMPLE_PEOPLE.map((p, i) => [p.id, i]));
   return tasks.map((t) => {
-    const m = real[(index.get(t.who) ?? 0) % real.length];
+    const own = t.memberId != null ? real.find((m) => m.id === t.memberId) : undefined;
+    const m = own ?? real[(index.get(t.who) ?? 0) % real.length];
     return { ...t, memberId: m.id, name: m.name };
   });
+}
+
+/** The sample person key that withPeople lays onto the real member at `memberIndex` (for tasks created for real people). */
+export function sampleKeyFor(memberIndex: number, memberCount: number): string {
+  const hit = SAMPLE_PEOPLE.find((_, i) => memberCount > 0 && i % memberCount === memberIndex);
+  return (hit ?? SAMPLE_PEOPLE[0]).id;
 }
 
 /** GET tasks (sample). Pass the members to show tasks against real people. */
@@ -291,4 +301,21 @@ export function createTask(input: Pick<SampleTask, "who" | "title"> & Partial<Sa
 /** Tasks waiting for the owner's OK or help (the Tasks badge in DashNav). */
 export function countTasksWaiting(): number {
   return store.get().filter((t) => t.status === "review" || t.status === "help").length;
+}
+
+/** DELETE a task (sample): "Cancel task". Returns the removed task (for Undo), or null. */
+export function removeTask(id: number): SampleTask | null {
+  const all = store.get();
+  const hit = all.find((t) => t.id === id) ?? null;
+  if (!hit) return null;
+  store.set(all.filter((t) => t.id !== id));
+  changed();
+  return hit;
+}
+
+/** Put a task back exactly as it was (Undo after approve or cancel). */
+export function restoreTask(task: SampleTask): void {
+  const all = store.get();
+  store.set(all.some((t) => t.id === task.id) ? all.map((t) => (t.id === task.id ? task : t)) : [...all, task]);
+  changed();
 }

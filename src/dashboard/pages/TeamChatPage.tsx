@@ -1,60 +1,111 @@
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { errorMessage, listMembers, type Member } from "../../lib/api";
-import { cx } from "../../lib/cx";
-import { PagePlanGate } from "../components/PlanLock";
-import { ChatComposer, MemberChatThread } from "../components/MemberChat";
-import { EmptyState, ErrorState, LoadingState, PageHeader } from "../components/States";
-import { PRESENCE_CLASS, PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
+import { copyText } from "../../lib/clipboard";
+import { errorMessage, listMembers, type Member, type Message } from "../../lib/api";
+import { ChatComposer } from "../chat/ChatComposer";
+import { ChatThread } from "../chat/ChatThread";
+import { firstLine, type ReplyTarget } from "../chat/reply";
+import { PlanLock } from "../components/PlanLock";
+import { useEntitlements } from "../features/entitlements";
+import { isoDay, TASK_STATUS, type SampleTask } from "../fixtures/tasks";
+import { PageHead } from "../shell/PageHead";
+import { Avatar } from "../tasks/Avatar";
+import { dueLabel, dueStyle, entryDate, findPerson, isOpenTask, peopleOf, sepLabel, statusStyle, type TaskPerson } from "../tasks/model";
+import { TaskForm, type TaskFormValues } from "../tasks/TaskForm";
+import { taskActions, useTasks } from "../tasks/useTasks";
+import { EmptyBlock, ErrorBlock, SkRows } from "../ui/States";
+import { clockTime } from "../ui/time";
 import { useResource } from "../useResource";
+import "../../styles/dash13/tasks.css";
+import "../../styles/dash13/chat.css";
 
-/** How often the open conversation checks for new replies. */
+/** How often the open conversation checks for new replies and receipts. */
 const THREAD_POLL_MS = 15_000;
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
-}
+const LEDE = "Message your team in their Zinwe window, or send a task they can tick off. Tasks are free on every plan.";
 
-/** People with unread replies first, then by name. */
-function sortForChat(members: Member[]): Member[] {
-  return [...members].sort(
-    (a, b) => (b.unread ?? 0) - (a.unread ?? 0) || a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-  );
+type ChatPerson = TaskPerson & { memberId: number };
+
+const DOT: Record<TaskPerson["presenceKind"], string> = { working: "#17663F", break: "#8A5300", online: "#1B4FB0", offline: "#A79E90", waiting: "#A79E90" };
+
+/** People with unread replies first, then by name (the existing Chat order). */
+function sortForChat(people: ChatPerson[]): ChatPerson[] {
+  return [...people].sort((a, b) => (b.member?.unread ?? 0) - (a.member?.unread ?? 0) || a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 }
 
 /**
- * Team → Chat: a simple two-pane inbox. Pick a person on the left, read the
- * conversation and reply on the right. Messages land in the Zinwe widget on
- * their PC; their replies come back here.
+ * /app/chat and /app/chat/:member (board DashChat; #m=<first> and ?member=<id> also pick a person). Plan: team_chat;
+ * without it a lock card shows instead (tasks stay free on the Tasks page).
  */
-/** Plan enforcement: the whole page is team_chat; without it, a lock card shows instead. */
 export default function TeamChatPage(): ReactElement {
-  return (
-    <PagePlanGate
-      module="team_chat"
-      title="Chat"
-      lede="Message your team on their Zinwe widget."
-      lock="Send a note straight to an employee's PC, get their reply here, and copy it to their email when it matters."
-    >
-      <TeamChatPageContent />
-    </PagePlanGate>
-  );
+  usePageMeta({ title: "Chat — Zinwe", description: "Message your team and read their replies." });
+  const { has } = useEntitlements();
+  if (!has("team_chat")) {
+    return (
+      <div className="zp-chat">
+        <PageHead title="Chat" lede={LEDE} />
+        <PlanLock module="team_chat">Send a note straight to an employee's PC, get their reply here, and copy it to their email when it matters.</PlanLock>
+      </div>
+    );
+  }
+  return <ChatPageContent />;
 }
 
-function TeamChatPageContent(): ReactElement {
-  usePageMeta({ title: "Chat — Zinwe", description: "Message your team and read their replies." });
+function ChatPageContent(): ReactElement {
+  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
+  const members = useResource(loadMembers, { pollMs: 30_000 });
+  const tasks = useTasks(members.data);
+  const params = useParams<{ member?: string }>();
+  const [search] = useSearchParams();
+  const { hash } = useLocation();
+  const navigate = useNavigate();
 
-  const load = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  const members = useResource(load, { pollMs: 30_000 });
-  const [params, setParams] = useSearchParams();
+  const everyone = useMemo(() => peopleOf(members.data).filter((p): p is ChatPerson => p.memberId !== null), [members.data]);
+  const people = useMemo(() => sortForChat(everyone), [everyone]);
+  const hashParams = useMemo(() => new URLSearchParams(hash.slice(1)), [hash]);
+  const wanted = params.member ?? hashParams.get("m") ?? search.get("member");
+  const picked = findPerson(wanted, people) as ChatPerson | null;
+  const selected = picked ?? people[0];
+  const screen = wanted ? "m-thread" : "m-list";
+
+  const [tab, setTab] = useState<"chat" | "tasks">("chat");
   const [threadKey, setThreadKey] = useState(0);
+  const [reply, setReply] = useState<ReplyTarget | null>(null);
+  const [openCards, setOpenCards] = useState<ReadonlySet<number>>(new Set());
+  const [flash, setFlash] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [form, setForm] = useState<{ who: string; editing: SampleTask | null; title?: string } | null>(null);
+  const [previews, setPreviews] = useState<Record<number, { text: string; at: Date; mine: boolean } | null>>({});
+  const flashTimer = useRef<number | undefined>(undefined);
+  const copyTimer = useRef<number | undefined>(undefined);
+  useEffect(
+    () => () => {
+      window.clearTimeout(flashTimer.current);
+      window.clearTimeout(copyTimer.current);
+    },
+    [],
+  );
 
-  const active = useMemo(() => sortForChat((members.data ?? []).filter((m) => m.is_active)), [members.data]);
-  const wanted = Number(params.get("member"));
-  const selected = active.find((m) => m.id === wanted) ?? active[0];
-  const unread = active.reduce((sum, m) => sum + (m.unread ?? 0), 0);
+  // A deep link that isn't the route (#m=<first>, ?member=<id>): settle on /app/chat/<first>.
+  useEffect(() => {
+    if (params.member || !picked) return;
+    const fromHash = hashParams.get("m");
+    const fromQuery = search.get("member");
+    if (!fromHash && !fromQuery) return;
+    const rest = new URLSearchParams(hashParams);
+    rest.delete("m");
+    const h = rest.toString();
+    navigate(`/app/chat/${picked.key}${h ? `#${h}` : ""}`, { replace: true });
+  }, [params.member, picked, hashParams, search, navigate]);
+
+  // #tab=tasks shows their tasks; #new=1 opens Add task for them.
+  const [handledHash, setHandledHash] = useState<string | null>(null);
+  if (selected && handledHash !== hash) {
+    setHandledHash(hash);
+    if (hashParams.get("tab") === "tasks") setTab("tasks");
+    if (hashParams.get("new") === "1") setForm({ who: selected.key, editing: null });
+  }
 
   // Keep the open conversation fresh while the tab is visible.
   useEffect(() => {
@@ -65,109 +116,286 @@ function TeamChatPageContent(): ReactElement {
   }, []);
 
   // Opening a conversation reads it server-side: clear its badge locally too.
+  const selectedId = selected?.memberId;
   useEffect(() => {
-    if (!selected || !(selected.unread ?? 0) || !members.data) return;
-    members.setData(members.data.map((m) => (m.id === selected.id ? { ...m, unread: 0 } : m)));
-  }, [selected, members]);
+    if (selectedId == null || !members.data) return;
+    const m = members.data.find((x) => x.id === selectedId);
+    if (!m || !(m.unread ?? 0)) return;
+    members.setData(members.data.map((x): Member => (x.id === selectedId ? { ...x, unread: 0 } : x)));
+  }, [selectedId, members]);
 
-  const pick = (member: Member) => {
-    const next = new URLSearchParams(params);
-    next.set("member", String(member.id));
-    setParams(next, { replace: true });
+  // A new person: start in Chat with no reply, and their newest task card open.
+  const allTasks = useMemo(() => tasks.data ?? [], [tasks.data]);
+  const [shownFor, setShownFor] = useState<number | null>(null);
+  if (selected && tasks.data && shownFor !== selected.memberId) {
+    setShownFor(selected.memberId);
+    setReply(null);
+    setCopied(false);
+    const mine = allTasks.filter((t) => t.memberId === selected.memberId).sort((a, b) => entryTime(b) - entryTime(a));
+    setOpenCards(new Set(mine.length ? [mine[0].id] : []));
+  }
+
+  const tasksOf = (p: ChatPerson) => allTasks.filter((t) => t.memberId === p.memberId);
+  const openOf = (p: ChatPerson) => tasksOf(p).filter(isOpenTask).length;
+
+  const flashItem = (key: string) => {
+    setFlash(key);
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(() => document.getElementById(`msg-${key}`)?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" }), 60);
+    window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlash(null), 1800);
+  };
+  const go = (p: ChatPerson) => {
+    navigate(`/app/chat/${p.key}`);
+    setTab("chat");
+    // Phone: the thread opens full screen with the newest lines and the composer in view.
+    if (window.matchMedia?.("(max-width: 760px)").matches) window.setTimeout(() => document.getElementById("msg")?.scrollIntoView({ block: "end" }), 80);
+  };
+  const startReply = (target: ReplyTarget) => {
+    setTab("chat");
+    setReply(target);
+    window.setTimeout(() => document.getElementById("msg")?.focus(), 40);
+  };
+  const onLoaded = useCallback((msgs: Message[]) => {
+    if (selectedId == null) return;
+    const newest = msgs[0];
+    setPreviews((p) => ({ ...p, [selectedId]: newest ? { text: firstLine(newest), at: new Date(newest.created_at), mine: newest.sender === "owner" } : null }));
+  }, [selectedId]);
+
+  const submitTask = (v: TaskFormValues, editing: SampleTask | null) => {
+    const saved = taskActions.submit(v, editing);
+    setForm(null);
+    if (!saved || editing) return;
+    // The card lands in that person's chat, and the chat switches to them (their route).
+    const target = everyone.find((p) => p.key === v.person.key);
+    if (target && target.memberId !== selected?.memberId) navigate(`/app/chat/${target.key}`);
+    setTab("chat");
+    setReply(null);
+    setOpenCards((s) => new Set([...s, saved.id]));
+    window.setTimeout(() => flashItem(`t${saved.id}`), 300);
   };
 
-  return (
-    <>
-      <PageHeader
-        title="Chat"
-        lede={
-          unread > 0
-            ? `${unread} new ${unread === 1 ? "reply" : "replies"} from your team.`
-            : "Message anyone on your team by chat (the Zinwe widget on their PC), by email, or both. Their replies come back here."
-        }
-      />
-
-      {members.data === undefined ? (
-        <section className="dash-card">
+  if (members.data === undefined) {
+    return (
+      <div className="zp-chat m-list">
+        <PageHead title="Chat" lede={LEDE} />
+        <div className="cv-box">
           {members.error ? (
-            <ErrorState message={errorMessage(members.error)} onRetry={members.reload} retrying={members.pending} />
+            <div style={{ flex: 1 }}>
+              <ErrorBlock message={errorMessage(members.error)} onRetry={members.reload} />
+            </div>
           ) : (
-            <LoadingState label="Loading your team…" rows={3} />
+            <div className="cv-list" style={{ padding: 0 }}>
+              <SkRows label="Loading your team" rows={6} />
+            </div>
           )}
-        </section>
-      ) : active.length === 0 || !selected ? (
-        <section className="dash-card">
-          <EmptyState
+        </div>
+      </div>
+    );
+  }
+  if (!selected) {
+    return (
+      <div className="zp-chat m-list">
+        <PageHead title="Chat" lede={LEDE} />
+        <div className="z-card">
+          <EmptyBlock
             icon="chat"
             title="No one to chat with yet"
             action={
-              <Link className="btn btn--primary dash-btn-sm" to="/app/team">
-                Add a team member
+              <Link className="z-btn sm pri" to="/app/team#add=1">
+                Add a person
               </Link>
             }
           >
             Add your team first. Once Zinwe is on their PC, you can message them here.
-          </EmptyState>
-        </section>
-      ) : (
-        <section className="tchat" aria-label="Team chat">
-          <ul className="tchat__people" aria-label="Conversations">
-            {active.map((member) => {
-              const status = presenceOf(member.device);
-              const count = member.unread ?? 0;
-              return (
-                <li key={member.id}>
-                  <button
-                    type="button"
-                    className={cx("tchat__person", member.id === selected.id && "is-on")}
-                    aria-current={member.id === selected.id ? "true" : undefined}
-                    onClick={() => pick(member)}
-                  >
-                    <span className="tchat__avatar" aria-hidden="true">
-                      {initialsOf(member.name)}
-                      <i className={`tchat__dot tchat__dot--${status === "online" ? "online" : PRESENCE_CLASS[status]}`} />
-                    </span>
-                    <span className="tchat__who">
-                      <b>{member.name}</b>
-                      <small>{PRESENCE_LABEL[status]}</small>
-                    </span>
-                    {count > 0 ? (
-                      <span className="team-unread" aria-label={`${count} unread`}>
-                        {count}
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          </EmptyBlock>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="tchat__pane">
-            <header className="tchat__head">
-              <span className="tchat__avatar" aria-hidden="true">
-                {initialsOf(selected.name)}
-              </span>
-              <span className="tchat__who">
-                <b>{selected.name}</b>
-                <small>
-                  {selected.device
-                    ? `${selected.device.hostname || "Their PC"} · ${PRESENCE_LABEL[presenceOf(selected.device)]} · ${selected.email}`
-                    : `${selected.email} · Zinwe isn't on their PC yet: chat waits until it is, email arrives now`}
-                </small>
-              </span>
-            </header>
-            <div className="tchat__scroll">
-              <MemberChatThread
-                key={selected.id}
-                member={selected}
-                reloadKey={threadKey}
-                online={selected.device ? selected.device.is_online : false}
-              />
+  const selTasks = tasksOf(selected).sort((a, b) => entryTime(b) - entryTime(a));
+  const route = `/app/chat/${selected.key}`;
+  const presenceLine = selected.member?.device ? `${selected.pc} · ${selected.role} · ${selected.presence}` : `${selected.role} · Zinwe isn't on their PC yet: chat waits until it is, email arrives now`;
+
+  return (
+    <div className={`zp-chat ${screen}`}>
+      <PageHead title="Chat" lede={LEDE} />
+
+      <div className="cv-box">
+        <aside className="cv-list" aria-label="Conversations">
+          {people.map((p) => {
+            const on = p.memberId === selected.memberId;
+            const unread = p.member?.unread ?? 0;
+            const open = openOf(p);
+            const pv = previews[p.memberId];
+            const lastTask = tasksOf(p).sort((a, b) => entryTime(b) - entryTime(a))[0];
+            const taskAt = lastTask ? entryTime(lastTask) : 0;
+            const useTask = lastTask && (!pv || taskAt > pv.at.getTime());
+            const lastAt = useTask ? new Date(taskAt) : pv ? pv.at : null;
+            const last = useTask && lastTask ? `Task: ${lastTask.title}` : pv ? `${pv.mine ? "You: " : ""}${pv.text}` : unread ? `${unread} new ${unread === 1 ? "reply" : "replies"}` : pv === null ? `${p.presence} · no messages yet` : p.presence;
+            const when = lastAt ? (sepLabel(isoDay(lastAt)) === "Today" ? clockTime(lastAt) : sepLabel(isoDay(lastAt))) : "";
+            return (
+              <button key={p.memberId} type="button" className={on ? "conv on" : "conv"} aria-pressed={on} aria-label={`${p.name}${unread ? `, ${unread} unread` : ""}`} onClick={() => go(p)}>
+                <span className="conv-av">
+                  <Avatar person={p} size={38} />
+                  <span className="conv-dot" style={{ background: DOT[p.presenceKind] }} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                  <span style={{ display: "flex", justifyContent: "space-between", gap: 6 }}>
+                    <b style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</b>
+                    <span style={{ fontSize: 11, color: "#6B6459", flex: "none" }}>{when}</span>
+                  </span>
+                  <span style={{ fontSize: 12, color: "#6B6459", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{last}</span>
+                </span>
+                <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                  {unread > 0 ? <span className="conv-unread">{unread}</span> : null}
+                  {open > 0 ? (
+                    <span className="cv-pill" style={{ background: "#FDEBDC", color: "#8A3A04", fontSize: 11 }}>
+                      {open === 1 ? "1 task" : `${open} tasks`}
+                    </span>
+                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </aside>
+
+        <section aria-label="Conversation" className="cv-pane">
+          <div className="cv-head">
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              <Link className="zk-ic zk-m-only cv-back" aria-label="Back to all chats" to="/app/chat">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M15 18 9 12l6-6" />
+                </svg>
+              </Link>
+              <Avatar person={selected} size={40} />
+              <div style={{ minWidth: 0, display: "flex", flexDirection: "column", lineHeight: 1.35 }}>
+                <b style={{ fontSize: 16 }}>{selected.name}</b>
+                <span style={{ fontSize: 12, color: "#6B6459" }}>
+                  {selected.member?.device ? (
+                    <>
+                      <span className="z-mono">{selected.pc}</span> · {selected.role} · {selected.presence}
+                    </>
+                  ) : (
+                    presenceLine
+                  )}
+                </span>
+              </div>
             </div>
-            <ChatComposer key={`c-${selected.id}`} member={selected} onSent={() => setThreadKey((k) => k + 1)} />
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                className="z-btn sm zk-d-only"
+                onClick={() => {
+                  void copyText(`${window.location.origin}${route}`);
+                  setCopied(true);
+                  window.clearTimeout(copyTimer.current);
+                  copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+                </svg>
+                <span aria-live="polite">{copied ? "Link copied" : "Copy link to this chat"}</span>
+              </button>
+              <div role="group" aria-label="Show" className="z-segs" style={{ flexWrap: "nowrap" }}>
+                <button type="button" className={tab === "chat" ? "z-seg on" : "z-seg"} aria-pressed={tab === "chat"} onClick={() => setTab("chat")}>
+                  Chat
+                </button>
+                <button type="button" className={tab === "tasks" ? "z-seg on" : "z-seg"} aria-pressed={tab === "tasks"} onClick={() => setTab("tasks")}>
+                  Tasks · {openOf(selected)} open
+                </button>
+              </div>
+            </div>
           </div>
+
+          {tab === "chat" ? (
+            <ChatThread
+              key={`thread-${selected.memberId}`}
+              person={selected}
+              tasks={tasks.data ? selTasks : []}
+              reloadKey={threadKey}
+              openCards={openCards}
+              flash={flash}
+              onToggleCard={(id) =>
+                setOpenCards((s) => {
+                  const next = new Set(s);
+                  if (next.has(id)) next.delete(id);
+                  else next.add(id);
+                  return next;
+                })
+              }
+              onReply={startReply}
+              onEditTask={(t) => setForm({ who: selected.key, editing: t })}
+              onJump={flashItem}
+              onLoaded={onLoaded}
+            />
+          ) : (
+            <div className="cv-thread" style={{ gap: 8 }}>
+              <span style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "6px 12px", fontSize: 13, color: "#6B6459" }}>
+                Tasks with {selected.first}, newest first. Select one to open it in the chat.
+                <Link to={`/app/tasks#m=${selected.key}`} style={{ fontWeight: 600 }}>
+                  See {selected.first}’s tasks on the Tasks page
+                </Link>
+              </span>
+              {selTasks.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="cv-trow"
+                  onClick={() => {
+                    setTab("chat");
+                    setOpenCards((s) => new Set([...s, t.id]));
+                    window.setTimeout(() => flashItem(`t${t.id}`), 60);
+                  }}
+                >
+                  <b style={{ flex: "1 1 220px", minWidth: 0, fontWeight: 600 }}>{t.title}</b>
+                  <span style={{ fontSize: 12, color: "#6B6459" }}>{t.byMember ? `Added by ${selected.first}` : "From you"}</span>
+                  <span className="cv-pill" style={dueStyle(t)}>
+                    {dueLabel(t)}
+                  </span>
+                  <span className="cv-pill" style={statusStyle(t.status)}>
+                    {TASK_STATUS[t.status][0]}
+                  </span>
+                </button>
+              ))}
+              {selTasks.length === 0 ? <p style={{ margin: 0, color: "#4A443C" }}>No tasks with {selected.first} yet. Use Add task below to send one.</p> : null}
+            </div>
+          )}
+
+          <ChatComposer
+            key={`compose-${selected.memberId}`}
+            person={selected}
+            reply={reply}
+            onCancelReply={() => setReply(null)}
+            onJumpReply={() => reply && flashItem(reply.key)}
+            onTask={(title) => setForm({ who: selected.key, editing: null, title })}
+            onSent={() => {
+              setReply(null);
+              setThreadKey((k) => k + 1);
+            }}
+          />
         </section>
-      )}
-    </>
+      </div>
+
+      {form ? (
+        <TaskForm
+          people={everyone}
+          who={form.who}
+          editing={form.editing}
+          title={form.title}
+          onClose={() => {
+            setForm(null);
+            if (hashParams.get("new")) navigate(route, { replace: true });
+          }}
+          onSubmit={submitTask}
+        />
+      ) : null}
+    </div>
   );
+}
+
+function entryTime(t: SampleTask): number {
+  return entryDate(t.log[0] ?? { day: t.due, time: "9:00 AM" }).getTime();
 }

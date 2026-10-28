@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
 import { ApiError, emailAlert, errorMessage, sendMessage, MESSAGE_BODY_MAX, type DeviceEvent, type MessageChannel } from "../../lib/api";
 import { cx } from "../../lib/cx";
-import { contextOf, subjectLine, tagsFor, URGENCY, type MessageTag, type Urgency } from "../features/messageTags";
+import { contextOf, DELIVERIES, deliveryFor, draftPreview, subjectLine, tagsFor, URGENCY, type MessageTag, type Urgency } from "../features/messageTags";
 import { eventMeta } from "../features/events";
 import { DashIcon, type DashIconName } from "./DashIcon";
 
@@ -17,20 +17,7 @@ export interface ComposerPerson {
   email?: string;
 }
 
-const DELIVERIES: ReadonlyArray<{ value: Delivery; label: string; icon: DashIconName; note: string }> = [
-  { value: "chat", label: "Chat", icon: "chat", note: "The Zinwe widget on their PC" },
-  { value: "chat_email", label: "Chat + email", icon: "share", note: "Their PC, plus a copy in their inbox" },
-  { value: "email", label: "Email only", icon: "mail", note: "Their inbox only, not their PC" },
-];
-
-/** A draft as a one-line preview: without the "Hi Asha, " greeting, capitalised; open-ended drafts end in "…". */
-function draftPreview(draft: string): string {
-  const text = draft.replace(/^Hi [^,]+, /, "").trim();
-  const capital = text.charAt(0).toUpperCase() + text.slice(1);
-  return capital.endsWith(":") ? `${capital} …` : capital;
-}
-
-interface MenuOption<T extends string> {
+export interface MenuOption<T extends string> {
   value: T;
   label: string;
   /** Second line, e.g. what the option does or the draft it fills in. */
@@ -45,7 +32,7 @@ interface MenuOption<T extends string> {
  * upwards (the composer sits at the bottom of the chat). Arrow keys move, Escape closes, a click outside
  * closes.
  */
-function ComposerMenu<T extends string>({
+export function ComposerMenu<T extends string>({
   label,
   current,
   options,
@@ -154,14 +141,6 @@ function ComposerMenu<T extends string>({
       ) : null}
     </div>
   );
-}
-
-/**
- * Until the owner picks "Send via" themselves, a Normal note goes to the widget only and an Important or
- * Urgent one also by email, so "Thanks, noted" never lands in someone's inbox (J5-14).
- */
-function deliveryFor(urgency: Urgency): Delivery {
-  return urgency === "info" ? "chat" : "chat_email";
 }
 
 /**
