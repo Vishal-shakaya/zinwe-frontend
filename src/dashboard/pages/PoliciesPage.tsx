@@ -1,76 +1,63 @@
 import type { ReactElement } from "react";
-import { COLLECTED, COMMITMENTS, NEVER } from "../../content/help";
-import { LEGAL_DOCS, LEGAL_UPDATED } from "../../content/legal";
-import { usePageMeta } from "../../hooks/usePageMeta";
-import { DashIcon } from "../components/DashIcon";
-import { MetricsDisclosure } from "../components/MetricsDisclosure";
-import { PageHeader } from "../components/States";
+import { Link } from "react-router-dom";
 import { SocialLinks } from "../../components/ui/SocialLinks";
+import { COLLECTED, COMMITMENTS, NEVER } from "../../content/help";
+import { usePageMeta } from "../../hooks/usePageMeta";
+import { MetricsDisclosure } from "../components/MetricsDisclosure";
+import { PoliciesCard } from "../help/PoliciesCard";
+import { PageHead } from "../shell/PageHead";
+import { ZIcon } from "../ui/ZIcon";
+import "../../styles/dash13/settings.css";
+import "../../styles/dash13/help.css";
 
-/** Policies (/app/policies, from the account menu): what Zinwe records, what it never does, and how the data is handled. */
+/**
+ * Policies (/app/policies; also Help → Policies): what Zinwe records and never does, the documents the owner agreed
+ * to, and our promises. Kept as its own page for links in emails and the Terms dialog.
+ */
 export default function PoliciesPage(): ReactElement {
   usePageMeta({ title: "Policies — Zinwe", description: "What Zinwe records, what it never does, and who sees it." });
 
   return (
-    <>
-      <PageHeader title="Policies" lede="What Zinwe records, what it never does, and the documents you agreed to." />
-      <MetricsDisclosure
-        title="What Zinwe records"
-        sub="Across every feature, in one place. It's visible only to your company's Zinwe account."
-        collected={[...COLLECTED]}
-        never={[...NEVER]}
+    <div className="zp-help">
+      <PageHead
+        label={<Link to="/app/help#tab=policies">Help &amp; support</Link>}
+        title="Policies"
+        lede="What Zinwe records, what it never does, and the documents you agreed to."
       />
-
-      <section className="dash-card" aria-labelledby="legal-title">
-        <div className="dash-card__head">
-          <h2 className="dash-card__title" id="legal-title">
-            Legal documents
+      <div className="zp-col">
+        <MetricsDisclosure
+          title="What Zinwe records"
+          sub="Across every feature, in one place. It's visible only to your company's Zinwe account."
+          collected={[...COLLECTED]}
+          never={[...NEVER]}
+        />
+        <PoliciesCard more={false} />
+        <section className="z-card zp-card" aria-labelledby="prom-h" style={{ gap: 12 }}>
+          <h2 id="prom-h" style={{ fontSize: 18 }}>
+            Our promises
           </h2>
-          <p className="dash-card__sub">
-            The full texts you agreed to when you signed up and paid. Last updated {LEGAL_UPDATED}.
-          </p>
-        </div>
-        <ul className="help-legal">
-          {LEGAL_DOCS.map((d) => (
-            <li key={d.slug}>
-              <a href={`/legal/${d.slug}`} target="_blank" rel="noreferrer">
-                <b>{d.title}</b>
-                <small>{d.summary}</small>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="dash-card" aria-labelledby="pol-title">
-        <h2 className="dash-card__title" id="pol-title">
-          Our promises
-        </h2>
-        <ul className="help-promises">
-          {COMMITMENTS.map((point) => (
-            <li key={point.title}>
-              <span className="help-promises__mark" aria-hidden="true">
-                <DashIcon name="check" />
-              </span>
-              <div>
-                <b>{point.title}</b>
-                <p>{point.body}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <p className="dash-note">
-          Questions about privacy or your data? Email{" "}
-          <a className="dash-link" href="mailto:hello@zinwe.io">
-            hello@zinwe.io
-          </a>
-          .
-        </p>
-        <div className="help-social">
-          <span>Follow Zinwe for product news</span>
-          <SocialLinks />
-        </div>
-      </section>
-    </>
+          <ul className="zh-rec" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {COMMITMENTS.map((point) => (
+              <li key={point.title} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{ color: "#17663F", paddingTop: 2 }} aria-hidden="true">
+                  <ZIcon name="check" size={16} stroke={2.4} />
+                </span>
+                <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <b>{point.title}</b>
+                  <span>{point.body}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <span className="zp-body" style={{ fontSize: 13 }}>
+            Questions about privacy or your data? Email <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>.
+          </span>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <span className="zp-k">Follow Zinwe for product news</span>
+            <SocialLinks />
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

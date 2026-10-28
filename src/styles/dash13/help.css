@@ -1,0 +1,419 @@
+/* v1.3 board DashHelp (/app/help, /app/policies, /app/whats-new, /app/feedback) + the shared feedback form (.zf-*),
+   which also renders inside the feedback modal. Section nav and card basics live in settings.css. */
+
+/* ---------- Get started ---------- */
+.zh-prog {
+  height: 8px;
+  background: #efece5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.zh-prog > span {
+  display: block;
+  height: 100%;
+  background: #17663f;
+}
+
+.zh-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zh-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-top: 1px solid #f0ede6;
+}
+
+.zh-box {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #c9c1b3;
+  color: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.zh-box.on {
+  background: #17663f;
+  border: 0;
+  color: #fff;
+}
+
+.zh-done {
+  color: #6b6459;
+  text-decoration: line-through;
+}
+
+/* ---------- Support ---------- */
+.zh-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.zh-text {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 12px;
+  resize: vertical;
+  font: inherit;
+  font-size: 14px;
+  color: #141210;
+  background: #fff;
+}
+
+.zh-text:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+}
+
+.zh-sent {
+  background: #e3f4ea;
+  color: #17663f;
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 600;
+}
+
+.zd .zh-faq {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  min-height: 44px;
+  background: none;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  font-weight: 600;
+  color: #141210;
+  cursor: pointer;
+}
+
+/* ---------- Policies ---------- */
+.zh-docs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.zh-doc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #141210;
+}
+
+.zd .zh-doc,
+.zd .zh-doc:hover {
+  color: #141210;
+}
+
+.zh-doc:hover {
+  border-color: #141210;
+}
+
+.zh-doc span {
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zh-never {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #3a352e;
+}
+
+.zh-rec {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px 18px;
+}
+
+.zh-rec > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zh-rec span {
+  font-size: 13px;
+  color: #4a443c;
+}
+
+/* ---------- What's new ---------- */
+.zp-wn {
+  gap: 10px !important;
+}
+
+.zp-wn.now {
+  border-color: #f26a0a;
+}
+
+.zp-wn__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.zp-ver {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f2efe8;
+  color: #3a352e;
+}
+
+.zp-ver.now {
+  background: #141210;
+  color: #fff;
+}
+
+.zp-wn.now + .zp-wn .zp-ver {
+  background: #fdebdc;
+  color: #8a3a04;
+}
+
+.zp-wn__title {
+  font-size: 17px;
+}
+
+.zp-wn ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #3a352e;
+}
+
+/* ---------- Feedback form (Help → Feedback, the modal, /app/feedback) ---------- */
+.zf {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.zf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.zf-scorebox {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zf-q {
+  padding: 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: #141210;
+  margin-bottom: 10px;
+}
+
+.zf-q.big {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.zf-scores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.zf-score {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #dcd6cb;
+  background: #fff;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #141210;
+}
+
+.zf-score:hover {
+  border-color: #141210;
+}
+
+.zf-score.on {
+  background: #141210;
+  color: #fff;
+  border-color: #141210;
+}
+
+.zf-score input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.zf-score:has(input:focus-visible) {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
+}
+
+.zf-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b6459;
+  max-width: 500px;
+  margin: 0;
+}
+
+.zf-text {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 12px;
+  resize: vertical;
+  font: inherit;
+  font-size: 14px;
+  color: #141210;
+  background: #fff;
+}
+
+.zf-text:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+}
+
+.zf-k {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zf-err {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b02a15;
+}
+
+.zf-acts {
+  display: flex;
+}
+
+.zf-thanks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zf-hist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #f0ede6;
+  padding-top: 14px;
+}
+
+.zf-hist ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zf-hist li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-top: 1px solid #f0ede6;
+}
+
+.zf-hist li:first-child {
+  border-top: 0;
+}
+
+.zf-hist__score {
+  flex: none;
+  min-width: 48px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f2efe8;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 760px) {
+  .zp-help .zp-card {
+    padding: 16px !important;
+  }
+
+  .zh-step {
+    flex-wrap: wrap;
+  }
+
+  .zh-step .z-btn {
+    margin-left: 40px;
+  }
+
+  .zf-acts {
+    position: sticky;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    z-index: 5;
+    background: #fff;
+    padding: 10px 0;
+    box-shadow: 0 -10px 12px -12px rgba(20, 18, 16, 0.25);
+  }
+
+  .zf-acts .z-btn {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  /* Inside the modal the sheet already keeps the button in reach. */
+  .zn-dialog .zf-acts,
+  .dash-modal .zf-acts {
+    position: static;
+    box-shadow: none;
+  }
+}

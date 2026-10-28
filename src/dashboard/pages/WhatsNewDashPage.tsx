@@ -1,18 +1,24 @@
 import type { ReactElement } from "react";
-import { ReleaseNotes } from "../../components/ReleaseNotes";
+import { Link } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { PageHeader } from "../components/States";
-import "../../styles/whatsnew.css";
+import { WhatsNewList } from "../help/WhatsNewList";
+import { PageHead } from "../shell/PageHead";
+import "../../styles/dash13/settings.css";
+import "../../styles/dash13/help.css";
 
-/** /app/whats-new: the release notes inside the dashboard (account menu → What's new), FR-21. */
+/** /app/whats-new: the release notes inside the dashboard (FR-21). The same list as Help → What's new. */
 export default function WhatsNewDashPage(): ReactElement {
   usePageMeta({ title: "What's new — Zinwe", description: "What changed in each Zinwe release." });
   return (
-    <>
-      <PageHeader title="What's new" lede="What we fixed and what you can do now, release by release." />
-      <section className="dash-card rn-dash">
-        <ReleaseNotes />
-      </section>
-    </>
+    <div className="zp-help">
+      <PageHead
+        label={<Link to="/app/help#tab=whats-new">Help &amp; support</Link>}
+        title="What’s new"
+        lede="What we fixed and what you can do now, release by release."
+      />
+      <div className="zp-col">
+        <WhatsNewList />
+      </div>
+    </div>
   );
 }

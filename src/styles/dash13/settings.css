@@ -1,0 +1,776 @@
+/* v1.3 board DashSettings (/app/settings/*) + the section nav shared with DashHelp (/app/help).
+   Scoped under .zp-set (Settings) / .zp-help (Help); the section nav classes are .zp-tabs/.zp-rows/.zp-back. */
+
+/* ---------- Page frame ---------- */
+.zp-set,
+.zp-help {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.zp-col {
+  max-width: 1100px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.zp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.zp-set h2,
+.zp-help h2 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.zp-k {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-body {
+  color: #4a443c;
+}
+
+.zp-lab {
+  font-size: 13px;
+  font-weight: 600;
+  color: #141210;
+}
+
+.zp-inp {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: #141210;
+}
+
+.zp-inp:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+}
+
+.zp-inp:disabled,
+.zp-inp[readonly] {
+  background: #f2efe8;
+  color: #4a443c;
+}
+
+.zp-inp[aria-invalid="true"] {
+  border-color: #b02a15;
+}
+
+.zp-err {
+  font-size: 12px;
+  font-weight: 500;
+  color: #b02a15;
+}
+
+.zp-ok {
+  background: #e3f4ea;
+  color: #17663f;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+.zp-bad {
+  background: #fce8e4;
+  color: #b02a15;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+.zd .zp-linkbtn {
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a84505;
+  cursor: pointer;
+  text-align: left;
+}
+
+.zd .zp-linkbtn:hover {
+  color: #7a3203;
+  text-decoration: underline;
+}
+
+.zd .zp-linkbtn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* ---------- Section nav: tabs (desktop), row list + back bar (phone) ---------- */
+.zp-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e7e3da;
+  flex-wrap: wrap;
+}
+
+.zp-tabs .zp-tab {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: #4a443c;
+  cursor: pointer;
+}
+
+.zp-tabs .zp-tab:hover {
+  color: #141210;
+}
+
+.zp-tabs .zp-tab.on {
+  color: #141210;
+  border-bottom-color: #f26a0a;
+}
+
+.zp-tabs .zp-tab:focus {
+  outline: none;
+}
+
+.zp-tabs .zp-tab:focus-visible {
+  outline: 2px solid #f26a0a;
+  outline-offset: -2px;
+  border-radius: 6px 6px 0 0;
+}
+
+.zp-rows,
+.zp-back {
+  display: none;
+}
+
+.zp-rows {
+  overflow: hidden;
+}
+
+.zp-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 0;
+  border-top: 1px solid #f0ede6;
+  background: #fff;
+  text-align: left;
+  color: #141210;
+  font: inherit;
+  cursor: pointer;
+}
+
+.zp-row:first-child {
+  border-top: 0;
+}
+
+.zp-row:active {
+  background: #f7f6f2;
+}
+
+.zp-row > svg {
+  color: #6b6358;
+}
+
+.zp-row-t {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.zp-row-d {
+  display: block;
+  font-size: 13px;
+  color: #6b6358;
+}
+
+.zp-back {
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0 -10px;
+}
+
+.zp-back h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.zp-backbtn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #141210;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ---------- Cards ---------- */
+.zp-card {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.zp-card.narrow {
+  max-width: 560px;
+}
+
+.zp-card.mid {
+  max-width: 760px;
+}
+
+/* Company */
+.zp-cogrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.zp-f {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.zp-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.zp-phone {
+  display: flex;
+  align-items: stretch;
+}
+
+.zp-phone__dial {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #dcd6cb;
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+  background: #f2efe8;
+  color: #4a443c;
+  font-size: 14px;
+}
+
+.zp-phone .zp-inp {
+  border-radius: 0 10px 10px 0;
+}
+
+.zp-save {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Plan */
+.zp-plan {
+  padding: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.zp-plan__who {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 240px;
+  flex: 1 1 240px;
+}
+
+.zp-plan__name {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.zp-plan__name b {
+  font-size: 24px;
+}
+
+.zp-plan__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 12px 24px;
+}
+
+.zp-bar {
+  flex: 1;
+  height: 8px;
+  background: #efece5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.zp-bar > span {
+  display: block;
+  height: 100%;
+  background: #f26a0a;
+}
+
+.zp-plan__acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  border-top: 1px solid #f0ede6;
+  padding-top: 14px;
+}
+
+.zp-plan__full {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zp-plangrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.zp-popt {
+  text-align: left;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff;
+  line-height: 1.45;
+  border: 1px solid #e7e3da;
+  font: inherit;
+  color: #141210;
+  cursor: pointer;
+}
+
+.zp-popt.on {
+  border: 2px solid #f26a0a;
+  padding: 13px;
+}
+
+.zp-popt:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.zp-popt s {
+  font-size: 12px;
+  color: #6b6358;
+}
+
+/* Payments */
+.zp-paytbl {
+  overflow-x: auto;
+}
+
+.zp-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.zp-tbl th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6459;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e7e3da;
+}
+
+.zp-tbl td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #f0ede6;
+  vertical-align: middle;
+}
+
+.zp-tbl tr.why td {
+  padding-top: 0;
+  font-size: 13px;
+  color: #b02a15;
+}
+
+.zp-tbl small {
+  display: block;
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-paycards {
+  display: none;
+  flex-direction: column;
+}
+
+.zp-paycard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  border-top: 1px solid #f0ede6;
+}
+
+.zp-paycard__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+/* The tax invoice, inline */
+.zp-inv {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.zp-inv table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.zp-inv td {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.zp-inv td + td {
+  text-align: right;
+  padding-left: 12px;
+}
+
+.zp-inv tr.tax td {
+  color: #4a443c;
+  border-bottom: 0;
+}
+
+.zp-inv tr.tot td {
+  padding: 10px 0;
+  border-top: 2px solid #141210;
+  border-bottom: 0;
+}
+
+.zp-inv tr.tot td + td {
+  padding-left: 12px;
+}
+
+/* Bank */
+.zp-bank {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) 1fr;
+  gap: 6px 16px;
+  font-size: 14px;
+}
+
+.zp-bank .zp-k {
+  font-size: 13px;
+}
+
+/* Sign-in */
+.zp-set .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zp-set .field > label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zp-set .dash-pw {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+
+.zp-set .dash-pw input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 64px 0 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+
+.zp-set .dash-pw input:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+}
+
+.zd .zp-set .dash-pw__toggle {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  bottom: 4px;
+  transform: none;
+  padding: 0 8px;
+  min-width: 52px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a84505;
+  cursor: pointer;
+}
+
+.zp-set .field__hint {
+  margin: 0;
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-set .field__err {
+  margin: 0;
+  font-size: 12px;
+  color: #b02a15;
+  font-weight: 500;
+}
+
+.zp-set .field.is-invalid input {
+  border-color: #b02a15;
+}
+
+.zp-sess {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid #f0ede6;
+  padding-top: 10px;
+}
+
+/* Notifications */
+.zp-browser {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: #f7f6f2;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.zp-browser__acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.zp-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #4a443c;
+}
+
+.zp-legend > span {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.zp-legend i {
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.zp-legend b {
+  font-weight: 700;
+  color: #141210;
+}
+
+.zp-nrow {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-top: 1px solid #f0ede6;
+  padding-top: 14px;
+}
+
+/* The boards' 44 x 26 toggle */
+.zp-toggle {
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: 0;
+  padding: 3px;
+  display: inline-flex;
+  justify-content: flex-start;
+  background: #c9c1b3;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.zp-toggle > span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.zp-toggle[aria-checked="true"] {
+  background: #17663f;
+  justify-content: flex-end;
+}
+
+.zp-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Phone (boards: max-width 760px) ---------- */
+@media (max-width: 760px) {
+  .zp-tabs {
+    display: none !important;
+  }
+
+  .zp-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .zp-panel {
+    display: none !important;
+  }
+
+  .zn-open .zp-rows {
+    display: none;
+  }
+
+  .zn-open > .zn-head {
+    display: none !important;
+  }
+
+  .zn-open .zp-back {
+    display: flex;
+  }
+
+  .zn-open .zp-panel {
+    display: flex !important;
+  }
+
+  .zp-paytbl {
+    display: none;
+  }
+
+  .zp-paycards {
+    display: flex;
+  }
+
+  /* Save stays in reach, just above the tab bar. */
+  .zp-set .zp-save,
+  .zp-help .zp-save {
+    position: sticky;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    z-index: 5;
+    background: #fff;
+    padding: 10px 0;
+    box-shadow: 0 -10px 12px -12px rgba(20, 18, 16, 0.25);
+  }
+
+  .zp-save .z-btn,
+  .zp-save .zp-linkbtn {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  /* The tax invoice opens as a full-screen sheet. */
+  .zp-inv {
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+    border-radius: 0 !important;
+    border: 0 !important;
+    max-width: none !important;
+    overflow-y: auto;
+    padding: 20px 16px calc(24px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .zp-plangrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .zp-plan__facts {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .zp-plan__who {
+    min-width: 0;
+  }
+
+  .zp-bank {
+    grid-template-columns: 1fr;
+  }
+
+  .zp-bank b,
+  .zp-bank span {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-toggle {
+    transition: none;
+  }
+}
