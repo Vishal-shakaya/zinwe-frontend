@@ -1,7 +1,7 @@
 /**
- * The /download page: the Windows installer, what a PC needs, the four setup steps and the questions
- * people ask before installing. Copy rules as everywhere (.claude/marketing/context.md):
- * plain English, only what ships, consent first.
+ * The /download page (board SiteDownload v3.1, 29 Oct 2026), word for word: the installer, two paths (an invited team
+ * member / an owner setting up), the Windows warning, what a PC needs, IT mass install, the never-list and questions.
+ * Copy rules as everywhere (.claude/marketing/context.md): plain English, only what ships, consent first.
  */
 
 /**
@@ -11,59 +11,89 @@
 export const AGENT_MSI_URL = "/download/ZinweAgent.msi";
 export const AGENT_MSI_NAME = "ZinweAgent.msi";
 
-export const DOWNLOAD_NEEDS: readonly string[] = [
-  "A Windows 10 or 11 PC (64-bit)",
-  "Administrator permission on that PC, once, to install",
-  "The person's work email and their Member ID from your dashboard",
-  "An internet connection",
+/**
+ * Release facts shown on the card. There is no public releases API yet (Admin › Releases is staff-only), so this is the
+ * seam: the version is the window-app build (window-app <Version>), size and date are read live from the installer
+ * (HEAD request). The SHA-256 block shows only when `sha256` is set here — never a made-up checksum. Update both with
+ * each agent release, or replace this with a public endpoint (backend: Forge).
+ */
+export const AGENT_RELEASE: { version: string; sha256: string | null } = {
+  version: "1.2.1",
+  sha256: null,
+};
+
+export const DOWNLOAD_HERO = {
+  eyebrow: "Download",
+  title: "Zinwe for Windows.",
+  lead: "One small app by the clock on each PC. It keeps company data safe, brings your team's chat and tasks, and tracks work hours with one tap.",
+  facts: ["Free to download", "Installs in about a minute", "Each person agrees first", "No kernel driver"],
+} as const;
+
+export type StepMock = "download" | "connect" | "consent" | "tray" | "signup" | "add" | "install" | "online";
+export type InstallPath = "member" | "owner";
+
+export const PATHS: Record<InstallPath, ReadonlyArray<{ mock: StepMock; t: string; b: string }>> = {
+  member: [
+    { mock: "download", t: "Download and open the installer", b: "Use the orange button above. Windows asks for an administrator’s OK once; ask whoever looks after your PCs if you don’t have it." },
+    { mock: "connect", t: "Type your email and Member ID", b: "Both are in the invite email from your company. Press Connect." },
+    { mock: "consent", t: "Read what Zinwe records, then choose", b: "Nothing is recorded until you press I agree. You can read the list again any time." },
+    { mock: "tray", t: "You’re in", b: "Zinwe sits by the clock: start your day, take breaks, chat with your manager and tick off tasks." },
+  ],
+  owner: [
+    { mock: "signup", t: "Create your free account", b: "Sign up with Google, LinkedIn or email. No card needed." },
+    { mock: "add", t: "Add each person", b: "On Team & PCs, type their name and work email. They get an invite with their Member ID." },
+    { mock: "install", t: "Install on each PC", b: "They run the installer and connect, or your IT helper installs on every PC at once." },
+    { mock: "online", t: "Watch the PCs come online", b: "Each PC appears in your dashboard as soon as its person agrees. Most offices finish in an afternoon." },
+  ],
+};
+
+export const PATH_NOTE: Record<InstallPath, { note: string; link: string; to: string }> = {
+  member: { note: "No invite yet? Ask the person who runs Zinwe at your company.", link: "Setting up for your office instead?", to: "/signup?plan=free" },
+  owner: { note: "Want a hand with your first PCs?", link: "Book a free 20-minute setup call →", to: "/contact" },
+};
+
+export const WARN_INTRO = {
+  eyebrow: "If Windows shows a warning",
+  title: "It's expected. Three clicks get you past it.",
+  body: "Zinwe is new, so Windows hasn't seen it on many PCs yet and says \"Unknown publisher\". If you downloaded it from zinwe.io, it's safe to continue.",
+} as const;
+
+/** {file} = the installer's file name. */
+export const WARNS: ReadonlyArray<{ t: string; dlgTitle: string; dlgText: string; ok: string; cancel: string; b: string }> = [
+  { t: "Keep the file", dlgTitle: "{file}", dlgText: "isn’t commonly downloaded. Make sure you trust it before you open it.", ok: "Keep", cancel: "Delete", b: "In Edge or Chrome, open the download’s menu and choose Keep." },
+  { t: "More info, then Run anyway", dlgTitle: "Windows protected your PC", dlgText: "App: {file} · Publisher: Unknown publisher", ok: "Run anyway", cancel: "Don’t run", b: "Click More info, check the file name, then Run anyway." },
+  { t: "Allow the install", dlgTitle: "User Account Control", dlgText: "Do you want to allow this app to make changes to your device?", ok: "Yes", cancel: "No", b: "Click Yes. The Zinwe window then opens above the taskbar." },
 ];
 
-export const DOWNLOAD_STEPS: ReadonlyArray<{ title: string; body: string }> = [
-  {
-    title: "Add the person",
-    body: "In your dashboard, open Team & devices and add their name and work email. They get an email with their Member ID and the download link.",
-  },
-  {
-    title: "Install Zinwe on their PC",
-    body: "Download the installer below on their PC and run it. Windows asks for administrator permission once. Nothing else to set up.",
-  },
-  {
-    title: "Connect this PC",
-    body: "The Zinwe widget opens by itself. Enter their work email and Member ID, then click Connect.",
-  },
-  {
-    title: "They agree, protection starts",
-    body: "The person reads what Zinwe shares with you and agrees on their own PC. It shows up in your dashboard within about a minute.",
-  },
+/** {size} = the installer's size (when known). */
+export const REQUIREMENTS: ReadonlyArray<{ k: string; v: string }> = [
+  { k: "Windows", v: "10 or 11, 64-bit" },
+  { k: "Download", v: "{size}" },
+  { k: "Permission", v: "An administrator’s OK, once" },
+  { k: "Internet", v: "To connect; rules keep working offline" },
+  { k: "Per person", v: "Work email and Member ID" },
 ];
 
-/** IT teams and remote installs: no clicks, no widget pop-up. */
-export const SILENT_INSTALL = "msiexec /i ZinweAgent.msi MEMBER_EMAIL=asha@company.com MEMBER_ID=ZM-XXXX /qn";
+/** IT teams and remote installs: no clicks, no window pop-up; the person still agrees on their own PC. */
+export const SILENT_INSTALL = `msiexec /i ${AGENT_MSI_NAME} MEMBER_EMAIL=asha@company.com MEMBER_ID=ZM-XXXX-XXXX /qn`;
+
+export const NEVERS: readonly string[] = [
+  "Records keystrokes, screens, the camera or what is inside files and messages",
+  "Installs a kernel driver: it is a standard Windows service",
+  "Stops protecting when offline: it keeps its last rules",
+  "Leaves a PC locked: uninstalling removes its USB rules",
+];
 
 export const DOWNLOAD_FAQ: ReadonlyArray<{ q: string; a: string }> = [
-  {
-    q: "Do I install anything on my own computer?",
-    a: "No. Your dashboard runs in the browser at zinwe.io. You only install Zinwe on the PCs you want to protect — including your own, if you want it covered too.",
-  },
-  {
-    q: "Will my team know Zinwe is on their PC?",
-    a: "Yes, always. The Zinwe widget sits on their screen, and nothing is recorded until they agree on their own PC. Zinwe never records keystrokes, screens, or what's inside files, emails or messages.",
-  },
-  {
-    // Remove once the purchased code-signing certificate ships (a launch blocker, 2026-10-17).
-    q: "Windows warns me about the installer. Is that normal?",
-    a: "For now, yes. Our publisher certificate is still being issued, so Windows may show \"Unknown publisher\". Check the file came from zinwe.io, then choose Yes (or More info → Run anyway). Questions? Write to hello@zinwe.io.",
-  },
-  {
-    q: "How do updates work?",
-    a: "When we release a new version, the Zinwe widget shows an Update button. One click and it installs itself — no need to download anything again.",
-  },
-  {
-    q: "What if the PC goes offline?",
-    a: "Protection keeps working with the last rules it received. Alerts and messages catch up as soon as the PC is back online.",
-  },
-  {
-    q: "Is there a Mac or Linux version?",
-    a: "Not yet. Windows is available today; Linux and macOS are on our roadmap, and we'll announce them on the Zinwe blog.",
-  },
+  { q: "I lost my Member ID.", a: "Ask the person who invited you. It is on their Team & PCs page, and they can send the invite again with one click." },
+  { q: "Will my team know Zinwe is on their PC?", a: "Yes. The Zinwe window opens after install, shows what it records and asks each person to agree. It then sits by the clock, bottom right." },
+  { q: "Does it slow the PC down?", a: "It is built to stay light: a standard Windows service and a small window, with no kernel driver." },
+  { q: "How do updates work?", a: "The Zinwe window shows Update now when a new version is ready. It takes about a minute and keeps the day’s work times." },
+  { q: "What if the PC goes offline?", a: "Rules keep working with the last settings, and work times are saved on the PC until it reconnects." },
+  { q: "Can one person use two PCs?", a: "Yes on Teams and Businesses: the same Member ID connects a second PC, and work time counts once." },
 ];
+
+export const DOWNLOAD_CLOSE = {
+  title: "Setting up for your office?",
+  body: "Create a free account first, add your people, then install. Free forever on 3 PCs.",
+} as const;

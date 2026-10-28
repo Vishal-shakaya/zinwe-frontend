@@ -1,23 +1,32 @@
 import { useEffect, useState, type ReactElement } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../auth/authContext";
-import { OfferBand } from "../components/home/OfferBand";
-import { Icon } from "../components/ui/Icon";
+import { Link, useLocation } from "react-router-dom";
+import { ICONS } from "../components/site/icons";
+import { SiteFaq } from "../components/site/SiteFaq";
+import { PathIcon, Tick } from "../components/site/SiteIcon";
 import { JsonLd } from "../components/ui/JsonLd";
-import { Reveal } from "../components/ui/Reveal";
-import { Smoke } from "../components/ui/Smoke";
-import { StaggerTitle } from "../components/ui/StaggerTitle";
 import {
   AGENT_MSI_NAME,
   AGENT_MSI_URL,
+  AGENT_RELEASE,
+  DOWNLOAD_CLOSE,
   DOWNLOAD_FAQ,
-  DOWNLOAD_NEEDS,
-  DOWNLOAD_STEPS,
+  DOWNLOAD_HERO,
+  NEVERS,
+  PATHS,
+  PATH_NOTE,
+  REQUIREMENTS,
   SILENT_INSTALL,
+  WARNS,
+  WARN_INTRO,
+  type InstallPath,
+  type StepMock,
 } from "../content/download";
+import { fill } from "../content/site/plans";
 import { SOFTWARE_LD, seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { copyText } from "../lib/clipboard";
+import { cx } from "../lib/cx";
+import "../styles/site-download.css";
 
 interface InstallerInfo {
   size: string | null;
@@ -25,9 +34,8 @@ interface InstallerInfo {
 }
 
 /**
- * Size and date of the published installer, read from a HEAD request (the file itself is served by
- * nginx, so there's no API for it). Nothing is shown when the file isn't there — e.g. on the local dev
- * server, which answers every path with the app's HTML.
+ * Size and date of the published installer, from a HEAD request (nginx serves the file; there's no API for it).
+ * Nothing is shown when the file isn't there — e.g. on the local dev server, which answers every path with the app.
  */
 function useInstallerInfo(): InstallerInfo | null {
   const [info, setInfo] = useState<InstallerInfo | null>(null);
@@ -40,10 +48,8 @@ function useInstallerInfo(): InstallerInfo | null {
         const bytes = Number(res.headers.get("content-length"));
         const modified = res.headers.get("last-modified");
         setInfo({
-          size: bytes > 0 ? `${Math.round(bytes / 1_048_576)} MB` : null,
-          updated: modified
-            ? new Date(modified).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-            : null,
+          size: bytes > 0 ? `${(bytes / 1_048_576).toFixed(1)} MB` : null,
+          updated: modified ? new Date(modified).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : null,
         });
       })
       .catch(() => {
@@ -64,265 +70,365 @@ function onWindowsPc(): boolean {
   }
 }
 
-/**
- * Not on a Windows PC (a phone, usually): the installer is useless here. Send the page to the PC instead:
- * email it to yourself, share it, or copy the link. "Download anyway" stays for copying it to a USB drive.
- */
-function SendToPc(): ReactElement {
+function useCopied(): [boolean, (text: string) => void] {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/download`;
-  const canShare = typeof navigator.share === "function";
-  const mail = `mailto:?subject=${encodeURIComponent("Install Zinwe on this PC")}&body=${encodeURIComponent(
-    `Open this on the Windows PC to download Zinwe:\n${url}`,
-  )}`;
-  return (
-    <div className="dl-away" role="note" aria-labelledby="dl-away-title">
-      <p className="dl-away__title" id="dl-away-title">
-        Open this page on the Windows PC
-      </p>
-      <p className="dl-away__text">
-        Zinwe installs on Windows 10 and 11 PCs, not on this device. Send yourself the link and open it on the PC you
-        want to protect.
-      </p>
-      <div className="dl-away__actions">
-        <a className="btn btn--primary" href={mail}>
-          Email me the link
-        </a>
-        {canShare ? (
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={() => {
-              void navigator.share({ title: "Download Zinwe for Windows", url }).catch(() => undefined);
-            }}
-          >
-            Share link
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="btn btn--ghost"
-          onClick={() => {
-            void copyText(url).then((ok) => {
-              setCopied(ok);
-              if (ok) window.setTimeout(() => setCopied(false), 2000);
-            });
-          }}
-        >
-          {copied ? "Link copied" : "Copy link"}
-        </button>
-      </div>
-      <a className="dl-away__anyway" href={AGENT_MSI_URL} download={AGENT_MSI_NAME}>
-        Download the installer anyway (to copy it to the PC)
-      </a>
-    </div>
-  );
+  return [
+    copied,
+    (text: string) => {
+      void copyText(text).then((ok) => {
+        setCopied(ok);
+        if (ok) window.setTimeout(() => setCopied(false), 2000);
+      });
+    },
+  ];
 }
 
-/** After the download starts: what to do with the file. */
-function NextSteps(): ReactElement {
-  return (
-    <div className="dl-next" role="status">
-      <p className="dl-next__title">Download started. Next:</p>
-      <ol className="dl-next__list">
-        <li>Open ZinweAgent.msi from the Downloads folder and choose Yes when Windows asks.</li>
-        <li>The Zinwe widget opens: enter the person's work email and Member ID, then click Connect.</li>
-        <li>They read what's shared and agree. The PC shows up in your dashboard within about a minute.</li>
-      </ol>
-    </div>
-  );
-}
-
-/** "Copy" for the silent-install command. */
-function CopyCommand({ text }: { text: string }): ReactElement {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="dl-code">
-      <code>{text}</code>
-      <button
-        type="button"
-        className="btn btn--ghost dl-code__copy"
-        onClick={() => {
-          void copyText(text).then((ok) => {
-            setCopied(ok);
-            if (ok) window.setTimeout(() => setCopied(false), 2000);
-          });
-        }}
-      >
-        {copied ? "Copied" : "Copy"}
-      </button>
-    </div>
-  );
+/** A small picture of the screen for each step. */
+function StepMockup({ mock, file, size }: { mock: StepMock; file: string; size: string }): ReactElement {
+  switch (mock) {
+    case "download":
+      return (
+        <>
+          <span className="zd-file">
+            <span className="zd-z zd-z--26">Z</span>
+            <span className="zd-file__t">
+              <b>{file}</b>
+              <span>{size ? `${size} · done` : "done"}</span>
+            </span>
+          </span>
+          <span className="zd-mbtn zd-mbtn--start">Open</span>
+        </>
+      );
+    case "connect":
+      return (
+        <>
+          <b>Connect this PC</b>
+          <span className="zd-fld">priya@kitecrest.in</span>
+          <span className="zd-fld zs-mono">ZM-64P4-M2KY</span>
+          <span className="zd-mbtn">Connect</span>
+        </>
+      );
+    case "consent":
+      return (
+        <>
+          <b>Here is what Zinwe records</b>
+          <span className="zd-yes">✓ Work hours, app and site names</span>
+          <span className="zd-no">✕ Never keystrokes or screens</span>
+          <span className="zd-row">
+            <span className="zd-fld zd-fld--btn">I don't agree</span>
+            <span className="zd-mbtn zd-grow">I agree</span>
+          </span>
+        </>
+      );
+    case "tray":
+      return (
+        <>
+          <span className="zd-row zd-row--c">
+            <span className="zd-av">PN</span>
+            <b>Good morning, Priya</b>
+          </span>
+          <span className="zd-grid2">
+            <span className="zd-mbtn zd-mbtn--green">Start day</span>
+            <span className="zd-fld zd-fld--btn">Chat · 2</span>
+          </span>
+          <span className="zd-hint">Sits by the clock, bottom right</span>
+        </>
+      );
+    case "signup":
+      return (
+        <>
+          <b>Create your free account</b>
+          <span className="zd-fld zd-fld--btn">Continue with Google</span>
+          <span className="zd-fld">ananya@kitecrest.in</span>
+          <span className="zd-mbtn">Start free</span>
+        </>
+      );
+    case "add":
+      return (
+        <>
+          <b>Add a person</b>
+          <span className="zd-fld">Priya Nair</span>
+          <span className="zd-fld">priya@kitecrest.in</span>
+          <span className="zd-mbtn">Send invite</span>
+        </>
+      );
+    case "install":
+      return (
+        <>
+          <span className="zd-cmd">
+            <span className="zs-mono zd-cmd__k">ONE PC AT A TIME, OR ALL AT ONCE</span>
+            <span className="zs-mono">msiexec /i {file} … /qn</span>
+          </span>
+          <span className="zd-hint">Each person still agrees on their own PC.</span>
+        </>
+      );
+    case "online":
+      return (
+        <>
+          <b>Team &amp; PCs</b>
+          {["Priya Nair", "Arjun Mehta"].map((n) => (
+            <span key={n} className="zd-online">
+              <span className="zd-online__dot" />
+              <b>{n}</b>
+              <span>Online</span>
+            </span>
+          ))}
+        </>
+      );
+  }
 }
 
 /**
- * /download — the Windows installer and how to set up a PC: what it needs, four steps, silent install
- * for IT, what Zinwe never does, and the questions people ask first. Owners don't install anything for
- * themselves; this page is for the PCs they protect (and the link in every member's invite email).
+ * Public /download, v3.1 (board SiteDownload): the big button and the reasons to trust it; two paths (an invite from
+ * my company / setting up my office — `#owner` opens the owner path); the Windows warning; what you need, IT mass
+ * install and the never-list; questions; close. Release facts: content/download.ts AGENT_RELEASE + a live HEAD of
+ * the installer for size and date. Not on a Windows PC (a phone): the page offers to send the link to the PC.
  */
 export default function DownloadPage(): ReactElement {
   usePageMeta(seoFor("/download"));
-  const { token } = useAuth();
-  const installer = useInstallerInfo();
-  const [windows] = useState(onWindowsPc);
-  const [started, setStarted] = useState(false);
-  const meta = ["Windows 10 and 11", "64-bit", "MSI installer", installer?.size, installer?.updated && `updated ${installer.updated}`]
-    .filter(Boolean)
-    .join(" · ");
+  const { hash } = useLocation();
+  const info = useInstallerInfo();
+  const [who, setWho] = useState<InstallPath>(() => (hash.includes("owner") ? "owner" : "member"));
+  const [shaCopied, copySha] = useCopied();
+  const [cmdCopied, copyCmd] = useCopied();
+  const [linkCopied, copyLink] = useCopied();
+  const windows = onWindowsPc();
+
+  // A link to #owner while already on the page (e.g. from the header) switches the path too.
+  const [lastHash, setLastHash] = useState(hash);
+  if (hash !== lastHash) {
+    setLastHash(hash);
+    if (hash.includes("owner")) setWho("owner");
+  }
+
+  const size = info?.size ?? "";
+  const file = AGENT_MSI_NAME;
+  const pageUrl = `${window.location.origin}/download`;
+  const mail = `mailto:?subject=${encodeURIComponent("Install Zinwe on this PC")}&body=${encodeURIComponent(
+    `Open this on the Windows PC to download Zinwe:\n${pageUrl}`,
+  )}`;
+  const member = who === "member";
+  const note = PATH_NOTE[who];
 
   return (
-    <>
-      <section className="page-hero zin-host">
-        <Smoke />
-        <div className="wrap split dl-hero">
-          <div>
-            <p className="eyebrow fade">Download</p>
-            <StaggerTitle text={seoFor("/download").h1} />
-            <p className="lede fade" style={{ animationDelay: ".4s" }}>
-              Install one small app on each of your team's Windows 10 or 11 PCs. Connect it with the person's work
-              email and Member ID, and the PC shows up in your dashboard within about a minute.
-            </p>
-            <div className="dl-cta fade" style={{ animationDelay: ".55s" }}>
-              {windows ? (
-                <>
-                  <a
-                    className="btn btn--primary btn--lg dl-cta__btn"
-                    href={AGENT_MSI_URL}
-                    download={AGENT_MSI_NAME}
-                    onClick={() => setStarted(true)}
-                  >
-                    <Icon name="windows" />
-                    Download for Windows
-                  </a>
-                  <p className="dl-cta__meta">{meta}</p>
-                  {started ? <NextSteps /> : null}
-                </>
-              ) : (
-                <SendToPc />
-              )}
-            </div>
-          </div>
-
-          <aside className="dl-card fade" style={{ animationDelay: ".7s" }} aria-labelledby="dl-needs-title">
-            <h2 className="dl-card__title" id="dl-needs-title">
-              What you need
-            </h2>
-            <ul className="dl-needs">
-              {DOWNLOAD_NEEDS.map((need) => (
-                <li key={need}>
-                  <Icon name="check" />
-                  <span>{need}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="dl-card__foot">
-              No Member ID yet?{" "}
-              {token ? (
-                <Link className="link-arrow" to="/app/team">
-                  Add the person in your dashboard <span className="arr">→</span>
-                </Link>
-              ) : (
-                <Link className="link-arrow" to="/signup?plan=free">
-                  Create your free account <span className="arr">→</span>
-                </Link>
-              )}
-            </p>
-          </aside>
-        </div>
-      </section>
-
-      <section className="sec sec--paper" aria-labelledby="dl-steps-title">
-        <div className="wrap">
-          <Reveal className="sec-head">
-            <p className="eyebrow">Setup</p>
-            <h2 className="h-section" id="dl-steps-title">
-              From download to protected in four steps.
-            </h2>
-          </Reveal>
-          <Reveal delay={1}>
-            <ol className="dl-steps">
-              {DOWNLOAD_STEPS.map((step, i) => (
-                <li key={step.title} className="dl-step">
-                  <span className="dl-step__num" aria-hidden="true">
-                    {i + 1}
-                  </span>
-                  <h3 className="dl-step__title">{step.title}</h3>
-                  <p className="dl-step__body">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="sec">
-        <div className="wrap split dl-split">
-          <Reveal>
-            <p className="eyebrow">For IT teams</p>
-            <h2 className="h-section">Install on many PCs at once.</h2>
-            <p className="lede">
-              Push the same installer with your usual tools. A silent install connects the PC straight away; the person
-              still sees the Zinwe widget and agrees on their own PC.
-            </p>
-            <CopyCommand text={SILENT_INSTALL} />
-          </Reveal>
-          <Reveal delay={1}>
-            <p className="eyebrow">Safe to install</p>
-            <h2 className="h-section">What Zinwe never does.</h2>
-            <ul className="dl-needs dl-needs--plain">
-              <li>
-                <Icon name="check" />
-                <span>Never records keystrokes, screens, or what's inside files, emails or messages.</span>
+    <div className="zd">
+      {/* 1 · Hero: the promise on the left, the one big download on the right. */}
+      <section className="zs-wrap zd-hero">
+        <div className="zd-hero__copy">
+          <span className="zs-eyebrow">{DOWNLOAD_HERO.eyebrow}</span>
+          <h1 className="zs-h1">{DOWNLOAD_HERO.title}</h1>
+          <p className="zs-lead">{DOWNLOAD_HERO.lead}</p>
+          <ul className="zd-facts">
+            {DOWNLOAD_HERO.facts.map((f) => (
+              <li key={f}>
+                <Tick size={15} />
+                {f}
               </li>
-              <li>
-                <Icon name="check" />
-                <span>No kernel driver: it runs as a standard Windows service and a small widget.</span>
-              </li>
-              <li>
-                <Icon name="check" />
-                <span>Keeps protecting with its last rules when the PC is offline.</span>
-              </li>
-              <li>
-                <Icon name="check" />
-                <span>Uninstalling removes its USB rules, so no PC is left locked.</span>
-              </li>
-            </ul>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="sec sec--paper" aria-labelledby="dl-faq-title">
-        <div className="wrap faq">
-          <Reveal className="sec-head">
-            <p className="eyebrow">Questions</p>
-            <h2 className="h-section" id="dl-faq-title">
-              Before you install
-            </h2>
-            <p className="lede">
-              Something else?{" "}
-              <Link className="link-arrow" to="/contact">
-                Ask us <span className="arr">→</span>
-              </Link>
-            </p>
-          </Reveal>
-          <Reveal className="faq__list" delay={1}>
-            {DOWNLOAD_FAQ.map(({ q, a }, i) => (
-              <details key={q} className="faq__item" open={i === 0}>
-                <summary className="faq__q">
-                  <span>{q}</span>
-                  <span className="faq__mark" aria-hidden="true" />
-                </summary>
-                <p className="faq__a">{a}</p>
-              </details>
             ))}
-          </Reveal>
+          </ul>
+        </div>
+        <div className="zs-card zd-get">
+          <div className="zd-get__head">
+            <span className="zd-z zd-z--56" aria-hidden="true">
+              Z
+            </span>
+            <span className="zd-get__t">
+              <b>Zinwe {AGENT_RELEASE.version}</b>
+              <span>{[size, "Windows 10 and 11", "64-bit"].filter(Boolean).join(" · ")}</span>
+            </span>
+            <span className="zs-pill tone-green">Latest</span>
+          </div>
+          <a className="zs-btn zs-btn--pri zd-get__btn" href={AGENT_MSI_URL} download={AGENT_MSI_NAME}>
+            <PathIcon d={ICONS.download} size={20} stroke={2.2} />
+            Download for Windows
+          </a>
+          {!windows ? (
+            <div className="zd-away" role="note">
+              <b>Open this page on the Windows PC.</b> Zinwe installs on Windows 10 and 11 PCs, not on this device.
+              <span className="zd-away__acts">
+                <a className="zs-btn zs-btn--sm" href={mail}>
+                  Email me the link
+                </a>
+                <button type="button" className="zs-btn zs-btn--sm" onClick={() => copyLink(pageUrl)}>
+                  {linkCopied ? "Link copied" : "Copy link"}
+                </button>
+              </span>
+            </div>
+          ) : null}
+          <div className="zd-get__meta">
+            <span>
+              {file}
+              {info?.updated ? ` · ${info.updated}` : ""}
+            </span>
+            <Link className="zs-link zd-strong" to="/whats-new">
+              What's new in {AGENT_RELEASE.version} →
+            </Link>
+          </div>
+          {AGENT_RELEASE.sha256 ? (
+            <details className="zd-sha">
+              <summary>
+                <span className="zd-sha__l">
+                  <PathIcon d={ICONS.shieldCheck} size={15} stroke={2.2} className="zs-tick" />
+                  Check the file is genuine (SHA-256)
+                </span>
+                <span className="zd-sha__plus" aria-hidden="true">
+                  +
+                </span>
+              </summary>
+              <div className="zd-sha__body">
+                <span className="zd-sha__copy">
+                  <button type="button" className="zs-btn zs-btn--sm" onClick={() => copySha(AGENT_RELEASE.sha256 ?? "")}>
+                    {shaCopied ? "Copied" : "Copy"}
+                  </button>
+                </span>
+                <code className="zs-mono">{AGENT_RELEASE.sha256}</code>
+                <span className="zd-sha__how">
+                  In PowerShell, in your Downloads folder, run <code className="zs-mono">Get-FileHash .\{file}</code>. The Hash it shows must
+                  match this one.
+                </span>
+              </div>
+            </details>
+          ) : null}
+          <p className="zd-roadmap">Mac and Linux are on our roadmap.</p>
         </div>
       </section>
 
-      {token ? null : (
-        <OfferBand title="No account yet? Start free." sub="Protect up to 3 PCs at no cost, for as long as you like." note="No card needed." />
-      )}
+      {/* 2 · Two paths: most people here were sent an invite; owners are setting up. */}
+      <section id="steps" className="zs-wrap zd-steps">
+        <div className="zd-steps__head">
+          <h2 className="zd-h2">From download to working in four steps.</h2>
+          <p>Pick the one that's you.</p>
+        </div>
+        <span id="owner" className="zd-anchor" aria-hidden="true" />
+        <div className="zd-who" role="tablist" aria-label="Who is installing">
+          <button type="button" role="tab" id="zd-tab-member" aria-selected={member} aria-controls="zd-panel" className={cx("zd-who__b", member && "is-on")} onClick={() => setWho("member")}>
+            <PathIcon d={ICONS.mail} size={17} />I got an invite from my company
+          </button>
+          <button type="button" role="tab" id="zd-tab-owner" aria-selected={!member} aria-controls="zd-panel" className={cx("zd-who__b", !member && "is-on")} onClick={() => setWho("owner")}>
+            <PathIcon d={ICONS.building} size={17} />
+            I'm setting up my office
+          </button>
+        </div>
+        <ol id="zd-panel" role="tabpanel" aria-labelledby={`zd-tab-${who}`} className="zd-list">
+          {PATHS[who].map((st, i) => (
+            <li key={st.t} className="zs-card zd-step">
+              <div className="zd-mock" aria-hidden="true">
+                <StepMockup mock={st.mock} file={file} size={size} />
+              </div>
+              <span className="zs-mono zd-step__n">STEP {i + 1}</span>
+              <b className="zd-step__t">{st.t}</b>
+              <span className="zd-step__b">{st.b}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="zd-pathnote">
+          {note.note}{" "}
+          <Link className="zs-link zd-strong" to={note.to}>
+            {note.link}
+          </Link>
+        </p>
+      </section>
+
+      {/* 3 · The Windows warning, made calm: why it shows, then three clicks. */}
+      <section id="warn" className="zs-wrap zd-warnwrap">
+        <div className="zs-card zd-warn">
+          <div className="zd-warn__head">
+            <span className="zs-eyebrow">{WARN_INTRO.eyebrow}</span>
+            <h2 className="zd-h2 zd-h2--32">{WARN_INTRO.title}</h2>
+            <p>{WARN_INTRO.body}</p>
+          </div>
+          <div className="zd-warns">
+            {WARNS.map((w, i) => (
+              <div key={w.t} className="zd-w">
+                <span className="zd-w__t">
+                  <span className="zd-w__n">{i + 1}</span>
+                  <b>{w.t}</b>
+                </span>
+                <div className="zd-dlg" aria-hidden="true">
+                  <b>{fill(w.dlgTitle, { file })}</b>
+                  <span className="zd-dlg__txt">{fill(w.dlgText, { file })}</span>
+                  <span className="zd-dlg__acts">
+                    <span className="zd-dlg__ok">{w.ok}</span>
+                    <span className="zd-dlg__no">{w.cancel}</span>
+                  </span>
+                </div>
+                <span className="zd-w__b">{w.b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4 · Requirements, IT helpers and the never-list, side by side. */}
+      <section className="zs-wrap zd-three">
+        <div className="zs-card zd-box">
+          <span className="zs-eyebrow">What you need</span>
+          <dl className="zd-reqs">
+            {REQUIREMENTS.filter((q) => q.v !== "{size}" || size).map((q) => (
+              <div key={q.k} className="zd-req">
+                <dt>{q.k}</dt>
+                <dd>{fill(q.v, { size })}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div className="zd-box zd-box--dark">
+          <span className="zs-eyebrow zd-on-dark">For IT helpers</span>
+          <b className="zd-box__h">Install on many PCs at once.</b>
+          <span className="zd-box__p">Push the same installer with your usual tools. The PC connects by itself; the person still agrees on their own PC.</span>
+          <div className="zd-it">
+            <code className="zs-mono">{SILENT_INSTALL}</code>
+            <button type="button" className="zd-it__copy" onClick={() => copyCmd(SILENT_INSTALL)}>
+              {cmdCopied ? "Copied" : "Copy command"}
+            </button>
+          </div>
+        </div>
+        <div className="zs-card zd-box">
+          <span className="zs-eyebrow">Safe to install</span>
+          <b className="zd-box__h">What Zinwe never does.</b>
+          <ul className="zs-ticks zd-nevers">
+            {NEVERS.map((n) => (
+              <li key={n}>
+                <Tick size={17} />
+                <span>{n}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="zs-wrap zs-qa zd-faq">
+        <div className="zs-qa__intro">
+          <span className="zs-eyebrow">Before you install</span>
+          <h2 className="zd-h2 zd-h2--32">Common questions.</h2>
+          <p>
+            Stuck?{" "}
+            <Link className="zs-link" to="/contact">
+              We'll help you set up
+            </Link>
+            .
+          </p>
+        </div>
+        <SiteFaq items={DOWNLOAD_FAQ} compact />
+      </section>
+
+      <section className="zs-wrap zd-closewrap">
+        <div className="zd-close">
+          <div className="zd-close__copy">
+            <h2>{DOWNLOAD_CLOSE.title}</h2>
+            <p>{DOWNLOAD_CLOSE.body}</p>
+          </div>
+          <div className="zs-close__acts">
+            <Link className="zs-btn zs-btn--dark" to="/signup?plan=free">
+              Start free
+            </Link>
+            <Link className="zs-btn zs-btn--white" to="/contact">
+              Book a setup call
+            </Link>
+          </div>
+        </div>
+      </section>
       <JsonLd data={SOFTWARE_LD} />
-    </>
+    </div>
   );
 }
