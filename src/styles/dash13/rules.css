@@ -1,0 +1,528 @@
+/* Rules (board DashRules). Board classes keep their names with an rl- prefix, scoped under .zp-rules. */
+
+.zn-main:has(> .zp-rules) {
+  gap: 18px;
+}
+
+.zp-rules .rl-k {
+  font-size: 12px;
+  color: #6b6459;
+}
+
+.zp-rules .rl-mono {
+  font-family: "Geist Mono", ui-monospace, monospace;
+}
+
+.zp-rules .rl-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.zp-rules .rl-version {
+  font-size: 12px;
+  color: #4a443c;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-top: 3px;
+}
+
+/* Unsaved bar */
+.zp-rules .rl-savebar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #141210;
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zp-rules .rl-bar-err {
+  color: #fdb37a;
+}
+
+.zp-rules .rl-ghost-dark {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: #4a443c !important;
+}
+
+.zp-rules .rl-ghost-dark:hover {
+  border-color: #fff !important;
+}
+
+/* Jump list */
+.zp-rules .rl-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.zp-rules .rl-jump .rl-k {
+  margin-right: 2px;
+}
+
+.zp-rules .rl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #dcd6cb;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #141210;
+  text-decoration: none;
+}
+
+.zp-rules .rl-chip:hover {
+  border-color: #141210;
+  color: #141210;
+}
+
+/* Sections (accordion on a phone) */
+.zp-rules .rl-sec {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-margin-top: 16px;
+}
+
+.zp-rules .rl-acc-h {
+  display: none;
+}
+
+.zp-rules .rl-acc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Switch */
+.zp-rules .rl-toggle {
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: 0;
+  padding: 3px;
+  display: inline-flex;
+  background: #c9c1b3;
+  justify-content: flex-start;
+}
+
+.zp-rules .rl-toggle[aria-checked="true"] {
+  background: #17663f;
+  justify-content: flex-end;
+}
+
+.zp-rules .rl-toggle > span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* Radio cards */
+.zp-rules .rl-opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.zp-rules .rl-opt {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+}
+
+.zp-rules .rl-opt.on {
+  border: 2px solid #f26a0a;
+  background: #fff8f2;
+}
+
+.zp-rules .rl-radio {
+  flex: none;
+  margin-top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #c9c1b3;
+}
+
+.zp-rules .rl-opt.on .rl-radio {
+  border: 6px solid #f26a0a;
+}
+
+/* Definition (i) button */
+.zp-rules .rl-defb {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6b6358;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.zp-rules .rl-defb:hover {
+  color: #141210;
+  background: #f2efe8;
+}
+
+/* Inputs, tags, messages */
+.zp-rules .rl-inp {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #dcd6cb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.zp-rules .rl-inp:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+}
+
+.zp-rules .rl-inp[aria-invalid="true"] {
+  border-color: #c0331c;
+}
+
+.zp-rules .rl-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 6px 0 12px;
+  border-radius: 999px;
+  background: #141210;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zp-rules .rl-tag button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 0;
+  background: #2e2a25;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+
+.zp-rules .rl-tag.green {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zp-rules .rl-tag.green button {
+  background: #c9e9d6;
+  color: #17663f;
+}
+
+.zp-rules .rl-err {
+  font-size: 13px;
+  color: #c0331c;
+  font-weight: 500;
+}
+
+.zp-rules .rl-warn {
+  font-size: 13px;
+  color: #8a5300;
+  background: #fbf0d9;
+  border-radius: 8px;
+  padding: 6px 10px;
+  align-self: flex-start;
+}
+
+.zp-rules .rl-toast {
+  display: none;
+}
+
+.zp-rules .rl-toast.on {
+  display: block;
+  background: #e3f4ea;
+  color: #17663f;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Remote tools table */
+.zp-rules .rl-rt-wrap {
+  overflow-x: auto;
+  border: 1px solid #e7e3da;
+  border-radius: 12px;
+}
+
+.zp-rules .rl-rt {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.zp-rules .rl-rt th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6358;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e7e3da;
+  background: #fbfaf7;
+  white-space: nowrap;
+}
+
+.zp-rules .rl-rt td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0ede6;
+  vertical-align: middle;
+}
+
+.zp-rules .rl-rt tr:last-child td {
+  border-bottom: 0;
+}
+
+.zp-rules .rl-ctag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #f7f6f2;
+  border: 1px solid #e7e3da;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a352e;
+  vertical-align: middle;
+}
+
+.zp-rules .rl-s3g {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #efece5;
+}
+
+.zp-rules .rl-s3 {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a443c;
+}
+
+.zp-rules .rl-s3:hover {
+  color: #141210;
+}
+
+.zp-rules .rl-s3.on {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.zp-rules .rl-s3.block.on {
+  background: #141210;
+  color: #fff;
+}
+
+.zp-rules .rl-s3.watch.on {
+  background: #fbf0d9;
+  color: #8a5300;
+}
+
+.zp-rules .rl-s3.allow.on {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zp-rules .rl-adv {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a352e;
+}
+
+.zp-rules .rl-adv:hover {
+  color: #141210;
+}
+
+@media (max-width: 760px) {
+  .zn-main:has(> .zp-rules.has-bar) {
+    padding-bottom: 190px !important;
+  }
+
+  .zp-rules #addSite {
+    width: 100% !important;
+  }
+
+  .zp-rules .rl-jump {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+  }
+
+  .zp-rules .rl-jump .rl-chip,
+  .zp-rules .rl-jump .rl-k {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .zp-rules .rl-chip {
+    min-height: 44px;
+  }
+
+  .zp-rules .rl-sec {
+    scroll-margin-top: 72px;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .zp-rules .rl-acc-h {
+    display: flex;
+    width: 100%;
+    min-height: 52px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .zp-rules .rl-acc-body {
+    padding: 0 16px 16px;
+  }
+
+  .zp-rules .rl-acc-body.shut {
+    display: none;
+  }
+
+  .zp-rules .rl-sec-t {
+    display: none !important;
+  }
+
+  .zp-rules .rl-savebar {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: calc(64px + env(safe-area-inset-bottom)) !important;
+    z-index: 85 !important;
+    border-radius: 0 !important;
+    padding: 10px 64px 10px 16px !important;
+  }
+
+  .zp-rules .rl-savebar .z-btn {
+    min-height: 44px;
+  }
+
+  .zp-rules .rl-rt-wrap {
+    overflow-x: visible !important;
+  }
+
+  .zp-rules .rl-rt {
+    min-width: 0 !important;
+  }
+
+  .zp-rules .rl-rt thead {
+    display: none;
+  }
+
+  .zp-rules .rl-rt,
+  .zp-rules .rl-rt tbody,
+  .zp-rules .rl-rt tr,
+  .zp-rules .rl-rt td {
+    display: block;
+  }
+
+  .zp-rules .rl-rt tr {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0ede6;
+  }
+
+  .zp-rules .rl-rt tr:last-child {
+    border-bottom: 0;
+  }
+
+  .zp-rules .rl-rt td {
+    padding: 3px 0 !important;
+    border: 0 !important;
+    white-space: normal !important;
+  }
+
+  .zp-rules .rl-rt td[data-l]::before {
+    content: attr(data-l);
+    display: block;
+    font-size: 12px;
+    color: #6b6358;
+  }
+
+  .zp-rules .rl-rt td.rl-act {
+    padding-top: 8px !important;
+  }
+
+  .zp-rules .rl-s3g {
+    display: flex;
+  }
+
+  .zp-rules .rl-s3 {
+    flex: 1 1 0;
+    min-height: 44px;
+  }
+
+  .zp-rules .rl-rt .z-btn,
+  .zp-rules .rl-sec .z-btn.sm {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zp-rules .rl-acc-h svg,
+  .zp-rules .rl-adv svg {
+    transition: none !important;
+  }
+}
