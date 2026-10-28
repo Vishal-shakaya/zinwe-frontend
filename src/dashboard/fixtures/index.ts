@@ -21,9 +21,13 @@ export interface SampleArea {
 export const SAMPLE_AREAS: readonly SampleArea[] = [
   { module: "notifications.ts", what: "Bell: notification history (All / Unread, mark read)", waitsFor: "notification centre API (FR-15 history)" },
   { module: "tasks.ts", what: "Tasks board stages, task cards in Chat, Overview Tasks card, Tasks badge", waitsFor: "FR-20 tasks API" },
-  { module: "performance.ts", what: "Reports → Performance tab (ranking)", waitsFor: "FR-34" },
-  { module: "majorAlerts.ts", what: "Major alerts (Needs you) wording / ask flow", waitsFor: "FR-35" },
-  { module: "pcs.ts", what: "Two PCs per person on Team & PCs", waitsFor: "FR-36" },
+  { module: "performance.ts", what: "Reports → Performance tab (ranking): tasks done + usual hours are sample, worked time is real", waitsFor: "FR-34" },
+  { module: "majorAlerts.ts", what: "Alerts + Overview Needs you: which alerts were asked about (Asked · waiting / replied), the reply on the alert, legend / Ask / Why-it-matters wording", waitsFor: "FR-35" },
+  { module: "pcs.ts", what: "Two PCs per person on Team & PCs (card block + notice) and its Activity timeline line", waitsFor: "FR-36" },
+  { module: "photos.ts", what: "Profile pictures on Team & PCs (presets, uploaded photo, Add a person photo)", waitsFor: "member photo API" },
+  { module: "settings.ts", what: "Settings: Where you're signed in (this browser only), Daily email summary switch", waitsFor: "sessions API + digest preference" },
+  { module: "releaseNotes.ts", what: "Help → What's new when the API has no published notes (Zinwe 1.3, 1.2, 1.1 from the board)", waitsFor: "release notes published in admin (FR-21)" },
+  { module: "rules.ts", what: "Rules: work-hours OK settings, Social media / Video streaming kinds, Always allowed sites, category site lists, web upload limit, remote tool Allow (no alert) + custom tool names, new-software alerts switch", waitsFor: "policy API fields for these settings" },
 ];
 
 /** Resolve sample data like a network call: async, abortable, a short delay so loading states are real. */

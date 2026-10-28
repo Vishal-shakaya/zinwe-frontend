@@ -127,7 +127,7 @@ export function DashNav({
                 <span className="z-ell" style={{ fontSize: 12, color: "#4A443C" }} title={email}>
                   {email}
                 </span>
-                <span style={{ fontSize: 12, color: "#6B6459" }}>Owner Â· {company}</span>
+                <span style={{ fontSize: 12, color: "#6B6459" }}>Owner · {company}</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", padding: 6 }}>
                 <Link to="/app/settings" role="menuitem" className={`zn-mi${active === "settings" ? " on" : ""}`} onClick={() => setMeOpen(false)}>
@@ -142,7 +142,7 @@ export function DashNav({
               <div style={{ padding: 6, borderTop: "1px solid #F0EDE6" }}>
                 <button type="button" role="menuitem" className="zn-mi zn-out" onClick={onLogout} disabled={leaving}>
                   <ZIcon name="logout" size={17} />
-                  <span>{leaving ? "Logging outâ€¦" : "Log out"}</span>
+                  <span>{leaving ? "Logging out…" : "Log out"}</span>
                 </button>
               </div>
               <div className="z-mono" style={{ padding: "7px 12px 9px", background: "#FBFAF7", fontSize: 11, color: "#6B6459" }}>
@@ -168,7 +168,7 @@ export function DashNav({
               {name}
             </b>
             <span style={{ fontSize: 12, color: "#6B6459" }}>
-              {inMenu ? (active === "settings" ? "Owner Â· Settings" : "Owner Â· Help & support") : "Owner"}
+              {inMenu ? (active === "settings" ? "Owner · Settings" : "Owner · Help & support") : "Owner"}
             </span>
           </span>
           <ZIcon
