@@ -4,6 +4,7 @@ import { LegalText } from "../components/legal/LegalText";
 import { LEGAL_CONTACT, LEGAL_DOCS, LEGAL_UPDATED, legalDoc } from "../content/legal";
 import { LEGAL_SUMMARY_UPDATED, POLICY_SUMMARIES } from "../content/site/legalSummary";
 import { legalSeo, seoFor } from "../content/seo";
+import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { cx } from "../lib/cx";
 import "../components/legal/legal.css";
@@ -17,6 +18,7 @@ export default function LegalPage(): ReactElement {
   const { slug } = useParams();
   const doc = legalDoc(slug);
   usePageMeta(doc ? legalSeo(doc) : seoFor("/legal"));
+  useHashTarget();
 
   if (slug && !doc) return <Navigate to="/legal" replace />;
 

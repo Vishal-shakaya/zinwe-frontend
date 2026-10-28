@@ -18,6 +18,7 @@ import {
   historyLabel,
 } from "../content/site/plans";
 import { seoFor } from "../content/seo";
+import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage, type BillingCycle, type Plan } from "../lib/api";
 import { cx } from "../lib/cx";
@@ -85,6 +86,7 @@ function perPcCap(plans: readonly Plan[], currency: SiteCurrency): string | null
  */
 export default function PlansPage(): ReactElement {
   usePageMeta(seoFor("/plans"));
+  useHashTarget();
   const { hash } = useLocation();
   const { token, onboarding, account } = useAuth();
   const plans = usePlans();

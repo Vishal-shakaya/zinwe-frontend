@@ -18,6 +18,7 @@ import {
   type DemoKey,
 } from "../content/site/product";
 import { seoFor } from "../content/seo";
+import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { cx } from "../lib/cx";
 import "../styles/site-product.css";
@@ -50,6 +51,7 @@ function Av({ ini, size = 28 }: { ini: string; size?: 24 | 28 }): ReactElement {
  */
 export default function ProductPage(): ReactElement {
   usePageMeta(seoFor("/product"));
+  useHashTarget();
   const [demo, setDemo] = useState<DemoKey>("usb");
   const d = ALERTS.demos[demo];
 

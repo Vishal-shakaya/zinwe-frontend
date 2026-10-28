@@ -23,6 +23,7 @@ import {
 } from "../content/download";
 import { fill } from "../content/site/plans";
 import { SOFTWARE_LD, seoFor } from "../content/seo";
+import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { copyText } from "../lib/clipboard";
 import { cx } from "../lib/cx";
@@ -186,6 +187,7 @@ function StepMockup({ mock, file, size }: { mock: StepMock; file: string; size: 
  */
 export default function DownloadPage(): ReactElement {
   usePageMeta(seoFor("/download"));
+  useHashTarget();
   const { hash } = useLocation();
   const info = useInstallerInfo();
   const [who, setWho] = useState<InstallPath>(() => (hash.includes("owner") ? "owner" : "member"));
