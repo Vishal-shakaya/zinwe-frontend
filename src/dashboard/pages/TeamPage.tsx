@@ -1,844 +1,444 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { paymentInCheck } from "../../auth/steps";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import {
-  createMember,
-  deactivateMember,
   errorMessage,
   getMemberTags,
+  getReport,
+  getWorkLog,
   listDevices,
   listMembers,
-  MEMBER_ROLES,
-  rotateMemberId,
-  setMemberRole,
   type Device,
   type Member,
-  type MemberField,
-  type MemberRole,
   type MemberTag,
 } from "../../lib/api";
-import { cx } from "../../lib/cx";
-import { AGENT_MSI_URL } from "../../content/download";
-import { useChatBubble } from "../features/chatBubble";
-import { Toast } from "../components/Toast";
-import { compactErrors, emailError, focusFirstInvalid, requiredError, type FieldErrorMap } from "../../lib/validation";
-import { apiFieldErrors, apiFormError } from "../../portal/failure";
-import { Field } from "../../components/forms/Field";
-import { FormAlert } from "../../portal/components/FormAlert";
-import { CopyButton } from "../components/CopyButton";
-import { CopyDetails } from "../components/CopyDetails";
-import { buildInviteText } from "../features/invite";
-import { copyText } from "../../lib/clipboard";
-import { DashIcon } from "../components/DashIcon";
-import { MemberChatThread, SendMessageForm } from "../components/MemberChat";
-import { MemberData } from "../components/MemberData";
-import { MemberUsage } from "../components/MemberUsage";
-import { Modal } from "../components/Modal";
-import { EmptyState, ErrorState, LoadingState, PageHeader, RefreshButton, StaleBanner } from "../components/States";
 import { useEntitlements } from "../features/entitlements";
-import {
-  consentOf,
-  consentReminder,
-  formatDuration,
-  PRESENCE_CLASS,
-  PRESENCE_LABEL,
-  presenceOf,
-} from "../features/memberStatus";
-import { UsbRestore } from "../components/UsbRestore";
-import { formatDateTime, formatRelative, useNow } from "../time";
+import { summarizeDay, isoDay, shiftDay, type PersonDay } from "../features/workDay";
+import { keepBoth, removeSecondPc, secondPcsNow } from "../fixtures/pcs";
+import { listPhotos, savePhoto, type MemberPhoto } from "../fixtures/photos";
+import { PageHead } from "../shell/PageHead";
+import { useShell } from "../shell/shellContext";
+import { AddPerson } from "../team/AddPerson";
+import { FilterSheet } from "../team/FilterSheet";
+import { firstName } from "../team/format";
+import { PersonCard } from "../team/PersonCard";
+import { bestTagKey, cardStatus, FILTERS, inFilter, statusRows, systemFull, weekOf, type TeamFilter } from "../team/teamData";
+import { formatRelative, useNow } from "../time";
+import { EmptyBlock, ErrorBlock, Sk, ZToast } from "../ui/States";
+import { useTip } from "../ui/useTip";
+import { ZIcon } from "../ui/ZIcon";
 import { useResource } from "../useResource";
-import { formatDate } from "../../lib/format";
-
-const MEMBER_FIELDS: readonly MemberField[] = ["name", "email"];
+import "../../styles/dash13/team.css";
 
 /** Active members first, then deactivated; each group newest first. */
 function sortMembers(members: Member[]): Member[] {
   return [...members].sort(
     (a, b) =>
-      Number(b.is_active) - Number(a.is_active) ||
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      Number(b.is_active) - Number(a.is_active) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
 }
 
+function hashParams(hash: string): URLSearchParams {
+  return new URLSearchParams(hash.replace(/^#/, ""));
+}
+
+/**
+ * Team & PCs (DashTeam): everyone Zinwe protects, as cards. Add a person (inline; a full-screen sheet on a phone)
+ * gives their Member ID; they install Zinwe and agree on their own PC. `#add=1` (and the tour's `?add=1`) opens
+ * Add a person; `#m=<first>` outlines that person's card.
+ */
 export default function TeamPage(): ReactElement {
   usePageMeta({
-    title: "Team & devices — Zinwe",
-    description: "Everyone on your team, their PC and how much it's used — and an ID to connect each PC.",
+    title: "Team & PCs — Zinwe",
+    description: "Everyone Zinwe protects. Add a person to get their Member ID; they install Zinwe and agree on their own PC.",
   });
 
   const { account, refresh } = useAuth();
-  const companyName = account?.company?.name ?? null;
-  const { maxDevices, planName, upgradeFor } = useEntitlements();
+  const { maxDevices, planName, upgradeFor, has } = useEntitlements();
   const upgradeInCheck = paymentInCheck(account?.subscription);
+  const shell = useShell();
+  const tip = useTip();
+  const now = useNow(60_000);
+  const today = isoDay(new Date(now));
+  const weekFrom = shiftDay(today, -6);
+  const dates = useMemo(() => Array.from({ length: 7 }, (_, i) => shiftDay(weekFrom, i)), [weekFrom]);
 
-  // Someone added but not connected yet: check every 10 s so their card flips to Online by itself (J5-10).
+  // Someone added but not connected yet: check every 10 s so their card flips by itself (J5-10).
   const [waiting, setWaiting] = useState(false);
   const pollMs = waiting ? 10_000 : 60_000;
-  const load = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  const members = useResource(load, { pollMs });
+  const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
+  const members = useResource(loadMembers, { pollMs });
   const loadDevices = useCallback((signal: AbortSignal) => listDevices(signal), []);
   const devices = useResource(loadDevices, { pollMs });
   // FR-19: playful tags from each person's week (a nice-to-have: failures just hide them).
   const loadTags = useCallback((signal: AbortSignal) => getMemberTags(signal), []);
   const tags = useResource(loadTags);
+  // Today's work log: the status tooltip's "Day started 9:32 AM" (the same times Activity shows).
+  const loadToday = useCallback((signal: AbortSignal) => getWorkLog({ date: today }, signal), [today]);
+  const todayLog = useResource(loadToday, { pollMs: 60_000 });
+  // Last 7 days per person (active time, worked, internet data): one team report.
+  const loadWeek = useCallback((signal: AbortSignal) => getReport(weekFrom, today, signal), [weekFrom, today]);
+  const week = useResource(loadWeek, { pollMs: 5 * 60_000 });
+  const loadPhotos = useCallback((signal: AbortSignal) => listPhotos(signal), []);
+  const photos = useResource(loadPhotos);
+  const [pcsTick, setPcsTick] = useState(0);
+
   const someoneWaiting = (members.data ?? []).some((m) => m.is_active && !m.device);
   if (someoneWaiting !== waiting) setWaiting(someoneWaiting);
 
-  // Tour → "Add your first person" lands on /app/team?add=1: open the add dialog straight away.
+  // #add=1 (phone "+" sheet, Overview "Add a person") and the tour's ?add=1 open Add a person.
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
-  const [adding, setAdding] = useState(() => params.get("add") === "1");
+  const [adding, setAdding] = useState(() => params.get("add") === "1" || hashParams(location.hash).get("add") === "1");
+  const [addKey, setAddKey] = useState(0);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const openAdd = useCallback(() => {
+    setAdding(true);
+    setAddKey((k) => k + 1);
+    setSheetOpen(false);
+    window.setTimeout(() => document.getElementById("add-sheet")?.scrollIntoView({ block: "nearest" }), 30);
+  }, []);
   useEffect(() => {
-    if (params.get("add") !== "1") return;
-    const next = new URLSearchParams(params);
-    next.delete("add");
-    setParams(next, { replace: true });
+    if (params.get("add") === "1") {
+      const next = new URLSearchParams(params);
+      next.delete("add");
+      setParams(next, { replace: true });
+    }
   }, [params, setParams]);
-  const [created, setCreated] = useState<Member | null>(null);
+  const hash = hashParams(location.hash);
+  // #add=1 opens it once per navigation (Cancel keeps it closed until the next link).
+  const [seenAddKey, setSeenAddKey] = useState<string | null>(null);
+  if (hash.get("add") === "1" && seenAddKey !== location.key) {
+    setSeenAddKey(location.key);
+    if (!adding) {
+      setAdding(true);
+      setAddKey((k) => k + 1);
+    }
+  }
+  const linkedFirst = (hash.get("m") ?? "").toLowerCase();
+
+  const [filter, setFilter] = useState<TeamFilter>("all");
+  const [q, setQ] = useState("");
+  const closeSheet = useCallback(() => setSheetOpen(false), []);
   const [toast, setToast] = useState<string | null>(null);
   const clearToast = useCallback(() => setToast(null), []);
-
-  const current = members.data ?? [];
-
-  const onCreated = (member: Member) => {
-    members.setData([member, ...current.filter((m) => m.id !== member.id)]);
-    setCreated(member);
-  };
-  const onUpdated = (member: Member) => {
-    members.setData(current.map((m) => (m.id === member.id ? member : m)));
-    if (created?.id === member.id) setCreated(member);
-  };
-  // Removed: the PC count and the plan's free slots update at once, with a short confirmation (J5-17).
-  const onRemoved = (member: Member) => {
-    onUpdated(member);
-    devices.reload();
-    void refresh();
-    const slotsFree = maxDevices > 0 && member.device ? Math.max(0, maxDevices - (pcsUsed - 1)) : null;
-    const first = member.name.trim().split(/\s+/)[0] || member.name;
-    setToast(
-      slotsFree !== null
-        ? `${first} removed. ${slotsFree} PC ${slotsFree === 1 ? "slot" : "slots"} free.`
-        : `${first} removed from your team.`,
-    );
-  };
-  const closeAdd = () => {
-    setAdding(false);
-    setCreated(null);
-  };
 
   const list = members.data ? sortMembers(members.data) : [];
   const active = list.filter((m) => m.is_active);
   const removed = list.filter((m) => !m.is_active);
   // GET /devices/ leaves removed PCs out by default (FIX-005), so every PC here is one in use.
   const live = devices.data ?? [];
-  // Pair each PC with its person by member_id; older backends only sent the name, so fall back to that.
-  const deviceOf = (member: Member) =>
+  const deviceOf = (member: Member): Device | undefined =>
     live.find((d) =>
-      d.member_id != null
-        ? d.member_id === member.id
-        : d.member_name === member.name && d.hostname === member.device?.hostname,
+      d.member_id != null ? d.member_id === member.id : d.member_name === member.name && d.hostname === member.device?.hostname,
     );
   // PCs connected before per-person IDs existed have no member; keep them visible.
   const unassigned = live.filter((d) => !d.member_id && !d.member_name);
-  const online = active.filter((m) => m.device?.is_online).length;
-  const notConnected = active.filter((m) => !m.device).length;
 
   // Plan enforcement: a new PC is refused once every slot on the plan is taken (existing PCs keep working).
   const pcsUsed = live.length;
+  const free = Math.max(0, maxDevices - pcsUsed);
   const pcsFull = maxDevices > 0 && devices.data !== undefined && pcsUsed >= maxDevices;
   const biggerPlan = upgradeFor("work_time") ?? upgradeFor("usb_control");
-  const summary = [
-    `${active.length} ${active.length === 1 ? "person" : "people"}`,
-    `${online} online now`,
-    notConnected > 0 ? `${notConnected} not connected yet` : null,
-    maxDevices > 0 ? `${pcsUsed} of ${maxDevices} PCs on your plan` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const capacity =
+    devices.data === undefined
+      ? ""
+      : maxDevices > 0
+        ? `${pcsUsed} of ${maxDevices} PCs · ${free} free ${free === 1 ? "slot" : "slots"}`
+        : `${pcsUsed} ${pcsUsed === 1 ? "PC" : "PCs"}`;
+  const slotLine =
+    maxDevices <= 0
+      ? ""
+      : free > 0
+        ? `Uses 1 of your ${free} free PC ${free === 1 ? "slot" : "slots"} (${planName ?? "current"} plan, ${maxDevices} PCs).`
+        : `All ${maxDevices} PCs on your ${planName ?? "current"} plan are in use; their PC connects once a slot is free.`;
+
+  const todayByMember = useMemo(() => {
+    const map = new Map<number, PersonDay>();
+    if (todayLog.data) for (const p of summarizeDay(todayLog.data, true, now)) if (p.memberId != null) map.set(p.memberId, p);
+    return map;
+  }, [todayLog.data, now]);
+
+  const tagCounts = new Map<string, number>();
+  for (const m of active) for (const t of tags.data?.[String(m.id)] ?? []) tagCounts.set(t.key, (tagCounts.get(t.key) ?? 0) + 1);
+  const tagOf = (m: Member): MemberTag | null => {
+    const mine = tags.data?.[String(m.id)] ?? [];
+    const key = bestTagKey(mine, tagCounts);
+    return mine.find((t) => t.key === key) ?? null;
+  };
+
+  // pcsTick: Keep both / Remove on the sample second PC (FR-36).
+  const seconds = useMemo(() => (pcsTick >= 0 ? secondPcsNow(members.data) : []), [members.data, pcsTick]);
+
+  const needle = q.trim().toLowerCase();
+  const matches = (m: Member) => {
+    if (!inFilter(m, filter)) return false;
+    if (!needle) return true;
+    const extra = seconds.find((s) => s.memberId === m.id)?.name ?? "";
+    return `${m.name} ${m.device?.hostname ?? ""} ${extra} ${m.member_id} ${m.email}`.toLowerCase().includes(needle);
+  };
+  const shown = active.filter(matches);
+
+  const onCreated = (member: Member) => {
+    members.setData([member, ...(members.data ?? []).filter((m) => m.id !== member.id)]);
+    photos.reload();
+    shell.reloadMembers();
+  };
+  const onUpdated = (member: Member) => {
+    members.setData((members.data ?? []).map((m) => (m.id === member.id ? member : m)));
+    shell.reloadMembers();
+  };
+  // Removed: the PC count and the plan's free slots update at once, with a short confirmation (J5-17).
+  const onRemoved = (member: Member) => {
+    onUpdated(member);
+    devices.reload();
+    void refresh();
+    const slots = maxDevices > 0 && member.device ? Math.max(0, maxDevices - (pcsUsed - 1)) : null;
+    const first = firstName(member.name);
+    setToast(slots !== null ? `${first} removed. ${slots} PC ${slots === 1 ? "slot" : "slots"} free.` : `${first} removed from your team.`);
+  };
+  const onPhoto = (memberId: number, photo: MemberPhoto | null) => photos.setData(savePhoto(memberId, photo));
+
+  const filterBtnLabel = filter === "all" ? "Filters" : "Filters · 1";
+  const counts = (k: TeamFilter) => active.filter((m) => inFilter(m, k)).length;
 
   return (
-    <>
-      <PageHeader
-        title="Team & devices"
-        lede="Everyone whose PC Zinwe protects. Add a person to get their ID, then install Zinwe on their PC with it."
+    <div className="zp-team">
+      <PageHead
+        title="Team & PCs"
+        lede="Everyone Zinwe protects. Add a person to get their Member ID; they install Zinwe and agree on their own PC."
         actions={
           <>
-            <RefreshButton
-              onClick={() => {
-                members.reload();
-                devices.reload();
-              }}
-              pending={members.pending || devices.pending}
-            />
-            {/* The installer + setup steps, for the owner who's at the member's PC (new tab: the dashboard stays). */}
-            <a className="btn btn--ghost dash-btn-sm" href="/download" target="_blank" rel="noopener">
-              <DashIcon name="download" />
+            <a className="z-btn sm" href="/download" target="_blank" rel="noopener">
               Download Zinwe
             </a>
-            <button type="button" className="btn btn--primary dash-btn-sm" onClick={() => setAdding(true)}>
-              <DashIcon name="plus" />
-              Add member
+            <button type="button" className="z-btn sm pri" onClick={openAdd}>
+              Add a person
             </button>
           </>
         }
       />
 
-      <Modal
-        open={adding}
-        onClose={closeAdd}
-        title={created ? "Member added" : (members.data ?? []).some((m) => m.is_active) ? "Add a team member" : "Add your first person"}
-        sub={created ? undefined : "Enter their name and work email. We'll give you an ID to connect their PC."}
-      >
-        {created ? (
-          <CreatedPanel member={created} companyName={companyName} onAddAnother={() => setCreated(null)} />
-        ) : (
-          <AddMemberForm onCreated={onCreated} />
-        )}
-      </Modal>
+      {adding ? (
+        <AddPerson
+          key={addKey}
+          slotLine={slotLine}
+          onCreated={onCreated}
+          onClose={() => {
+            setAdding(false);
+          }}
+        />
+      ) : null}
 
-      {/* The only PC-limit notice on this page (the top bar's copy is hidden here). */}
       {pcsFull ? (
-        <div className="dash-banner dash-banner--info dash-banner--compact" role="status">
-          <DashIcon name="pc" />
+        <div className="zn-banner info" role="status">
+          <ZIcon name="pc" />
           {upgradeInCheck ? (
             <span>
-              <b>All {maxDevices} PCs on your {planName ?? "current"} plan are in use.</b> Your upgrade to{" "}
-              {upgradeInCheck.planName} is being checked; new PCs connect as soon as it's confirmed.
+              <b>All {maxDevices} PCs on your {planName ?? "current"} plan are in use.</b> Your upgrade to {upgradeInCheck.planName} is
+              being checked; new PCs connect as soon as it’s confirmed.
             </span>
           ) : (
-            <>
-              <span>
-                <b>All {maxDevices} PCs on your {planName ?? "current"} plan are in use.</b> A new PC won't connect
-                until you upgrade or remove one. PCs already connected keep working.
-              </span>
-              <Link
-                className="dash-link"
-                to={biggerPlan ? `/app/upgrade?plan=${encodeURIComponent(biggerPlan.code)}` : "/app/upgrade"}
-              >
+            <span>
+              <b>All {maxDevices} PCs on your {planName ?? "current"} plan are in use.</b> A new PC won’t connect until you upgrade or
+              remove one. PCs already connected keep working.{" "}
+              <Link className="zn-banner__more" to={biggerPlan ? `/app/upgrade?plan=${encodeURIComponent(biggerPlan.code)}` : "/app/upgrade"}>
                 Upgrade
               </Link>
-            </>
+            </span>
           )}
         </div>
       ) : null}
 
+      <div className="zt-filterrow">
+        <div className="z-segs zt-fseg" role="group" aria-label="Filter">
+          {FILTERS.map(([k, label]) => (
+            <button key={k} type="button" className="z-seg" aria-pressed={filter === k} onClick={() => setFilter(k)}>
+              {label} <span className="z-num" style={{ opacity: 0.6 }}>{members.data ? counts(k) : ""}</span>
+            </button>
+          ))}
+        </div>
+        <div className="zt-fbar">
+          <span className="zt-cap">{capacity}</span>
+          <label className="zt-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6459" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <span className="z-sr">Search people</span>
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, PC or ID" />
+          </label>
+          {/* Phone: the filter chips move into a bottom sheet behind this button. */}
+          <button
+            type="button"
+            id="team-filters-btn"
+            className="z-btn sm zt-fbtn"
+            aria-haspopup="dialog"
+            aria-expanded={sheetOpen}
+            onClick={() => {
+              tip.hide();
+              setSheetOpen(true);
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            {filterBtnLabel}
+          </button>
+        </div>
+      </div>
+      <FilterSheet id="team-filters" title="Show" open={sheetOpen} onClose={closeSheet} returnTo="team-filters-btn">
+        {FILTERS.map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            className="zt-opt"
+            aria-pressed={filter === k}
+            onClick={() => {
+              setFilter(k);
+              closeSheet();
+            }}
+          >
+            <span>{label}</span>
+            <span className="z-num" style={{ color: "#6B6358" }}>
+              {counts(k)}
+            </span>
+          </button>
+        ))}
+      </FilterSheet>
+
       {members.data === undefined ? (
-        <section className="dash-card">
-          {members.error ? (
-            <ErrorState
-              title="We couldn't load your team"
-              message={errorMessage(members.error)}
-              onRetry={members.reload}
-              retrying={members.pending}
-            />
-          ) : (
-            <LoadingState label="Loading your team…" rows={3} />
-          )}
-        </section>
+        members.error ? (
+          <section className="z-card">
+            <ErrorBlock title="We couldn't load your team" message={errorMessage(members.error)} onRetry={members.reload} />
+          </section>
+        ) : (
+          <section className="zt-cards" role="status" aria-busy="true">
+            <span className="z-sr">Loading your team…</span>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="z-card zt-card" aria-hidden="true">
+                <div className="zt-top">
+                  <Sk w={44} h={44} round />
+                  <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <Sk w="60%" h={14} />
+                    <Sk w="80%" h={10} />
+                  </span>
+                  <Sk w={64} h={22} style={{ borderRadius: 999 }} />
+                </div>
+                <Sk w="45%" h={28} />
+                <Sk h={56} />
+                <Sk h={56} />
+                <Sk w="70%" h={12} />
+              </div>
+            ))}
+          </section>
+        )
       ) : active.length === 0 ? (
-        <section className="dash-card">
-          <EmptyState
+        <section className="z-card">
+          <EmptyBlock
             icon="team"
             title="Add your first person"
             action={
-              <button type="button" className="btn btn--primary dash-btn-sm" onClick={() => setAdding(true)}>
-                <DashIcon name="plus" />
-                Add your first person
+              <button type="button" className="z-btn sm pri" onClick={openAdd}>
+                Add a person
               </button>
             }
           >
-            Each person gets their own ID. Install Zinwe on their PC with it and they'll show up here within about a
-            minute, with how much their PC is used.
-          </EmptyState>
+            Each person gets their own Member ID. They install Zinwe on their PC, agree on screen, and show up here within about a
+            minute.
+          </EmptyBlock>
         </section>
       ) : (
-        <section aria-labelledby="members-title" className="team-section">
-          <div className="team-section__head">
-            <h2 className="dash-card__title" id="members-title">
-              Your team
-            </h2>
-            <p className="dash-card__sub">{summary}</p>
-          </div>
-          {members.error ? <StaleBanner message={errorMessage(members.error)} onRetry={members.reload} /> : null}
-          <div className="team-grid">
-            {active.map((member) => (
-              <MemberTile
-                key={member.id}
-                member={member}
-                device={deviceOf(member)}
-                tags={tags.data?.[String(member.id)] ?? []}
-                companyName={companyName}
-                onUpdated={onUpdated}
-                onRemoved={onRemoved}
-                onDeviceChanged={devices.reload}
-              />
-            ))}
-          </div>
-        </section>
+        <>
+          {members.error ? (
+            <div className="zn-banner warn" role="status">
+              <ZIcon name="alerts" />
+              <span>
+                Showing what we had a moment ago. {errorMessage(members.error)}{" "}
+                <button type="button" className="zt-linkbtn" onClick={members.reload}>
+                  Try again
+                </button>
+              </span>
+            </div>
+          ) : null}
+          <section className="zt-cards" aria-label="Your team">
+            {shown.map((member) => {
+              const today = todayByMember.get(member.id);
+              const status = cardStatus(member, today);
+              return (
+                <PersonCard
+                  key={member.id}
+                  member={member}
+                  device={deviceOf(member)}
+                  status={status}
+                  statusRows={statusRows(member, status, today, now)}
+                  tag={tagOf(member)}
+                  photo={photos.data?.[String(member.id)]}
+                  week={weekOf(week.data, member.id, dates)}
+                  weekFailed={week.data === undefined && Boolean(week.error)}
+                  today={dates[6]}
+                  now={now}
+                  second={seconds.find((s) => s.memberId === member.id)}
+                  chatOn={has("team_chat")}
+                  tip={tip}
+                  linked={linkedFirst !== "" && firstName(member.name).toLowerCase() === linkedFirst}
+                  onUpdated={onUpdated}
+                  onRemoved={onRemoved}
+                  onDeviceChanged={devices.reload}
+                  onPhoto={onPhoto}
+                  onKeepBoth={() => {
+                    keepBoth(members.data);
+                    setPcsTick((t) => t + 1);
+                  }}
+                  onRemoveSecond={() => {
+                    removeSecondPc(members.data);
+                    setPcsTick((t) => t + 1);
+                  }}
+                />
+              );
+            })}
+          </section>
+          {shown.length === 0 ? (
+            <p className="zt-nomatch">{needle ? `Nobody matches "${q.trim()}".` : "Nobody here with this filter."}</p>
+          ) : null}
+        </>
       )}
-      <Toast message={toast} onDone={clearToast} />
 
       {unassigned.length > 0 ? (
-        <section className="dash-card" aria-labelledby="other-pcs-title">
-          <div className="dash-card__head">
-            <h2 className="dash-card__title" id="other-pcs-title">
-              Other PCs
-            </h2>
-            <p className="dash-card__sub">Connected before per-person IDs. They stay protected.</p>
-          </div>
-          <ul className="team-other">
-            {unassigned.map((device) => (
-              <OtherPc key={device.id} device={device} />
+        <section className="z-card zt-other" aria-labelledby="other-pcs-title">
+          <h2 id="other-pcs-title">Other PCs</h2>
+          <p className="zt-hint">Connected before per-person IDs. They stay protected.</p>
+          <ul>
+            {unassigned.map((d) => (
+              <li key={d.id}>
+                <span className="zt-dot" style={{ background: d.is_online ? "#17663F" : "#6B6358" }} aria-hidden="true" />
+                <b className="z-mono">{d.hostname || "Unnamed PC"}</b>
+                <span className="zt-hint">
+                  {[systemFull(d), `last seen ${formatRelative(d.last_seen_at, now, "never")}`].filter(Boolean).join(" · ")}
+                </span>
+              </li>
             ))}
           </ul>
         </section>
       ) : null}
 
       {removed.length > 0 ? (
-        <details className="dash-card team-removed">
-          <summary>
-            Removed members <span className="dash-mono">({removed.length})</span>
-          </summary>
-          <ul className="team-removed__list">
-            {removed.map((member) => (
-              <li key={member.id}>
-                <b>{member.name}</b>
-                <small>{member.email} · their ID no longer works</small>
+        <details className="z-card zt-removed">
+          <summary>Removed people ({removed.length})</summary>
+          <ul>
+            {removed.map((m) => (
+              <li key={m.id}>
+                {m.name} · {m.email} · their Member ID no longer works
               </li>
             ))}
           </ul>
         </details>
       ) : null}
-    </>
-  );
-}
 
-const PLATFORM_LABEL: Record<string, string> = { windows: "Windows", linux: "Linux", macos: "macOS" };
-
-/** "Windows 11 Home 24H2 (26100)" — skip the platform when the OS string already says it. */
-function systemOf(device: Device): string {
-  const platform = PLATFORM_LABEL[device.platform] ?? device.platform;
-  const os = device.os_version.trim();
-  if (!os) return platform;
-  return os.toLowerCase().startsWith(platform.toLowerCase()) ? os : `${platform} ${os}`;
-}
-
-/** A PC with no member attached (legacy org-wide key). */
-function OtherPc({ device }: { device: Device }): ReactElement {
-  const now = useNow();
-  const status = presenceOf(device);
-  const system = systemOf(device);
-  return (
-    <li className="team-other__row">
-      <span className="dash-pc__ico" aria-hidden="true">
-        <DashIcon name="pc" />
-      </span>
-      <span className="team-other__text">
-        <b>{device.hostname || "Unnamed PC"}</b>
-        <small>
-          {[system, `last seen ${formatRelative(device.last_seen_at, now, "never")}`].filter(Boolean).join(" · ")}
-        </small>
-      </span>
-      <span className={`dash-status dash-status--${PRESENCE_CLASS[status]}`}>
-        <i aria-hidden="true" />
-        {PRESENCE_LABEL[status]}
-      </span>
-    </li>
-  );
-}
-
-/** The add form: name + email, with inline validation and server errors. */
-function AddMemberForm({ onCreated }: { onCreated: (member: Member) => void }): ReactElement {
-  const [draft, setDraft] = useState({ name: "", email: "" });
-  const [errors, setErrors] = useState<FieldErrorMap<MemberField>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const controls = useRef<Partial<Record<MemberField, HTMLElement | null>>>({});
-
-  const reg = (field: MemberField) => (el: HTMLElement | null) => {
-    controls.current[field] = el;
-  };
-  const set = (field: MemberField, value: string) => {
-    setDraft((d) => ({ ...d, [field]: value }));
-    setErrors((e) => (e[field] ? { ...e, [field]: undefined } : e));
-  };
-
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (pending) return;
-    const clean = { name: draft.name.trim(), email: draft.email.trim() };
-    const clientErrors = compactErrors<MemberField>({
-      name: requiredError(clean.name),
-      email: emailError(clean.email),
-    });
-    setErrors(clientErrors);
-    setFormError(null);
-    if (Object.keys(clientErrors).length > 0) return focusFirstInvalid(MEMBER_FIELDS, clientErrors, controls.current);
-
-    setPending(true);
-    try {
-      const member = await createMember(clean);
-      setDraft({ name: "", email: "" });
-      onCreated(member);
-    } catch (error) {
-      const fieldErrors = apiFieldErrors(error, MEMBER_FIELDS);
-      setErrors(fieldErrors);
-      setFormError(apiFormError(error, MEMBER_FIELDS));
-      focusFirstInvalid(MEMBER_FIELDS, fieldErrors, controls.current);
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return (
-    <form className="co-form" onSubmit={onSubmit} noValidate>
-      <div className="form__grid">
-        <Field error={errors.name}>
-          <label htmlFor="tm-name">Full name</label>
-          <input
-            ref={reg("name")}
-            id="tm-name"
-            autoComplete="name"
-            placeholder="Priya Sharma"
-            value={draft.name}
-            onChange={(e) => set("name", e.target.value)}
-            aria-invalid={errors.name ? true : undefined}
-          />
-        </Field>
-
-        <Field error={errors.email}>
-          <label htmlFor="tm-email">Work email</label>
-          <input
-            ref={reg("email")}
-            id="tm-email"
-            type="email"
-            inputMode="email"
-            autoComplete="off"
-            placeholder="priya@yourcompany.com"
-            value={draft.email}
-            onChange={(e) => set("email", e.target.value)}
-            aria-invalid={errors.email ? true : undefined}
-          />
-        </Field>
-      </div>
-
-      <FormAlert message={formError} />
-
-      <div className="co-form__foot">
-        <button type="submit" className="btn btn--primary" disabled={pending}>
-          {pending ? "Adding…" : "Add member"}
-          {pending ? null : <span className="arr">→</span>}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-/**
- * Success panel: the member's ID shown large, with copy / download and the install hint. Used
- * after adding someone and after "Get a new ID" (`newId`), when the new ID has been emailed to them.
- */
-function CreatedPanel({
-  member,
-  companyName,
-  onAddAnother,
-  newId = false,
-}: {
-  member: Member;
-  companyName: string | null;
-  onAddAnother?: () => void;
-  newId?: boolean;
-}): ReactElement {
-  const first = member.name.trim().split(/\s+/)[0] || member.name;
-  return (
-    <div className="team-new">
-      <p className="dash-banner dash-banner--ok" role="status">
-        <DashIcon name="check" />
-        {newId ? (
-          <span>
-            <b>New ID ready for {member.name}.</b> We've emailed it to {first}. Their old ID and the old invite email
-            no longer work.
-          </span>
-        ) : (
-          <span>
-            <b>{member.name}</b> is added. Send them the details below so their PC can connect.
-          </span>
-        )}
-      </p>
-      <div className="dash-key">
-        <code className="dash-key__value">{member.member_id}</code>
-        <CopyButton text={member.member_id} label="Copy ID" what={`member ID for ${member.name}`} />
-      </div>
-      <p className="dash-note">
-        On <b>{member.name}</b>'s PC, download Zinwe, run it and enter their email (
-        <span className="dash-mono">{member.email}</span>) and this ID. They'll show as online here within about a
-        minute.{newId ? "" : " We've also emailed these details to them."}
-      </p>
-      <div className="co-form__foot team-new__actions">
-        <a className="btn btn--primary dash-btn-sm" href={AGENT_MSI_URL} download>
-          <DashIcon name="download" />
-          Download Zinwe (Windows)
-        </a>
-        <CopyDetails member={member} companyName={companyName} small />
-        {onAddAnother ? (
-          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={onAddAnother}>
-            <DashIcon name="team" />
-            Add another member
-          </button>
-        ) : null}
-      </div>
+      {toast ? <ZToast text={toast} onDone={clearToast} /> : null}
+      {tip.node}
     </div>
-  );
-}
-
-/** What the member does (FR-19): saved at once, and gives their card its colour theme. */
-function RolePicker({ member, onUpdated }: { member: Member; onUpdated: (m: Member) => void }): ReactElement {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const change = async (role: MemberRole | "") => {
-    setBusy(true);
-    setError(null);
-    try {
-      onUpdated(await setMemberRole(member.id, role));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <span className="team-role">
-      <label className="dash-filter">
-        <span>Role</span>
-        <select value={member.role ?? ""} disabled={busy} onChange={(e) => void change(e.target.value as MemberRole | "")}>
-          <option value="">Choose a role</option>
-          {MEMBER_ROLES.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      {error ? (
-        <small className="form__err" role="alert">
-          {error}
-        </small>
-      ) : null}
-    </span>
-  );
-}
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
-}
-
-/**
- * One person as a tile: who they are and whether they're working, their PC,
- * their ID, a 7-day usage chart, and the actions. Rarely-used, destructive
- * actions (new ID, remove) sit behind "More" and confirm in a dialog.
- */
-function MemberTile({
-  member,
-  device,
-  tags = [],
-  companyName,
-  onUpdated,
-  onRemoved,
-  onDeviceChanged,
-}: {
-  member: Member;
-  /** The full PC record (OS, id for Activity) when the devices list has it. */
-  device: Device | undefined;
-  /** FR-19: kind tags from their week. */
-  tags?: MemberTag[];
-  companyName: string | null;
-  onUpdated: (member: Member) => void;
-  onRemoved: (member: Member) => void;
-  /** Reload the PCs (after Restore USB). */
-  onDeviceChanged: () => void;
-}): ReactElement {
-  const now = useNow();
-  const chatOn = useEntitlements().has("team_chat");
-  const bubble = useChatBubble();
-  const [confirm, setConfirm] = useState<null | "rotate" | "deactivate">(null);
-  const [messaging, setMessaging] = useState(false);
-  const [threadKey, setThreadKey] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
-  // After "Get a new ID": the new ID with Copy / Download, and that it was emailed (J5-05).
-  const [rotated, setRotated] = useState<Member | null>(null);
-  const more = useRef<HTMLDetailsElement>(null);
-
-  const run = async (kind: "rotate" | "deactivate") => {
-    setBusy(true);
-    setActionError(null);
-    try {
-      if (kind === "rotate") {
-        const next = await rotateMemberId(member.id, { email: true });
-        onUpdated(next);
-        setRotated(next);
-      } else {
-        onRemoved(await deactivateMember(member.id));
-      }
-      setConfirm(null);
-    } catch (error) {
-      setActionError(errorMessage(error));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const [notice, setNotice] = useState<string | null>(null);
-  useEffect(() => {
-    if (!notice) return;
-    const id = window.setTimeout(() => setNotice(null), 2500);
-    return () => window.clearTimeout(id);
-  }, [notice]);
-  const copyDetails = async () => {
-    if (more.current) more.current.open = false;
-    const ok = await copyText(buildInviteText(member, companyName));
-    setNotice(ok ? "Connect details copied" : "Couldn't copy. Use Copy next to their ID instead");
-  };
-  const ask = (kind: "rotate" | "deactivate") => {
-    if (more.current) more.current.open = false;
-    setActionError(null);
-    setConfirm(kind);
-  };
-
-  const status = presenceOf(member.device);
-  const pc = member.device;
-  const worked = pc?.worked_seconds ?? 0;
-  const showWorked = (status === "working" || status === "break") && worked > 0;
-  const system = device ? systemOf(device) : "";
-  const consent = consentOf(pc, device);
-  const first = member.name.trim().split(/\s+/)[0] || member.name;
-  const remind = () =>
-    bubble.open({
-      person: { id: member.id, name: member.name, email: member.email, hostname: pc?.hostname },
-      draft: consentReminder(member.name, consent),
-    });
-
-  return (
-    <article className={cx("team-tile", member.role && `team-tile--${member.role}`)} aria-label={member.name}>
-      <header className="team-tile__head">
-        <span className="team-tile__avatar" aria-hidden="true">
-          {initialsOf(member.name)}
-        </span>
-        <span className="team-tile__who">
-          <b>{member.name}</b>
-          <small>{member.email}</small>
-        </span>
-        <span className={`dash-status dash-status--${PRESENCE_CLASS[status]}`}>
-          <i aria-hidden="true" />
-          {PRESENCE_LABEL[status]}
-        </span>
-      </header>
-
-      {tags.length > 0 ? (
-        <ul className="team-tags" aria-label={`${member.name}'s week`}>
-          {tags.map((t) => (
-            <li key={t.key} className="team-tag" title={t.why}>
-              <span aria-hidden="true">{t.emoji}</span> {t.label}
-              <span className="dash-sr">: {t.why}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <RolePicker member={member} onUpdated={onUpdated} />
-
-      <dl className="team-tile__facts">
-        <div>
-          <dt>PC</dt>
-          <dd title={formatDateTime(pc?.last_seen_at)}>
-            {pc ? (
-              <>
-                <b>{pc.hostname || "Unnamed PC"}</b>
-                <small>
-                  {[
-                    system,
-                    `seen ${formatRelative(pc.last_seen_at, now, "never")}`,
-                    showWorked ? `${formatDuration(worked)} today` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </small>
-              </>
-            ) : (
-              <small>Waiting for them to install Zinwe</small>
-            )}
-          </dd>
-        </div>
-        {pc ? (
-          <div>
-            <dt>Consent</dt>
-            <dd className="team-consent-row">
-              {consent === "given" ? (
-                <span
-                  className="team-consent team-consent--ok"
-                  data-tip={pc.consent_version ? `Policy version ${pc.consent_version}` : undefined}
-                >
-                  <DashIcon name="check" />
-                  {pc.consent_at ? `Given ${formatDate(pc.consent_at)}` : "Given"}
-                </span>
-              ) : consent === "declined" ? (
-                <span
-                  className="team-consent team-consent--no"
-                  data-tip="They said no on their PC. Zinwe collects nothing from it; work hours and chat still work."
-                >
-                  <DashIcon name="close" />
-                  Declined monitoring · rules and alerts are off on this PC
-                </span>
-              ) : (
-                <span
-                  className="team-consent team-consent--wait"
-                  data-tip="They'll be asked on their Zinwe widget. Under India's DPDP Act, monitoring needs their own consent."
-                >
-                  <DashIcon name="clock" />
-                  Waiting for them
-                </span>
-              )}
-              {consent !== "given" && chatOn ? (
-                <button type="button" className="dash-link" onClick={remind}>
-                  {consent === "declined" ? `Talk to ${first}` : `Remind ${first}`}
-                </button>
-              ) : null}
-            </dd>
-          </div>
-        ) : null}
-        {device?.usb_locked_at ? (
-          <div>
-            <dt>USB</dt>
-            <dd>
-              <UsbRestore device={device} onRestored={onDeviceChanged} />
-            </dd>
-          </div>
-        ) : null}
-        <div>
-          <dt>Their ID</dt>
-          <dd className="team-id">
-            <code className="team-id__code">{member.member_id}</code>
-            <CopyButton text={member.member_id} label="Copy" what={`member ID for ${member.name}`} />
-          </dd>
-        </div>
-      </dl>
-
-      <MemberUsage memberId={member.id} connected={Boolean(pc)} />
-      <MemberData memberId={member.id} connected={Boolean(pc)} />
-
-      <footer className="team-tile__actions">
-        {/* FR-11: straight to this person's day on the Activity page (was "Share on text"). */}
-        <Link className="btn btn--ghost dash-btn-sm" to={`/app/activity?member=${member.id}`}>
-          <DashIcon name="activity" />
-          Activity
-        </Link>
-        {chatOn ? (
-          <button
-            type="button"
-            className="btn btn--ghost dash-btn-sm"
-            onClick={() => {
-              setMessaging(true);
-              if ((member.unread ?? 0) > 0) onUpdated({ ...member, unread: 0 }); // opening the chat reads the replies
-            }}
-            disabled={busy}
-          >
-            <DashIcon name="chat" />
-            Chat
-            {(member.unread ?? 0) > 0 ? <span className="team-unread" aria-label={`${member.unread} unread`}>{member.unread}</span> : null}
-          </button>
-        ) : null}
-        <details className="dash-menu" ref={more}>
-          <summary className="btn btn--ghost dash-btn-sm" aria-label={`More actions for ${member.name}`}>
-            <DashIcon name="more" />
-          </summary>
-          <div className="dash-menu__list">
-            {device ? (
-              <Link className="dash-menu__item" to={`/app/alerts?device=${device.id}`}>
-                <DashIcon name="alert" />
-                View alerts
-              </Link>
-            ) : null}
-            <button type="button" className="dash-menu__item" onClick={() => void copyDetails()}>
-              <DashIcon name="copy" />
-              Copy connect details
-            </button>
-            <button type="button" className="dash-menu__item" onClick={() => ask("rotate")}>
-              <DashIcon name="key" />
-              Get a new ID
-            </button>
-            <button type="button" className="dash-menu__item dash-menu__item--danger" onClick={() => ask("deactivate")}>
-              <DashIcon name="close" />
-              Remove from team
-            </button>
-          </div>
-        </details>
-        {notice ? (
-          <span className="team-tile__notice" role="status">
-            {notice}
-          </span>
-        ) : null}
-      </footer>
-
-      <Modal
-        open={messaging}
-        onClose={() => setMessaging(false)}
-        title={`Chat with ${member.name}`}
-        sub="Messages appear in the Zinwe widget on their PC; their replies show here."
-      >
-        <MemberChatThread member={member} reloadKey={threadKey} />
-        <SendMessageForm
-          member={member}
-          onClose={() => setMessaging(false)}
-          onSent={() => setThreadKey((k) => k + 1)}
-        />
-      </Modal>
-
-      <Modal
-        open={confirm !== null}
-        onClose={() => {
-          if (!busy) setConfirm(null);
-        }}
-        size="sm"
-        title={confirm === "rotate" ? `Get a new ID for ${member.name}?` : `Remove ${member.name}?`}
-      >
-        <p className="dash-modal__text">
-          {confirm === "rotate"
-            ? `Their old ID and the invite email we sent stop working straight away. We'll email the new ID to ${first}. If their PC is already connected it keeps running; you only need the new ID to connect a PC again.`
-            : "Their ID stops working and their PC stops checking in. You can add them again later with a new ID."}
-        </p>
-        {actionError ? (
-          <p className="form__err" role="alert">
-            {actionError}
-          </p>
-        ) : null}
-        <div className="dash-confirm__actions">
-          <button
-            type="button"
-            className="btn btn--ink dash-btn-sm"
-            onClick={() => {
-              if (confirm) void run(confirm);
-            }}
-            disabled={busy}
-          >
-            {confirm === "rotate"
-              ? busy
-                ? "Getting a new ID…"
-                : "Yes, get a new ID"
-              : busy
-                ? "Removing…"
-                : "Yes, remove them"}
-          </button>
-          <button type="button" className="btn btn--ghost dash-btn-sm" onClick={() => setConfirm(null)} disabled={busy}>
-            Cancel
-          </button>
-        </div>
-      </Modal>
-
-      <Modal open={rotated !== null} onClose={() => setRotated(null)} title={`New ID for ${member.name}`}>
-        {rotated ? <CreatedPanel member={rotated} companyName={companyName} newId /> : null}
-      </Modal>
-    </article>
   );
 }
