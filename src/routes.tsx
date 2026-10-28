@@ -39,7 +39,6 @@ const OverviewPage = lazyPage(() => import("./dashboard/pages/OverviewPage"));
 const TeamPage = lazyPage(() => import("./dashboard/pages/TeamPage"));
 const TeamChatPage = lazyPage(() => import("./dashboard/pages/TeamChatPage"));
 const InvoicePage = lazyPage(() => import("./dashboard/pages/InvoicePage"));
-const SetupPage = lazyPage(() => import("./dashboard/pages/SetupPage"));
 const InternetPage = lazyPage(() => import("./dashboard/pages/InternetPage"));
 const DataPage = lazyPage(() => import("./dashboard/pages/DataPage"));
 const RemotePage = lazyPage(() => import("./dashboard/pages/RemotePage"));
@@ -54,6 +53,9 @@ const PasswordPage = lazyPage(() => import("./dashboard/pages/PasswordPage"));
 const NotificationsPage = lazyPage(() => import("./dashboard/pages/NotificationsPage"));
 const HowToUsePage = lazyPage(() => import("./dashboard/pages/HowToUsePage"));
 const PoliciesPage = lazyPage(() => import("./dashboard/pages/PoliciesPage"));
+// v1.3 dashboard (Prototype v2.2): Tasks board and the Rules page.
+const TasksPage = lazyPage(() => import("./dashboard/pages/TasksPage"));
+const RulesPage = lazyPage(() => import("./dashboard/pages/RulesPage"));
 
 /** /app/upgrade?plan=x -> /onboarding/plan?plan=x */
 function ToPlanPage(): ReactElement {
@@ -147,11 +149,15 @@ export function AppRoutes(): ReactElement {
               <Route path="remote" element={<RemotePage />} />
               <Route path="team" element={<TeamPage />} />
               <Route path="chat" element={<TeamChatPage />} />
+              <Route path="chat/:member" element={<TeamChatPage />} />
+              <Route path="tasks" element={<TasksPage />} />
+              <Route path="rules" element={<RulesPage />} />
               <Route path="team/chat" element={<Navigate to="/app/chat" replace />} />
               {/* Upgrades happen on the plan page; old links (emails, announcements) keep working. */}
               <Route path="upgrade" element={<ToPlanPage />} />
               <Route path="invoice/:id" element={<InvoicePage />} />
-              <Route path="setup" element={<SetupPage />} />
+              {/* v1.3: the protections live on Rules; /app/setup keeps working for old links. */}
+              <Route path="setup" element={<Navigate to="/app/rules" replace />} />
               <Route path="alerts" element={<AlertsPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="reports" element={<ReportsPage />} />
@@ -173,7 +179,6 @@ export function AppRoutes(): ReactElement {
               {/* Email-link target only (not in the sidebar). */}
               <Route path="feedback" element={<FeedbackPage />} />
               {/* Old routes kept working for bookmarks, emails (billing reminders) and in-app links. */}
-              <Route path="rules" element={<Navigate to="/app/setup" replace />} />
               <Route path="devices" element={<Navigate to="/app/team" replace />} />
               <Route path="billing" element={<Navigate to="/app/settings/billing" replace />} />
               <Route path="company" element={<Navigate to="/app/settings/company" replace />} />

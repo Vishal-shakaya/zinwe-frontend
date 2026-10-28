@@ -1,12 +1,9 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactElement } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { paymentInCheck, rejectedPayment } from "../auth/steps";
-import { Brand } from "../components/ui/Brand";
-import { getAnnouncements, listMembers, type Announcement, type PlanModule, type Subscription } from "../lib/api";
+import { getAnnouncements, listMembers, type Announcement, type Subscription } from "../lib/api";
 import { formatDate, formatMoney } from "../lib/format";
-import { AccountMenu, type PlanAction } from "./components/AccountMenu";
-import { DashIcon, type DashIconName } from "./components/DashIcon";
 import { FeedbackForm } from "./components/FeedbackForm";
 import { Modal } from "./components/Modal";
 import { NotificationBar } from "./components/NotificationBar";
@@ -18,61 +15,35 @@ import { Tour } from "./components/Tour";
 import { UpdatedTermsDialog } from "./components/UpdatedTermsDialog";
 import { CHAT_READ_EVENT } from "./features/chatEvents";
 import { useEntitlements } from "./features/entitlements";
+import { useEventCounts } from "./features/useEventCounts";
 import { DASHBOARD_TOUR, syncTourFlag, tourDone, type TourStep } from "./features/tour";
 import { higherPlans, isUpgradeDone, UpgradeContext } from "./features/upgrade";
 import { useResource } from "./useResource";
 import { usePlans } from "../portal/usePlans";
 import { useOwnerNotifications } from "./features/useOwnerNotifications";
+import { listNotes, markNotesRead } from "./fixtures/notifications";
+import { countTasksWaiting } from "./fixtures/tasks";
+import { DashNav } from "./shell/DashNav";
+import { PhoneShell } from "./shell/PhoneShell";
+import { activeFor, ShellContext, type ShellState } from "./shell/shellContext";
+import { Busy } from "./ui/States";
+import { ZIcon } from "./ui/ZIcon";
 import "../styles/dashboard.css";
 import "../styles/portal.css";
+import "../styles/dash13.css";
 
-interface NavItem {
-  to: string;
-  label: string;
-  icon: DashIconName;
-  end?: boolean;
-  /** Sub-pages listed under the item while it's open. */
-  children?: ReadonlyArray<{ to: string; label: string }>;
-  /** A live count shown after the label ("unread" = member replies waiting in Chat). */
-  badge?: "unread";
-  /** Hook for the first-visit tour. */
-  tour?: string;
-  /** The page is one plan module: a lock shows beside it when the plan doesn't include it. */
-  module?: PlanModule;
+/** Geist Mono is only used inside the dashboard: load it with the dashboard chunk (index.html is shared). */
+function useDashFonts(): void {
+  useEffect(() => {
+    const id = "zd-geist-mono";
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap";
+    document.head.appendChild(link);
+  }, []);
 }
-
-/**
- * Grouped by what an owner is trying to do: see today (Overview), protect the
- * business, look after people. The account row at the bottom opens a menu with the
- * plan + Upgrade, Profile (company info, billing, password), How to use, Support,
- * Policies, Give feedback (a modal; /app/feedback stays for email links), Site (the
- * public website) and Log out.
- */
-const NAV: ReadonlyArray<{ group?: string; items: readonly NavItem[] }> = [
-  {
-    items: [
-      { to: "/app", label: "Overview", icon: "grid", end: true, tour: "overview" },
-      { to: "/app/alerts", label: "Alerts", icon: "alert", tour: "alerts" },
-    ],
-  },
-  {
-    group: "Protection",
-    items: [
-      { to: "/app/internet", label: "Online protection", icon: "globe", module: "web" },
-      { to: "/app/data", label: "Data safety", icon: "usb" },
-      { to: "/app/remote", label: "App monitoring", icon: "screen", module: "remote_access" },
-    ],
-  },
-  {
-    group: "People",
-    items: [
-      { to: "/app/team", label: "Team & devices", icon: "team", tour: "team" },
-      { to: "/app/chat", label: "Chat", icon: "chat", badge: "unread", tour: "chat", module: "team_chat" },
-      { to: "/app/activity", label: "Activity", icon: "activity", tour: "activity", module: "work_time" },
-      { to: "/app/reports", label: "Reports", icon: "file" },
-    ],
-  },
-];
 
 function initials(name: string, email: string): string {
   const source = name.trim() || email;
@@ -156,10 +127,12 @@ function tourSteps(hasTeam: boolean): readonly TourStep[] {
 }
 
 /**
- * Owner dashboard shell: sidebar on desktop, a compact top bar with tabs on
- * phones. Pages render into <Outlet />.
+ * Owner dashboard shell (v1.3, boards DashNav + DashTopBar + DashFloat): the 248 px menu on desktop; under
+ * 760 px a top bar, a bottom tab bar and More / Create sheets. Pages render into <Outlet /> and start with
+ * <PageHead> (header row + bell).
  */
 export default function AppLayout(): ReactElement {
+  useDashFonts();
   const { account, signOut, refresh } = useAuth();
   const user = account?.user ?? null;
   const companyName = account?.company?.name || user?.email || " ";
@@ -173,26 +146,23 @@ export default function AppLayout(): ReactElement {
   const needsTerms = terms?.needs_acceptance === true;
   const location = useLocation();
   const { pathname, hash } = location;
+  const active = activeFor(pathname);
   const onChatPage = pathname.startsWith("/app/chat");
   const navigate = useNavigate();
   const [leaving, setLeaving] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  // Navbar refresh: remounting the page reloads everything it shows.
+  // Refresh: remounting the page reloads everything it shows.
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  // The tour plays once per account, on Overview only (J2-06, J5-25); How to use → "Take the tour" replays it anywhere.
+  // The tour plays once per account, on Overview only (J2-06, J5-25); Help → "Take the tour" replays it anywhere.
   const [tourClosed, setTourClosed] = useState(false);
   const [tourReplay, setTourReplay] = useState(false);
   const touring = tourReplay || (!tourClosed && user !== null && pathname === "/app" && !tourDone(user));
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuButton = useRef<HTMLButtonElement>(null);
-  const menuClose = useRef<HTMLButtonElement>(null);
   // The floating chat bubble (one at a time); pages open it with useChatBubble().
   const [bubble, setBubble] = useState<ChatBubbleRequest | null>(null);
   const bubbleApi = useMemo(() => ({ open: (request: ChatBubbleRequest) => setBubble(request) }), []);
   // Opening the Chat page closes the floating bubble (the page shows the same conversation).
-  // Adjusted while rendering, on the change only (React's pattern for state that follows a prop).
   const [wasOnChatPage, setWasOnChatPage] = useState(onChatPage);
   if (onChatPage !== wasOnChatPage) {
     setWasOnChatPage(onChatPage);
@@ -241,9 +211,8 @@ export default function AppLayout(): ReactElement {
   }, [planActiveShown]);
   const showPlanActive = planActiveShown !== null && !planActiveClosed && subscription?.status === "active";
   const upgrade = useMemo(() => ({ open: () => navigate("/onboarding/plan"), canUpgrade }), [canUpgrade, navigate]);
-  const planAction: PlanAction = inCheck ? "checking" : canUpgrade ? "upgrade" : "billing";
 
-  // FR-15: browser notifications for replies, alerts and requests (once switched on in Profile → Notifications).
+  // FR-15: browser notifications for replies, alerts and requests (once switched on in Settings → Notifications).
   useOwnerNotifications(true);
 
   // Unread member replies, for the Chat badge (non-critical: failures just hide it).
@@ -251,27 +220,40 @@ export default function AppLayout(): ReactElement {
   const members = useResource(loadMembers, { pollMs: 60_000 });
   const unread = (members.data ?? []).reduce((sum, m) => sum + (m.is_active ? (m.unread ?? 0) : 0), 0);
   const hasTeam = (members.data ?? []).some((m) => m.is_active);
+  // Alerts badge: open "Needs attention" alerts, counted on the server.
+  const counts = useEventCounts();
+  const alertsBadge = counts.data?.critical_unhandled ?? 0;
+  // SAMPLE: the bell's history (fixtures/notifications.ts) and the Tasks badge (fixtures/tasks.ts).
+  const loadNotes = useCallback((signal: AbortSignal) => listNotes(signal), []);
+  const notes = useResource(loadNotes);
+  const setNotes = notes.setData;
+  const tasksWaiting = countTasksWaiting();
 
   // Back from the upgrade flow: confirm the payment was sent, once.
   const upgradedTo = isUpgradeDone(location.state) ? location.state.upgradedTo : null;
   const closeUpgraded = () => navigate(pathname, { replace: true, state: null });
 
-  const onRefresh = async () => {
+  const reloadMembers = members.reload;
+  const reloadCounts = counts.reload;
+  const refreshTimer = useRef<number | undefined>(undefined);
+  const refreshAll = useCallback(() => {
     setRefreshing(true);
     setRefreshKey((k) => k + 1);
-    members.reload();
-    await refresh();
-    window.setTimeout(() => setRefreshing(false), 500);
-  };
+    reloadMembers();
+    reloadCounts();
+    void refresh();
+    window.clearTimeout(refreshTimer.current);
+    refreshTimer.current = window.setTimeout(() => setRefreshing(false), 500);
+  }, [refresh, reloadMembers, reloadCounts]);
+  useEffect(() => () => window.clearTimeout(refreshTimer.current), []);
 
   // A chat thread just read a member's reply: refresh the Chat badge now, not on the next poll.
-  const reloadMembers = members.reload;
   useEffect(() => {
     window.addEventListener(CHAT_READ_EVENT, reloadMembers);
     return () => window.removeEventListener(CHAT_READ_EVENT, reloadMembers);
   }, [reloadMembers]);
 
-  // How to use → "Take the tour" asks for a replay with this event.
+  // Help → "Take the tour" asks for a replay with this event.
   useEffect(() => {
     const start = () => setTourReplay(true);
     window.addEventListener("zinwe:tour", start);
@@ -291,168 +273,76 @@ export default function AppLayout(): ReactElement {
     if (goTo) navigate(goTo);
   };
 
-  // Phones: the sidebar is a slide-in menu. It closes on navigation (a link tap), Escape or the scrim, and
-  // the page behind doesn't scroll while it's open.
+  // New page starts at the top; a hash naming an element (e.g. /app/rules#usb) jumps to that section.
+  // Board deep links (#m=…, #tab=…, #new=1, #task=…) are read by the pages themselves.
   useEffect(() => {
-    if (!menuOpen) return;
-    document.documentElement.classList.add("dash-menu-open");
-    menuClose.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setMenuOpen(false);
-        menuButton.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.documentElement.classList.remove("dash-menu-open");
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [menuOpen]);
-
-  // New page starts at the top; a hash (e.g. /app#add-pc) jumps to that section.
-  useEffect(() => {
-    const target = hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
+    const raw = hash ? decodeURIComponent(hash.slice(1)) : "";
+    const target = raw && !raw.includes("=") ? document.getElementById(raw) : null;
     if (target) target.scrollIntoView();
     else window.scrollTo(0, 0);
   }, [pathname, hash]);
 
+  const shell: ShellState = useMemo(
+    () => ({
+      alerts: alertsBadge,
+      unread,
+      tasksWaiting,
+      members: members.data,
+      reloadMembers,
+      notes: notes.data,
+      markNotesRead: (ids) => setNotes(markNotesRead(ids)),
+      openFeedback: () => setFeedbackOpen(true),
+      refreshAll,
+      refreshing,
+    }),
+    [alertsBadge, unread, tasksWaiting, members.data, reloadMembers, notes.data, setNotes, refreshAll, refreshing],
+  );
+
+  const displayName = user ? user.full_name || user.email : "Your account";
+
   return (
     // data-clarity-mask: private screens are masked if Microsoft Clarity ever records here (lib/clarity.ts).
-    <div className={`dash${menuOpen ? " is-menu-open" : ""}`} data-clarity-mask="true">
-      <a className="dash-skip" href="#dash-main">
-        Skip to content
-      </a>
-      <aside className="dash__side">
-        <div className="dash__top">
-          {/* Phones only: opens the menu (everything the desktop sidebar holds). */}
-          <button
-            ref={menuButton}
-            type="button"
-            className="dash__menu-btn"
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-            aria-controls="dash-menu"
-            onClick={() => setMenuOpen(true)}
-          >
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-            {unread > 0 ? <i className="dash__menu-dot" aria-label={`${unread} unread`} /> : null}
-          </button>
-          <Brand to="/app" ariaLabel="Zinwe dashboard home" className="dash__brand" height={26} />
-          <button
-            type="button"
-            className={`dash__refresh${refreshing ? " is-spinning" : ""}`}
-            onClick={() => void onRefresh()}
-            disabled={refreshing}
-            aria-label="Refresh everything"
-            data-tip="Refresh everything"
-          >
-            <DashIcon name="refresh" />
-          </button>
-        </div>
-
-        {/* Desktop: the sidebar's own contents (display: contents). Phones: the slide-in menu. */}
-        <div
-          className="dash__panel"
-          id="dash-menu"
-          onClick={(e: MouseEvent<HTMLDivElement>) => {
-            if ((e.target as HTMLElement).closest("a")) setMenuOpen(false);
-          }}
-        >
-          <div className="dash__panel-head">
-            <Brand to="/app" ariaLabel="Zinwe dashboard home" height={24} />
-            <button
-              ref={menuClose}
-              type="button"
-              className="dash__panel-close"
-              aria-label="Close menu"
-              onClick={() => {
-                setMenuOpen(false);
-                menuButton.current?.focus();
-              }}
-            >
-              <DashIcon name="close" />
-            </button>
-          </div>
-
-          <nav className="dash__nav" aria-label="Dashboard">
-            {NAV.map((section) => (
-              <div
-                key={section.group ?? "main"}
-                className="dash__group"
-                role="group"
-                aria-label={section.group}
-                data-tour={section.group === "Protection" ? "protection" : undefined}
-              >
-                {section.group ? (
-                  <span className="dash__group-label" aria-hidden="true">
-                    {section.group}
-                  </span>
-                ) : null}
-                {section.items.map((item) => (
-                  <div key={item.to} className="dash__item">
-                    <NavLink to={item.to} end={item.end} className="dash__link" data-tour={item.tour}>
-                      <DashIcon name={item.icon} />
-                      <span>{item.label}</span>
-                      {item.module && !entitlements.has(item.module) ? (
-                        <span className="dash__lock" aria-label="Not on your plan">
-                          <DashIcon name="lock" />
-                        </span>
-                      ) : null}
-                      {item.badge === "unread" && unread > 0 ? (
-                        <span className="dash__badge" aria-label={`${unread} unread`}>
-                          {unread}
-                        </span>
-                      ) : null}
-                    </NavLink>
-                    {item.children && pathname.startsWith(item.to) ? (
-                      <div className="dash__sub">
-                        {item.children.map((child) => (
-                          <NavLink key={child.to} to={child.to} className="dash__sublink">
-                            {child.label}
-                          </NavLink>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </nav>
-
-          <AccountMenu
-            initials={user ? initials(user.full_name, user.email) : ""}
-            name={user ? user.full_name || user.email : "Your account"}
+    <ShellContext.Provider value={shell}>
+      <div className="zd" data-clarity-mask="true">
+        <a className="zd-skip" href="#dash-main">
+          Skip to content
+        </a>
+        <PhoneShell
+          active={active}
+          alerts={alertsBadge}
+          unread={unread}
+          name={displayName}
+          company={companyName}
+          onLogout={onLogout}
+        />
+        <div className="zn-navcol">
+          <DashNav
+            active={active}
+            alerts={alertsBadge}
+            unread={unread}
+            tasksWaiting={tasksWaiting}
+            name={displayName}
+            email={user?.email ?? ""}
             company={companyName}
-            planName={currentPlan ? currentPlan.name : "No plan yet"}
-            planAction={planAction}
-            onUpgrade={upgrade.open}
-            onFeedback={() => {
-              setMenuOpen(false);
-              setFeedbackOpen(true);
-            }}
+            initials={user ? initials(user.full_name, user.email) : ""}
+            isLocked={(m) => !entitlements.has(m)}
             onLogout={onLogout}
             leaving={leaving}
           />
         </div>
-        {menuOpen ? <button type="button" className="dash__scrim" aria-label="Close menu" tabIndex={-1} onClick={() => setMenuOpen(false)} /> : null}
-      </aside>
 
-      <main className="dash__main" id="dash-main" tabIndex={-1}>
-        <div className="dash__inner">
+        <main className="zn-main" id="dash-main" tabIndex={-1}>
           <NotificationBar items={bars} />
           {showPlanActive && subscription ? (
-            <div className="dash-banner dash-banner--ok dash-banner--compact" role="status">
-              <DashIcon name="check" />
+            <div className="zn-banner ok" role="status">
+              <ZIcon name="check" />
               <span>
                 <b>
                   {subscription.plan.requires_payment && subscription.ends_at
                     ? `${subscription.plan.name} is active until ${formatDate(subscription.ends_at)}.`
                     : `Your ${subscription.plan.name} plan is active.`}
                 </b>{" "}
-                <span className="dash-banner__more">
+                <span className="zn-banner__more">
                   {subscription.plan.requires_payment
                     ? "Thank you for your payment."
                     : hasTeam
@@ -460,170 +350,157 @@ export default function AppLayout(): ReactElement {
                       : "Add your first person to get protected."}
                 </span>
               </span>
-              <button
-                type="button"
-                className="dash-banner__x"
-                aria-label="Dismiss"
-                onClick={() => setPlanActiveClosed(true)}
-              >
-                <DashIcon name="close" />
+              <button type="button" className="z-x" aria-label="Dismiss" onClick={() => setPlanActiveClosed(true)}>
+                <ZIcon name="close" size={16} />
               </button>
             </div>
           ) : null}
           {rejected && pathname !== "/app/settings/billing" ? (
-            <div className="dash-banner dash-banner--warn dash-banner--compact" role="alert">
-              <DashIcon name="alert" />
+            <div className="zn-banner warn" role="alert">
+              <ZIcon name="alerts" />
               <span>
                 <b>
                   We couldn't confirm your {formatMoney(rejected.amount_inr, rejected.currency)} payment
                   {rejected.rejection_reason ? `: ${rejected.rejection_reason.replace(/\.$/, "")}.` : "."}
                 </b>{" "}
-                <span className="dash-banner__more">
+                <span className="zn-banner__more">
                   {subscription?.status === "active"
                     ? `Your ${subscription.plan.name} plan keeps working meanwhile.`
                     : "You're on the Free features until it's confirmed."}
                 </span>
               </span>
-              <Link className="btn btn--primary dash-btn-sm" to="/app/settings/billing">
+              <Link className="z-btn sm pri" to="/app/settings/billing">
                 Send it again
               </Link>
             </div>
           ) : null}
           {inCheck && pathname !== "/app/settings/billing" ? (
-            <div className="dash-banner dash-banner--info dash-banner--compact" role="status">
-              <DashIcon name="clock" />
+            <div className="zn-banner info" role="status">
+              <ZIcon name="clock" />
               <span>
                 <b>
                   {inCheck.kind === "upgrade"
                     ? `Your upgrade to ${inCheck.planName} is being checked.`
                     : `Your ${inCheck.planName} renewal payment is being checked.`}
                 </b>{" "}
-                <span className="dash-banner__more">
+                <span className="zn-banner__more">
                   {inCheck.kind === "upgrade"
                     ? "Your current plan keeps working. We'll email you when it switches."
                     : "We'll email you when it's confirmed."}
                 </span>
               </span>
-              <Link className="dash-link" to="/app/settings/billing">
+              <Link to="/app/settings/billing" style={{ fontWeight: 600 }}>
                 Details
               </Link>
             </div>
           ) : null}
           {awaitingPayment && !rejected ? (
-            <div className="dash-banner dash-banner--warn" role="status">
-              <DashIcon name="card" />
+            <div className="zn-banner warn" role="status">
+              <ZIcon name="payment" />
               <span>
-                <b>Your {account?.subscription?.plan.name ?? "new"} plan is waiting for payment.</b> You're on the Free
-                features until it's paid.
+                <b>Your {account?.subscription?.plan.name ?? "new"} plan is waiting for payment.</b>{" "}
+                <span className="zn-banner__more">You're on the Free features until it's paid.</span>
               </span>
-              <Link className="btn btn--primary dash-btn-sm" to="/onboarding/subscribe">
+              <Link className="z-btn sm pri" to="/onboarding/subscribe">
                 Pay now
               </Link>
             </div>
           ) : null}
           {noPlanYet ? (
-            <div className="dash-banner dash-banner--info" role="status">
-              <DashIcon name="shield" />
+            <div className="zn-banner info" role="status">
+              <ZIcon name="protection" />
               <span>
-                <b>You're on the Free features.</b> Choose a plan to switch on full protection.
+                <b>You're on the Free features.</b> <span className="zn-banner__more">Choose a plan to switch on full protection.</span>
               </span>
-              <Link className="btn btn--primary dash-btn-sm" to="/onboarding/plan">
+              <Link className="z-btn sm pri" to="/onboarding/plan">
                 Choose a plan
               </Link>
             </div>
           ) : null}
           {inReview ? (
-            <div className="dash-banner dash-banner--info" role="status">
-              <DashIcon name="clock" />
+            <div className="zn-banner info" role="status">
+              <ZIcon name="clock" />
               <span>
-                <b>Your payment is being checked.</b> You can set things up meanwhile. We'll email you when your plan
-                is active.
+                <b>Your payment is being checked.</b>{" "}
+                <span className="zn-banner__more">You can set things up meanwhile. We'll email you when your plan is active.</span>
               </span>
               {pathname !== "/app/settings/billing" ? (
-                <Link className="dash-link" to="/app/settings/billing">
+                <Link to="/app/settings/billing" style={{ fontWeight: 600 }}>
                   Details
                 </Link>
               ) : null}
             </div>
           ) : null}
-          <Suspense
-            fallback={
-              <div className="dash-boot" role="status" aria-live="polite">
-                Loading…
-              </div>
-            }
-          >
+          <Suspense fallback={<Busy label="Loading…" />}>
             <UpgradeContext.Provider value={upgrade}>
               <ChatBubbleContext.Provider value={bubbleApi}>
                 <Outlet key={refreshKey} />
               </ChatBubbleContext.Provider>
             </UpgradeContext.Provider>
           </Suspense>
-        </div>
-      </main>
+        </main>
 
-      <Modal
-        open={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-        title="How's Zinwe working for you?"
-        sub="Takes 20 seconds. The Zinwe team reads every response."
-      >
-        <FeedbackForm page={`modal:${pathname}`.slice(0, 120)} onDone={() => setFeedbackOpen(false)} />
-        {/* What used to be Help → Feedback: everything this owner has sent before. */}
-        <p className="dash-note acct__history">
-          <Link className="dash-link" to="/app/feedback" onClick={() => setFeedbackOpen(false)}>
-            Your past feedback <DashIcon name="arrow" />
-          </Link>
-        </p>
-      </Modal>
+        <Modal
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          title="How's Zinwe working for you?"
+          sub="Takes 20 seconds. The Zinwe team reads every response."
+        >
+          <FeedbackForm page={`modal:${pathname}`.slice(0, 120)} onDone={() => setFeedbackOpen(false)} />
+          {/* What used to be Help → Feedback: everything this owner has sent before. */}
+          <p className="dash-note acct__history">
+            <Link className="dash-link" to="/app/feedback" onClick={() => setFeedbackOpen(false)}>
+              Your past feedback →
+            </Link>
+          </p>
+        </Modal>
 
-      {/* The Chat page is the full chat: no floating launcher or bubble on top of it. */}
-      {entitlements.has("team_chat") && !onChatPage ? (
-        <ChatLauncher
-          members={members.data}
-          onPick={(m) =>
-            setBubble({
-              person: { id: m.id, name: m.name, email: m.email, hostname: m.device?.hostname },
-              onSent: () => members.reload(),
-            })
-          }
-        />
-      ) : null}
-      <SupportWidget key={user?.id} userId={user?.id} />
-      {bubble && !onChatPage ? (
-        <ChatBubble
-          key={`${bubble.person.id}-${bubble.event?.id ?? "chat"}-${bubble.tag ?? ""}`}
-          request={bubble}
-          onClose={() => setBubble(null)}
-        />
-      ) : null}
-      {touring && !needsTerms ? (
-        <Tour steps={tourSteps((members.data ?? []).some((m) => m.is_active))} onClose={closeTour} />
-      ) : null}
-      {needsTerms && !leaving ? (
-        <UpdatedTermsDialog firstTime={!terms?.version} onAccepted={() => refresh()} onSignOut={onLogout} />
-      ) : null}
+        {/* DashFloat: Chat launcher (desktop; on a phone Chat is a tab) + Support. Not on the Chat page. */}
+        {entitlements.has("team_chat") && !onChatPage ? (
+          <ChatLauncher
+            members={members.data}
+            onPick={(m) =>
+              setBubble({
+                person: { id: m.id, name: m.name, email: m.email, hostname: m.device?.hostname },
+                onSent: () => members.reload(),
+              })
+            }
+          />
+        ) : null}
+        <SupportWidget key={user?.id} userId={user?.id} />
+        {bubble && !onChatPage ? (
+          <ChatBubble
+            key={`${bubble.person.id}-${bubble.event?.id ?? "chat"}-${bubble.tag ?? ""}`}
+            request={bubble}
+            onClose={() => setBubble(null)}
+          />
+        ) : null}
+        {touring && !needsTerms ? <Tour steps={tourSteps(hasTeam)} onClose={closeTour} /> : null}
+        {needsTerms && !leaving ? (
+          <UpdatedTermsDialog firstTime={!terms?.version} onAccepted={() => refresh()} onSignOut={onLogout} />
+        ) : null}
 
-      <Modal
-        open={upgradedTo !== null}
-        onClose={closeUpgraded}
-        size="sm"
-        title="Payment sent — thank you!"
-        sub={`Your upgrade to ${upgradedTo ?? "your new plan"} is on its way.`}
-      >
-        <p className="dash-modal__text">
-          We're matching your payment with our bank statement. As soon as it's confirmed, your plan switches to{" "}
-          <b>{upgradedTo}</b> and we'll email you. Your current plan keeps working until then.
-        </p>
-        <div className="dash-confirm__actions">
-          <button type="button" className="btn btn--primary dash-btn-sm" onClick={closeUpgraded}>
-            Back to dashboard
-          </button>
-          <Link className="btn btn--ghost dash-btn-sm" to="/app/settings/billing" onClick={closeUpgraded}>
-            See billing
-          </Link>
-        </div>
-      </Modal>
-    </div>
+        <Modal
+          open={upgradedTo !== null}
+          onClose={closeUpgraded}
+          size="sm"
+          title="Payment sent — thank you!"
+          sub={`Your upgrade to ${upgradedTo ?? "your new plan"} is on its way.`}
+        >
+          <p className="dash-modal__text">
+            We're matching your payment with our bank statement. As soon as it's confirmed, your plan switches to{" "}
+            <b>{upgradedTo}</b> and we'll email you. Your current plan keeps working until then.
+          </p>
+          <div className="dash-confirm__actions">
+            <button type="button" className="z-btn sm pri" onClick={closeUpgraded}>
+              Back to dashboard
+            </button>
+            <Link className="z-btn sm" to="/app/settings/billing" onClick={closeUpgraded}>
+              See billing
+            </Link>
+          </div>
+        </Modal>
+      </div>
+    </ShellContext.Provider>
   );
 }
