@@ -1,23 +1,29 @@
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
-import { Field } from "../../components/forms/Field";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { forgotPassword, resendOtp, resetPassword } from "../../lib/api";
+import { cx } from "../../lib/cx";
 import { codeError, emailError, newPasswordError } from "../../lib/validation";
 import { AuthShell } from "../components/AuthShell";
 import { FormAlert, FormStatus } from "../components/FormAlert";
 import { OtpInput } from "../components/OtpInput";
 import { otpDigits } from "../otp";
-import { PasswordField } from "../components/PasswordField";
-import { ResendButton } from "../components/ResendButton";
 import { failureMessage } from "../failure";
 import { useCountdown } from "../useCountdown";
 import { rememberSignIn } from "../lastLogin";
+import { ZField } from "../v13/ZField";
+import { ZPassword } from "../v13/ZPassword";
 
 function emailFromState(state: unknown): string {
   const email = (state as { email?: unknown } | null)?.email;
   return typeof email === "string" ? email : "";
+}
+
+function clock(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 export default function ForgotPasswordPage(): ReactElement {
@@ -36,17 +42,13 @@ export default function ForgotPasswordPage(): ReactElement {
   return (
     <AuthShell
       footer={
-        <>
-          Remembered it? <Link to="/login">Log in</Link>
-        </>
+        <Link className="zau-link" to="/login">
+          Back to log in
+        </Link>
       }
     >
       {sentTo ? (
-        <ResetForm
-          email={sentTo}
-          resendIn={resendIn}
-          onBack={() => setSentTo(null)}
-        />
+        <ResetForm email={sentTo} resendIn={resendIn} onBack={() => setSentTo(null)} />
       ) : (
         <RequestForm
           email={email}
@@ -91,30 +93,34 @@ function RequestForm({
   };
 
   return (
-    <form className="auth-form" onSubmit={onSubmit} noValidate>
-      <div>
-        <h1 className="auth__title">Reset your password</h1>
-        <p className="auth__lede">Enter your work email and we'll send you a code to set a new password.</p>
+    <form className="zau-form" onSubmit={onSubmit} noValidate>
+      <div className="zau-head">
+        <h1 className="zau-title sm">Reset your password</h1>
+        <p className="zau-lede">We’ll email you a code.</p>
       </div>
-      <Field error={error}>
-        <label htmlFor="fp-email">Work email</label>
+      <ZField error={error} errorId="fp-email-error">
+        <label className="zau-lab" htmlFor="fp-email">
+          Work email
+        </label>
         <input
           ref={ref}
           id="fp-email"
           name="email"
           type="email"
           inputMode="email"
+          className={cx("zau-inp", error && "err")}
           autoComplete="username"
           autoFocus
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}
           aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "fp-email-error" : undefined}
         />
-      </Field>
+      </ZField>
       <FormAlert message={formError} />
-      <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
-        {pending ? "Sending code…" : "Send reset code"}
-        {pending ? null : <span className="arr">→</span>}
+      <button type="submit" className="zau-btn pri full" disabled={pending}>
+        {pending ? <span className="zau-spin" aria-hidden="true" /> : null}
+        {pending ? "Sending code…" : "Send me a code"}
       </button>
     </form>
   );
@@ -174,20 +180,22 @@ function ResetForm({ email, resendIn, onBack }: { email: string; resendIn: numbe
     }
   };
 
+  const waiting = cooldown.seconds > 0;
+
   return (
-    <form className="auth-form" onSubmit={onSubmit} noValidate>
-      <div>
-        <h1 className="auth__title">Set a new password</h1>
-        <p className="auth__lede">
-          If an account exists for <b className="auth__email">{email}</b>, we've sent it a 6-digit code. It works for
-          10 minutes.
+    <form className="zau-form" onSubmit={onSubmit} noValidate>
+      <div className="zau-head">
+        <h1 className="zau-title sm">Set a new password</h1>
+        <p className="zau-lede">
+          If an account exists for <b className="zau-email">{email}</b>, we've sent it a 6-digit code. Enter it below; it
+          works for 10 minutes.
         </p>
       </div>
 
-      <div className="auth-stack">
+      <div className={cx("zau-field", errors.code && "is-invalid")}>
         <OtpInput
           idPrefix="fp-code"
-          label="Reset code"
+          label="Code from the email"
           value={code}
           onChange={(next) => {
             setCode(next);
@@ -200,13 +208,13 @@ function ResetForm({ email, resendIn, onBack }: { email: string; resendIn: numbe
           autoFocus
         />
         {errors.code ? (
-          <p className="field__err auth-err" id="fp-code-error" role="alert">
+          <p className="zau-err" id="fp-code-error" role="alert">
             {errors.code}
           </p>
         ) : null}
       </div>
 
-      <PasswordField
+      <ZPassword
         id="fp-password"
         label="New password"
         value={password}
@@ -215,21 +223,35 @@ function ResetForm({ email, resendIn, onBack }: { email: string; resendIn: numbe
         autoComplete="new-password"
         inputRef={passwordRef}
         disabled={pending}
+        hint="8 or more characters, with letters and numbers."
       />
 
       <FormAlert message={formError} />
       <FormStatus message={status} />
 
-      <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
-        {pending ? "Saving…" : "Save password and log in"}
+      <button type="submit" className="zau-btn pri full" disabled={pending}>
+        {pending ? <span className="zau-spin" aria-hidden="true" /> : null}
+        {pending ? "Saving…" : "Save new password"}
       </button>
 
-      <div className="auth-row">
-        <ResendButton seconds={cooldown.seconds} pending={resending} onResend={() => void onResend()} />
-        <button type="button" className="dash-link auth-row__end" onClick={onBack}>
+      <p className="zau-resend">
+        No email?{" "}
+        <button type="button" className="zau-link" onClick={() => void onResend()} disabled={waiting || resending}>
+          {resending ? (
+            "Sending…"
+          ) : waiting ? (
+            <>
+              Send a new code in <span className="zau-clock">{clock(cooldown.seconds)}</span>
+            </>
+          ) : (
+            "Send a new code"
+          )}
+        </button>{" "}
+        ·{" "}
+        <button type="button" className="zau-link" onClick={onBack}>
           Use a different email
         </button>
-      </div>
+      </p>
     </form>
   );
 }

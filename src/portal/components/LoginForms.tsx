@@ -1,13 +1,14 @@
 import { useRef, useState, type FormEvent, type ReactElement, type Ref } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
-import { Field } from "../../components/forms/Field";
 import { login, loginOtpRequest, type LoginField } from "../../lib/api";
+import { cx } from "../../lib/cx";
 import { compactErrors, emailError, requiredError, type FieldErrorMap } from "../../lib/validation";
 import { failureMessage } from "../failure";
 import { rememberSignIn } from "../lastLogin";
+import { ZField } from "../v13/ZField";
+import { ZPassword } from "../v13/ZPassword";
 import { FormAlert } from "./FormAlert";
-import { PasswordField } from "./PasswordField";
 import { trackEvent } from "../../lib/analytics";
 
 interface EmailProps {
@@ -22,22 +23,28 @@ function EmailField({
   error,
   inputRef,
 }: EmailProps & { id: string; error?: string; inputRef: Ref<HTMLInputElement> }): ReactElement {
+  const errorId = `${id}-error`;
   return (
-    <Field error={error}>
-      <label htmlFor={id}>Work email</label>
+    <ZField error={error} errorId={errorId}>
+      <label className="zau-lab" htmlFor={id}>
+        Work email
+      </label>
       <input
         ref={inputRef}
         id={id}
         name="email"
         type="email"
         inputMode="email"
+        className={cx("zau-inp", error && "err")}
         autoComplete="username"
         autoFocus
+        placeholder="you@company.com"
         value={email}
         onChange={(e) => onEmailChange(e.target.value)}
         aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
       />
-    </Field>
+    </ZField>
   );
 }
 
@@ -85,26 +92,26 @@ export function PasswordLoginForm({
   };
 
   return (
-    <form className="auth-form" onSubmit={onSubmit} noValidate>
+    <form className="zau-form" onSubmit={onSubmit} noValidate>
       <EmailField id="login-email" email={email} onEmailChange={onEmailChange} error={errors.email} inputRef={emailRef} />
-      <div className="auth-stack">
-        <PasswordField
-          id="login-password"
-          label="Password"
-          value={password}
-          onChange={setPassword}
-          error={errors.password}
-          autoComplete="current-password"
-          inputRef={passwordRef}
-        />
-        <Link className="dash-link auth-forgot" to="/forgot-password" state={{ email: email.trim() }}>
-          Forgot password?
-        </Link>
-      </div>
+      <ZPassword
+        id="login-password"
+        label="Password"
+        value={password}
+        onChange={setPassword}
+        error={errors.password}
+        autoComplete="current-password"
+        inputRef={passwordRef}
+        aside={
+          <Link className="zau-link sm" to="/forgot-password" state={{ email: email.trim() }}>
+            Forgot password?
+          </Link>
+        }
+      />
       <FormAlert message={formError} />
-      <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
+      <button type="submit" className="zau-btn pri full" disabled={pending}>
+        {pending ? <span className="zau-spin" aria-hidden="true" /> : null}
         {pending ? "Logging in…" : "Log in"}
-        {pending ? null : <span className="arr">→</span>}
       </button>
     </form>
   );
@@ -142,13 +149,13 @@ export function EmailCodeForm({
   };
 
   return (
-    <form className="auth-form" onSubmit={onSubmit} noValidate>
+    <form className="zau-form" onSubmit={onSubmit} noValidate>
       <EmailField id="login-code-email" email={email} onEmailChange={onEmailChange} error={error} inputRef={emailRef} />
-      <p className="auth__fine">No password needed. If there's a Zinwe account for this email, we'll send it a 6-digit code.</p>
+      <p className="zau-hint">No password needed. If there's a Zinwe account for this email, we'll send it a 6-digit code.</p>
       <FormAlert message={formError} />
-      <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
+      <button type="submit" className="zau-btn pri full" disabled={pending}>
+        {pending ? <span className="zau-spin" aria-hidden="true" /> : null}
         {pending ? "Sending code…" : "Email me a code"}
-        {pending ? null : <span className="arr">→</span>}
       </button>
     </form>
   );

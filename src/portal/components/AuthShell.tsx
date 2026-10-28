@@ -1,64 +1,72 @@
-import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Brand } from "../../components/ui/Brand";
-import { Icon } from "../../components/ui/Icon";
-import { Smoke } from "../../components/ui/Smoke";
-import { AUTH_POINTS } from "../../content/portal";
+import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
+import { useAuthFonts } from "../v13/authFonts";
 import "../../styles/dashboard.css";
 import "../../styles/portal.css";
+import "../../styles/dash13.css";
+import "../../styles/dash13/auth.css";
 
 interface AuthShellProps {
-  /** Below the card, e.g. "New to Zinwe? Create an account". */
+  /** Under the form, e.g. "New to Zinwe? Create an account". */
   footer?: ReactNode;
   children: ReactNode;
 }
 
+const POINTS = [
+  "Alerts when files go to a pen drive or a remote-control app starts",
+  "Set up in an afternoon, no IT team needed",
+  "Each person agrees on their own PC first",
+] as const;
+
 /**
- * Sign up / log in / reset layout: a brand panel with light Zin smoke on the
- * left (desktop only) and the form card on the right. One column on phones.
+ * Sign up / log in / reset (AuthFlow board, v1.3): the dark brand panel and the form column side by side,
+ * stacked on phones (panel first). `.za` gives the v1.3 tokens; `.zau` scopes this board's styles.
  */
 export function AuthShell({ footer, children }: AuthShellProps): ReactElement {
+  useAuthFonts();
   return (
-    <div className="auth" data-clarity-mask="true">
-      <aside className="auth__side zin-host" aria-hidden="true">
-        <Smoke className="auth__smoke" />
-        <div className="auth__side-inner">
-          <Brand variant="static" height={32} />
-          <div>
-            <p className="auth__kicker">Zinwe for business owners</p>
-            <h2 className="auth__headline">Know what's happening to your data. In plain English.</h2>
-            <ul className="perks">
-              {AUTH_POINTS.map((point) => (
-                <li key={point.title}>
-                  <span className="perks__mark">
-                    <Icon name="check" />
-                  </span>
-                  <div>
-                    <b>{point.title}</b>
-                    <span>{point.detail}</span>
-                  </div>
+    <div className="za zau" data-clarity-mask="true">
+      <AnnouncementBar className="abar--flush" />
+      <div className="zau-shell">
+        <aside className="zau-side">
+          <Link to="/" className="zau-brand" aria-label="Zinwe home">
+            <span className="zau-brand__z" aria-hidden="true">
+              Z
+            </span>
+            <b>Zinwe</b>
+          </Link>
+          <div className="zau-side__body">
+            <h2 className="zau-side__title">Know what's happening to your data. In plain English.</h2>
+            <ul className="zau-side__list">
+              {POINTS.map((point) => (
+                <li key={point}>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#F26A0A"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  {point}
                 </li>
               ))}
             </ul>
           </div>
-          <small className="auth__small">For teams of 5–50 in India and the US.</small>
-        </div>
-      </aside>
+          <span className="zau-side__small">For teams of 5–50 in India and the US.</span>
+        </aside>
 
-      <div className="auth__main">
-        <AnnouncementBar className="abar--flush" />
-        <div className="auth__top">
-          <span className="auth__mobile-brand">
-            <Brand ariaLabel="Zinwe home" height={24} />
-          </span>
-          <Link className="dash-link auth__back" to="/">
-            ← Back to site
-          </Link>
-        </div>
-        <main className="auth__body">
-          <div className="auth__card">{children}</div>
-          {footer ? <p className="auth__alt">{footer}</p> : null}
+        <main className="zau-main">
+          <div className="zau-col">
+            {children}
+            {footer ? <p className="zau-alt">{footer}</p> : null}
+          </div>
         </main>
       </div>
     </div>

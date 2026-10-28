@@ -8,7 +8,6 @@ import { useCountdown } from "../useCountdown";
 import { FormAlert, FormStatus } from "./FormAlert";
 import { otpDigits } from "../otp";
 import { OtpInput } from "./OtpInput";
-import { ResendButton } from "./ResendButton";
 import { trackEvent } from "../../lib/analytics";
 
 interface CodeStepProps {
@@ -106,61 +105,87 @@ export function CodeStep({
     }
   };
 
+  const waiting = cooldown.seconds > 0;
+
   return (
-    <form className="auth-form" onSubmit={onSubmit} noValidate>
-      <div>
-        <h1 className="auth__title">{title}</h1>
-        <p className="auth__lede">
+    <form className="zau-form" onSubmit={onSubmit} noValidate>
+      <span className="zau-mailmark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 6h16v12H4z" />
+          <path d="m4 7 8 6 8-6" />
+        </svg>
+      </span>
+      <div className="zau-head">
+        <h1 className="zau-title sm">{title}</h1>
+        <p className="zau-lede">
           {purpose === "login" ? (
             // We don't say whether an account exists (same answer for every email).
             <>
-              If there's a Zinwe account for <b className="auth__email">{email}</b>, we've sent it a 6-digit code. It
+              If there's a Zinwe account for <b className="zau-email">{email}</b>, we've sent it a 6-digit code. It
               works for 10 minutes.
             </>
           ) : (
             <>
-              We've sent a 6-digit code to <b className="auth__email">{email}</b>. It works for 10 minutes.
+              We sent a 6-digit code to <b className="zau-email">{email}</b>. It works for 10 minutes.
             </>
           )}
         </p>
       </div>
-      {notice ? <p className="dash-banner dash-banner--info">{notice}</p> : null}
+      {notice ? (
+        <p className="zau-note" role="status">
+          {notice}
+        </p>
+      ) : null}
 
-      <OtpInput
-        idPrefix={`otp-${purpose}`}
-        label="Enter the code"
-        value={code}
-        onChange={(next) => {
-          setCode(next);
-          if (error) setError(null);
-        }}
-        onComplete={(full) => void submit(full)}
-        invalid={Boolean(error)}
-        errorId={error ? `otp-${purpose}-error` : undefined}
-        disabled={pending}
-        autoFocus
-      />
+      <div className="zau-field">
+        <OtpInput
+          idPrefix={`otp-${purpose}`}
+          label="Code"
+          value={code}
+          onChange={(next) => {
+            setCode(next);
+            if (error) setError(null);
+          }}
+          onComplete={(full) => void submit(full)}
+          invalid={Boolean(error)}
+          errorId={error ? `otp-${purpose}-error` : undefined}
+          disabled={pending}
+          autoFocus
+        />
+      </div>
 
       <FormAlert message={error} id={`otp-${purpose}-error`} />
       <FormStatus message={status} />
 
-      <button type="submit" className="btn btn--primary btn--block" disabled={pending}>
+      <button type="submit" className="zau-btn pri full" disabled={pending}>
+        {pending ? <span className="zau-spin" aria-hidden="true" /> : null}
         {pending ? "Checking…" : submitLabel}
       </button>
 
-      <div className="auth-row">
-        <ResendButton seconds={cooldown.seconds} pending={resending} onResend={() => void onResend()} />
-        <button type="button" className="dash-link auth-row__end" onClick={onBack}>
-          Use a different email
+      <p className="zau-resend">
+        {resent ? "Use the code from the newest email." : "No email after a minute? Check spam, or"}{" "}
+        <button type="button" className="zau-link" onClick={() => void onResend()} disabled={waiting || resending}>
+          {resending ? (
+            "Sending…"
+          ) : waiting ? (
+            <>
+              Send a new code in <span className="zau-clock">{clock(cooldown.seconds)}</span>
+            </>
+          ) : (
+            "Send a new code"
+          )}
+        </button>{" "}
+        ·{" "}
+        <button type="button" className="zau-link" onClick={onBack}>
+          Change email
         </button>
-      </div>
-      <p className="auth__fine">
-        {resent
-          ? "Got more than one email? Use the code from the newest one. Can't find it? Check your spam folder."
-          : purpose === "login"
-            ? "No email after a minute? Check your spam folder and the address above, or resend the code."
-            : "Can't find it? Check your spam folder, or resend the code."}
       </p>
     </form>
   );
+}
+
+function clock(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
 }

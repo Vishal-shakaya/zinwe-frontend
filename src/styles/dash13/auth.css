@@ -1,0 +1,1565 @@
+/* AuthFlow board (v1.3): sign up, log in, reset, onboarding (company, plan, checkout, under review).
+   Everything is scoped under .zau (the root also carries .za for the v1.3 tokens), so the shared portal
+   components (PlanCards, CycleToggle, CheckoutModal, CompanyForm, OtpInput…) keep their look on /plans,
+   /quote and inside the dashboard. */
+
+.zau {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f7f6f2;
+  color: #141210;
+  font-family: var(--z-font);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.zau .zau-mono,
+.zau .mono {
+  font-family: var(--z-mono);
+}
+
+/* ---------- Buttons ---------- */
+
+.zau .zau-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 1px solid #dcd6cb;
+  background: #fff;
+  color: #141210;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.zau .zau-btn:hover:not(:disabled) {
+  border-color: #141210;
+  color: #141210;
+}
+
+.zau .zau-btn.pri {
+  background: #f26a0a;
+  border-color: #f26a0a;
+  color: #141210;
+  font-weight: 700;
+}
+
+.zau .zau-btn.pri:hover:not(:disabled) {
+  background: #e05e04;
+  border-color: #e05e04;
+  color: #141210;
+}
+
+.zau .zau-btn.full {
+  width: 100%;
+}
+
+.zau .zau-btn.li {
+  background: #0a66c2;
+  border-color: #0a66c2;
+  color: #fff;
+}
+
+.zau .zau-btn.li:hover:not(:disabled) {
+  background: #004182;
+  border-color: #004182;
+  color: #fff;
+}
+
+.zau .zau-btn:disabled {
+  cursor: not-allowed;
+}
+
+.zau .zau-btn.pri:disabled {
+  opacity: 0.7;
+}
+
+.zau .zau-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #a84505;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.zau .zau-link:hover:not(:disabled) {
+  color: #7a3203;
+}
+
+.zau .zau-link:disabled {
+  color: #6b6459;
+  text-decoration: none;
+  cursor: default;
+}
+
+.zau .zau-link.sm {
+  font-size: 14px;
+}
+
+.zau-spin {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: zau-spin 0.8s linear infinite;
+}
+
+@keyframes zau-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zau-spin {
+    animation-duration: 2.4s;
+  }
+}
+
+/* ---------- Social sign-in (coming soon) ---------- */
+
+.zau-social {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zau .zau-social .zau-btn:disabled {
+  opacity: 0.55;
+}
+
+.zau-soon {
+  margin-left: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fbf0d9;
+  color: #8a5300;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.zau-social__note {
+  font-size: 13px;
+  color: #6b6459;
+  text-align: center;
+}
+
+.zau-ordiv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #6b6459;
+  font-size: 13px;
+}
+
+.zau-ordiv::before,
+.zau-ordiv::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #dcd6cb;
+}
+
+/* ---------- Fields ---------- */
+
+.zau .zau-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.zau .zau-field__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.zau .zau-lab {
+  font-size: 14px;
+  font-weight: 600;
+  color: #141210;
+}
+
+.zau .zau-inp {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dcd6cb;
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  color: #141210;
+  box-shadow: none;
+}
+
+.zau .zau-inp::placeholder {
+  color: #a79e90;
+}
+
+.zau .zau-inp:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+  box-shadow: none;
+}
+
+.zau .zau-inp.err {
+  border-color: #b02a15;
+}
+
+.zau .zau-hint {
+  margin: 0;
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zau .zau-err {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b02a15;
+}
+
+.zau .zau-pw {
+  position: relative;
+}
+
+.zau .zau-pw .zau-inp {
+  padding-right: 72px;
+}
+
+.zau .zau-pw__toggle {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #f2efe8;
+  color: #141210;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zau .zau-pw__toggle:hover {
+  background: #e7e3da;
+}
+
+.zau-meter {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zau-meter__bar {
+  display: inline-block;
+  flex: none;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #dcd6cb;
+}
+
+.zau-meter.s1 {
+  color: #b02a15;
+}
+
+.zau-meter.s1 .zau-meter__bar {
+  background: #b02a15;
+}
+
+.zau-meter.s2 {
+  color: #8a5300;
+}
+
+.zau-meter.s2 .zau-meter__bar {
+  background: #8a5300;
+}
+
+.zau-meter.s3 {
+  color: #17663f;
+}
+
+.zau-meter.s3 .zau-meter__bar {
+  background: #17663f;
+}
+
+/* Six-box code (OtpInput) in the board's look: mono digits, 60 px tall. */
+.zau .otp {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.zau .otp__legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #141210;
+}
+
+.zau .otp__boxes {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.zau .otp__box {
+  width: 100%;
+  min-width: 0;
+  height: 60px;
+  padding: 0;
+  border: 1px solid #dcd6cb;
+  border-radius: 12px;
+  background: #fff;
+  font-family: var(--z-mono);
+  font-size: 26px;
+  font-weight: 500;
+  text-align: center;
+  color: #141210;
+  box-shadow: none;
+}
+
+.zau .otp__box:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+  box-shadow: none;
+}
+
+.zau .otp.is-invalid .otp__box {
+  border-color: #b02a15;
+}
+
+/* Terms checkbox (shared TermsCheckbox): the board's 20 px box and 14 px text. */
+.zau .terms-check {
+  gap: 4px 10px;
+  font-size: 14px;
+  color: #3a352e;
+}
+
+.zau .terms-check input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  accent-color: #141210;
+}
+
+.zau .terms-check__link {
+  color: #a84505;
+  font-weight: 500;
+  text-underline-offset: 2px;
+}
+
+.zau .terms-check__link:hover {
+  color: #7a3203;
+}
+
+.zau .terms-check__err {
+  font-size: 13px;
+  font-weight: 500;
+  color: #b02a15;
+}
+
+/* Form-level messages (FormAlert / FormStatus): the board's one-line alert. */
+.zau .auth-alert:empty {
+  display: none;
+}
+
+.zau .auth-alert .form__err {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #b02a15;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.zau .auth-alert .auth-ok {
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #e3f4ea;
+  color: #17663f;
+  font-size: 14px;
+}
+
+.zau .zau-note {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fdebdc;
+  color: #8a3a04;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.zau .zau-note.ok {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+/* ---------- Sign up / log in / reset shell ---------- */
+
+.zau-shell {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.zau-side {
+  flex: 1 1 420px;
+  min-width: 0;
+  background: #141210;
+  color: #ede8de;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.zau .zau-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  align-self: flex-start;
+}
+
+.zau .zau-brand:hover {
+  color: #fff;
+}
+
+.zau-brand__z {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #f26a0a;
+  color: #141210;
+  font-weight: 800;
+  font-size: 17px;
+  align-items: center;
+  justify-content: center;
+}
+
+.zau-brand b {
+  font-size: 20px;
+}
+
+.zau-side__body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 440px;
+}
+
+.zau .zau-side__title {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.zau-side__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: #c9c1b3;
+}
+
+.zau-side__list li {
+  display: flex;
+  gap: 10px;
+}
+
+.zau-side__list svg {
+  flex: none;
+}
+
+.zau-side__small {
+  font-size: 13px;
+  color: #b9b0a2;
+}
+
+.zau-main {
+  flex: 1 1 520px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.zau-col {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.zau-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+}
+
+.zau-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zau .zau-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.zau .zau-title.sm {
+  font-size: 30px;
+}
+
+.zau .zau-lede {
+  margin: 0;
+  color: #4a443c;
+}
+
+.zau .zau-email {
+  overflow-wrap: anywhere;
+}
+
+.zau .zau-alt {
+  margin: 0;
+  text-align: center;
+  color: #4a443c;
+}
+
+.zau .zau-alt a {
+  font-weight: 600;
+}
+
+.zau-mailmark {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #fdebdc;
+  color: #a84505;
+  align-items: center;
+  justify-content: center;
+}
+
+.zau .zau-resend {
+  margin: 0;
+  text-align: center;
+  color: #4a443c;
+  font-size: 14px;
+}
+
+.zau-clock {
+  font-family: var(--z-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.zau-segs {
+  display: flex;
+  gap: 4px;
+  background: #efece5;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.zau .zau-seg {
+  flex: 1;
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-weight: 600;
+  color: #4a443c;
+}
+
+.zau .zau-seg.on {
+  background: #fff;
+  color: #141210;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.zau .zau-seg:hover:not(.on) {
+  color: #141210;
+}
+
+@media (max-width: 760px) {
+  .zau-side {
+    padding: 28px 16px;
+    gap: 24px;
+  }
+
+  .zau .zau-side__title {
+    font-size: 28px;
+  }
+
+  .zau-main {
+    padding: 32px 16px 48px;
+  }
+
+  .zau .zau-title {
+    font-size: 28px;
+  }
+
+  .zau .zau-title.sm {
+    font-size: 26px;
+  }
+
+  .zau .otp__boxes {
+    gap: 6px;
+  }
+
+  .zau .otp__box {
+    height: 56px;
+    font-size: 22px;
+  }
+}
+
+/* ---------- Onboarding shell ---------- */
+
+.zau-onb__top {
+  background: #fff;
+  border-bottom: 1px solid #efece5;
+}
+
+.zau-onb__bar {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.zau .zau-brand--sm,
+.zau .zau-brand--sm:hover {
+  color: #141210;
+}
+
+.zau-brand--sm .zau-brand__z {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+}
+
+.zau-brand--sm b {
+  font-size: 18px;
+}
+
+.zau-stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 14px;
+}
+
+.zau-stepper li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b6358;
+  font-weight: 500;
+}
+
+.zau-stepper li.done {
+  color: #141210;
+}
+
+.zau-stepper li.cur {
+  color: #141210;
+  font-weight: 700;
+}
+
+.zau-stepper__dot {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: #efece5;
+  color: #6b6459;
+}
+
+.zau-stepper li.done .zau-stepper__dot {
+  background: #141210;
+  color: #fff;
+}
+
+.zau-stepper li.cur .zau-stepper__dot {
+  background: #f26a0a;
+  color: #141210;
+}
+
+.zau .zau-onb__skip {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.zau-onb__who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.zau-onb__acct {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  color: #4a443c;
+}
+
+.zau-onb__avatar {
+  display: inline-flex;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #141210;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+}
+
+.zau-onb__email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.zau .zau-btn.sm {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.zau-onb__main {
+  flex: 1;
+  padding: 40px 24px 64px;
+}
+
+.zau-boot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 64px 0;
+  color: #6b6459;
+}
+
+.zau-card {
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 20px;
+}
+
+.zau .zau-h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Company step (shared CompanyForm, restyled here only) ---------- */
+
+.zau-company {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.zau .co-form {
+  gap: 20px;
+}
+
+.zau .co-section + .co-section {
+  padding-top: 20px;
+  border-top: 1px solid #efece5;
+}
+
+.zau .co-section__title {
+  margin-bottom: 14px;
+  font-family: var(--z-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #6b6459;
+}
+
+.zau .form__grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.zau .co-form .field {
+  gap: 6px;
+  min-width: 0;
+}
+
+.zau .co-form .field label,
+.zau .co-form .co-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #141210;
+}
+
+.zau .co-form .field input,
+.zau .co-form .field select {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dcd6cb;
+  border-radius: 12px;
+  background-color: #fff;
+  font-size: 15px;
+  color: #141210;
+  box-shadow: none;
+}
+
+.zau .co-form .field input:focus,
+.zau .co-form .field select:focus {
+  outline: 2px solid #f26a0a;
+  outline-offset: 0;
+  border-color: #f26a0a;
+  box-shadow: none;
+}
+
+.zau .co-form .field.is-invalid input,
+.zau .co-form .field.is-invalid select,
+.zau .co-form .field.is-invalid .co-phone__dial {
+  border-color: #b02a15;
+}
+
+.zau .co-form .field__hint {
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zau .co-form .field__err {
+  font-size: 13px;
+  font-weight: 500;
+  color: #b02a15;
+}
+
+.zau .co-phone__dial {
+  border: 1px solid #dcd6cb;
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+  background: #f7f6f2;
+  color: #3a352e;
+  font-family: var(--z-mono);
+  font-size: 14px;
+}
+
+.zau .co-form .co-phone input {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Team size: round chips, ink when picked. */
+.zau .co-form .seg {
+  gap: 8px;
+}
+
+.zau .co-form .seg .chip {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid #dcd6cb;
+  background: #fff;
+  color: #141210;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.zau .co-form .seg .chip:hover {
+  border-color: #141210;
+}
+
+.zau .co-form .seg input:checked + .chip {
+  background: #141210;
+  border-color: #141210;
+  color: #fff;
+}
+
+.zau .co-form .seg input:focus-visible + .chip {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
+}
+
+.zau .co-form__foot {
+  justify-content: flex-end;
+}
+
+.zau .co-form__foot .btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 1px solid #f26a0a;
+  background: #f26a0a;
+  color: #141210;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.zau .co-form__foot .btn:hover:not(:disabled) {
+  background: #e05e04;
+  border-color: #e05e04;
+  transform: none;
+}
+
+.zau .co-form__foot .btn .arr {
+  display: none;
+}
+
+/* ---------- Plan step ---------- */
+
+.zau-plan {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.zau-plan__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.zau-plan__head .zau-head {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.zau-plan__bill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.zau-plan__note {
+  font-family: var(--z-mono);
+  font-size: 13px;
+  color: #6b6459;
+}
+
+/* CycleToggle (shared with /plans) drawn as the segmented control, here only. */
+.zau .cycle-toggle {
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: #efece5;
+}
+
+.zau .cycle-toggle__opt {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  color: #4a443c;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.zau .cycle-toggle__opt:hover:not(.is-on) {
+  background: transparent;
+  color: #141210;
+}
+
+.zau .cycle-toggle__opt.is-on {
+  background: #fff;
+  color: #141210;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.zau .cycle-toggle__opt:focus-visible {
+  outline: 2px solid #f26a0a;
+}
+
+.zau .cycle-toggle__save,
+.zau .cycle-toggle__opt.is-on .cycle-toggle__save {
+  background: #e3f4ea;
+  color: #17663f;
+  font-size: 12px;
+}
+
+.zau-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.zau .zau-pcard {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+  color: #141210;
+  border: 1px solid #e7e3da;
+  font: inherit;
+  text-decoration: none;
+}
+
+.zau .zau-pcard:hover:not(:disabled):not(.on) {
+  border-color: #c9c1b3;
+}
+
+.zau .zau-pcard.on {
+  border: 2px solid #f26a0a;
+  padding: 17px;
+  box-shadow: 0 10px 24px rgba(242, 106, 10, 0.14);
+}
+
+.zau .zau-pcard.off {
+  cursor: default;
+  background: #fbfaf7;
+}
+
+.zau .zau-pcard.off .zau-pcard__big,
+.zau .zau-pcard.off .zau-pcard__name {
+  color: #4a443c;
+}
+
+.zau .zau-pcard.custom {
+  border: 1px dashed #dcd6cb;
+  color: #141210;
+}
+
+.zau .zau-pcard.custom:hover {
+  border-color: #141210;
+  color: #141210;
+}
+
+.zau-pcard__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.zau .zau-pcard__name {
+  font-size: 18px;
+}
+
+.zau-pcard__radio {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #c9c1b3;
+}
+
+.zau-pcard.on .zau-pcard__radio {
+  border: 6px solid #f26a0a;
+}
+
+.zau-pcard.off .zau-pcard__radio {
+  border-color: #e7e3da;
+  background: #f2efe8;
+}
+
+.zau-pcard__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.zau-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fdebdc;
+  color: #8a3a04;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.zau-pill.green {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zau-pcard__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.zau-pcard__was {
+  font-size: 15px;
+  color: #6b6358;
+}
+
+.zau .zau-pcard__big {
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.zau-pcard__per {
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zau-pcard__limit {
+  font-size: 14px;
+  color: #3a352e;
+}
+
+.zau-pcard__line {
+  font-size: 13px;
+  color: #3a352e;
+}
+
+.zau-pcard__extra {
+  font-size: 13px;
+  color: #6b6459;
+}
+
+.zau .zau-pcard__talk {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.zau-pcard.skel {
+  min-height: 190px;
+}
+
+.zau-sk {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #efece5 0%, #f7f6f2 50%, #efece5 100%);
+  background-size: 200% 100%;
+  animation: zau-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes zau-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zau-sk {
+    animation: none;
+  }
+}
+
+.zau-sumbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e7e3da;
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.zau-sumbar > span {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.zau-sumbar__acts {
+  display: flex;
+  gap: 10px;
+}
+
+.zau .zau-plan__skip {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #4a443c;
+}
+
+.zau .zau-plan__skip a {
+  font-weight: 600;
+}
+
+.zau-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #e3f4ea;
+  color: #17663f;
+  font-size: 14px;
+}
+
+.zau-offer > span {
+  flex: 1 1 300px;
+}
+
+.zau-offer .dash-ico {
+  width: 18px;
+  height: 18px;
+}
+
+/* Rejected payment banner (shared RejectedBanner) and load errors, rounder like the board. */
+.zau .dash-banner {
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.zau .dash-state {
+  border-radius: 16px;
+}
+
+/* ---------- Payment being checked ---------- */
+
+.zau-review {
+  max-width: 560px;
+  margin: 24px auto 0;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  align-items: center;
+}
+
+.zau-review__mark {
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  align-items: center;
+  justify-content: center;
+  background: #fbf0d9;
+  color: #8a5300;
+}
+
+.zau-review__pay {
+  width: 100%;
+  text-align: left;
+}
+
+.zau-review__next {
+  width: 100%;
+  text-align: left;
+  background: #f7f6f2;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zau-review__next span {
+  font-size: 14px;
+  color: #4a443c;
+}
+
+.zau-review__acts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.zau .zau-review .auth-alert {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .zau-onb__bar {
+    padding: 12px 16px;
+    gap: 10px 16px;
+  }
+
+  .zau-stepper {
+    order: 3;
+    width: 100%;
+    gap: 6px 12px;
+    font-size: 13px;
+  }
+
+  .zau-onb__email {
+    display: none;
+  }
+
+  .zau-onb__main {
+    padding: 24px 16px 48px;
+  }
+
+  .zau-company,
+  .zau-review {
+    padding: 22px 16px;
+  }
+
+  .zau .zau-h1 {
+    font-size: 24px;
+  }
+
+  .zau-sumbar__acts,
+  .zau-sumbar__acts .zau-btn,
+  .zau-review__acts,
+  .zau-review__acts .zau-btn {
+    width: 100%;
+  }
+
+  .zau-plan__bill {
+    width: 100%;
+  }
+}
+
+/* ---------- Checkout (shared CheckoutModal, restyled on the plan step only) ----------
+   The board's pay screen: one white panel, the ways to pay on the left and a white "Order summary" on the
+   right. The Billing page renders the same modal outside .zau and keeps its own look. */
+
+.zau .checkout__panel {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  border-radius: 20px;
+  border: 1px solid #e7e3da;
+  box-shadow: 0 30px 80px -24px rgba(20, 18, 16, 0.45);
+}
+
+.zau .checkout__summary {
+  order: 2;
+  background: #fff;
+  color: #141210;
+  border-left: 1px solid #efece5;
+  padding: 24px;
+  font-size: 14px;
+}
+
+.zau .checkout__brand {
+  display: none;
+}
+
+.zau .checkout__payee {
+  margin: 0 0 10px;
+  font-family: var(--z-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #6b6459;
+}
+
+.zau .checkout__plan {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.zau .checkout__tag {
+  background: #fdebdc;
+  color: #8a3a04;
+}
+
+.zau .checkout__meta {
+  color: #4a443c;
+  font-size: 14px;
+}
+
+.zau .checkout__total {
+  margin: 18px 0 14px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.zau .checkout__lines {
+  border-top: 1px solid #efece5;
+  padding-top: 12px;
+}
+
+.zau .checkout__lines > div {
+  font-size: 14px;
+}
+
+.zau .checkout__lines dt {
+  color: #4a443c;
+}
+
+.zau .checkout__minus dd,
+.zau .co-carried {
+  color: #17663f;
+}
+
+.zau .checkout__tax-type {
+  border-color: #dcd6cb;
+  color: #141210;
+}
+
+.zau .checkout__tax-part dt,
+.zau .checkout__tax-part dd {
+  color: #6b6459;
+}
+
+.zau .co-save {
+  background: #e3f4ea;
+  color: #17663f;
+}
+
+.zau .checkout__price summary {
+  color: #a84505;
+}
+
+.zau .co-accept--summary .co-accept__label {
+  color: #6b6459;
+}
+
+.zau .co-accept--summary .co-accept__logo {
+  border: 1px solid #e7e3da;
+}
+
+.zau .co-accept--summary .co-accept__chip,
+.zau .co-accept--summary .co-accept__chip .dash-ico {
+  border-color: #dcd6cb;
+  color: #4a443c;
+}
+
+.zau .checkout__head {
+  border-bottom-color: #efece5;
+}
+
+.zau .checkout__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* The heading takes focus on each screen (for screen readers); no ring for that programmatic focus. */
+.zau .checkout__title:focus,
+.zau .checkout__title:focus-visible {
+  outline: none;
+}
+
+.zau .checkout__steps {
+  background: #f7f6f2;
+  border-bottom-color: #efece5;
+}
+
+.zau .co-option {
+  border-color: #e7e3da;
+  border-radius: 16px;
+}
+
+.zau .co-option--online {
+  border: 2px solid #f26a0a;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(242, 106, 10, 0.14);
+}
+
+.zau .co-option__cta {
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.zau .checkout .btn--primary {
+  min-height: 48px;
+  border-radius: 12px;
+  background: #f26a0a;
+  border-color: #f26a0a;
+  color: #141210;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.zau .checkout .btn--primary:hover:not(:disabled) {
+  background: #e05e04;
+  border-color: #e05e04;
+}
+
+@media (max-width: 720px) {
+  .zau .checkout__panel {
+    grid-template-columns: minmax(0, 1fr);
+    border: 0;
+    border-radius: 0;
+  }
+
+  .zau .checkout__summary {
+    order: 0;
+    border-left: 0;
+    border-bottom: 1px solid #efece5;
+    padding: 16px 20px;
+  }
+
+  .zau .checkout__total {
+    margin: 0;
+    font-size: 26px;
+  }
+}

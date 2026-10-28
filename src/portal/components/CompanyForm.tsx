@@ -114,10 +114,20 @@ interface CompanyFormProps {
   onConflict?: () => void;
   /** Edit mode: the email the owner signs in with, shown read-only with the company. */
   loginEmail?: string;
+  /** Onboarding: under the name, how employees see it ("X uses Zinwe to protect company data"). */
+  employeeHint?: boolean;
 }
 
 /** Company details: required name, industry, team size, phone, city, state; optional GSTIN and website. */
-export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict, loginEmail }: CompanyFormProps): ReactElement {
+export function CompanyForm({
+  mode,
+  initial,
+  submitLabel,
+  onSaved,
+  onConflict,
+  loginEmail,
+  employeeHint = false,
+}: CompanyFormProps): ReactElement {
   const [draft, setDraft] = useState<Draft>(() => draftFrom(initial));
   const [errors, setErrors] = useState<FieldErrorMap<CompanyField>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -217,7 +227,13 @@ export function CompanyForm({ mode, initial, submitLabel, onSaved, onConflict, l
               value={draft.name}
               onChange={(e) => set("name", e.target.value)}
               aria-invalid={errors.name ? true : undefined}
+              aria-describedby={employeeHint ? "co-name-hint" : undefined}
             />
+            {employeeHint ? (
+              <p className="field__hint" id="co-name-hint">
+                Shown to employees as "{draft.name.trim() || "Your company"} uses Zinwe to protect company data".
+              </p>
+            ) : null}
           </Field>
 
           {mode === "edit" && loginEmail ? (

@@ -7,13 +7,14 @@ import { cx } from "../../lib/cx";
 import { AuthShell } from "../components/AuthShell";
 import { CodeStep } from "../components/CodeStep";
 import { EmailCodeForm, PasswordLoginForm } from "../components/LoginForms";
+import { OrDivider, SocialSignIn } from "../v13/SocialSignIn";
 import { forgetSignedInHere, lastEmail, signedInHere } from "../lastLogin";
 
 type Tab = "password" | "code";
 
 const TABS: ReadonlyArray<{ key: Tab; label: string }> = [
   { key: "password", label: "Password" },
-  { key: "code", label: "Email code" },
+  { key: "code", label: "Email me a code" },
 ];
 
 /** A code was emailed: for a passwordless login, or to verify a new account. */
@@ -85,23 +86,26 @@ export default function LoginPage(): ReactElement {
         </>
       }
     >
-      <div className="auth-form">
-        <div>
-          <h1 className="auth__title">Log in</h1>
-          <p className="auth__lede">See your PCs, set USB rules and check what happened today.</p>
+      <div className="zau-form">
+        <div className="zau-head">
+          <h1 className="zau-title">Log in</h1>
+          <p className="zau-lede">See your team, your alerts and your rules.</p>
         </div>
 
         {sessionExpired ? (
-          <p className="dash-banner dash-banner--info" role="status">
+          <p className="zau-note" role="status">
             You've been logged out. Log in again to carry on.
           </p>
         ) : loggedOut ? (
-          <p className="dash-banner dash-banner--ok" role="status">
+          <p className="zau-note ok" role="status">
             You're logged out. See you soon.
           </p>
         ) : null}
 
-        <div className="auth-tabs" role="tablist" aria-label="How to log in">
+        <SocialSignIn />
+        <OrDivider />
+
+        <div className="zau-segs" role="tablist" aria-label="How to log in">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -114,7 +118,7 @@ export default function LoginPage(): ReactElement {
               aria-selected={tab === t.key}
               aria-controls={`login-panel-${t.key}`}
               tabIndex={tab === t.key ? 0 : -1}
-              className={cx("auth-tabs__tab", tab === t.key && "is-on")}
+              className={cx("zau-seg", tab === t.key && "on")}
               onClick={() => setTab(t.key)}
               onKeyDown={onTabKey}
             >
