@@ -81,8 +81,8 @@ function ChunkFallback(): ReactElement {
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/reports (any period, CSV)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
  *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password,notifications}
  *   /app/help (How to use) · /app/policies · /app/feedback — from the account menu (bottom of the sidebar); /app/feedback is also the email-link target
- *   /app/setup (all protections in one scroll, not in the sidebar)
- *   Old /app/devices, /app/billing, /app/company and /app/rules redirect, so emails and bookmarks keep working.
+ *   v1.3: /app/chat/:member (first name or member id) · /app/tasks · /app/rules (protections; /app/setup redirects here)
+ *   Old /app/devices, /app/billing, /app/company and /app/setup redirect, so emails and bookmarks keep working.
  */
 export function AppRoutes(): ReactElement {
   const { pathname } = useLocation();
