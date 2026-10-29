@@ -31,6 +31,7 @@ const PlansPage = lazyPage(() => import("./pages/PlansPage"));
 // chunks, so marketing visitors never download it.
 const SignupPage = lazyPage(() => import("./portal/pages/SignupPage"));
 const LoginPage = lazyPage(() => import("./portal/pages/LoginPage"));
+const LinkedInCallbackPage = lazyPage(() => import("./portal/pages/LinkedInCallbackPage"));
 const ForgotPasswordPage = lazyPage(() => import("./portal/pages/ForgotPasswordPage"));
 const OnboardingLayout = lazyPage(() => import("./portal/onboarding/OnboardingLayout"));
 const CompanyStep = lazyPage(() => import("./portal/onboarding/CompanyStep"));
@@ -124,6 +125,7 @@ export function AppRoutes(): ReactElement {
           <Route path="signup" element={<SignupPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="auth/linkedin/callback" element={<LinkedInCallbackPage />} />
         </Route>
 
         <Route path="onboarding" element={<RequireAuth />}>

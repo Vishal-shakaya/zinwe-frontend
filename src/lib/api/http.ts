@@ -10,7 +10,7 @@
  */
 import { clearToken, getToken } from "../session";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+export const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
 
 const REQUEST_TIMEOUT_MS = 15_000;
 

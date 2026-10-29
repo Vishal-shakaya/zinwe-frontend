@@ -1,13 +1,76 @@
-import type { ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../auth/authContext";
+import { trackEvent } from "../../lib/analytics";
+import { getSocialConfig, socialSignIn, type SocialConfig } from "../../lib/api";
+import { failureMessage } from "../failure";
+import { rememberSignIn } from "../lastLogin";
+import { requestGoogleCode, startLinkedIn } from "../social";
 
 /**
- * "Continue with LinkedIn" / "Continue with Google" (AuthFlow board). The API has no social sign-in yet, so both
- * are drawn but disabled with a "Coming soon" note; wiring them needs new auth endpoints (OAuth start + callback).
+ * "Continue with LinkedIn" / "Continue with Google" (AuthFlow board, FR-38). The buttons light up when the server
+ * says the provider is set up (GET /api/auth/social/); otherwise they stay drawn but disabled, "Coming soon".
+ * Both end in the normal AuthResponse, so the onboarding guard takes it from there.
  */
 export function SocialSignIn(): ReactElement {
+  const { signIn } = useAuth();
+  const location = useLocation();
+  const [config, setConfig] = useState<SocialConfig | null>(null);
+  const [busy, setBusy] = useState<"google" | "linkedin" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void getSocialConfig().then((value) => {
+      if (live) setConfig(value);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const google = config?.google.enabled ?? false;
+  const linkedin = config?.linkedin.enabled ?? false;
+  const anyOn = google || linkedin;
+  const from = location.pathname.startsWith("/signup") ? "/signup" : "/login";
+
+  const onGoogle = async () => {
+    if (!config || busy) return;
+    setError(null);
+    setBusy("google");
+    const outcome = await requestGoogleCode(config.google.client_id);
+    if (!outcome.ok) {
+      setBusy(null);
+      if (outcome.reason === "failed") setError("Google sign-in didn't open. Try again, or use your work email below.");
+      return;
+    }
+    const result = await socialSignIn("google", outcome.code);
+    if (result.ok) {
+      trackEvent(result.data.created ? "sign_up" : "login", { method: "google" });
+      rememberSignIn(result.data.user.email);
+      signIn(result.data);
+      return; // The guard redirects by onboarding step.
+    }
+    setBusy(null);
+    setError(failureMessage(result));
+  };
+
+  const onLinkedIn = () => {
+    if (!config || busy) return;
+    setBusy("linkedin");
+    startLinkedIn(config.linkedin, from);
+  };
+
   return (
     <div className="zau-social">
-      <button type="button" className="zau-btn li full" disabled aria-describedby="zau-social-soon">
+      <button
+        type="button"
+        className="zau-btn li full"
+        disabled={!linkedin || busy !== null}
+        aria-busy={busy === "linkedin"}
+        aria-describedby="zau-social-note"
+        onClick={onLinkedIn}
+      >
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
           <rect width="24" height="24" rx="4" fill="#fff" />
           <circle cx="7.5" cy="7.2" r="1.5" fill="#0A66C2" />
@@ -19,10 +82,17 @@ export function SocialSignIn(): ReactElement {
             fill="none"
           />
         </svg>
-        Continue with LinkedIn
-        <span className="zau-soon">Coming soon</span>
+        {busy === "linkedin" ? "Opening LinkedIn…" : "Continue with LinkedIn"}
+        {config && !linkedin ? <span className="zau-soon">Coming soon</span> : null}
       </button>
-      <button type="button" className="zau-btn full" disabled aria-describedby="zau-social-soon">
+      <button
+        type="button"
+        className="zau-btn full"
+        disabled={!google || busy !== null}
+        aria-busy={busy === "google"}
+        aria-describedby="zau-social-note"
+        onClick={() => void onGoogle()}
+      >
         <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
           <path
             fill="#EA4335"
@@ -41,11 +111,23 @@ export function SocialSignIn(): ReactElement {
             d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
           />
         </svg>
-        Continue with Google
-        <span className="zau-soon">Coming soon</span>
+        {busy === "google" ? "Waiting for Google…" : "Continue with Google"}
+        {config && !google ? <span className="zau-soon">Coming soon</span> : null}
       </button>
-      <span className="zau-social__note" id="zau-social-soon">
-        LinkedIn and Google sign-in are coming soon. For now, use your work email below.
+      {error ? (
+        <p className="zau-err" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <span className="zau-social__note" id="zau-social-note">
+        {anyOn ? (
+          <>
+            By continuing you agree to our <Link to="/legal#terms">Terms</Link> and{" "}
+            <Link to="/legal#privacy">Privacy Policy</Link>.
+          </>
+        ) : config ? (
+          "LinkedIn and Google sign-in are coming soon. For now, use your work email below."
+        ) : null}
       </span>
     </div>
   );

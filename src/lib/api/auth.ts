@@ -1,5 +1,5 @@
 /** Accounts: sign up, codes, log in/out, password reset, the current user. */
-import { authedRequest, postPublic, type SubmitResult } from "./http";
+import { API_BASE, authedRequest, postPublic, type SubmitResult } from "./http";
 import type { Announcement, AuthResponse, Me, User } from "./types";
 
 export type OtpPurpose = "signup" | "login" | "password_reset";
@@ -48,6 +48,47 @@ export type LoginField = "email" | "password";
 /** POST login/ — 403 `unverified` when the account still needs its signup code. */
 export function login(email: string, password: string): Promise<SubmitResult<AuthResponse, LoginField>> {
   return postPublic("/api/auth/login/", { email, password }, ["email", "password"]);
+}
+
+// --- Social sign-in (FR-38) ---------------------------------------------------------------------------------
+
+export type SocialProvider = "google" | "linkedin";
+
+export interface SocialConfig {
+  google: { enabled: boolean; client_id: string };
+  linkedin: { enabled: boolean; client_id: string; scope: string };
+}
+
+const SOCIAL_OFF: SocialConfig = {
+  google: { enabled: false, client_id: "" },
+  linkedin: { enabled: false, client_id: "", scope: "" },
+};
+
+let socialConfigPromise: Promise<SocialConfig> | null = null;
+
+/** GET social/ — which providers this site offers (public client ids only). Cached; never throws. */
+export function getSocialConfig(): Promise<SocialConfig> {
+  socialConfigPromise ??= fetch(`${API_BASE}/api/auth/social/`, { headers: { Accept: "application/json" } })
+    .then((response) => (response.ok ? (response.json() as Promise<SocialConfig>) : SOCIAL_OFF))
+    .catch(() => {
+      socialConfigPromise = null; // try again next time the page opens
+      return SOCIAL_OFF;
+    });
+  return socialConfigPromise;
+}
+
+/** AuthResponse plus whether the account was just created (sign-up) or already existed (log-in). */
+export interface SocialAuthResponse extends AuthResponse {
+  created: boolean;
+}
+
+/** POST social/<provider>/ — Google: the pop-up's `code`; LinkedIn: `code` + the exact `redirect_uri`. */
+export function socialSignIn(
+  provider: SocialProvider,
+  code: string,
+  redirectUri?: string,
+): Promise<SubmitResult<SocialAuthResponse, "code">> {
+  return postPublic(`/api/auth/social/${provider}/`, { code, redirect_uri: redirectUri ?? "" }, ["code"]);
 }
 
 /** POST login/otp/request/ — always 200 with the same body. */

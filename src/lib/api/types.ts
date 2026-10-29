@@ -14,6 +14,10 @@ export interface User {
   terms?: TermsStatus;
   /** The dashboard tour was finished or skipped on any device (POST tour/done/). Absent on older backends. */
   tour_done?: boolean;
+  /** FR-38: the last social provider used to sign in ("google" | "linkedin"; "" = email). Absent on older backends. */
+  auth_provider?: string;
+  /** FR-38: the provider's profile photo (https), for the onboarding "Signed in with …" card. */
+  avatar_url?: string;
 }
 
 export interface TermsStatus {
