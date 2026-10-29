@@ -20,6 +20,7 @@ export function PhoneShell({
   title,
   alerts,
   unread,
+  tasksWaiting = 0,
   name,
   company,
   onLogout,
@@ -28,6 +29,8 @@ export function PhoneShell({
   title?: string;
   alerts: number;
   unread: number;
+  /** Tasks waiting on the owner (help asked, or done and waiting for the OK): the desktop menu's Tasks badge. */
+  tasksWaiting?: number;
   name: string;
   company: string;
   onLogout: () => void;
@@ -93,10 +96,15 @@ export function PhoneShell({
     );
   };
 
-  const row = (on: boolean, label: string, to: string, icon: IconName, isNews = false) => (
+  const row = (on: boolean, label: string, to: string, icon: IconName, isNews = false, badge = 0) => (
     <Link key={label} to={to} className={`zn-srow${on ? " on" : ""}`} aria-current={on ? "page" : undefined} onClick={() => setSheet("")}>
       <ZIcon name={icon} size={20} />
       <span style={{ flex: 1 }}>{label}</span>
+      {badge ? (
+        <span className="zn-tab__badge" style={{ position: "static" }} aria-label={`${badge} waiting for you`}>
+          {badge}
+        </span>
+      ) : null}
       {isNews ? (
         <span className="z-mono" style={{ flex: "none", fontSize: 12, color: "#6B6459" }}>
           Zinwe 1.3
@@ -148,8 +156,12 @@ export function PhoneShell({
           onClick={(e) => openSheet("more", e.currentTarget)}
         >
           {tabOn === "more" ? <span className="zn-tab__bar" aria-hidden="true" /> : null}
-          <ZIcon name="more" size={22} stroke={2.6} />
+          <span aria-hidden="true" style={{ position: "relative", display: "inline-flex" }}>
+            <ZIcon name="more" size={22} stroke={2.6} />
+            {tasksWaiting ? <span className="zn-tab__badge">{tasksWaiting}</span> : null}
+          </span>
           <span>More</span>
+          {tasksWaiting ? <span className="z-sr">, {tasksWaiting} {tasksWaiting === 1 ? "task waits" : "tasks wait"} for you</span> : null}
         </button>
       </nav>
 
@@ -178,11 +190,11 @@ export function PhoneShell({
             {sheet === "more" ? (
               <>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "#6B6358", padding: "6px 8px 2px" }}>Protection</span>
-                {row(active === "websites", "Internet", "/app/internet", "websites")}
-                {row(active === "data", "Files & USB", "/app/data", "data")}
+                {row(active === "websites", "Internet usage", "/app/internet", "websites")}
+                {row(active === "data", "Data safety", "/app/data", "data")}
                 {row(active === "apps", "Apps & remote", "/app/remote", "apps")}
                 <span className="zn-sdiv" aria-hidden="true" />
-                {row(active === "tasks", "Tasks", "/app/tasks", "tasks")}
+                {row(active === "tasks", "Tasks", "/app/tasks", "tasks", false, tasksWaiting)}
                 {row(active === "reports", "Reports", "/app/reports", "reports")}
                 {row(active === "rules", "Rules", "/app/rules", "rules")}
                 {row(active === "settings", "Settings", "/app/settings", "settings")}

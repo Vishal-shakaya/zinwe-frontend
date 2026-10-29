@@ -321,6 +321,7 @@ export default function AppLayout(): ReactElement {
           active={active}
           alerts={alertsBadge}
           unread={unread}
+          tasksWaiting={tasksWaiting}
           name={displayName}
           company={companyName}
           onLogout={onLogout}
