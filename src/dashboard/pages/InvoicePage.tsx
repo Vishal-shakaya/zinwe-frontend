@@ -6,6 +6,7 @@ import { formatDate, formatMoney } from "../../lib/format";
 import { Busy, ErrorBlock, Spinner } from "../ui/States";
 import { ZIcon } from "../ui/ZIcon";
 import { useResource } from "../useResource";
+import { Brand } from "../../components/ui/Brand";
 
 /**
  * One tax invoice for a confirmed payment (frozen when it was confirmed), laid out like a paper invoice:
@@ -75,7 +76,7 @@ export default function InvoicePage(): ReactElement {
           <header className="inv__head">
             <div>
               <p className="inv__brand">
-                <span>Z</span>inwe
+                <Brand variant="static" height={32} />
               </p>
               <p className="inv__seller">
                 <b>{invoice.data.seller.name}</b>

@@ -459,22 +459,7 @@
   color: #fff;
 }
 
-.zau-brand__z {
-  display: inline-flex;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: #f26a0a;
-  color: #141210;
-  font-weight: 800;
-  font-size: 17px;
-  align-items: center;
-  justify-content: center;
-}
 
-.zau-brand b {
-  font-size: 20px;
-}
 
 .zau-side__body {
   display: flex;
@@ -683,15 +668,7 @@
   color: #141210;
 }
 
-.zau-brand--sm .zau-brand__z {
-  width: 28px;
-  height: 28px;
-  font-size: 15px;
-}
 
-.zau-brand--sm b {
-  font-size: 18px;
-}
 
 .zau-stepper {
   list-style: none;

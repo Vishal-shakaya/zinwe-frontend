@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
+import { Brand } from "../../components/ui/Brand";
 import { useAuthFonts } from "../v13/authFonts";
 import "../../styles/dashboard.css";
 import "../../styles/portal.css";
@@ -30,12 +30,7 @@ export function AuthShell({ footer, children }: AuthShellProps): ReactElement {
       <AnnouncementBar className="abar--flush" />
       <div className="zau-shell">
         <aside className="zau-side">
-          <Link to="/" className="zau-brand" aria-label="Zinwe home">
-            <span className="zau-brand__z" aria-hidden="true">
-              Z
-            </span>
-            <b>Zinwe</b>
-          </Link>
+          <Brand to="/" ariaLabel="Zinwe home" tone="light" height={30} className="zau-brand" />
           <div className="zau-side__body">
             <h2 className="zau-side__title">Know what's happening to your data. In plain English.</h2>
             <ul className="zau-side__list">

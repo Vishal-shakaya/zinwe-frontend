@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { Brand } from "../../components/ui/Brand";
+import { BrandMark } from "../../components/ui/BrandMark";
 import { SAMPLES_ON } from "../fixtures";
 import { ZIcon, type IconName } from "../ui/ZIcon";
 import { Bell } from "./Bell";
@@ -115,9 +117,7 @@ export function PhoneShell({
     <>
       <div className="zn-phonebar">
         <Link to="/app" aria-label="Zinwe, go to Overview" style={{ flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 44, textDecoration: "none", borderRadius: 10 }}>
-          <span className="zn-mark" aria-hidden="true">
-            Z
-          </span>
+          <BrandMark size={28} />
         </Link>
         <span className="zn-phonebar__title">{title || NAV_TITLE[active] || "Zinwe"}</span>
         <Bell placement="nav" />
@@ -190,13 +190,21 @@ export function PhoneShell({
                 {row(active === "settings", "Settings", "/app/settings", "settings")}
                 {row(active === "help", "Help & support", "/app/help", "help")}
                 {row(false, "What's new", "/app/help#tab=whats-new", "news", true)}
+                {/* A full page load: the website is its own pre-rendered page with its own CSS. */}
+                <a href="/" className="zn-srow">
+                  <ZIcon name="home" size={20} />
+                  <span style={{ flex: 1 }}>Back to site</span>
+                </a>
                 <span className="zn-sdiv" aria-hidden="true" />
                 <button type="button" className="zn-srow zn-out" onClick={onLogout}>
                   <ZIcon name="logout" size={20} />
                   <span>Log out</span>
                 </button>
-                <span style={{ padding: "8px 10px 0", fontSize: 12, color: "#6B6459" }}>
-                  Signed in as {name} · Owner · {company}
+                <span style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px 0", fontSize: 12, color: "#6B6459" }}>
+                  <Brand variant="static" height={18} />
+                  <span style={{ minWidth: 0 }}>
+                    Signed in as {name} · Owner · {company}
+                  </span>
                 </span>
               </>
             ) : (

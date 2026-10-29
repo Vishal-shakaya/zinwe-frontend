@@ -878,19 +878,6 @@
   color: #141210 !important;
 }
 
-.zn-mark {
-  display: inline-flex;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #f26a0a;
-  color: #141210;
-  font-weight: 800;
-  font-size: 16px;
-  align-items: center;
-  justify-content: center;
-}
 
 .zn-items {
   display: flex;

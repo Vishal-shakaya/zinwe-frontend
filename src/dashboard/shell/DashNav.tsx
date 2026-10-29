@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { Brand } from "../../components/ui/Brand";
 import type { PlanModule } from "../../lib/api";
 import { SAMPLES_ON } from "../fixtures";
 import { ZIcon, type IconName } from "../ui/ZIcon";
@@ -95,6 +96,7 @@ export function DashNav({
 
   return (
     <nav className="zn-nav" aria-label="Dashboard">
+      <Brand to="/app" ariaLabel="Zinwe, go to Overview" height={26} className="zn-brand" />
       <div className="zn-items">
         {navRows(alerts, unread, tasksWaiting).map((r) => {
           const on = r.sub ? r.key === active : !r.parent && r.key === active;
@@ -141,6 +143,11 @@ export function DashNav({
                   <ZIcon name="help" size={17} />
                   <span style={{ flex: 1 }}>Help &amp; support</span>
                 </Link>
+                {/* A full page load (not a router link): the website is its own pre-rendered page with its own CSS. */}
+                <a href="/" role="menuitem" className="zn-mi">
+                  <ZIcon name="home" size={17} />
+                  <span style={{ flex: 1 }}>Back to site</span>
+                </a>
               </div>
               <div style={{ padding: 6, borderTop: "1px solid #F0EDE6" }}>
                 <button type="button" role="menuitem" className="zn-mi zn-out" onClick={onLogout} disabled={leaving}>
