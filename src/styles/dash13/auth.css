@@ -1322,6 +1322,16 @@
 }
 
 @media (max-width: 760px) {
+  /* Phone: the picked plan + its button stay on screen while the person scrolls the five plan cards
+     (the bar sat ~1,250 px down, so tapping a card seemed to do nothing). */
+  .zau-sumbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    padding: 12px 14px;
+    box-shadow: 0 8px 28px rgba(20, 18, 16, 0.16);
+  }
+
   .zau-onb__bar {
     padding: 12px 16px;
     gap: 10px 16px;
