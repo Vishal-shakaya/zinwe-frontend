@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, listMembers } from "../../lib/api";
-import { TASK_COLUMNS, TASK_SHORT, todayIso, type SampleTask } from "../fixtures/tasks";
+import { PlanLock } from "../components/PlanLock";
+import { useEntitlements } from "../features/entitlements";
 import { PageHead } from "../shell/PageHead";
 import { EmptyBlock, ErrorBlock, Sk, SkRows } from "../ui/States";
 import { ZIcon } from "../ui/ZIcon";
@@ -29,6 +30,7 @@ import {
 import { TaskDrawer } from "../tasks/TaskDrawer";
 import { TaskForm, type TaskFormValues } from "../tasks/TaskForm";
 import { taskActions, useTasks } from "../tasks/useTasks";
+import { TASK_COLUMNS, TASK_SHORT, todayIso, type TaskView } from "../tasks/types";
 import "../../styles/dash13/tasks.css";
 
 type Quick = "ok" | "help" | "overdue" | "today" | "open";
@@ -40,7 +42,7 @@ const QUICK_DEFS: ReadonlyArray<[Quick, string, string, string]> = [
   ["today", "Due today", "#8A3A04", "#FFF1E6"],
   ["open", "All open", "#3A352E", "#EFECE5"],
 ];
-const QUICK: Record<Quick, (t: SampleTask) => boolean> = {
+const QUICK: Record<Quick, (t: TaskView) => boolean> = {
   ok: (t) => t.status === "review",
   help: (t) => t.status === "help",
   overdue: (t) => isOverdue(t),
@@ -49,7 +51,7 @@ const QUICK: Record<Quick, (t: SampleTask) => boolean> = {
 };
 
 /** List view groups: each task sits in the first group it fits. */
-const LIST: ReadonlyArray<{ id: string; label: string; hint: string; dot: string; has: (t: SampleTask) => boolean }> = [
+const LIST: ReadonlyArray<{ id: string; label: string; hint: string; dot: string; has: (t: TaskView) => boolean }> = [
   { id: "needs", label: "Needs you", hint: "Waiting for your OK, or asking for help", dot: "#C0331C", has: (t) => t.status === "review" || t.status === "help" },
   { id: "overdue", label: "Overdue", hint: "Past the due time", dot: "#8A5300", has: (t) => isOverdue(t) },
   { id: "today", label: "Today", hint: "Due later today", dot: "#F26A0A", has: (t) => t.due === todayIso() && !isFinished(t) },
@@ -59,26 +61,39 @@ const LIST: ReadonlyArray<{ id: string; label: string; hint: string; dot: string
 
 interface Toast {
   text: string;
-  undo?: SampleTask;
 }
 
 const chatHrefOf = (p: TaskPerson | null) => (p && p.memberId !== null ? `/app/chat/${p.key}` : "/app/chat");
 
 /**
  * /app/tasks (board DashTasks): every task the owner sent, what needs you first. List (grouped) or Board (stages),
- * quick filters, person + search filters, the task drawer (#task=<id>) and New task (#new=1).
- * SAMPLE data until FR-20 (fixtures/tasks.ts), laid onto the real members. Free on every plan.
+ * quick filters, person + search filters, the task drawer (#task=<id> or ?task=<id>, the notification link) and New
+ * task (#new=1). FR-20 v2 tasks API; plan module team_chat (like Chat).
  */
 export default function TasksPage(): ReactElement {
   usePageMeta({ title: "Tasks — Zinwe", description: "Every task you sent your team, and what needs you." });
+  const { has } = useEntitlements();
+  if (!has("team_chat")) {
+    return (
+      <div className="zp-tasks zk">
+        <PageHead title="Tasks" lede="Send someone a task with a due day. It lands in their Zinwe app, and you see every update here." />
+        <PlanLock module="team_chat">Send your team tasks from Chat or here, follow each one live, and give your OK when they finish.</PlanLock>
+      </div>
+    );
+  }
+  return <TasksContent />;
+}
+
+function TasksContent(): ReactElement {
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
   const members = useResource(loadMembers);
   const membersReady = members.data !== undefined || members.error !== undefined;
   const people = useMemo(() => peopleOf(members.data), [members.data]);
-  const tasks = useTasks(membersReady ? (members.data ?? []) : undefined);
+  const tasks = useTasks();
   const all = useMemo(() => tasks.data ?? [], [tasks.data]);
 
   const { hash, pathname } = useLocation();
+  const [search] = useSearchParams();
   const navigate = useNavigate();
   const [view, setView] = useState<"list" | "board">("list");
   const [who, setWho] = useState("all");
@@ -88,15 +103,15 @@ export default function TasksPage(): ReactElement {
   const [doneAll, setDoneAll] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
   const [sel, setSel] = useState<number | null>(null);
-  const [form, setForm] = useState<{ who: string | null; editing: SampleTask | null } | null>(null);
+  const [form, setForm] = useState<{ who: string | null; editing: TaskView | null } | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [flash, setFlash] = useState<number | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
   const flashTimer = useRef<number | undefined>(undefined);
 
-  const say = useCallback((text: string, undo?: SampleTask) => {
+  const say = useCallback((text: string) => {
     window.clearTimeout(toastTimer.current);
-    setToast({ text, undo });
+    setToast({ text });
     toastTimer.current = window.setTimeout(() => setToast(null), 6000);
   }, []);
   useEffect(() => () => {
@@ -104,20 +119,22 @@ export default function TasksPage(): ReactElement {
     window.clearTimeout(flashTimer.current);
   }, []);
 
-  // Deep links: #m=<first> filters to that person (and fills them in New task), #task=<id> opens it, #new=1 opens New task.
+  // Deep links: #m=<first> filters to that person (and fills them in New task), #task=<id> (or ?task=<id>, from a
+  // notification) opens it, #new=1 opens New task.
   const ready = tasks.data !== undefined && membersReady;
+  const linkKey = `${hash}|${search.get("task") ?? ""}`;
   const [handledHash, setHandledHash] = useState<string | null>(null);
-  if (ready && handledHash !== hash) {
-    setHandledHash(hash);
+  if (ready && handledHash !== linkKey) {
+    setHandledHash(linkKey);
     const h = new URLSearchParams(hash.slice(1));
     const person = findPerson(h.get("m"), people);
     if (person) setWho(person.key);
-    const id = Number.parseInt(h.get("task") ?? "", 10);
+    const id = Number.parseInt(h.get("task") ?? search.get("task") ?? "", 10);
     if (id && all.some((t) => t.id === id)) setSel(id);
     else if (h.get("new") === "1") setForm({ who: person?.key ?? null, editing: null });
   }
   const clearHash = () => {
-    if (hash) navigate(pathname, { replace: true });
+    if (hash || search.get("task")) navigate(pathname, { replace: true });
   };
 
   // Phone filter sheet: Esc closes it.
@@ -133,7 +150,7 @@ export default function TasksPage(): ReactElement {
 
   const ql = q.trim().toLowerCase();
   const whoPerson = who === "all" ? null : (people.find((p) => p.key === who) ?? null);
-  const ofWho = (t: SampleTask) => !whoPerson || personOfTask(t, people).key === whoPerson.key;
+  const ofWho = (t: TaskView) => !whoPerson || personOfTask(t, people).key === whoPerson.key;
   const shown = all.filter((t) => ofWho(t) && (!ql || t.title.toLowerCase().includes(ql)) && (!quick || QUICK[quick](t)));
   const filtersOn = who !== "all" || !!ql || !!quick;
   const noMatch = ready && shown.length === 0 && filtersOn;
@@ -157,27 +174,26 @@ export default function TasksPage(): ReactElement {
   };
   const openComposer = () => setForm({ who: whoPerson?.key ?? null, editing: null });
 
-  const approve = (t: SampleTask) => {
-    const prev = taskActions.approve(t);
-    if (prev) say(`Approved · ${personOfTask(t, people).first} sees this in their Zinwe app`, prev);
+  const run = (p: Promise<unknown>, ok: string) => {
+    p.then(
+      () => say(ok),
+      (err: unknown) => say(errorMessage(err)),
+    );
   };
-  const nudge = (t: SampleTask) => {
-    taskActions.nudge(t);
-    say(`Nudged · ${personOfTask(t, people).first} gets a reminder in their Zinwe app`);
-  };
-  const submit = (v: TaskFormValues, editing: SampleTask | null) => {
-    const saved = taskActions.submit(v, editing);
+  const approve = (t: TaskView) => run(taskActions.approve(t), `Approved · ${personOfTask(t, people).first} sees this in their Zinwe app`);
+  const nudge = (t: TaskView) => run(taskActions.nudge(t), `Nudged · ${personOfTask(t, people).first} gets a reminder in their Zinwe app`);
+  const submit = async (v: TaskFormValues, editing: TaskView | null) => {
+    const saved = await taskActions.submit(v, editing);
     setForm(null);
     clearHash();
     if (editing) {
       say(`Saved · ${v.person.first} sees an “Edited” tag`);
       return;
     }
-    if (!saved) return;
     setQuick(null);
     setQ("");
     if (who !== "all" && who !== v.person.key) setWho("all");
-    say(`Sent to ${v.person.first} · it’s in their Zinwe app now`);
+    say(`Sent to ${v.person.first} · it’s in their chat and Zinwe app`);
     setFlash(saved.id);
     window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), 2400);
@@ -185,7 +201,7 @@ export default function TasksPage(): ReactElement {
   };
 
   // ---- one task, as a card / row ----
-  const cardOf = (t: SampleTask) => {
+  const cardOf = (t: TaskView) => {
     const p = personOfTask(t, people);
     const doneN = t.steps.filter((x) => x.done).length;
     const n = t.steps.length;
@@ -247,7 +263,7 @@ export default function TasksPage(): ReactElement {
 
   // ---- list ----
   const dir = sortDir === "asc" ? 1 : -1;
-  const groupOf = (t: SampleTask) => (LIST.find((g) => g.has(t)) ?? LIST[LIST.length - 1]).id;
+  const groupOf = (t: TaskView) => (LIST.find((g) => g.has(t)) ?? LIST[LIST.length - 1]).id;
   const groups = LIST.map((g) => {
     const d = g.id === "done" ? -dir : dir;
     const list = shown.filter((t) => groupOf(t) === g.id).sort((a, b) => (dueKey(a) < dueKey(b) ? -d : dueKey(a) > dueKey(b) ? d : 0));
@@ -408,12 +424,13 @@ export default function TasksPage(): ReactElement {
                     {col.visible.map((t) => {
                       const c = cardOf(t);
                       const flashOn = flash === t.id;
-                      const hasTags = !!SUB[t.status] || c.isHelp || t.status === "approved" || t.high || t.byMember;
+                      const hasTags = !!SUB[t.status] || c.isHelp || t.status === "approved" || t.status === "cancelled" || t.high || t.byMember;
                       return (
                         <article
                           key={t.id}
                           className="tk-card"
                           style={{
+                            opacity: t.status === "cancelled" ? 0.62 : undefined,
                             borderColor: flashOn ? "#F26A0A" : undefined,
                             boxShadow: flashOn ? "0 0 0 3px #FDEBDC" : undefined,
                             borderLeft: c.isHelp ? "4px solid #8A5300" : undefined,
@@ -435,6 +452,11 @@ export default function TasksPage(): ReactElement {
                                 {t.status === "approved" ? (
                                   <span className="zk-pill" style={{ background: "#17663F", color: "#fff" }}>
                                     Approved
+                                  </span>
+                                ) : null}
+                                {t.status === "cancelled" ? (
+                                  <span className="zk-pill" style={{ background: "#EFECE5", color: "#5E574D" }}>
+                                    Cancelled
                                   </span>
                                 ) : null}
                                 {t.high ? (
@@ -621,19 +643,6 @@ export default function TasksPage(): ReactElement {
         {toast ? (
           <div className="zk-toast">
             <span>{toast.text}</span>
-            {toast.undo ? (
-              <button
-                type="button"
-                className="zk-toast__undo"
-                onClick={() => {
-                  if (toast.undo) taskActions.undo(toast.undo);
-                  window.clearTimeout(toastTimer.current);
-                  setToast(null);
-                }}
-              >
-                Undo
-              </button>
-            ) : null}
             <button
               type="button"
               className="zk-toast__x"

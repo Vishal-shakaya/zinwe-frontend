@@ -10,7 +10,7 @@
  *
  * SAMPLES_ON is THE switch. On in the dev server (`npm run dev`) and in a build made with VITE_SAMPLE_DATA=1;
  * off in every plain `npm run build` (production). When it is off, real owners never see sample data: the loaders
- * here return nothing (no tasks, no notes, no second PC…), the save functions do nothing, and the screens hide
+ * here return nothing (no notes, no second PC…), the save functions do nothing, and the screens hide
  * every sample-only control (see SAMPLE_AREAS and 06-website-portal.md, "Dashboard v1.3 → Sample data in production").
  */
 
@@ -28,7 +28,6 @@ export interface SampleArea {
 
 export const SAMPLE_AREAS: readonly SampleArea[] = [
   { module: "notifications.ts", what: "Bell: notification history (All / Unread, mark read)", waitsFor: "notification centre API (FR-15 history)" },
-  { module: "tasks.ts", what: "Tasks board stages, task cards in Chat, Overview Tasks card, Tasks badge", waitsFor: "FR-20 tasks API" },
   { module: "performance.ts", what: "Reports → Performance tab (ranking): tasks done + usual hours are sample, worked time is real", waitsFor: "FR-34" },
   { module: "majorAlerts.ts", what: "Alerts + Overview Needs you: which alerts were asked about (Asked · waiting / replied), the reply on the alert, legend / Ask / Why-it-matters wording", waitsFor: "FR-35" },
   { module: "pcs.ts", what: "Two PCs per person on Team & PCs (card block + notice) and its Activity timeline line", waitsFor: "FR-36" },

@@ -1,38 +1,31 @@
 /**
- * Task rules shared by the Tasks page and the task cards in Chat (boards DashTasks + DashChat).
- * Wording (LOGTXT, lastLine, labels) is copied word for word from the boards. "Today" and "now" are real.
+ * Task rules shared by the Tasks page, the task cards in Chat and Overview (boards DashTasks + DashChat).
+ * Wording (logText, lastLine, labels) follows the boards. Data: the FR-20 v2 tasks API through ./types (toView).
  */
 import type { Member } from "../../lib/api";
 import { MEMBER_ROLES } from "../../lib/api";
 import { PRESENCE_LABEL, presenceOf, type PresenceStatus } from "../features/memberStatus";
-import {
-  addDays,
-  CLOSED,
-  FINISHED,
-  SAMPLE_PEOPLE,
-  TASK_STATUS,
-  todayIso,
-  type SampleTask,
-  type TaskLogEntry,
-  type TaskStatus,
-} from "../fixtures/tasks";
+import { addDays, CLOSED, FINISHED, TASK_STATUS, todayIso, type TaskLogEntry, type TaskStatus, type TaskView } from "./types";
 
 export const WKD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 export const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 export const MONTH_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] as const;
 
-export const SUB: Partial<Record<TaskStatus, string>> = { sent: "Sent", seen: "Seen", waiting: "Waiting to confirm" };
+/** Small tags on a card for the stages before they start (and the Nudge button). */
+export const SUB: Partial<Record<TaskStatus, string>> = { sent: "Sent", seen: "Seen" };
+/** Where each status sits on the stage bar. */
 export const STAGE_OF: Record<TaskStatus, string> = {
   sent: "sent",
   seen: "seen",
-  waiting: "seen",
   accepted: "accepted",
   progress: "progress",
   help: "progress",
-  done: "done",
   review: "done",
   approved: "approved",
+  cancelled: "cancelled",
 };
+/** The API allows a nudge while they still have to finish it (once an hour). */
+export const NUDGEABLE: readonly TaskStatus[] = ["sent", "seen", "accepted", "progress", "help"];
 
 export const RED = { background: "#FCE8E4", color: "#B02A15" } as const;
 export const AMBER = { background: "#FFF1E6", color: "#8A3A04" } as const;
@@ -40,9 +33,11 @@ export const NEUTRAL = { background: "#F2EFE8", color: "#3A352E" } as const;
 
 export const TINTS = ["#FDEBDC", "#E6EEFB", "#E3F4EA", "#F4ECFB", "#FBF0D9", "#F2EFE8", "#E6EEFB", "#E3F4EA", "#FDEBDC", "#F4ECFB"] as const;
 
-export const isFinished = (t: SampleTask) => FINISHED.includes(t.status);
-export const isClosed = (t: SampleTask) => CLOSED.includes(t.status);
-export const isOpenTask = (t: SampleTask) => !CLOSED.includes(t.status);
+export const isFinished = (t: TaskView) => FINISHED.includes(t.status);
+export const isClosed = (t: TaskView) => CLOSED.includes(t.status);
+export const isOpenTask = (t: TaskView) => !CLOSED.includes(t.status);
+/** Waiting on you: they asked for help, or finished and wait for your OK (the Tasks badge, Needs you). */
+export const needsOwner = (t: TaskView) => t.status === "help" || t.status === "review";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 export const isISO = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v || "");
@@ -66,10 +61,6 @@ export function nowMin(): number {
   return d.getHours() * 60 + d.getMinutes();
 }
 
-export function nowLabel(): string {
-  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-}
-
 export function dayName(iso: string): string {
   const today = todayIso();
   if (iso === today) return "Today";
@@ -87,7 +78,8 @@ export function sepLabel(iso: string): string {
   return `${WKD[x.getDay()]}, ${x.getDate()} ${MON[x.getMonth()]}`;
 }
 
-export const dueKey = (t: SampleTask) => `${t.due} ${pad(Math.floor(toMin(t.time) / 60))}${pad(toMin(t.time) % 60)}`;
+/** Sort key by due day and time; no due date sorts last. */
+export const dueKey = (t: TaskView) => (t.due ? `${t.due} ${pad(Math.floor(toMin(t.time) / 60))}${pad(toMin(t.time) % 60)}` : "9999-99-99 9999");
 
 export function whenOf(e: TaskLogEntry): string {
   const today = todayIso();
@@ -99,32 +91,25 @@ export function whenShort(e: TaskLogEntry): string {
 }
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 
-/** When a log entry happened, as a Date (to place a task card in the chat). */
-export function entryDate(e: { day: string; time: string }): Date {
-  const m = toMin(e.time);
-  const d = new Date(`${e.day}T00:00:00`);
-  d.setHours(Math.floor(m / 60), m % 60, 0, 0);
-  return d;
-}
-
-export function isOverdue(t: SampleTask, today = todayIso(), now = nowMin()): boolean {
-  if (isFinished(t)) return false;
+export function isOverdue(t: TaskView, today = todayIso(), now = nowMin()): boolean {
+  if (isFinished(t) || !t.due) return false;
   if (t.due < today) return true;
   return t.due === today && toMin(t.time) < now;
 }
-export function isDueToday(t: SampleTask): boolean {
+export function isDueToday(t: TaskView): boolean {
   return t.due === todayIso() && !isFinished(t) && !isOverdue(t);
 }
 
-export function dueLabel(t: SampleTask): string {
+export function dueLabel(t: TaskView): string {
+  if (!t.due) return "No due date";
   return (isOverdue(t) ? "Overdue · " : "") + dayName(t.due) + (t.time ? `, ${t.time}` : "");
 }
-export function dueStyle(t: SampleTask): { background: string; color: string } {
+export function dueStyle(t: TaskView): { background: string; color: string } {
   if (isOverdue(t)) return RED;
   return t.due === todayIso() && !isFinished(t) ? AMBER : NEUTRAL;
 }
-/** Who wrote a task's note: "You", or the person (the sample's own names become the real person's first name). */
-export function noteByOf(t: SampleTask, first: string): string {
+/** Who wrote a task's note: "You", or the person's first name. */
+export function noteByOf(t: TaskView, first: string): string {
   return t.noteBy === "You" ? "You" : first;
 }
 
@@ -133,14 +118,12 @@ export function statusStyle(s: TaskStatus): { background: string; color: string 
   return { color: st[1], background: st[2] };
 }
 
-// ---- People: the real members (or the sample team when the account has none). ----
+// ---- People: the account's active members ----
 
 export interface TaskPerson {
   /** Route/hash key: first name in lower case (or the member id when two share a first name). */
   key: string;
   memberId: number | null;
-  /** Sample person key the fixture uses for this person. */
-  sampleKey: string;
   name: string;
   first: string;
   initials: string;
@@ -166,23 +149,6 @@ export function roleLabel(m: Member): string {
 
 export function peopleOf(members: readonly Member[] | undefined): TaskPerson[] {
   const real = (members ?? []).filter((m) => m.is_active);
-  if (!real.length) {
-    return SAMPLE_PEOPLE.map((p, i) => ({
-      key: p.id,
-      memberId: null,
-      sampleKey: p.id,
-      name: p.name,
-      first: firstOf(p.name),
-      initials: initialsOf(p.name),
-      tint: TINTS[i % TINTS.length],
-      role: p.role,
-      presence: p.presence,
-      presenceKind: p.presence === "Working" ? "working" : p.pcOn ? "online" : "offline",
-      pc: p.pc,
-      pcOn: p.pcOn,
-      member: null,
-    }));
-  }
   const firsts = real.map((m) => firstOf(m.name).toLowerCase());
   return real.map((m, i) => {
     const kind = presenceOf(m.device);
@@ -191,7 +157,6 @@ export function peopleOf(members: readonly Member[] | undefined): TaskPerson[] {
     return {
       key: unique ? first.toLowerCase() : String(m.id),
       memberId: m.id,
-      sampleKey: SAMPLE_PEOPLE[i % SAMPLE_PEOPLE.length].id,
       name: m.name,
       first,
       initials: initialsOf(m.name),
@@ -206,30 +171,23 @@ export function peopleOf(members: readonly Member[] | undefined): TaskPerson[] {
   });
 }
 
-/**
- * A deep link's person (#m=<first>, /app/chat/<first>, ?member=<id>): first name, member id, or a sample
- * person's first name (the boards' links, e.g. #m=emily), laid onto the real member the sample uses.
- */
+/** A deep link's person (#m=<first>, /app/chat/<first>, ?member=<id>): first name or member id. */
 export function findPerson(raw: string | null | undefined, people: readonly TaskPerson[]): TaskPerson | null {
   const v = (raw ?? "").trim().toLowerCase();
   if (!v || !people.length) return null;
-  const direct = people.find((p) => p.key === v) ?? people.find((p) => String(p.memberId) === v) ?? people.find((p) => p.first.toLowerCase() === v);
-  if (direct) return direct;
-  const sampleIndex = SAMPLE_PEOPLE.findIndex((p) => p.id === v.split("-")[0]);
-  return sampleIndex >= 0 ? people[sampleIndex % people.length] : null;
+  return people.find((p) => p.key === v) ?? people.find((p) => String(p.memberId) === v) ?? people.find((p) => p.first.toLowerCase() === v) ?? null;
 }
 
-export function personOfTask(t: SampleTask, people: readonly TaskPerson[]): TaskPerson {
-  const hit = (t.memberId != null ? people.find((p) => p.memberId === t.memberId) : undefined) ?? people.find((p) => p.sampleKey === t.who && p.memberId === null);
+/** The person a task is for (a switched-off member still gets a name and initials). */
+export function personOfTask(t: TaskView, people: readonly TaskPerson[]): TaskPerson {
+  const hit = people.find((p) => p.memberId === t.memberId);
   if (hit) return hit;
-  const name = t.name || t.who;
   return {
-    key: t.who,
+    key: String(t.memberId),
     memberId: t.memberId,
-    sampleKey: t.who,
-    name,
-    first: firstOf(name),
-    initials: initialsOf(name),
+    name: t.name,
+    first: firstOf(t.name),
+    initials: initialsOf(t.name),
     tint: TINTS[0],
     role: "",
     presence: "",
@@ -245,9 +203,7 @@ export function personOfTask(t: SampleTask, people: readonly TaskPerson[]): Task
 export function logText(e: TaskLogEntry, f: string): string {
   switch (e.k) {
     case "sent":
-      return `You sent it${e.email ? " by chat + email" : ""}`;
-    case "added":
-      return `${f} added it for themselves`;
+      return "You sent it";
     case "seen":
       return `${f} saw it`;
     case "confirmed":
@@ -256,22 +212,26 @@ export function logText(e: TaskLogEntry, f: string): string {
       return `${f} started`;
     case "step":
       return `${f} ticked “${e.text ?? ""}”`;
+    case "unstep":
+      return `${f} unticked “${e.text ?? ""}”`;
     case "help":
       return `${f} marked it Needs help: “${e.text ?? ""}”`;
     case "done":
       return `${f} marked it done${e.text ? `: “${e.text}”` : ""}`;
+    case "note":
+      return `${f} added a note: “${e.text ?? ""}”`;
     case "approved":
-      return "You approved it";
+      return `You approved it${e.text ? `: “${e.text}”` : ""}`;
     case "reopened":
-      return `You reopened it: “${e.text ?? ""}”`;
+      return e.text ? `You reopened it: “${e.text}”` : "You reopened it";
+    case "cancelled":
+      return "You cancelled it";
     case "nudged":
       return `You nudged ${f}`;
     case "edited":
       return "You edited the task";
-    case "reply":
-      return `You replied: “${e.text ?? ""}”`;
     case "due":
-      return "You moved the due date to tomorrow";
+      return "You moved the due date";
     default:
       return e.k;
   }
@@ -282,21 +242,20 @@ export const LOGDOT: Partial<Record<TaskLogEntry["k"], string>> = {
   done: "#17663F",
   approved: "#17663F",
   reopened: "#B02A15",
+  cancelled: "#B02A15",
   nudged: "#F26A0A",
-  reply: "#F26A0A",
+  note: "#1B4FB0",
   edited: "#6B6358",
   due: "#6B6358",
 };
 
-export function lastLine(t: SampleTask, f: string, pcOn: boolean): string {
+export function lastLine(t: TaskView, f: string, pcOn: boolean): string {
   const e = t.log[t.log.length - 1];
   if (!e) return "";
   const w = whenShort(e);
   switch (e.k) {
     case "sent":
       return `Sent ${w}${!pcOn ? " · PC offline" : ""}`;
-    case "added":
-      return `Added ${w}`;
     case "seen":
       return `Seen ${w}`;
     case "confirmed":
@@ -305,20 +264,24 @@ export function lastLine(t: SampleTask, f: string, pcOn: boolean): string {
       return `Started ${w}`;
     case "step":
       return `Ticked “${clip(e.text ?? "", 24)}” · ${w}`;
+    case "unstep":
+      return `Unticked “${clip(e.text ?? "", 24)}” · ${w}`;
     case "help":
       return `${f}: “${clip(e.text ?? "", 40)}”`;
     case "done":
       return e.text ? `${f}: “${clip(e.text, 40)}”` : `Done ${w}`;
+    case "note":
+      return `${f}: “${clip(e.text ?? "", 40)}”`;
     case "approved":
       return `You approved · ${w}`;
     case "reopened":
       return `Reopened ${w}`;
+    case "cancelled":
+      return `Cancelled ${w}`;
     case "nudged":
       return `Nudged ${w}`;
     case "edited":
       return `Edited ${w}`;
-    case "reply":
-      return `You: “${clip(e.text ?? "", 40)}”`;
     case "due":
       return `Due moved ${w}`;
     default:
@@ -339,14 +302,18 @@ export interface TrackStep {
   when: string;
 }
 
-/** Sent → Seen → (Confirmed) → In progress → Done → (Approved). */
-export function trackOf(t: SampleTask): TrackStep[] {
-  const stages: Array<[string, string]> = t.byMember ? [["sent", "Added"]] : [["sent", "Sent"], ["seen", "Seen"]];
+function stagesOf(t: TaskView): Array<[string, string]> {
+  const stages: Array<[string, string]> = [["sent", "Sent"], ["seen", "Seen"]];
   if (t.confirm) stages.push(["accepted", "Confirmed"]);
-  stages.push(["progress", "In progress"], ["done", "Done"]);
-  if (t.needsOk) stages.push(["approved", "Approved"]);
-  const cur = Math.max(0, stages.findIndex(([k]) => k === STAGE_OF[t.status]));
-  const LOGK: Record<string, string[]> = { sent: ["sent", "added"], seen: ["seen"], accepted: ["confirmed"], progress: ["started"], done: ["done"], approved: ["approved"] };
+  stages.push(["progress", "In progress"], ["done", "Done"], ["approved", "Approved"]);
+  return stages;
+}
+
+/** Sent → Seen → (Confirmed) → In progress → Done → Approved. A cancelled task reaches none of them. */
+export function trackOf(t: TaskView): TrackStep[] {
+  const stages = stagesOf(t);
+  const cur = stages.findIndex(([k]) => k === STAGE_OF[t.status]);
+  const LOGK: Record<string, string[]> = { sent: ["sent"], seen: ["seen"], accepted: ["confirmed"], progress: ["started"], done: ["done"], approved: ["approved"] };
   const stampOf = (k: string) => {
     const hits = t.log.filter((e) => LOGK[k]?.includes(e.k));
     const e = k === "done" || k === "approved" ? hits[hits.length - 1] : hits[0];
@@ -355,7 +322,7 @@ export function trackOf(t: SampleTask): TrackStep[] {
   return stages.map(([k, label], i) => {
     const help = t.status === "help" && k === "progress";
     const awaitingOk = t.status === "review" && k === "approved";
-    const reached = i <= cur;
+    const reached = cur >= 0 && i <= cur;
     return {
       key: k,
       label: help ? "Needs help" : label,
@@ -369,28 +336,22 @@ export function trackOf(t: SampleTask): TrackStep[] {
   });
 }
 
-/** The person's own stage in the chat card (DashChat track: bars). */
-export function chatTrackOf(t: SampleTask): TrackStep[] {
-  const stages: Array<[string, string]> = [["sent", "Sent"], ["seen", "Seen"]];
-  if (t.confirm) stages.push(["accepted", "Confirmed"]);
-  stages.push(["progress", "In progress"], ["done", "Done"]);
-  if (t.needsOk) stages.push(["approved", "Approved"]);
+/** The stage bars on the chat card (DashChat track). */
+export function chatTrackOf(t: TaskView): TrackStep[] {
+  const stages = stagesOf(t);
   const cur = stages.findIndex(([k]) => k === STAGE_OF[t.status]);
   return stages.map(([k, label], i) => {
     const help = t.status === "help" && k === "progress";
-    return { key: k, label: help ? "Needs help" : label, reached: i <= cur, current: i === cur, help, awaitingOk: false, green: k === "done" || k === "approved", when: "" };
+    return { key: k, label: help ? "Needs help" : label, reached: cur >= 0 && i <= cur, current: i === cur, help, awaitingOk: t.status === "review" && k === "approved", green: k === "done" || k === "approved", when: "" };
   });
 }
 
 /** "More options" summary line under the toggle in the task form. */
-export function moreSummary(f: { details: string; time: string; high: boolean; steps: string[]; ok: boolean; confirm: boolean; email: boolean }): string {
+export function moreSummary(f: { details: string; time: string; high: boolean; steps: string[] }): string {
   const bits: string[] = [];
   if (f.details.trim()) bits.push("Details added");
   if (f.time) bits.push(`By ${f.time}`);
   if (f.high) bits.push("High priority");
   if (f.steps.length) bits.push(`${f.steps.length}${f.steps.length === 1 ? " step" : " steps"}`);
-  if (f.ok) bits.push("Needs your OK");
-  if (f.confirm) bits.push("Confirm first");
-  if (f.email) bits.push("Also by email");
-  return bits.length ? bits.join(" · ") : "Details, time, priority, checklist, sign-off, email";
+  return bits.length ? bits.join(" · ") : "Details, time, priority, checklist";
 }

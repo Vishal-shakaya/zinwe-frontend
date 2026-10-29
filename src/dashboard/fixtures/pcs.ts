@@ -1,13 +1,12 @@
 import type { Member } from "../../lib/api";
 import { sample, sampleStore, SAMPLES_ON } from "./index";
-import { SAMPLE_PEOPLE } from "./tasks";
 
 /**
  * SAMPLE (DashTeam person card, DashActivity timeline): "Two PCs per person" (FR-36) is not served by the API —
  * a member has one `device`. The board's case: Vikram Singh connected a second PC (LAPTOP-VIKRAM) today at
  * 11:05 AM; it agreed on its own screen and is protected; the owner can keep both or remove one.
  *
- * Laid onto a real account like the tasks sample: the board person ("vikram") maps onto a real active member who
+ * Laid onto a real account: the board person ("vikram") maps onto a real active member who
  * has a PC (in order, wrapping), and the second PC is named after them (LAPTOP-<FIRST NAME>). Keep both / Remove
  * are kept for the tab's life.
  *
@@ -34,8 +33,9 @@ interface PcsState {
 
 const store = sampleStore<PcsState>("pcs", () => ({ kept: false, removed: false }));
 
-/** The board person who has two PCs. */
-const SAMPLE_KEY = "vikram";
+/** The board person who has two PCs: Vikram Singh, 9th in the board's team (Priya, Arjun, Sneha, Karan, Emily, Olivia,
+ * Jake, Michael, Vikram, Fatima), laid onto the real members in the same order. */
+const SAMPLE_INDEX = 8;
 
 function hostFor(name: string): string {
   const first = (name.trim().split(/\s+/)[0] || "PC").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -47,8 +47,7 @@ export function secondPcOwner(members: readonly Member[] | undefined): Member | 
   if (!SAMPLES_ON) return null;
   const real = (members ?? []).filter((m) => m.is_active && m.device);
   if (!real.length) return null;
-  const at = Math.max(0, SAMPLE_PEOPLE.findIndex((p) => p.id === SAMPLE_KEY));
-  return real[at % real.length];
+  return real[SAMPLE_INDEX % real.length];
 }
 
 function build(members: readonly Member[] | undefined): SecondPc[] {

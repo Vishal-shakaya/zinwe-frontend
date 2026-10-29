@@ -1,6 +1,6 @@
 import type { WorkLogEntry } from "../../lib/api";
 import type { AlertView } from "../alerts/alertModel";
-import type { SampleTask } from "../fixtures/tasks";
+import type { TaskView } from "../tasks/types";
 
 export function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
@@ -26,7 +26,7 @@ export function needsLine(n: number, req: number, alerts: number, tasks: number)
 export function needsCounts(
   requests: WorkLogEntry[] | undefined,
   alerts: AlertView[] | undefined,
-  tasks: SampleTask[] | undefined,
+  tasks: TaskView[] | undefined,
 ): { req: number; alerts: number; tasks: number; total: number } {
   const req = (requests ?? []).filter((r) => r.approval === "pending").length;
   const al = (alerts ?? []).filter((a) => !a.done && a.level === "needs").length;

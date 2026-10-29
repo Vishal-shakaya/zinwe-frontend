@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { addDays, todayIso, type SampleTask } from "../fixtures/tasks";
+import { errorMessage } from "../../lib/api";
 import { ZIcon } from "../ui/ZIcon";
 import { CalendarMark } from "./icons";
 import { fmtISO, isISO, MONTH_FULL, moreSummary, type TaskPerson } from "./model";
+import { addDays, todayIso, type TaskView } from "./types";
 
 /** What the form hands back: the fields of a new or edited task. */
 export interface TaskFormValues {
@@ -13,9 +14,6 @@ export interface TaskFormValues {
   time: string;
   high: boolean;
   steps: string[];
-  confirm: boolean;
-  needsOk: boolean;
-  email: boolean;
 }
 
 const TIMES = ["9:00 AM", "12:00 PM", "2:00 PM", "5:00 PM", "6:30 PM"] as const;
@@ -30,9 +28,6 @@ interface FormState {
   high: boolean;
   steps: string[];
   step: string;
-  confirm: boolean;
-  ok: boolean;
-  email: boolean;
   calOpen: boolean;
   /** Months after this one shown in the calendar (0–2). */
   calM: number;
@@ -46,12 +41,12 @@ function monthsAhead(iso: string): number {
 }
 
 function blank(who: string, title = ""): FormState {
-  return { who, title, details: "", due: "today", date: "", time: "", high: false, steps: [], step: "", confirm: false, ok: false, email: false, calOpen: false, calM: 0, more: false };
+  return { who, title, details: "", due: "today", date: "", time: "", high: false, steps: [], step: "", calOpen: false, calM: 0, more: false };
 }
 
-function fromTask(t: SampleTask, who: string): FormState {
+function fromTask(t: TaskView, who: string): FormState {
   const today = todayIso();
-  const preset = t.due === today ? "today" : t.due === addDays(today, 1) ? "tomorrow" : "date";
+  const preset = !t.due || t.due === today ? "today" : t.due === addDays(today, 1) ? "tomorrow" : "date";
   return {
     ...blank(who, t.title),
     details: t.details,
@@ -61,9 +56,6 @@ function fromTask(t: SampleTask, who: string): FormState {
     time: t.time,
     high: t.high,
     steps: t.steps.map((x) => x.label),
-    confirm: t.confirm,
-    ok: t.needsOk,
-    email: t.email,
     more: true,
   };
 }
@@ -83,11 +75,11 @@ export function TaskForm({
   people: readonly TaskPerson[];
   /** Person key to fill in. */
   who: string | null;
-  editing?: SampleTask | null;
+  editing?: TaskView | null;
   /** A title to start from (Chat's "/task Send the deck"). */
   title?: string;
   onClose: () => void;
-  onSubmit: (values: TaskFormValues, editing: SampleTask | null) => void;
+  onSubmit: (values: TaskFormValues, editing: TaskView | null) => void | Promise<void>;
 }): ReactElement {
   const startWho = who && people.some((p) => p.key === who) ? who : (people[0]?.key ?? "");
   const [f, setF] = useState<FormState>(() => (editing ? fromTask(editing, startWho) : blank(startWho, startTitle)));
@@ -139,13 +131,19 @@ export function TaskForm({
   const cannotSend = !f.title.trim() || dateBad || !person;
   const isEditing = editing !== null;
 
-  const submit = () => {
-    if (cannotSend || !person) return;
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const submit = async () => {
+    if (cannotSend || !person || saving) return;
     const due = f.due === "today" ? today : f.due === "tomorrow" ? addDays(today, 1) : f.date;
-    onSubmit(
-      { person, title: f.title.trim(), details: f.details.trim(), due, time: f.time, high: f.high, steps: f.steps, confirm: f.confirm, needsOk: f.ok, email: f.email },
-      editing,
-    );
+    setSaving(true);
+    setError(null);
+    try {
+      await onSubmit({ person, title: f.title.trim(), details: f.details.trim(), due, time: f.time, high: f.high, steps: f.steps }, editing);
+    } catch (err) {
+      setError(errorMessage(err));
+      setSaving(false);
+    }
   };
   const addStep = () => {
     if (f.step.trim()) set({ steps: [...f.steps, f.step.trim()], step: "" });
@@ -196,7 +194,7 @@ export function TaskForm({
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  submit();
+                  void submit();
                 }
               }}
               placeholder="e.g. Send the October invoices to Sunline Cafe"
@@ -275,7 +273,7 @@ export function TaskForm({
             <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
               <span>More options</span>
               <span style={{ fontSize: 12, fontWeight: 400, color: "#6B6358" }}>
-                {moreSummary({ details: f.details, time: f.time, high: f.high, steps: f.steps, ok: f.ok, confirm: f.confirm, email: f.email })}
+                {moreSummary({ details: f.details, time: f.time, high: f.high, steps: f.steps })}
               </span>
             </span>
           </button>
@@ -293,7 +291,7 @@ export function TaskForm({
                 </label>
                 <select id="cm-time" className="zk-sel" style={{ minHeight: 40, maxWidth: 200 }} value={f.time} onChange={(e) => set({ time: e.target.value })}>
                   <option value="">Any time that day</option>
-                  {TIMES.map((t) => (
+                  {(f.time && !(TIMES as readonly string[]).includes(f.time) ? [f.time, ...TIMES] : TIMES).map((t) => (
                     <option key={t} value={t}>
                       {t}
                     </option>
@@ -348,34 +346,24 @@ export function TaskForm({
                   </button>
                 </div>
               </div>
-              <fieldset style={{ margin: 0, padding: "4px 12px 6px", border: "1px solid #E7E3DA", borderRadius: 12, background: "#fff", display: "flex", flexDirection: "column" }}>
-                <legend style={{ padding: "0 4px", fontSize: 12, fontWeight: 600, color: "#6B6459" }}>Sign-off and email</legend>
-                <label className="zk-sw">
-                  <input type="checkbox" checked={f.ok} onChange={(e) => set({ ok: e.target.checked })} />
-                  Needs your OK when done
-                </label>
-                <label className="zk-sw">
-                  <input type="checkbox" checked={f.confirm} onChange={(e) => set({ confirm: e.target.checked })} />
-                  Ask them to confirm first
-                </label>
-                <label className="zk-sw">
-                  <input type="checkbox" checked={f.email} onChange={(e) => set({ email: e.target.checked })} />
-                  Also email it to {person?.first ?? "them"}
-                </label>
-              </fieldset>
             </div>
           ) : null}
         </div>
         <div className="zk-sheet-foot" style={{ padding: "14px 22px", borderTop: "1px solid #EFECE5", background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {error ? (
+            <p role="alert" style={{ margin: 0, flexBasis: "100%", fontSize: 13, color: "#B02A15" }}>
+              {error}
+            </p>
+          ) : null}
           <span style={{ fontSize: 12, color: "#6B6459" }}>
-            {!person ? "Add a person on Team first." : isEditing ? `${person.first} sees an “Edited” tag. Ticked steps stay ticked.` : `Lands in ${person.first}’s Zinwe app.`}
+            {!person ? "Add a person on Team first." : isEditing ? `${person.first} sees an “Edited” tag. Ticked steps stay ticked.` : `Lands in ${person.first}’s chat and Zinwe app. They mark it done, you give the OK.`}
           </span>
           <span style={{ display: "flex", gap: 8 }}>
             <button type="button" className="z-btn" onClick={onClose}>
               Cancel
             </button>
-            <button type="button" className="z-btn pri" disabled={cannotSend} onClick={submit}>
-              {isEditing ? "Save changes" : `Send to ${person?.first ?? "them"}`}
+            <button type="button" className="z-btn pri" disabled={cannotSend || saving} onClick={() => void submit()}>
+              {saving ? (isEditing ? "Saving…" : "Sending…") : isEditing ? "Save changes" : `Send to ${person?.first ?? "them"}`}
             </button>
           </span>
         </div>

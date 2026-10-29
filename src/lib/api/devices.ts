@@ -1,5 +1,6 @@
 /** PCs, members, rules and activity (z_devices). */
 import { authedDownload, authedRequest } from "./http";
+import type { Task } from "./tasks";
 
 /**
  * What the agent last reported the person was doing (M8). Older agents that
@@ -406,6 +407,10 @@ export interface Message {
   delivered_at?: string | null;
   /** Admin lines: when the member opened it in the widget's chat (null on older rows). */
   read_by_member_at?: string | null;
+  /** FR-20: "task" lines carry the task (its card in the thread); "chat" otherwise. */
+  kind?: "chat" | "task";
+  /** The task on a "task" line (null on chat lines). */
+  task?: Task | null;
 }
 
 /**
@@ -617,7 +622,8 @@ export function getTopMetrics(params: MetricsTopQuery, signal?: AbortSignal): Pr
 /** One thing new for the owner (FR-15), shown as a browser notification. `link` is a dashboard path. */
 export interface OwnerFeedItem {
   id: string;
-  kind: "chat" | "alert" | "approval";
+  /** "task": a member asked for help on a task, or marked one done (FR-20). */
+  kind: "chat" | "alert" | "approval" | "task";
   title: string;
   body: string;
   at: string;
@@ -644,6 +650,8 @@ export interface NotificationPrefs {
   chat: boolean;
   alerts: AlertNotifyLevel;
   approvals: boolean;
+  /** FR-20: a member needs help with a task, or finished one (on by default). */
+  tasks?: boolean;
 }
 
 export function getNotificationPrefs(signal?: AbortSignal): Promise<NotificationPrefs> {

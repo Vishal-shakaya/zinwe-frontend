@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import type { PlanModule } from "../../lib/api";
-import { SAMPLES_ON } from "../fixtures";
 import { ZIcon, type IconName } from "../ui/ZIcon";
 import type { NavKey } from "./shellContext";
 
@@ -57,8 +56,8 @@ function navRows(alerts: number, unread: number, tasksWaiting: number): Row[] {
     { key: "reports", label: "Reports", to: "/app/reports", icon: "reports" },
     { key: "rules", label: "Rules", to: "/app/rules", icon: "rules" },
   ];
-  // Tasks run on sample data until FR-20: no Tasks row (or badge) in production builds.
-  return SAMPLES_ON ? rows : rows.filter((r) => r.key !== "tasks");
+  // Tasks run on the FR-20 API (v1.3.1): shown in every build.
+  return rows;
 }
 
 export function DashNav({

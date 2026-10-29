@@ -5,7 +5,8 @@ import { AskSheet, type AskTarget } from "../alerts/AskSheet";
 import { firstName, formatTime, KIND_ICON, type AlertView } from "../alerts/alertModel";
 import { SAMPLES_ON } from "../fixtures";
 import { LEVEL_DEF } from "../fixtures/majorAlerts";
-import { saveTask, type SampleTask, type TaskStatus } from "../fixtures/tasks";
+import { taskActions } from "../tasks/useTasks";
+import type { TaskView } from "../tasks/types";
 import { dayGroup } from "../time";
 import { SkRows } from "../ui/States";
 import { needsLine } from "./needs";
@@ -61,7 +62,8 @@ function minutesSince(iso: string, now: number): number {
 }
 
 /** "today, 5:00 PM", "tomorrow", "fri 30 oct". */
-function dueWords(t: SampleTask, now: number): string {
+function dueWords(t: TaskView, now: number): string {
+  if (!t.due) return "No due date";
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   const due = new Date(`${t.due}T00:00:00`);
@@ -80,7 +82,7 @@ function dueWords(t: SampleTask, now: number): string {
 /**
  * Needs you (DashOverview): everything waiting on the owner, in a fixed order — requests waiting for your OK
  * (real work-log breaks and early End days), then Needs you alerts not yet marked as fine (real), then task
- * sign-offs (FR-20 sample). One compact row each; 7 shown, then Show all (N).
+ * sign-offs (FR-20: they need help, or finished and wait for your OK). One compact row each; 7 shown, then Show all (N).
  */
 export function NeedsCard({
   requests,
@@ -95,7 +97,7 @@ export function NeedsCard({
 }: {
   requests: WorkLogEntry[] | undefined;
   alerts: AlertView[] | undefined;
-  tasks: SampleTask[] | undefined;
+  tasks: TaskView[] | undefined;
   /** "166 more alerts are worth a look" (null while loading). */
   worthText: string | null;
   canAsk: boolean;
@@ -332,16 +334,12 @@ export function NeedsCard({
       const rows: TipRow[] = [];
       if (t.steps.length) rows.push({ label: "Steps", value: `${t.steps.filter((s) => s.done).length} of ${t.steps.length}` });
       rows.push({ label: "Due", value: due });
-      const move = (status: TaskStatus, text: string) => {
-        const prev = t.status;
-        saveTask(t.id, { status }, { k: status === "approved" ? "approved" : "reopened" });
-        setLast({
-          text,
-          undo: () => {
-            setLast(null);
-            saveTask(t.id, { status: prev });
-          },
-        });
+      const move = (to: "approved" | "progress", text: string) => {
+        const p = to === "approved" ? taskActions.approve(t) : taskActions.reopen(t, "Please take another look.");
+        p.then(
+          () => setLast({ text }),
+          (err: unknown) => setLast({ text: `Couldn't save: ${errorMessage(err)}` }),
+        );
       };
       return {
         id: `task-${t.id}`,
@@ -350,11 +348,11 @@ export function NeedsCard({
         title: help ? `${f} needs help: ${t.title}` : `${f} finished: ${t.title}`,
         level: help ? "Task · Needs help" : "Task · Waiting for your OK",
         meta: `${t.name} · due ${due.charAt(0).toLowerCase()}${due.slice(1)}`,
-        body: `“${t.title}”${t.note ? `: “${t.note}”` : ""}`,
+        body: `“${t.title}”${t.note && t.noteBy !== "You" ? `: “${t.note}”` : ""}`,
         tip: <TipBody title={t.title} rows={rows} text={t.note ? `“${t.note}”` : undefined} />,
         actions: help ? (
           <>
-            <Link className="z-btn xs dark" to={`/app/chat#m=${f.toLowerCase()}`} aria-label={`Reply to ${f} in Chat`}>
+            <Link className="z-btn xs dark" to={`/app/chat?member=${t.memberId}`} aria-label={`Reply to ${f} in Chat`}>
               Reply in chat
             </Link>
             <Link className="z-btn xs" to={`/app/tasks#task=${t.id}`} aria-label={`Open ${f}’s task: ${t.title}`}>

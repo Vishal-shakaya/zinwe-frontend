@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useMemo, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
@@ -21,13 +21,12 @@ import { useEntitlements } from "../features/entitlements";
 import { alertsOnly, isHandled } from "../features/events";
 import { useEventCounts } from "../features/useEventCounts";
 import { consentOf, presenceOf } from "../features/memberStatus";
-import { SAMPLES_ON } from "../fixtures";
-import { listTasks, TASKS_CHANGED_EVENT } from "../fixtures/tasks";
 import { NeedsCard } from "../overview/NeedsCard";
 import { needsBreakdown, needsCounts } from "../overview/needs";
 import { SetupCard } from "../overview/SetupCard";
 import { TeamToday } from "../overview/TeamToday";
 import { PageHead } from "../shell/PageHead";
+import { useTasks } from "../tasks/useTasks";
 import { useShell } from "../shell/shellContext";
 import { formatRelative, useNow } from "../time";
 import { SkTiles } from "../ui/States";
@@ -39,10 +38,7 @@ import "../../styles/dash13/overview.css";
 
 /** Short definitions shown in the tile tooltips (label first, in bold). The tile's own sub line keeps the facts. */
 const TILE_DEF: Record<string, string> = {
-  // Tasks are sample data until FR-20 (fixtures/tasks.ts): production builds don't mention them.
-  "Needs you": SAMPLES_ON
-    ? "requests waiting for your OK, Needs you alerts not yet marked as fine, and tasks that need help or your OK."
-    : "requests waiting for your OK, and Needs you alerts not yet marked as fine.",
+  "Needs you": "requests waiting for your OK, Needs you alerts not yet marked as fine, and tasks that need help or your OK.",
   "Working now": "pressed Start day in the Zinwe app and not on a break right now.",
   "On a break": "pressed Take a break. Breaks over 45 minutes ask for your OK.",
   "PCs offline": "switched off or not connected to Zinwe right now.",
@@ -83,14 +79,9 @@ export default function OverviewPage(): ReactElement {
   );
   const schedules = useResource(loadSchedules);
   const asks = useAsks();
-  // Tasks (FR-20 sample), laid onto the real team; any change on Tasks / Chat / here reloads it.
-  const loadTasks = useCallback((signal: AbortSignal) => listTasks(signal, members), [members]);
-  const tasks = useResource(loadTasks);
-  const reloadTasks = tasks.reload;
-  useEffect(() => {
-    window.addEventListener(TASKS_CHANGED_EVENT, reloadTasks);
-    return () => window.removeEventListener(TASKS_CHANGED_EVENT, reloadTasks);
-  }, [reloadTasks]);
+  // Tasks (FR-20, plan module team_chat): any change on Tasks / Chat / here reloads them.
+  const chatOn = has("team_chat");
+  const tasks = useTasks({ enabled: chatOn, pollMs: 60_000 });
 
   // Marked as fine here: off the list at once, before the next poll.
   const [changed, setChanged] = useState<Record<number, DeviceEvent>>({});
@@ -217,7 +208,7 @@ export default function OverviewPage(): ReactElement {
             <button type="button" className="z-btn sm" onClick={refreshAll} disabled={refreshing}>
               {refreshing ? "Refreshing…" : "Refresh"}
             </button>
-            {SAMPLES_ON ? (
+            {chatOn ? (
               <Link className="z-btn sm zn-desk-only" to="/app/tasks#new=1">
                 New task
               </Link>
