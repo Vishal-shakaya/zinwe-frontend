@@ -1534,7 +1534,8 @@
 
   .zn-main {
     flex: 1 1 auto;
-    padding: 12px 16px 96px !important;
+    /* Room for the tab bar (64) + the round Support button above it (44 + gaps): nothing hides behind them. */
+    padding: 12px 16px calc(136px + env(safe-area-inset-bottom)) !important;
     gap: 16px !important;
   }
 

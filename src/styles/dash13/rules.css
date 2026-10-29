@@ -277,6 +277,9 @@
 
 /* Remote tools table */
 .zp-rules .rl-rt-wrap {
+  /* Containing block for the table's screen-reader-only labels (absolute): without it they escape the
+     scroll box and widen the whole page between 760 and ~1100 px. */
+  position: relative;
   overflow-x: auto;
   border: 1px solid #e7e3da;
   border-radius: 12px;
