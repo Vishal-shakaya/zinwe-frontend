@@ -135,9 +135,12 @@ export function CompanyForm({
   const [pending, setPending] = useState(false);
   const controls = useRef<Partial<Record<CompanyField, HTMLElement | null>>>({});
 
+  // Editing a field clears its message: "This field is required." under a filled field reads as broken.
+  const clearError = (field: CompanyField) => setErrors((e) => (e[field] ? { ...e, [field]: undefined } : e));
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
     setSaved(null);
+    clearError(key as CompanyField);
   };
   const reg = (field: CompanyField) => (el: HTMLElement | null) => {
     controls.current[field] = el;
@@ -159,6 +162,7 @@ export function CompanyForm({
       state: regions && !regions.includes(d.state) ? "" : d.state,
     }));
     setSaved(null);
+    clearError("country");
   };
 
   // A complete GSTIN fills in an empty state (its first two digits are the state's GST code).

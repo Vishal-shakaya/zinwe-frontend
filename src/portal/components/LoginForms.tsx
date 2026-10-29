@@ -93,12 +93,24 @@ export function PasswordLoginForm({
 
   return (
     <form className="zau-form" onSubmit={onSubmit} noValidate>
-      <EmailField id="login-email" email={email} onEmailChange={onEmailChange} error={errors.email} inputRef={emailRef} />
+      <EmailField
+        id="login-email"
+        email={email}
+        onEmailChange={(value) => {
+          onEmailChange(value);
+          if (errors.email) setErrors((e) => ({ ...e, email: undefined }));
+        }}
+        error={errors.email}
+        inputRef={emailRef}
+      />
       <ZPassword
         id="login-password"
         label="Password"
         value={password}
-        onChange={setPassword}
+        onChange={(value) => {
+          setPassword(value);
+          if (errors.password) setErrors((e) => ({ ...e, password: undefined }));
+        }}
         error={errors.password}
         autoComplete="current-password"
         inputRef={passwordRef}

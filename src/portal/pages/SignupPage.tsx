@@ -46,6 +46,8 @@ export default function SignupPage(): ReactElement {
   const [password, setPassword] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState<FieldErrorMap<SignupField>>({});
+  // Typing in a field clears its old message (it comes back on the next submit if still wrong).
+  const clearError = (field: SignupField) => setErrors((e) => (e[field] ? { ...e, [field]: undefined } : e));
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   // The code step survives a reload (phones reload the tab after a trip to the email app).
@@ -163,7 +165,10 @@ export default function SignupPage(): ReactElement {
               autoComplete="name"
               autoFocus
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                clearError("full_name");
+              }}
               aria-invalid={errors.full_name ? true : undefined}
               aria-describedby={errors.full_name ? "su-name-error" : undefined}
             />
@@ -183,7 +188,10 @@ export default function SignupPage(): ReactElement {
               autoComplete="email"
               placeholder="you@company.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                clearError("email");
+              }}
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? "su-email-error" : undefined}
             />
@@ -201,7 +209,10 @@ export default function SignupPage(): ReactElement {
             id="su-password"
             label="Password"
             value={password}
-            onChange={setPassword}
+            onChange={(value) => {
+              setPassword(value);
+              clearError("password");
+            }}
             error={errors.password}
             autoComplete="new-password"
             inputRef={passwordRef}
