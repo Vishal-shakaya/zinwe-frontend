@@ -1174,6 +1174,13 @@
   color: #4a443c;
 }
 
+/* Phone: the close button stays on the text's line (it wrapped to a row of its own, +40 px on every page). */
+@media (max-width: 760px) {
+  .zn-banner > span {
+    flex-basis: 180px;
+  }
+}
+
 /* Bell (DashTopBar) */
 .zn-tb {
   font-size: 14px;
