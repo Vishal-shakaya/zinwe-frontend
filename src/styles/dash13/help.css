@@ -31,7 +31,7 @@
   border-top: 1px solid #f0ede6;
 }
 
-.zh-box {
+.zhp-box {
   flex: none;
   width: 26px;
   height: 26px;
@@ -46,7 +46,7 @@
   padding: 0;
 }
 
-.zh-box.on {
+.zhp-box.on {
   background: #17663f;
   border: 0;
   color: #fff;
@@ -91,7 +91,7 @@
   font-weight: 600;
 }
 
-.zd .zh-faq {
+.zd .zhp-faq {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -139,7 +139,7 @@
   color: #4a443c;
 }
 
-.zh-never {
+.zhp-never {
   margin: 0;
   padding-left: 18px;
   display: flex;

@@ -176,7 +176,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 90;
+  /* Above the dashboard's floating Chat / Support buttons (90) and toasts (95): consent is asked first. */
+  z-index: 96;
   padding: 0 16px 16px;
   pointer-events: none;
   animation: legal-sheet-in 0.28s ease-out;

@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { canUseApp } from "../../auth/steps";
 import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
+import { Brand } from "../../components/ui/Brand";
 import { useAuthFonts } from "../v13/authFonts";
 import "../../styles/dashboard.css";
 import "../../styles/portal.css";
@@ -45,12 +46,7 @@ export default function OnboardingLayout(): ReactElement {
       <AnnouncementBar />
       <header className="zau-onb__top">
         <div className="zau-onb__bar">
-          <Link to={inApp ? "/app" : "/"} className="zau-brand zau-brand--sm" aria-label="Zinwe home">
-            <span className="zau-brand__z" aria-hidden="true">
-              Z
-            </span>
-            <b>Zinwe</b>
-          </Link>
+          <Brand to={inApp ? "/app" : "/"} ariaLabel={inApp ? "Zinwe, back to your dashboard" : "Zinwe home"} height={26} className="zau-brand zau-brand--sm" />
           <ol className="zau-stepper" aria-label="Setup steps">
             {STEPS.map((label, i) => {
               const done = i < stepIdx;

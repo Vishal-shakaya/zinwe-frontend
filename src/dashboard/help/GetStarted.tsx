@@ -89,7 +89,7 @@ export function GetStarted({ userId }: { userId: number | undefined }): ReactEle
                   role="checkbox"
                   aria-checked={d}
                   aria-label={`Mark ${s.title} done`}
-                  className={`zh-box${d ? " on" : ""}`}
+                  className={`zhp-box${d ? " on" : ""}`}
                   onClick={() => flip(s.key)}
                 >
                   {d ? <ZIcon name="check" size={16} stroke={3} /> : null}

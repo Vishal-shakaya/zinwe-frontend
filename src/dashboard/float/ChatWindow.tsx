@@ -124,9 +124,9 @@ export function ChatWindow({
     <section className={cx("zf-win", win.min && "is-min")} aria-label={`Chat with ${person.name}`} onKeyDown={onKey}>
       <header className="zf-whd">
         <button type="button" className="zf-whead" aria-expanded={expanded} aria-label={toggleLabel} onClick={onToggle}>
-          <span className="zf-av" aria-hidden="true" style={avatarStyle(member?.role, 30)}>
+          <span className="zfl-av" aria-hidden="true" style={avatarStyle(member?.role, 30)}>
             {initialsOf(person.name)}
-            <span className="zf-dot" style={{ background: dotColor(presenceOf(member?.device)) }} />
+            <span className="zfl-dot" style={{ background: dotColor(presenceOf(member?.device)) }} />
           </span>
           <span className="zf-who">
             <b>{person.name}</b>

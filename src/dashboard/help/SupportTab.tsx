@@ -112,7 +112,7 @@ export function SupportTab({ email }: { email: string }): ReactElement {
         </h2>
         {FAQS.map(([q, a], i) => (
           <div key={q} style={{ borderTop: "1px solid #F0EDE6" }}>
-            <button type="button" className="zh-faq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
+            <button type="button" className="zhp-faq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
               <span>{q}</span>
               <span aria-hidden="true" style={{ color: "#A84505" }}>
                 {faq === i ? "−" : "+"}

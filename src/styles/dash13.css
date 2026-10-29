@@ -878,19 +878,6 @@
   color: #141210 !important;
 }
 
-.zn-mark {
-  display: inline-flex;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #f26a0a;
-  color: #141210;
-  font-weight: 800;
-  font-size: 16px;
-  align-items: center;
-  justify-content: center;
-}
 
 .zn-items {
   display: flex;
@@ -1535,9 +1522,20 @@
     max-height: calc(100vh - 300px) !important;
   }
 
+  /* The phone bell sits near the right edge with "+" after it: pin its panel to the screen, not the button. */
+  .zn-tb-nav .zn-bell-panel {
+    position: fixed;
+    top: 62px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+  }
+
   .zn-main {
     flex: 1 1 auto;
-    padding: 12px 16px 96px !important;
+    /* Room for the tab bar (64) + the round Support button above it (44 + gaps): nothing hides behind them. */
+    padding: 12px 16px calc(136px + env(safe-area-inset-bottom)) !important;
     gap: 16px !important;
   }
 

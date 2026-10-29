@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Member } from "../../lib/api";
-import type { OwnerNote } from "../fixtures/notifications";
+import { EMPTY_BELL, type BellState } from "./bellFeed";
 
 /** What the shell (DashNav, bell, phone bars) knows and pages may read: counts, members, notes, a few actions. */
 export interface ShellState {
@@ -12,8 +12,8 @@ export interface ShellState {
   tasksWaiting: number;
   members: Member[] | undefined;
   reloadMembers: () => void;
-  notes: OwnerNote[] | undefined;
-  markNotesRead: (ids: readonly string[] | "all") => void;
+  /** The bell: real items that need the owner + news, with read state on this browser (shell/bellFeed.ts). */
+  bell: BellState;
   openFeedback: () => void;
   /** Reload everything on the page (remounts the outlet). */
   refreshAll: () => void;
@@ -28,8 +28,7 @@ export const ShellContext = createContext<ShellState>({
   tasksWaiting: 0,
   members: undefined,
   reloadMembers: noop,
-  notes: undefined,
-  markNotesRead: noop,
+  bell: EMPTY_BELL,
   openFeedback: noop,
   refreshAll: noop,
   refreshing: false,

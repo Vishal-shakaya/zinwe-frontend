@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { OnboardingStep } from "../lib/api";
+import { BrandMark } from "../components/ui/BrandMark";
 import { useAuth } from "./authContext";
 import { canUseApp, stepPath } from "./steps";
 
@@ -14,7 +15,10 @@ function BootScreen(): ReactElement {
   if (!loadFailed) {
     return (
       <div className="dash-boot" role="status" aria-live="polite">
-        Loading your account…
+        <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <BrandMark size={40} />
+          Loading your account…
+        </span>
       </div>
     );
   }
