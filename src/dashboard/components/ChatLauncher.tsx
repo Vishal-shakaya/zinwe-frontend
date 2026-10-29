@@ -62,7 +62,7 @@ export function ChatLauncher({
   if (!fabSlot || !panelSlot) return null;
 
   const panel = open ? (
-    <section className="zf-panel zf-panel--chat" aria-label="Chat with your team">
+    <section className="zfl-panel zf-panel--chat" aria-label="Chat with your team">
       <header className="zf-phead">
         <b>Chat with your team</b>
         <small>{unread > 0 ? `${replies(unread)} · people with new replies first` : "Messages go to their PC, and by email if you choose."}</small>
@@ -100,9 +100,9 @@ export function ChatLauncher({
                   aria-label={`Chat with ${m.name}, ${PRESENCE_LABEL[status]}${n ? `, ${n} new` : ""}`}
                   onClick={() => onPick(m)}
                 >
-                  <span className="zf-av" aria-hidden="true" style={avatarStyle(m.role, 34)}>
+                  <span className="zfl-av" aria-hidden="true" style={avatarStyle(m.role, 34)}>
                     {initialsOf(m.name)}
-                    <span className="zf-dot" style={{ background: dotColor(status) }} />
+                    <span className="zfl-dot" style={{ background: dotColor(status) }} />
                   </span>
                   <span className="zf-who">
                     <b style={{ fontWeight: n ? 700 : 600 }}>{m.name}</b>
@@ -128,7 +128,7 @@ export function ChatLauncher({
         <button
           ref={fab}
           type="button"
-          className="zf-fab zf-chat"
+          className="zf-fab zfl-chat"
           onClick={toggle}
           aria-expanded={open}
           aria-label={open ? "Close chat" : `Chat with your team${unread ? `, ${replies(unread)}` : ""}`}

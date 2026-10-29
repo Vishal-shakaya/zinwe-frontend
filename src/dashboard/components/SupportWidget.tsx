@@ -159,7 +159,7 @@ export function SupportWidget({ userId }: { userId?: number }): ReactElement | n
 
   const title = view.kind === "new" ? "New message" : view.kind === "thread" ? "Conversation" : "Help & support";
   const panel = open ? (
-    <section className="zf-panel zf-panel--sup" role="dialog" aria-label="Help and support">
+    <section className="zfl-panel zf-panel--sup" role="dialog" aria-label="Help and support">
       <header className="zf-shead">
         {view.kind !== "list" ? (
           <button type="button" className="zf-sicon" aria-label="Back" onClick={() => setView({ kind: "list" })}>

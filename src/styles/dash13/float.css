@@ -52,7 +52,7 @@
 }
 
 .zf-win,
-.zf-panel,
+.zfl-panel,
 .zf-supwrap,
 .zf-fab,
 .zf-toast,
@@ -115,12 +115,12 @@
   position: relative;
 }
 
-.zf-chat {
+.zfl-chat {
   background: #f26a0a;
   color: #141210 !important;
 }
 
-.zf-chat:hover {
+.zfl-chat:hover {
   background: #e86402;
 }
 
@@ -192,7 +192,7 @@
 
 /* ---------- Panels (Chat list, Support) ---------- */
 
-.zf-panel {
+.zfl-panel {
   width: 360px;
   background: #fff;
   border: 1px solid #e7e3da;
@@ -264,7 +264,7 @@
   background: transparent;
 }
 
-.zf-av {
+.zfl-av {
   position: relative;
   flex: none;
   border-radius: 50%;
@@ -275,7 +275,7 @@
   font-weight: 700;
 }
 
-.zf-dot {
+.zfl-dot {
   position: absolute;
   right: -1px;
   bottom: -1px;
@@ -1211,7 +1211,7 @@ textarea.zf-msg::placeholder {
     z-index: 72;
   }
 
-  .zf-chat {
+  .zfl-chat {
     display: none !important;
   }
 
@@ -1232,7 +1232,7 @@ textarea.zf-msg::placeholder {
   }
 
   /* Panels open as bottom sheets that sit on top of the tab bar's edge. */
-  .zf-panel {
+  .zfl-panel {
     position: fixed;
     z-index: 2;
     left: 0;
@@ -1653,7 +1653,7 @@ dialog.zn-modal[open] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zf-panel,
+  .zfl-panel,
   .zf-win,
   .zf-toast,
   .zf-dtoast,

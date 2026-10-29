@@ -10,7 +10,7 @@
   min-width: 0;
 }
 
-.zp-col {
+:is(.zp-set, .zp-help) .zp-col {
   max-width: 1100px;
   width: 100%;
   display: flex;
@@ -237,7 +237,7 @@
 }
 
 /* ---------- Cards ---------- */
-.zp-card {
+:is(.zp-set, .zp-help) .zp-card {
   padding: 22px;
   display: flex;
   flex-direction: column;
@@ -245,11 +245,11 @@
   min-width: 0;
 }
 
-.zp-card.narrow {
+:is(.zp-set, .zp-help) .zp-card.narrow {
   max-width: 560px;
 }
 
-.zp-card.mid {
+:is(.zp-set, .zp-help) .zp-card.mid {
   max-width: 760px;
 }
 
@@ -337,7 +337,7 @@
   gap: 12px 24px;
 }
 
-.zp-bar {
+:is(.zp-set, .zp-help) .zp-bar {
   flex: 1;
   height: 8px;
   background: #efece5;
@@ -345,7 +345,7 @@
   overflow: hidden;
 }
 
-.zp-bar > span {
+:is(.zp-set, .zp-help) .zp-bar > span {
   display: block;
   height: 100%;
   background: #f26a0a;
@@ -406,13 +406,13 @@
   overflow-x: auto;
 }
 
-.zp-tbl {
+:is(.zp-set, .zp-help) .zp-tbl {
   width: 100%;
   border-collapse: collapse;
   min-width: 640px;
 }
 
-.zp-tbl th {
+:is(.zp-set, .zp-help) .zp-tbl th {
   text-align: left;
   font-size: 12px;
   font-weight: 600;
@@ -421,19 +421,19 @@
   border-bottom: 1px solid #e7e3da;
 }
 
-.zp-tbl td {
+:is(.zp-set, .zp-help) .zp-tbl td {
   padding: 11px 14px;
   border-bottom: 1px solid #f0ede6;
   vertical-align: middle;
 }
 
-.zp-tbl tr.why td {
+:is(.zp-set, .zp-help) .zp-tbl tr.why td {
   padding-top: 0;
   font-size: 13px;
   color: #b02a15;
 }
 
-.zp-tbl small {
+:is(.zp-set, .zp-help) .zp-tbl small {
   display: block;
   font-size: 12px;
   color: #6b6459;
