@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { SAMPLES_ON } from "../fixtures";
 import { ZIcon, type IconName } from "../ui/ZIcon";
 import { Bell } from "./Bell";
 import { NAV_TITLE, type NavKey } from "./shellContext";
@@ -104,7 +105,8 @@ export function PhoneShell({
   );
 
   const createLinks: ReadonlyArray<{ label: string; sub: string; to: string; icon: IconName }> = [
-    { label: "New task", sub: "Give someone a job and a due day", to: "/app/tasks#new=1", icon: "tasks" },
+    // Tasks run on sample data until FR-20: not offered in production builds.
+    ...(SAMPLES_ON ? [{ label: "New task", sub: "Give someone a job and a due day", to: "/app/tasks#new=1", icon: "tasks" as const }] : []),
     { label: "Message someone", sub: "Opens Chat. It goes to their Zinwe app", to: "/app/chat", icon: "chat" },
     { label: "Add a person", sub: "Set up a new member and their PC", to: "/app/team#add=1", icon: "person" },
   ];
@@ -182,7 +184,7 @@ export function PhoneShell({
                 {row(active === "data", "Files & USB", "/app/data", "data")}
                 {row(active === "apps", "Apps & remote", "/app/remote", "apps")}
                 <span className="zn-sdiv" aria-hidden="true" />
-                {row(active === "tasks", "Tasks", "/app/tasks", "tasks")}
+                {SAMPLES_ON ? row(active === "tasks", "Tasks", "/app/tasks", "tasks") : null}
                 {row(active === "reports", "Reports", "/app/reports", "reports")}
                 {row(active === "rules", "Rules", "/app/rules", "rules")}
                 {row(active === "settings", "Settings", "/app/settings", "settings")}

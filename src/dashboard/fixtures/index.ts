@@ -7,7 +7,15 @@
  * nothing in the page changes.
  *
  * Every area that still reads sample data is listed in SAMPLE_AREAS (and in .claude/dev/docs/06-website-portal.md).
+ *
+ * SAMPLES_ON is THE switch. On in the dev server (`npm run dev`) and in a build made with VITE_SAMPLE_DATA=1;
+ * off in every plain `npm run build` (production). When it is off, real owners never see sample data: the loaders
+ * here return nothing (no tasks, no notes, no second PC…), the save functions do nothing, and the screens hide
+ * every sample-only control (see SAMPLE_AREAS and 06-website-portal.md, "Dashboard v1.3 → Sample data in production").
  */
+
+/** Sample-only features are shown (dev server, or a build with VITE_SAMPLE_DATA=1). Off in production builds. */
+export const SAMPLES_ON: boolean = import.meta.env.DEV || import.meta.env.VITE_SAMPLE_DATA === "1";
 
 export interface SampleArea {
   /** Fixture module in this folder. */

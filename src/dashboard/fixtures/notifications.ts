@@ -1,9 +1,10 @@
-import { sample, sampleStore } from "./index";
+import { sample, sampleStore, SAMPLES_ON } from "./index";
 
 /**
  * SAMPLE (DashTopBar): the bell's notification history. The API only serves "what's new since" for browser
  * notifications (GET notifications/?since=), not a history with read state, so the list is sample data.
  * Each item says where it opens and links there (#m=<first>, tab paths, #task=<id>).
+ * SAMPLES_ON off (production): no notes, and the bell is not shown.
  */
 
 export type NoteKind = "break" | "chat" | "alert" | "task" | "payment";
@@ -33,10 +34,12 @@ const NOTES: OwnerNote[] = [
 const store = sampleStore<OwnerNote[]>("notes", () => NOTES);
 
 export function listNotes(signal?: AbortSignal): Promise<OwnerNote[]> {
+  if (!SAMPLES_ON) return sample([], signal, 0);
   return sample(store.get(), signal, 120);
 }
 
 export function markNotesRead(ids: readonly string[] | "all"): OwnerNote[] {
+  if (!SAMPLES_ON) return [];
   const next = store.get().map((n) => (ids === "all" || ids.includes(n.id) ? { ...n, read: true } : n));
   store.set(next);
   return next;

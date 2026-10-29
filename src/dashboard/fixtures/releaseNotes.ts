@@ -5,7 +5,7 @@
  * plain paragraphs.
  */
 import { getReleaseNotes, type ReleaseNote } from "../../lib/api";
-import { sample } from "./index";
+import { sample, SAMPLES_ON } from "./index";
 
 export const SAMPLE_RELEASE_NOTES: readonly ReleaseNote[] = [
   {
@@ -55,8 +55,8 @@ export const SAMPLE_RELEASE_NOTES: readonly ReleaseNote[] = [
   },
 ];
 
-/** The published notes; the board's notes only while none are published. */
+/** The published notes; the board's notes only while none are published (never in production: SAMPLES_ON). */
 export async function loadReleaseNotes(signal?: AbortSignal): Promise<ReleaseNote[]> {
   const notes = await getReleaseNotes(signal);
-  return notes.length > 0 ? notes : sample([...SAMPLE_RELEASE_NOTES], signal);
+  return notes.length > 0 || !SAMPLES_ON ? notes : sample([...SAMPLE_RELEASE_NOTES], signal);
 }

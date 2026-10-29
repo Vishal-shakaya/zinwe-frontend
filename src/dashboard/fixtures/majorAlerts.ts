@@ -1,4 +1,4 @@
-import { sample, sampleStore } from "./index";
+import { sample, sampleStore, SAMPLES_ON } from "./index";
 
 /**
  * SAMPLE (DashAlerts, DashOverview "Needs you"): the "major alerts" layer the API does not serve yet (FR-35).
@@ -12,6 +12,8 @@ import { sample, sampleStore } from "./index";
  *
  * When FR-35 ships: `listAsks` reads the event's ask/reply fields and `recordAsk` goes away (sending the
  * message with the event id records it); the wording moves to the API's alert catalogue.
+ * SAMPLES_ON off (production): the wording stays (it is copy, not data), but no "Asked" marks are kept or shown;
+ * the question itself is still sent for real and lands in Chat.
  */
 
 /** The board's levels: Needs you (critical), Worth a look (warning), Handled automatically (info). */
@@ -101,11 +103,13 @@ export const ASKS_CHANGED_EVENT = "zinwe:alert-asks-changed";
 
 /** GET the asks (sample loader, same shape as an API call). */
 export function listAsks(signal?: AbortSignal): Promise<AlertAsks> {
+  if (!SAMPLES_ON) return sample({}, signal, 0);
   return sample(store.get(), signal, 0);
 }
 
 /** Record that the owner asked about these alerts (every event of a folded row). */
 export function recordAsk(eventIds: readonly number[], ask: AlertAsk): AlertAsks {
+  if (!SAMPLES_ON) return {};
   const next = { ...store.get() };
   for (const id of eventIds) next[String(id)] = ask;
   store.set(next);

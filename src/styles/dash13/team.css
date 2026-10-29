@@ -414,6 +414,15 @@
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #dcd6cb;
 }
 
+/* Production builds: initials only, nothing to click (pictures are sample data, dashboard/fixtures). */
+.zp-team .zt-av--static {
+  cursor: default;
+}
+
+.zp-team .zt-av--static:hover {
+  box-shadow: none;
+}
+
 .zp-team .zt-popover {
   position: absolute;
   left: 0;

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { SAMPLES_ON } from "../fixtures";
 import type { NoteKind } from "../fixtures/notifications";
 import { ZIcon, type IconName } from "../ui/ZIcon";
 import { useShell } from "./shellContext";
@@ -16,8 +17,14 @@ const KIND_ICON: Record<NoteKind, IconName> = {
  * DashTopBar: the bell and its popover. Pages put it LAST in their header row (PageHead does that);
  * placement="nav" is the copy in the phone top bar. The bell shows an orange dot only (no number) when anything is
  * unread; the counts live in the menu badges.
+ * The history is sample data (fixtures/notifications.ts) until the notification centre API ships, so production
+ * builds (SAMPLES_ON off) show no bell at all; browser notifications (Settings → Notifications) are unaffected.
  */
-export function Bell({ placement = "page" }: { placement?: "page" | "nav" }): ReactElement {
+export function Bell({ placement = "page" }: { placement?: "page" | "nav" }): ReactElement | null {
+  return SAMPLES_ON ? <BellPanel placement={placement} /> : null;
+}
+
+function BellPanel({ placement }: { placement: "page" | "nav" }): ReactElement {
   const { notes, markNotesRead } = useShell();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");

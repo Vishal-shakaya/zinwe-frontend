@@ -2,8 +2,11 @@
  * The Rules page draft: one flat object of every setting on the board, built from the real policy
  * (GET devices/policy/) plus the sample extras (fixtures/rules.ts). Save sends only the policy blocks that
  * changed (PUT devices/policy/, partial) and stores the extras.
+ * Production builds (SAMPLES_ON off): the extras are neutral, so the draft is exactly the real policy; the
+ * board-only website kinds (Social media, Video streaming) and the made-up list sizes are left out.
  */
 import { WEB_CATEGORIES, type Policy, type PolicyUpdate, type UsbMode, type WebCategory } from "../../lib/api";
+import { SAMPLES_ON } from "../fixtures";
 import type { ExtraCategory, RulesExtras } from "../fixtures/rules";
 import { normalizeExe } from "../features/policyText";
 import { KNOWN_REMOTE_TOOLS, knownTool } from "../features/remoteTools";
@@ -16,7 +19,7 @@ export type ToolMode = "block" | "watch" | "allow";
 export type CategoryKey = WebCategory | ExtraCategory;
 
 /** Website kinds on the board, in its order. The first four are the agent's built-in lists. */
-export const CATEGORIES: ReadonlyArray<{ key: CategoryKey; label: string; desc: string }> = [
+const ALL_CATEGORIES: ReadonlyArray<{ key: CategoryKey; label: string; desc: string }> = [
   { key: "adult", label: "Adult content", desc: "Sexual content. 52,318 sites." },
   { key: "gambling", label: "Gambling", desc: "Betting, casinos and poker. 1,284 sites." },
   { key: "malware", label: "Malware", desc: "Sites that spread viruses or fake downloads. 9,476 sites." },
@@ -24,6 +27,11 @@ export const CATEGORIES: ReadonlyArray<{ key: CategoryKey; label: string; desc: 
   { key: "social", label: "Social media", desc: "Facebook, Instagram, X and similar." },
   { key: "video", label: "Video streaming", desc: "YouTube, Netflix and similar." },
 ];
+
+/** The kinds the Rules page shows: production only the agent's built-in lists, without the board's list sizes. */
+export const CATEGORIES: ReadonlyArray<{ key: CategoryKey; label: string; desc: string }> = SAMPLES_ON
+  ? ALL_CATEGORIES
+  : ALL_CATEGORIES.filter((c) => isApiCategory(c.key)).map((c) => ({ ...c, desc: c.desc.replace(/ [\d,]+ sites\.$/, "") }));
 
 export function isApiCategory(k: CategoryKey): k is WebCategory {
   return (WEB_CATEGORIES as readonly string[]).includes(k);
@@ -42,7 +50,13 @@ export const REMOTE_SEED: ReadonlyArray<{ id: string; name: string; agent: strin
   { id: "ammyy", name: "Ammyy Admin", agent: "Ammyy Admin", what: "Older portable remote-control tool." },
   { id: "logmein", name: "LogMeIn", agent: "LogMeIn", what: "Remote access for businesses." },
   { id: "zohoassist", name: "Zoho Assist", agent: "Zoho Assist", what: "Remote support tool for help desks." },
-  { id: "quickassist", name: "Windows Quick Assist", agent: "Quick Assist", what: "Built into Windows. Allowed so IT can help; sessions are still recorded." },
+  {
+    id: "quickassist",
+    name: "Windows Quick Assist",
+    agent: "Quick Assist",
+    // "Allowed" is a sample-only mode (fixtures/rules.ts); production builds only have Block and Watch.
+    what: SAMPLES_ON ? "Built into Windows. Allowed so IT can help; sessions are still recorded." : "Built into Windows, often used by IT to help.",
+  },
 ];
 
 export interface ToolRow {

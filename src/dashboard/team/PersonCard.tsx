@@ -17,6 +17,7 @@ import { MemberUsage } from "../components/MemberUsage";
 import { UsbRestore } from "../components/UsbRestore";
 import { useChatBubble } from "../features/chatBubble";
 import { consentOf, consentReminder } from "../features/memberStatus";
+import { SAMPLES_ON } from "../fixtures";
 import type { MemberPhoto } from "../fixtures/photos";
 import type { SecondPc } from "../fixtures/pcs";
 import { TipBody } from "../ui/Tooltip";
@@ -316,6 +317,8 @@ export function PersonCard(props: PersonCardProps): ReactElement {
     >
       <div className="zt-top">
         <div className="zt-pop">
+          {/* Pictures are sample data until the member photo API ships: production builds show initials only. */}
+          {SAMPLES_ON ? (
           <button
             ref={avRef}
             type="button"
@@ -332,6 +335,11 @@ export function PersonCard(props: PersonCardProps): ReactElement {
           >
             {photo ? <PictureArt photo={photo} size={44} /> : <span aria-hidden="true">{initialsOf(member.name)}</span>}
           </button>
+          ) : (
+            <span className="zt-av zt-av--static" style={{ background: tint, color: ink }} aria-hidden="true">
+              {initialsOf(member.name)}
+            </span>
+          )}
           {picOpen ? (
             <div ref={popRef} className="zt-popover" role="dialog" aria-label={`Profile picture for ${member.name}`}>
               <div className="zt-pop-head">
@@ -490,12 +498,14 @@ export function PersonCard(props: PersonCardProps): ReactElement {
                 >
                   Copy Member ID
                 </button>
-                <button type="button" role="menuitem" className="zt-mi" tabIndex={-1} onClick={() => {
-                    setMenuOpen(false);
-                    setPicOpen(true);
-                  }}>
-                  Change photo
-                </button>
+                {SAMPLES_ON ? (
+                  <button type="button" role="menuitem" className="zt-mi" tabIndex={-1} onClick={() => {
+                      setMenuOpen(false);
+                      setPicOpen(true);
+                    }}>
+                    Change photo
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"

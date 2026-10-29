@@ -1,5 +1,5 @@
 import type { Member } from "../../lib/api";
-import { sample, sampleStore } from "./index";
+import { sample, sampleStore, SAMPLES_ON } from "./index";
 
 /**
  * SAMPLE (DashTasks, DashChat task cards, DashOverview Tasks card): FR-20 tasks are not served by the API yet.
@@ -8,6 +8,7 @@ import { sample, sampleStore } from "./index";
  * real active member (in order, wrapping), so Chat with Aisha shows "her" tasks — see `withPeople`.
  *
  * When FR-20 ships: `listTasks` / `saveTask` / `createTask` become API calls; the types stay.
+ * SAMPLES_ON off (production): no tasks at all, every change is ignored, and the Tasks UI is hidden.
  */
 
 export type TaskStatus = "sent" | "seen" | "waiting" | "accepted" | "progress" | "help" | "done" | "review" | "approved";
@@ -248,6 +249,7 @@ export function sampleKeyFor(memberIndex: number, memberCount: number): string {
 
 /** GET tasks (sample). Pass the members to show tasks against real people. */
 export function listTasks(signal?: AbortSignal, members?: readonly Member[]): Promise<SampleTask[]> {
+  if (!SAMPLES_ON) return sample([], signal, 0);
   return sample(withPeople(store.get(), members), signal);
 }
 
@@ -255,6 +257,7 @@ export function listTasks(signal?: AbortSignal, members?: readonly Member[]): Pr
 export function saveTask(id: number, patch: Partial<SampleTask>, logEntry?: Omit<TaskLogEntry, "day" | "time">): SampleTask | null {
   const now = new Date();
   const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  if (!SAMPLES_ON) return null;
   let saved: SampleTask | null = null;
   store.set(
     store.get().map((t) => {
@@ -269,7 +272,7 @@ export function saveTask(id: number, patch: Partial<SampleTask>, logEntry?: Omit
 
 /** POST a task (sample). `who` is a sample person key; `memberId` the real member when known. */
 export function createTask(input: Pick<SampleTask, "who" | "title"> & Partial<SampleTask>): SampleTask {
-  const all = store.get();
+  const all = SAMPLES_ON ? store.get() : [];
   const now = new Date();
   const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   const task: SampleTask = {
@@ -293,6 +296,7 @@ export function createTask(input: Pick<SampleTask, "who" | "title"> & Partial<Sa
     ...input,
     log: [{ k: "sent", day: todayIso(), time, email: !!input.email }],
   };
+  if (!SAMPLES_ON) return task;
   store.set([...all, task]);
   changed();
   return task;
@@ -300,11 +304,13 @@ export function createTask(input: Pick<SampleTask, "who" | "title"> & Partial<Sa
 
 /** Tasks waiting for the owner's OK or help (the Tasks badge in DashNav). */
 export function countTasksWaiting(): number {
+  if (!SAMPLES_ON) return 0;
   return store.get().filter((t) => t.status === "review" || t.status === "help").length;
 }
 
 /** DELETE a task (sample): "Cancel task". Returns the removed task (for Undo), or null. */
 export function removeTask(id: number): SampleTask | null {
+  if (!SAMPLES_ON) return null;
   const all = store.get();
   const hit = all.find((t) => t.id === id) ?? null;
   if (!hit) return null;
@@ -315,6 +321,7 @@ export function removeTask(id: number): SampleTask | null {
 
 /** Put a task back exactly as it was (Undo after approve or cancel). */
 export function restoreTask(task: SampleTask): void {
+  if (!SAMPLES_ON) return;
   const all = store.get();
   store.set(all.some((t) => t.id === task.id) ? all.map((t) => (t.id === task.id ? task : t)) : [...all, task]);
   changed();

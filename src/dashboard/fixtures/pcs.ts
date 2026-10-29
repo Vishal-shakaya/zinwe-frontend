@@ -1,5 +1,5 @@
 import type { Member } from "../../lib/api";
-import { sample, sampleStore } from "./index";
+import { sample, sampleStore, SAMPLES_ON } from "./index";
 import { SAMPLE_PEOPLE } from "./tasks";
 
 /**
@@ -12,6 +12,7 @@ import { SAMPLE_PEOPLE } from "./tasks";
  * are kept for the tab's life.
  *
  * When FR-36 ships: `listSecondPcs` reads each member's `devices[]`; `keepBoth` / `removeSecondPc` become API calls.
+ * SAMPLES_ON off (production): nobody has a second PC, so the card block, notice and timeline line never show.
  */
 
 export interface SecondPc {
@@ -43,6 +44,7 @@ function hostFor(name: string): string {
 
 /** Which real member the sample second PC belongs to (null: nobody with a PC yet). */
 export function secondPcOwner(members: readonly Member[] | undefined): Member | null {
+  if (!SAMPLES_ON) return null;
   const real = (members ?? []).filter((m) => m.is_active && m.device);
   if (!real.length) return null;
   const at = Math.max(0, SAMPLE_PEOPLE.findIndex((p) => p.id === SAMPLE_KEY));
@@ -68,12 +70,14 @@ export function secondPcsNow(members: readonly Member[] | undefined): SecondPc[]
 
 /** "Keep both": the notice goes, both PCs stay protected. */
 export function keepBoth(members: readonly Member[] | undefined): SecondPc[] {
+  if (!SAMPLES_ON) return [];
   store.set({ ...store.get(), kept: true });
   return build(members);
 }
 
 /** Remove the second PC: protection stops there and its slot frees up. */
 export function removeSecondPc(members: readonly Member[] | undefined): SecondPc[] {
+  if (!SAMPLES_ON) return [];
   store.set({ ...store.get(), removed: true });
   return build(members);
 }

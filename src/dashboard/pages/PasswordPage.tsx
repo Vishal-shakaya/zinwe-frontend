@@ -10,6 +10,7 @@ import { ResendButton } from "../../portal/components/ResendButton";
 import { apiFieldErrors, apiFormError, failureMessage } from "../../portal/failure";
 import { otpDigits } from "../../portal/otp";
 import { useCountdown } from "../../portal/useCountdown";
+import { SAMPLES_ON } from "../fixtures";
 import { listSessions } from "../fixtures/settings";
 import { ErrorBlock, Sk, Spinner } from "../ui/States";
 import { ZIcon } from "../ui/ZIcon";
@@ -95,6 +96,8 @@ export default function PasswordPage(): ReactElement {
         )}
       </section>
 
+      {/* No sessions API yet (sample, fixtures/settings.ts): production builds leave this card out. */}
+      {SAMPLES_ON ? (
       <section className="z-card zp-card narrow" aria-labelledby="sess-title" style={{ gap: 10 }}>
         <h2 id="sess-title">Where you're signed in</h2>
         {sessions.data === undefined ? (
@@ -123,6 +126,7 @@ export default function PasswordPage(): ReactElement {
         )}
         <span className="zp-k">To sign out every other device, change your password above.</span>
       </section>
+      ) : null}
     </>
   );
 }

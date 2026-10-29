@@ -8,6 +8,7 @@ import { ChatThread } from "../chat/ChatThread";
 import { firstLine, type ReplyTarget } from "../chat/reply";
 import { PlanLock } from "../components/PlanLock";
 import { useEntitlements } from "../features/entitlements";
+import { SAMPLES_ON } from "../fixtures";
 import { isoDay, TASK_STATUS, type SampleTask } from "../fixtures/tasks";
 import { PageHead } from "../shell/PageHead";
 import { Avatar } from "../tasks/Avatar";
@@ -23,7 +24,10 @@ import "../../styles/dash13/chat.css";
 /** How often the open conversation checks for new replies and receipts. */
 const THREAD_POLL_MS = 15_000;
 
-const LEDE = "Message your team in their Zinwe window, or send a task they can tick off. Tasks are free on every plan.";
+// Tasks are sample data until FR-20 (fixtures/tasks.ts): production builds (SAMPLES_ON off) don't offer them here.
+const LEDE = SAMPLES_ON
+  ? "Message your team in their Zinwe window, or send a task they can tick off. Tasks are free on every plan."
+  : "Message your team in their Zinwe window.";
 
 type ChatPerson = TaskPerson & { memberId: number };
 
@@ -103,8 +107,8 @@ function ChatPageContent(): ReactElement {
   const [handledHash, setHandledHash] = useState<string | null>(null);
   if (selected && handledHash !== hash) {
     setHandledHash(hash);
-    if (hashParams.get("tab") === "tasks") setTab("tasks");
-    if (hashParams.get("new") === "1") setForm({ who: selected.key, editing: null });
+    if (SAMPLES_ON && hashParams.get("tab") === "tasks") setTab("tasks");
+    if (SAMPLES_ON && hashParams.get("new") === "1") setForm({ who: selected.key, editing: null });
   }
 
   // Keep the open conversation fresh while the tab is visible.
@@ -299,14 +303,16 @@ function ChatPageContent(): ReactElement {
                 </svg>
                 <span aria-live="polite">{copied ? "Link copied" : "Copy link to this chat"}</span>
               </button>
-              <div role="group" aria-label="Show" className="z-segs" style={{ flexWrap: "nowrap" }}>
-                <button type="button" className={tab === "chat" ? "z-seg on" : "z-seg"} aria-pressed={tab === "chat"} onClick={() => setTab("chat")}>
-                  Chat
-                </button>
-                <button type="button" className={tab === "tasks" ? "z-seg on" : "z-seg"} aria-pressed={tab === "tasks"} onClick={() => setTab("tasks")}>
-                  Tasks · {openOf(selected)} open
-                </button>
-              </div>
+              {SAMPLES_ON ? (
+                <div role="group" aria-label="Show" className="z-segs" style={{ flexWrap: "nowrap" }}>
+                  <button type="button" className={tab === "chat" ? "z-seg on" : "z-seg"} aria-pressed={tab === "chat"} onClick={() => setTab("chat")}>
+                    Chat
+                  </button>
+                  <button type="button" className={tab === "tasks" ? "z-seg on" : "z-seg"} aria-pressed={tab === "tasks"} onClick={() => setTab("tasks")}>
+                    Tasks · {openOf(selected)} open
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -370,7 +376,7 @@ function ChatPageContent(): ReactElement {
             reply={reply}
             onCancelReply={() => setReply(null)}
             onJumpReply={() => reply && flashItem(reply.key)}
-            onTask={(title) => setForm({ who: selected.key, editing: null, title })}
+            onTask={SAMPLES_ON ? (title) => setForm({ who: selected.key, editing: null, title }) : undefined}
             onSent={() => {
               setReply(null);
               setThreadKey((k) => k + 1);

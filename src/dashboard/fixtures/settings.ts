@@ -4,8 +4,9 @@
  *   Never invents other devices: a made-up sign-in would alarm a real owner.
  * - "Daily email summary" switch on Notifications: no preference field yet; kept for this tab like a server would.
  * When the endpoints ship, the loader bodies become the API calls and the pages don't change.
+ * SAMPLES_ON off (production): both rows are hidden (PasswordPage, NotificationsPage) and nothing is stored.
  */
-import { sample, sampleStore } from "./index";
+import { sample, sampleStore, SAMPLES_ON } from "./index";
 
 export interface SignedInSession {
   id: string;
@@ -64,6 +65,6 @@ export function getNotifyExtras(signal?: AbortSignal): Promise<NotifyExtras> {
 /** PATCH (future) notifications/settings/ `digest`. */
 export function saveNotifyExtras(patch: Partial<NotifyExtras>): Promise<NotifyExtras> {
   const next = { ...extras.get(), ...patch };
-  extras.set(next);
+  if (SAMPLES_ON) extras.set(next);
   return sample(next, undefined, 120);
 }

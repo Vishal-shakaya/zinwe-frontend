@@ -4,6 +4,7 @@ import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, type Policy, type UsbMode } from "../../lib/api";
 import { useEntitlements } from "../features/entitlements";
 import { usePolicy } from "../features/usePolicy";
+import { SAMPLES_ON } from "../fixtures";
 import { getRulesExtras, saveRulesExtras } from "../fixtures/rules";
 import { dMid } from "../reports/dates";
 import { CategoryPanel } from "../rules/CategoryPanel";
@@ -33,7 +34,7 @@ import { useTip } from "../ui/useTip";
 import { useResource } from "../useResource";
 import "../../styles/dash13/rules.css";
 
-const SECTIONS: ReadonlyArray<[string, string]> = [
+const ALL_SECTIONS: ReadonlyArray<[string, string]> = [
   ["hours", "Work hours"],
   ["web", "Websites"],
   ["usb", "USB & files"],
@@ -41,12 +42,19 @@ const SECTIONS: ReadonlyArray<[string, string]> = [
   ["remote", "Remote tools"],
   ["software", "Software"],
 ];
+/**
+ * Work hours (break / early End day OKs) and Software (new-software alerts) hold only settings the policy API doesn't
+ * save yet (fixtures/rules.ts): production builds (SAMPLES_ON off) leave both sections out.
+ */
+const SECTIONS = SAMPLES_ON ? ALL_SECTIONS : ALL_SECTIONS.filter(([k]) => k !== "hours" && k !== "software");
 const SECTION_ALIAS: Record<string, string> = { websites: "web", files: "usb", remotes: "remote", tools: "remote", apps: "remote", soft: "software", work: "hours" };
-const MODES: ReadonlyArray<[ToolMode, string]> = [
+const ALL_MODES: ReadonlyArray<[ToolMode, string]> = [
   ["block", "Block"],
   ["watch", "Watch"],
   ["allow", "Allow"],
 ];
+/** Allow (no alert) is sample-only: the policy API only knows blocked or not. */
+const MODES = SAMPLES_ON ? ALL_MODES : ALL_MODES.filter(([k]) => k !== "allow");
 const EXE_RE = /^[^\\/:*?"<>|\s][^\\/:*?"<>|]*\.exe$/i;
 
 /** Page names for the leave guard ("2 changes to leave for Alerts"). */
@@ -102,7 +110,7 @@ export default function RulesPage(): ReactElement {
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
-  const [acc, setAcc] = useState<Record<string, boolean>>({ hours: true });
+  const [acc, setAcc] = useState<Record<string, boolean>>({ [SECTIONS[0][0]]: true });
   const [panel, setPanel] = useState<string | null>(null);
   const [newSite, setNewSite] = useState("");
   const [newSiteErr, setNewSiteErr] = useState("");
@@ -318,6 +326,7 @@ export default function RulesPage(): ReactElement {
         ))}
       </nav>
 
+      {SAMPLES_ON ? (
       <Section id="hours" label="Work hours" sub="From the Start day, Take a break and End day buttons in each person's Zinwe window." {...accOf("hours")}>
         {has("work_time") ? (
           <>
@@ -344,6 +353,7 @@ export default function RulesPage(): ReactElement {
           <PlanNote module="work_time">See when each person starts, takes breaks and ends their day, and OK long breaks.</PlanNote>
         )}
       </Section>
+      ) : null}
 
       <Section
         id="web"
@@ -394,7 +404,7 @@ export default function RulesPage(): ReactElement {
                         <br />
                         <span className="rl-k">{c.desc}</span>
                       </span>
-                      {isApiCategory(c.key) ? (
+                      {SAMPLES_ON && isApiCategory(c.key) ? (
                         <button type="button" id={`see-${c.key}`} className="z-btn sm" aria-haspopup="dialog" onClick={() => setPanel(c.key)}>
                           See the list<span className="z-sr"> of {c.label} sites</span>
                         </button>
@@ -452,6 +462,9 @@ export default function RulesPage(): ReactElement {
                     {newSiteErr}
                   </span>
                 ) : null}
+                {/* Always allowed isn't in the policy API yet (sample): not in production builds. */}
+                {SAMPLES_ON ? (
+                <>
                 <b style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   Always allowed
                   <Def tip={tip} id="allow" aria="What Always allowed means">
@@ -472,6 +485,8 @@ export default function RulesPage(): ReactElement {
                 ) : (
                   <span className="rl-k">None yet. Open any list above and use “Allow a site” if something is blocked by mistake.</span>
                 )}
+                </>
+                ) : null}
               </div>
             ) : null}
           </>
@@ -513,7 +528,9 @@ export default function RulesPage(): ReactElement {
               <SizeField id="usbLimit" label="USB copies, over" bytes={d.usbBytes} unit="MB" unitBytes={MB} min={1} onChange={(b) => set({ usbBytes: b })} />
               <SizeField id="netLimit" label="Shared folders, over" bytes={d.lanBytes} unit="GB" unitBytes={GB} min={0.01} onChange={(b) => set({ lanBytes: b })} />
               <SizeField id="emailLimit" label="Email attachments, over" bytes={d.emailBytes} unit="MB" unitBytes={MB} min={1} onChange={(b) => set({ emailBytes: b })} />
-              <SizeField id="upLimit" label="Web uploads, over" bytes={Math.round(d.upGb * GB)} unit="GB" unitBytes={GB} min={0.01} onChange={(b) => set({ upGb: Number((b / GB).toFixed(2)) })} />
+              {SAMPLES_ON ? (
+                <SizeField id="upLimit" label="Web uploads, over" bytes={Math.round(d.upGb * GB)} unit="GB" unitBytes={GB} min={0.01} onChange={(b) => set({ upGb: Number((b / GB).toFixed(2)) })} />
+              ) : null}
             </div>
             {d.usbBytes < 50 * MB ? <span className="rl-warn">A USB limit under 50 MB alerts on almost every copy, even photos.</span> : null}
             {d.emailBytes < 5 * MB ? <span className="rl-warn">An email limit under 5 MB alerts on most PDFs and photos.</span> : null}
@@ -534,7 +551,7 @@ export default function RulesPage(): ReactElement {
       <Section
         id="remote"
         label="Remote tools"
-        sub="Remote-control apps. Choose Block, Watch or Allow for each one. Zinwe sees that a session runs, never what happens inside it."
+        sub={`Remote-control apps. Choose ${SAMPLES_ON ? "Block, Watch or Allow" : "Block or Watch"} for each one. Zinwe sees that a session runs, never what happens inside it.`}
         {...accOf("remote")}
       >
         {has("remote_access") ? (
@@ -542,7 +559,7 @@ export default function RulesPage(): ReactElement {
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
               <b id="rt-l">Known tools · {d.tools.length}</b>
               <span className="rl-k">
-                {nOf("block")} blocked · {nOf("watch")} watched · {nOf("allow")} allowed
+                {nOf("block")} blocked · {nOf("watch")} watched{SAMPLES_ON ? ` · ${nOf("allow")} allowed` : ""}
               </span>
             </div>
             <div className="rl-rt-wrap">
@@ -561,13 +578,17 @@ export default function RulesPage(): ReactElement {
                     </th>
                     <th scope="col">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        Block, watch or allow
-                        <Def tip={tip} id="rstatus" aria="What Block, Watch and Allow mean">
+                        {SAMPLES_ON ? "Block, watch or allow" : "Block or watch"}
+                        <Def tip={tip} id="rstatus" aria={SAMPLES_ON ? "What Block, Watch and Allow mean" : "What Block and Watch mean"}>
                           <b>Block</b> closes it the moment it starts. The try shows in Alerts.
                           <br />
                           <b>Watch</b> lets it run. Every session shows in Alerts.
-                          <br />
-                          <b>Allow</b> lets it run with no alert. Sessions are still listed on Apps &amp; remote.
+                          {SAMPLES_ON ? (
+                            <>
+                              <br />
+                              <b>Allow</b> lets it run with no alert. Sessions are still listed on Apps &amp; remote.
+                            </>
+                          ) : null}
                         </Def>
                       </span>
                     </th>
@@ -595,7 +616,7 @@ export default function RulesPage(): ReactElement {
                           <span
                             role="radiogroup"
                             className="rl-s3g"
-                            aria-label={`${t.name}: block, watch or allow`}
+                            aria-label={`${t.name}: ${SAMPLES_ON ? "block, watch or allow" : "block or watch"}`}
                             onKeyDown={(e) => {
                               const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
                               if (!step) return;
@@ -622,9 +643,12 @@ export default function RulesPage(): ReactElement {
                           </span>
                         </td>
                         <td className="rl-act">
-                          <button type="button" className="z-btn sm" aria-label={`Remove ${t.name} from the list`} onClick={() => set({ tools: d.tools.filter((x) => x.id !== t.id) })}>
-                            Remove
-                          </button>
+                          {/* Taking a built-in tool off the list is sample-only; your own tools can always go. */}
+                          {SAMPLES_ON || t.custom ? (
+                            <button type="button" className="z-btn sm" aria-label={`Remove ${t.name} from the list`} onClick={() => set({ tools: d.tools.filter((x) => x.id !== t.id) })}>
+                              Remove
+                            </button>
+                          ) : null}
                         </td>
                       </tr>
                     );
@@ -745,6 +769,7 @@ export default function RulesPage(): ReactElement {
         )}
       </Section>
 
+      {SAMPLES_ON ? (
       <Section id="software" label="Software" sub="Program names and versions only, never what's done in them." {...accOf("software")}>
         {has("software_installs") ? (
           <SwitchRow
@@ -758,8 +783,9 @@ export default function RulesPage(): ReactElement {
           <PlanNote module="software_installs">Get an alert the day a program is installed on any PC.</PlanNote>
         )}
       </Section>
+      ) : null}
 
-      {panelCat && isApiCategory(panelCat.key) ? (
+      {SAMPLES_ON && panelCat && isApiCategory(panelCat.key) ? (
         <CategoryPanel
           cat={panelCat.key}
           label={panelCat.label}

@@ -12,8 +12,10 @@
  * - Software: the new-software alerts switch.
  *
  * When the policy grows these fields, `getRulesExtras` / `saveRulesExtras` become part of getPolicy / updatePolicy.
+ * SAMPLES_ON off (production): the extras are NEUTRAL (nothing allowed, added or removed beyond the real policy),
+ * nothing is stored, and RulesPage hides every control above (and the category site lists).
  */
-import { sample, sampleStore } from "./index";
+import { sample, sampleStore, SAMPLES_ON } from "./index";
 
 export type ExtraCategory = "social" | "video";
 
@@ -47,15 +49,27 @@ const DEFAULTS: RulesExtras = {
   removedTools: [],
 };
 
+/** Production: extras that add nothing to the real policy (the draft is the policy as saved). */
+const NEUTRAL: RulesExtras = {
+  ...DEFAULTS,
+  allowSites: [],
+  extraCategories: [],
+  allowTools: [],
+  customTools: [],
+  removedTools: [],
+};
+
 const store = sampleStore<RulesExtras>("rules", () => structuredClone(DEFAULTS));
 
 /** GET the Rules extras (sample). */
 export function getRulesExtras(signal?: AbortSignal): Promise<RulesExtras> {
+  if (!SAMPLES_ON) return sample(structuredClone(NEUTRAL), signal, 0);
   return sample(store.get(), signal);
 }
 
 /** PUT the Rules extras (sample). */
 export function saveRulesExtras(next: RulesExtras): Promise<RulesExtras> {
+  if (!SAMPLES_ON) return sample(structuredClone(NEUTRAL), undefined, 0);
   store.set(structuredClone(next));
   return sample(next, undefined, 120);
 }

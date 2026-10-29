@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import type { PlanModule } from "../../lib/api";
+import { SAMPLES_ON } from "../fixtures";
 import { ZIcon, type IconName } from "../ui/ZIcon";
 import type { NavKey } from "./shellContext";
 
@@ -41,7 +42,7 @@ export interface DashNavProps {
 }
 
 function navRows(alerts: number, unread: number, tasksWaiting: number): Row[] {
-  return [
+  const rows: Row[] = [
     { key: "overview", label: "Overview", to: "/app", icon: "overview", tour: "overview" },
     { key: "alerts", label: "Alerts", to: "/app/alerts", icon: "alerts", badge: alerts, tone: "red", tour: "alerts" },
     { key: "team", label: "Team", to: "/app/team", icon: "team", parent: true, tour: "team" },
@@ -56,6 +57,8 @@ function navRows(alerts: number, unread: number, tasksWaiting: number): Row[] {
     { key: "reports", label: "Reports", to: "/app/reports", icon: "reports" },
     { key: "rules", label: "Rules", to: "/app/rules", icon: "rules" },
   ];
+  // Tasks run on sample data until FR-20: no Tasks row (or badge) in production builds.
+  return SAMPLES_ON ? rows : rows.filter((r) => r.key !== "tasks");
 }
 
 export function DashNav({

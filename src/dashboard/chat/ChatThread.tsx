@@ -2,6 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactEleme
 import { errorMessage, getMemberThread, type Message } from "../../lib/api";
 import { Linkified } from "../components/Linkified";
 import { CHAT_READ_EVENT } from "../features/chatEvents";
+import { SAMPLES_ON } from "../fixtures";
 import { isoDay, type SampleTask } from "../fixtures/tasks";
 import { entryDate, sepLabel, type TaskPerson } from "../tasks/model";
 import { clockTime } from "../ui/time";
@@ -153,7 +154,7 @@ export function ChatThread({
       }}
     >
       {items.length === 0 ? (
-        <p style={{ margin: "auto 0", textAlign: "center", color: "#4A443C" }}>No messages with {first} yet. Say hello below, or use Add task to send something to tick off.</p>
+        <p style={{ margin: "auto 0", textAlign: "center", color: "#4A443C" }}>No messages with {first} yet. Say hello below{SAMPLES_ON ? ", or use Add task to send something to tick off" : ""}.</p>
       ) : null}
       {items.map((it, i) => {
         const day = isoDay(it.at);

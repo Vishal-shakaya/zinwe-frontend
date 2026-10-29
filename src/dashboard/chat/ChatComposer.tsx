@@ -11,7 +11,8 @@ import type { ReplyTarget } from "./reply";
  * The Chat page composer (DashChat): the task button, the message box and the round Send inside one box; "/" opens
  * the actions menu ("/task Send the deck" opens the task form with the title filled in). Under it, the same
  * Suggestions / Priority / Send via (Chat, Chat + email, Email only) as the chat bubble. Enter sends,
- * Shift + Enter starts a new line.
+ * Shift + Enter starts a new line. Without `onTask` (production builds: tasks are sample data until FR-20) there is
+ * no task button and no "/" menu.
  */
 export function ChatComposer({
   person,
@@ -25,8 +26,8 @@ export function ChatComposer({
   reply: ReplyTarget | null;
   onCancelReply: () => void;
   onJumpReply: () => void;
-  /** Open the task form for this person, optionally with a title. */
-  onTask: (title?: string) => void;
+  /** Open the task form for this person, optionally with a title. Leave out to hide every task control. */
+  onTask?: (title?: string) => void;
   onSent: (delivery: MessageChannel) => void;
 }): ReactElement {
   const first = person.first;
@@ -58,10 +59,10 @@ export function ChatComposer({
   const via = DELIVERIES.find((d) => d.value === delivery) ?? DELIVERIES[0];
 
   const slashWord = /^\/(\S*)/.exec(text)?.[1];
-  const slashOpen = slashWord !== undefined && !slashClosed && "task".startsWith(slashWord.toLowerCase()) && !/^\/\S*\n/.test(text);
+  const slashOpen = onTask !== undefined && slashWord !== undefined && !slashClosed && "task".startsWith(slashWord.toLowerCase()) && !/^\/\S*\n/.test(text);
   const slashTitle = text.replace(/^\/\S*\s*/, "").trim();
   const pickSlash = () => {
-    onTask(slashTitle || undefined);
+    onTask?.(slashTitle || undefined);
     setText("");
     setSlashClosed(false);
   };
@@ -168,9 +169,11 @@ export function ChatComposer({
           </div>
         ) : null}
         <div className="cbox">
-          <button type="button" id="new-task" className="cicon" aria-label={`Add a task for ${first} (or type /task)`} title="Add a task · or type /task" aria-haspopup="dialog" onClick={() => onTask()}>
-            <TaskMark size={18} stroke={2} />
-          </button>
+          {onTask ? (
+            <button type="button" id="new-task" className="cicon" aria-label={`Add a task for ${first} (or type /task)`} title="Add a task · or type /task" aria-haspopup="dialog" onClick={() => onTask()}>
+              <TaskMark size={18} stroke={2} />
+            </button>
+          ) : null}
           <label htmlFor="msg" className="z-sr">
             Message {first}
           </label>
@@ -263,7 +266,12 @@ export function ChatComposer({
         </p>
       ) : (
         <span className="cv-hint">
-          Type <b className="z-mono">/</b> for actions, like <b className="z-mono">/task</b> · Enter sends · Shift + Enter for a new line ·{" "}
+          {onTask ? (
+            <>
+              Type <b className="z-mono">/</b> for actions, like <b className="z-mono">/task</b> ·{" "}
+            </>
+          ) : null}
+          Enter sends · Shift + Enter for a new line ·{" "}
           {delivery === "email" ? `Goes to ${email} only` : `Lands in the Zinwe window on ${first}’s PC`}
         </span>
       )}

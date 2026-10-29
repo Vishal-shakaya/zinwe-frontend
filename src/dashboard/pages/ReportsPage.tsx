@@ -4,6 +4,7 @@ import { useAuth } from "../../auth/authContext";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { downloadReport, errorMessage, getReport, sendReport } from "../../lib/api";
 import { useEntitlements } from "../features/entitlements";
+import { SAMPLES_ON } from "../fixtures";
 import { parseEmails, badEmail } from "../features/reportFormat";
 import { dStr, dDM, periodFor, PERIODS, rangeText, shiftDay, isoDay, type Period } from "../reports/dates";
 import { colorMap, personKey } from "../reports/model";
@@ -23,14 +24,22 @@ import "../../styles/dash13/reports.css";
 
 type Tab = "report" | "perf" | "sched" | "sent";
 
-const TABS: ReadonlyArray<[Tab, string, string]> = [
+const ALL_TABS: ReadonlyArray<[Tab, string, string]> = [
   ["report", "Report", "report"],
   ["perf", "Performance", "performance"],
   ["sched", "Scheduled", "scheduled"],
   ["sent", "Sent", "sent"],
 ];
+/** Performance runs on sample task numbers until FR-34 (fixtures/performance.ts): no tab in production builds. */
+const TABS = SAMPLES_ON ? ALL_TABS : ALL_TABS.filter(([k]) => k !== "perf");
 /** #tab=<value> (and the old ?view=) names, so links can open a tab directly. */
 const TAB_HASH: Record<string, Tab> = { report: "report", performance: "perf", perf: "perf", scheduled: "sched", sched: "sched", schedules: "sched", sent: "sent" };
+
+/** The tab a link asks for; Performance falls back to Report when it is hidden (production). */
+function tabFromLink(name: string): Tab {
+  const t = TAB_HASH[name.toLowerCase()] ?? "report";
+  return TABS.some(([k]) => k === t) ? t : "report";
+}
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 function hashParams(hash: string): URLSearchParams {
@@ -59,7 +68,17 @@ export default function ReportsPage(): ReactElement {
   const today = isoDay(new Date(useNow(60_000)));
   const tip = useTip();
 
-  const [tab, setTab] = useState<Tab>(() => TAB_HASH[(hashParams(hash).get("tab") ?? params.get("view") ?? "").toLowerCase()] ?? "report");
+  const [tab, setTab] = useState<Tab>(() => tabFromLink(hashParams(hash).get("tab") ?? params.get("view") ?? ""));
+  // A link to a hidden tab (#tab=performance in production) lands on Report: drop the tab from the address too
+  // (also when only the hash changes while Reports is open).
+  useEffect(() => {
+    const p = hashParams(hash);
+    const want = TAB_HASH[(p.get("tab") ?? "").toLowerCase()];
+    if (!want || TABS.some(([k]) => k === want)) return;
+    p.delete("tab");
+    const h = p.toString();
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}${h ? `#${h}` : ""}`);
+  }, [hash]);
   const memberParam = Number(params.get("member"));
   const memberId = Number.isInteger(memberParam) && memberParam > 0 ? memberParam : null;
   const linked: [string, string] | null =
@@ -410,7 +429,7 @@ export default function ReportsPage(): ReactElement {
         )
       ) : null}
 
-      {tab === "perf" ? (
+      {tab === "perf" && SAMPLES_ON ? (
         <PerformanceTab
           report={teamReport}
           pending={memberId === null ? report.pending : team.pending}

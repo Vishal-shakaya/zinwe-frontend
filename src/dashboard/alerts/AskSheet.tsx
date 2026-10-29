@@ -1,5 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { errorMessage, sendMessage, type EventSeverity } from "../../lib/api";
+import { SAMPLES_ON } from "../fixtures";
 import { recordAsk } from "../fixtures/majorAlerts";
 import { Sheet, Spinner } from "../ui/States";
 
@@ -80,8 +81,9 @@ function AskSheetBody({
       </label>
       <textarea id={id} rows={4} value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={2000} />
       <span style={{ fontSize: 12.5, color: "#6B6358" }}>
-        It goes to {target.first}’s Zinwe app. The reply shows {where === "alert" ? "on this alert" : "here"} and in Chat. The
-        wording asks, it doesn’t accuse; edit it freely.
+        {/* The alert ↔ reply link is sample data until FR-35: production builds only promise Chat. */}
+        It goes to {target.first}’s Zinwe app. The reply shows {SAMPLES_ON ? `${where === "alert" ? "on this alert" : "here"} and ` : ""}in Chat.
+        The wording asks, it doesn’t accuse; edit it freely.
       </span>
       {error ? (
         <span className="z-err" role="alert">

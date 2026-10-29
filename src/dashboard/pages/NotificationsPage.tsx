@@ -10,6 +10,7 @@ import {
   type NotifyPermission,
 } from "../features/browserNotify";
 import { useEntitlements } from "../features/entitlements";
+import { SAMPLES_ON } from "../fixtures";
 import { getNotifyExtras, saveNotifyExtras, type NotifyExtras } from "../fixtures/settings";
 import { ErrorBlock, Sk } from "../ui/States";
 import { useResource } from "../useResource";
@@ -213,17 +214,20 @@ export default function NotificationsPage(): ReactElement {
           />
           <Toggle
             label="Worth a look alerts"
-            desc="When off, they wait in Alerts and the daily email."
+            desc={SAMPLES_ON ? "When off, they wait in Alerts and the daily email." : "When off, they wait in Alerts."}
             on={worthOn(current.alerts)}
             onFlip={() => void save({ alerts: worthOn(current.alerts) ? (needsOn(current.alerts) ? "critical" : "off") : "warning" })}
           />
-          <Toggle
-            label="Daily email summary"
-            desc="One email at 7 PM with the day’s alerts and hours. Info alerts only show here and in Alerts."
-            on={extras.data?.digest ?? false}
-            disabled={extras.data === undefined}
-            onFlip={() => void saveExtras({ digest: !(extras.data?.digest ?? false) })}
-          />
+          {/* No digest preference in the API yet (sample, fixtures/settings.ts): not in production builds. */}
+          {SAMPLES_ON ? (
+            <Toggle
+              label="Daily email summary"
+              desc="One email at 7 PM with the day’s alerts and hours. Info alerts only show here and in Alerts."
+              on={extras.data?.digest ?? false}
+              disabled={extras.data === undefined}
+              onFlip={() => void saveExtras({ digest: !(extras.data?.digest ?? false) })}
+            />
+          ) : null}
         </>
       )}
     </section>

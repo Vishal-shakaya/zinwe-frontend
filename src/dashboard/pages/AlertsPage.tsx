@@ -18,6 +18,7 @@ import { groupAlerts } from "../features/alertGroups";
 import { useEntitlements } from "../features/entitlements";
 import { alertsOnly } from "../features/events";
 import { useEventCounts } from "../features/useEventCounts";
+import { SAMPLES_ON } from "../fixtures";
 import { KIND_LABEL, LEVEL_DEF, type AlertKind } from "../fixtures/majorAlerts";
 import { PageHead } from "../shell/PageHead";
 import { useShell } from "../shell/shellContext";
@@ -482,7 +483,7 @@ export default function AlertsPage(): ReactElement {
         onClose={() => setAsk(null)}
         onSent={(t) => {
           setAsk(null);
-          setToast(`Sent to ${t.first}’s Zinwe app. The reply shows on this alert and in Chat.`);
+          setToast(`Sent to ${t.first}’s Zinwe app. The reply shows ${SAMPLES_ON ? "on this alert and " : ""}in Chat.`);
         }}
       />
 

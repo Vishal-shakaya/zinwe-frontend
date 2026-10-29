@@ -11,7 +11,7 @@
  * and their usual hours), and the page keeps working out score and rank the same way.
  */
 import type { Member } from "../../lib/api";
-import { sample } from "./index";
+import { sample, SAMPLES_ON } from "./index";
 
 /** One sample person's rates (board DashReports PEOPLE: tpd, tr, usual). */
 interface SampleRate {
@@ -59,7 +59,7 @@ export function withPeople(members: readonly Member[] | undefined): PerformanceI
 
 /** GET performance inputs (sample): per member, their task rate and usual day. */
 export function getPerformanceInputs(signal: AbortSignal, members: readonly Member[] | undefined): Promise<PerformanceInput[]> {
-  return sample(withPeople(members), signal);
+  return sample(SAMPLES_ON ? withPeople(members) : [], signal);
 }
 
 /** One ranked person on the Performance tab. */

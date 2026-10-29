@@ -21,6 +21,7 @@ import { useEntitlements } from "../features/entitlements";
 import { alertsOnly, isHandled } from "../features/events";
 import { useEventCounts } from "../features/useEventCounts";
 import { consentOf, presenceOf } from "../features/memberStatus";
+import { SAMPLES_ON } from "../fixtures";
 import { listTasks, TASKS_CHANGED_EVENT } from "../fixtures/tasks";
 import { NeedsCard } from "../overview/NeedsCard";
 import { needsBreakdown, needsCounts } from "../overview/needs";
@@ -38,7 +39,10 @@ import "../../styles/dash13/overview.css";
 
 /** Short definitions shown in the tile tooltips (label first, in bold). The tile's own sub line keeps the facts. */
 const TILE_DEF: Record<string, string> = {
-  "Needs you": "requests waiting for your OK, Needs you alerts not yet marked as fine, and tasks that need help or your OK.",
+  // Tasks are sample data until FR-20 (fixtures/tasks.ts): production builds don't mention them.
+  "Needs you": SAMPLES_ON
+    ? "requests waiting for your OK, Needs you alerts not yet marked as fine, and tasks that need help or your OK."
+    : "requests waiting for your OK, and Needs you alerts not yet marked as fine.",
   "Working now": "pressed Start day in the Zinwe app and not on a break right now.",
   "On a break": "pressed Take a break. Breaks over 45 minutes ask for your OK.",
   "PCs offline": "switched off or not connected to Zinwe right now.",
@@ -213,9 +217,11 @@ export default function OverviewPage(): ReactElement {
             <button type="button" className="z-btn sm" onClick={refreshAll} disabled={refreshing}>
               {refreshing ? "Refreshing…" : "Refresh"}
             </button>
-            <Link className="z-btn sm zn-desk-only" to="/app/tasks#new=1">
-              New task
-            </Link>
+            {SAMPLES_ON ? (
+              <Link className="z-btn sm zn-desk-only" to="/app/tasks#new=1">
+                New task
+              </Link>
+            ) : null}
             <Link className="z-btn sm dark zn-desk-only" to="/app/team#add=1">
               Add a person
             </Link>

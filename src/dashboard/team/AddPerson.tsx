@@ -3,6 +3,7 @@ import { createMember, MEMBER_ROLES, setMemberRole, type Member, type MemberFiel
 import { copyText } from "../../lib/clipboard";
 import { apiFieldErrors, apiFormError } from "../../portal/failure";
 import { CopyDetails } from "../components/CopyDetails";
+import { SAMPLES_ON } from "../fixtures";
 import { savePhoto, type MemberPhoto } from "../fixtures/photos";
 import { downloadPage } from "../features/invite";
 import { PictureArt } from "./Avatar";
@@ -254,6 +255,8 @@ export function AddPerson({
               </select>
             </div>
           </div>
+          {/* Pictures are sample data until the member photo API ships: no photo field in production builds. */}
+          {SAMPLES_ON ? (
           <div className="zt-fld">
             <span className="zt-lab">
               Photo <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
@@ -288,6 +291,7 @@ export function AddPerson({
             </div>
             <span className="zt-hint">Any photo works; we shrink it to 256 × 256 px (about 100 KB). Leave it empty and we show their initials.</span>
           </div>
+          ) : null}
           {/* The server always emails the invite today, so this stays on (see the Track D report). */}
           <label className="zt-check">
             <input type="checkbox" checked disabled readOnly />

@@ -6,6 +6,7 @@ import { TaggedComposer } from "../components/TaggedComposer";
 import { detailOf } from "../features/alertGroups";
 import { alertLabel, severityOf } from "../features/events";
 import { presenceOf } from "../features/memberStatus";
+import { SAMPLES_ON } from "../fixtures";
 import { useShell } from "../shell/shellContext";
 import { formatDateTime } from "../time";
 import { ZIcon } from "../ui/ZIcon";
@@ -25,7 +26,8 @@ function slashOf(value: string): boolean {
 /**
  * One docked chat window (DashFloat `.zf-win`): the person, the real thread (MemberChatThread, refreshed after each
  * send and every 20 s while open), the alert it's about if any, and the tagged composer. Minimise keeps the draft;
- * Esc closes; `/task` (or the task button) opens Tasks → New task for this person.
+ * Esc closes; `/task` (or the task button) opens Tasks → New task for this person. Tasks are sample data until
+ * FR-20, so production builds (SAMPLES_ON off) show neither.
  */
 export function ChatWindow({
   win,
@@ -86,7 +88,7 @@ export function ChatWindow({
   };
 
   const onInput = (e: FormEvent<HTMLDivElement>) => {
-    if (e.target instanceof HTMLTextAreaElement) setSlash(slashOf(e.target.value));
+    if (SAMPLES_ON && e.target instanceof HTMLTextAreaElement) setSlash(slashOf(e.target.value));
   };
   // While "/task" is offered: Enter or Tab picks it, Esc hides it (the composer never sends "/task" as a message).
   const onComposerKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -135,9 +137,11 @@ export function ChatWindow({
         <button type="button" className="zf-ib" aria-label={toggleLabel} title={expanded ? "Minimise" : "Open"} onClick={onToggle}>
           <ZIcon d={expanded ? P_MIN : P_MAX} size={16} stroke={2.2} />
         </button>
-        <Link className="zf-ib" to={taskHref} aria-label={`Add a task for ${first} (or type /task)`} title="Add a task · or type /task">
-          <ZIcon d={P_TASK} size={16} stroke={2} />
-        </Link>
+        {SAMPLES_ON ? (
+          <Link className="zf-ib" to={taskHref} aria-label={`Add a task for ${first} (or type /task)`} title="Add a task · or type /task">
+            <ZIcon d={P_TASK} size={16} stroke={2} />
+          </Link>
+        ) : null}
         <Link className="zf-ib" to={fullHref} aria-label={`Open the full chat with ${first}`} title="Open full chat">
           <ZIcon name="external" size={15} stroke={2} />
         </Link>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { BREAK_NOTE_MAX, breakNoteLength, decideBreak, errorMessage, type WorkLogEntry } from "../../lib/api";
 import { AskSheet, type AskTarget } from "../alerts/AskSheet";
 import { firstName, formatTime, KIND_ICON, type AlertView } from "../alerts/alertModel";
+import { SAMPLES_ON } from "../fixtures";
 import { LEVEL_DEF } from "../fixtures/majorAlerts";
 import { saveTask, type SampleTask, type TaskStatus } from "../fixtures/tasks";
 import { dayGroup } from "../time";
@@ -465,7 +466,7 @@ export function NeedsCard({
         onClose={() => setAsk(null)}
         onSent={(t) => {
           setAsk(null);
-          setLast({ text: `Sent to ${t.first}’s Zinwe app. The reply shows here and in Chat.` });
+          setLast({ text: `Sent to ${t.first}’s Zinwe app. The reply shows ${SAMPLES_ON ? "here and " : ""}in Chat.` });
         }}
       />
     </section>
