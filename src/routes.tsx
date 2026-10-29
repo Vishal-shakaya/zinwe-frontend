@@ -5,7 +5,6 @@ import { APP_STEPS } from "./auth/steps";
 import { Layout } from "./components/layout/Layout";
 import { PageErrorBoundary } from "./components/ui/PageErrorBoundary";
 import { lazyPage } from "./lib/lazyPage";
-import { SAMPLES_ON } from "./dashboard/fixtures";
 import ContactPage from "./pages/ContactPage";
 import EarlyAccessPage from "./pages/EarlyAccessPage";
 import HomePage from "./pages/HomePage";
@@ -156,8 +155,7 @@ export function AppRoutes(): ReactElement {
               <Route path="team" element={<TeamPage />} />
               <Route path="chat" element={<TeamChatPage />} />
               <Route path="chat/:member" element={<TeamChatPage />} />
-              {/* Tasks run on sample data until FR-20: production builds send /app/tasks to Overview (SAMPLES_ON). */}
-              <Route path="tasks" element={SAMPLES_ON ? <TasksPage /> : <Navigate to="/app" replace />} />
+              <Route path="tasks" element={<TasksPage />} />
               <Route path="rules" element={<RulesPage />} />
               <Route path="team/chat" element={<Navigate to="/app/chat" replace />} />
               {/* Upgrades happen on the plan page; old links (emails, announcements) keep working. */}

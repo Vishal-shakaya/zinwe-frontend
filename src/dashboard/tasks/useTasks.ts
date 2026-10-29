@@ -1,28 +1,24 @@
 import { useCallback, useEffect } from "react";
-import type { Member } from "../../lib/api";
-import {
-  addDays,
-  createTask,
-  listTasks,
-  removeTask,
-  restoreTask,
-  saveTask,
-  TASKS_CHANGED_EVENT,
-  todayIso,
-  type SampleTask,
-} from "../fixtures/tasks";
+import { createTask, listTasks, sendMessage, taskAction, updateTask, type Task } from "../../lib/api";
 import { useResource, type Resource } from "../useResource";
-import { nowLabel, type TaskPerson } from "./model";
+import type { TaskPerson } from "./model";
 import type { TaskFormValues } from "./TaskForm";
+import { addDays, dueAtOf, tasksChanged, TASKS_CHANGED_EVENT, todayIso, toView, type TaskView } from "./types";
+
+/** How often open task views check for their updates (a member's taps arrive through the API). */
+export const TASKS_POLL_MS = 15_000;
 
 /**
- * SAMPLE tasks (fixtures/tasks.ts, until FR-20 ships) laid onto the real members. Every change goes through
- * saveTask / createTask / removeTask, which fire TASKS_CHANGED_EVENT: this list, other open views and the
- * Tasks badge in the menu all refresh.
+ * Every task of the account (FR-20 v2: GET tasks/?status=all), as TaskViews, newest activity first. Any change made
+ * here (taskActions) fires TASKS_CHANGED_EVENT, so this list, other open views and the Tasks badge refresh at once;
+ * the member's side arrives on the poll. `enabled` false (no team_chat on the plan) loads nothing.
  */
-export function useTasks(members: readonly Member[] | undefined): Resource<SampleTask[]> {
-  const load = useCallback((signal: AbortSignal) => listTasks(signal, members), [members]);
-  const tasks = useResource(load);
+export function useTasks({ enabled = true, pollMs = TASKS_POLL_MS }: { enabled?: boolean; pollMs?: number } = {}): Resource<TaskView[]> {
+  const load = useCallback(
+    (signal: AbortSignal) => (enabled ? listTasks({ status: "all" }, signal).then((rows) => rows.map((t) => toView(t))) : Promise.resolve([])),
+    [enabled],
+  );
+  const tasks = useResource(load, { pollMs: enabled ? pollMs : undefined });
   const { reload } = tasks;
   useEffect(() => {
     window.addEventListener(TASKS_CHANGED_EVENT, reload);
@@ -31,81 +27,66 @@ export function useTasks(members: readonly Member[] | undefined): Resource<Sampl
   return tasks;
 }
 
-/** The task actions, worded and logged as the boards do. Each returns what Undo needs (the task as it was). */
+async function done(p: Promise<Task>): Promise<TaskView> {
+  const saved = await p;
+  tasksChanged();
+  return toView(saved);
+}
+
+/** The task actions, worded as the boards do. Each resolves with the saved task (and refreshes every view). */
 export const taskActions = {
-  approve(t: SampleTask): SampleTask | null {
-    if (t.status !== "review") return null;
-    saveTask(t.id, { status: "approved" }, { k: "approved" });
-    return t;
+  /** Approve it (from "waiting for your OK"), or "Mark done" from any open stage: both end Approved. */
+  approve(t: TaskView, note?: string): Promise<TaskView> {
+    return done(taskAction(t.id, "approve", note));
   },
-  /** Tasks drawer: "Reopen with note". */
-  reopen(t: SampleTask, note: string): void {
-    const text = note.trim() || "Please take another look.";
-    saveTask(t.id, { status: "progress", note: text, noteBy: "You" }, { k: "reopened", text });
+  /** Back to In progress, with what needs another look. */
+  reopen(t: TaskView, note: string): Promise<TaskView> {
+    return done(taskAction(t.id, "reopen", note.trim() || "Please take another look."));
   },
-  /** Chat card: "Reopen" in one click. */
-  reopenQuick(t: SampleTask): void {
-    saveTask(t.id, { status: "progress", note: "Reopened: please check the last step again.", noteBy: "You" }, { k: "reopened", text: "Please check the last step again." });
+  nudge(t: TaskView): Promise<TaskView> {
+    return done(taskAction(t.id, "nudge"));
   },
-  nudge(t: SampleTask): void {
-    if (t.nudgedAt) return;
-    saveTask(t.id, { nudgedAt: nowLabel() }, { k: "nudged" });
+  cancel(t: TaskView): Promise<TaskView> {
+    return done(taskAction(t.id, "cancel"));
   },
-  cancel(t: SampleTask): SampleTask | null {
-    return removeTask(t.id);
-  },
-  reply(t: SampleTask, text: string): void {
-    if (text.trim()) saveTask(t.id, {}, { k: "reply", text: text.trim() });
-  },
-  moveDue(t: SampleTask): void {
-    saveTask(t.id, { due: addDays(todayIso(), 1), status: "progress", note: "" }, { k: "due" });
-  },
-  undo(prev: SampleTask): void {
-    restoreTask(prev);
-  },
-  /** Save the task form: a new task for that person, or the edited one ("Edited" tag, ticked steps stay ticked). */
-  submit(v: TaskFormValues, editing: SampleTask | null): SampleTask | null {
-    if (editing) {
-      return saveTask(
-        editing.id,
-        {
-          title: v.title,
-          details: v.details,
-          due: v.due,
-          time: v.time,
-          high: v.high,
-          confirm: v.confirm,
-          needsOk: v.needsOk,
-          email: v.email,
-          edited: true,
-          steps: v.steps.map((label) => ({ label, done: !!editing.steps.find((y) => y.label === label)?.done })),
-        },
-        { k: "edited" },
-      );
+  /**
+   * Answer their help request: the reply goes to their chat (titled "About: <task>", so Chat quotes the task), and
+   * the task goes back to In progress with your reply as its note.
+   */
+  async reply(t: TaskView, text: string): Promise<TaskView> {
+    const body = text.trim();
+    await sendMessage(t.memberId, { title: `About: ${t.title}`.slice(0, 120), body, channel: "chat" });
+    if (t.status !== "help") {
+      tasksChanged();
+      return t;
     }
-    const t = createTask({
-      who: v.person.sampleKey,
-      memberId: v.person.memberId,
-      name: v.person.name,
+    return done(taskAction(t.id, "reopen", body));
+  },
+  /** Same time, tomorrow (or any time tomorrow). */
+  moveDue(t: TaskView): Promise<TaskView> {
+    return done(updateTask(t.id, { due_at: dueAtOf(addDays(todayIso(), 1), t.time) }));
+  },
+  /** Save the task form: a new task for that person, or the edited one (ticked steps stay ticked). */
+  submit(v: TaskFormValues, editing: TaskView | null): Promise<TaskView> {
+    const fields = {
       title: v.title,
-      details: v.details,
-      due: v.due,
-      time: v.time,
-      high: v.high,
-      confirm: v.confirm,
-      needsOk: v.needsOk,
-      email: v.email,
-      steps: v.steps.map((label) => ({ label, done: false })),
-    });
-    // Someone at their PC sees it a few seconds later (sample), like the read receipts in Chat.
-    if (v.person.presenceKind === "working") {
-      window.setTimeout(() => saveTask(t.id, { status: t.confirm ? "waiting" : "seen" }, { k: "seen" }), 3500);
+      note: v.details,
+      due_at: dueAtOf(v.due, v.time),
+      priority: v.high ? ("high" as const) : ("normal" as const),
+    };
+    if (editing) {
+      const steps = v.steps.map((label) => {
+        const same = editing.steps.find((s) => s.label === label);
+        return same ? { id: same.id, title: label } : label;
+      });
+      return done(updateTask(editing.id, { ...fields, steps }));
     }
-    return t;
+    if (v.person.memberId == null) return Promise.reject(new Error("Pick a person on your team."));
+    return done(createTask(v.person.memberId, { ...fields, steps: v.steps }));
   },
 };
 
-/** A person's open tasks count ("1 task" / "3 tasks"). */
-export function openCountFor(person: TaskPerson, tasks: readonly SampleTask[]): number {
-  return tasks.filter((t) => t.memberId === person.memberId && (person.memberId !== null || t.who === person.sampleKey) && t.status !== "done" && t.status !== "approved").length;
+/** A person's open tasks count ("1 task" / "3 tasks"): everything they still have to finish. */
+export function openCountFor(person: TaskPerson, tasks: readonly TaskView[]): number {
+  return tasks.filter((t) => t.memberId === person.memberId && !["review", "approved", "cancelled"].includes(t.status)).length;
 }

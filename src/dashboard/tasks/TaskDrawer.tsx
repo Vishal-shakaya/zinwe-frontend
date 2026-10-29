@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { CLOSED, TASK_STATUS, type SampleTask } from "../fixtures/tasks";
+import { errorMessage } from "../../lib/api";
 import { ZIcon } from "../ui/ZIcon";
-import { dueLabel, dueStyle, LOGDOT, logText, NEUTRAL, noteByOf, RED, statusStyle, SUB, trackOf, whenOf, type TaskPerson } from "./model";
+import { dueLabel, dueStyle, LOGDOT, logText, NEUTRAL, noteByOf, NUDGEABLE, RED, statusStyle, trackOf, whenOf, type TaskPerson } from "./model";
+import { CLOSED, FINISHED, TASK_STATUS, type TaskView } from "./types";
 import { Avatar } from "./Avatar";
 import { taskActions } from "./useTasks";
 
 /**
- * The task drawer on the Tasks page (DashTasks): stage, note, checklist, actions (Approve, Reopen with note,
- * Nudge, Edit, Open chat, Cancel task), the help reply and the activity log.
+ * The task drawer on the Tasks page (DashTasks): stage, note, checklist, actions (Approve / Mark done, Reopen with
+ * note, Nudge, Edit, Open chat, Cancel task), the help reply and the activity log. Every action is an FR-20 API call.
  */
 export function TaskDrawer({
   task: t,
@@ -18,19 +19,33 @@ export function TaskDrawer({
   onEdit,
   say,
 }: {
-  task: SampleTask;
+  task: TaskView;
   person: TaskPerson;
   chatHref: string;
   onClose: () => void;
-  onEdit: (t: SampleTask) => void;
-  /** Toast, with what Undo puts back. */
-  say: (text: string, undo?: SampleTask) => void;
+  onEdit: (t: TaskView) => void;
+  /** Toast. */
+  say: (text: string) => void;
 }): ReactElement {
   const f = p.first;
   const [reopening, setReopening] = useState(false);
   const [reopenNote, setReopenNote] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [reply, setReply] = useState("");
+  const [busy, setBusy] = useState(false);
+  const run = async (p: () => Promise<unknown>, ok: string, after?: () => void) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await p();
+      say(ok);
+      after?.();
+    } catch (err) {
+      say(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
   const panel = useRef<HTMLElement>(null);
   const state = useRef({ reopening, confirming, onClose });
   useEffect(() => {
@@ -73,10 +88,10 @@ export function TaskDrawer({
     };
   }, []);
 
-  const finished = t.status === "done" || t.status === "review" || t.status === "approved";
+  const finished = FINISHED.includes(t.status);
   const closed = CLOSED.includes(t.status);
   const isHelp = t.status === "help";
-  const reopenable = (t.status === "review" || closed) && !t.byMember;
+  const reopenable = t.status === "review" || closed;
   const track = trackOf(t);
   const doneN = t.steps.filter((x) => x.done).length;
   const noteStyle: CSSProperties = {
@@ -88,30 +103,17 @@ export function TaskDrawer({
   };
   const finalReached = track.findIndex((k) => k.current) === track.length - 1;
 
-  const approve = () => {
-    const prev = taskActions.approve(t);
-    if (prev) say(`Approved · ${f} sees this in their Zinwe app`, prev);
-  };
-  const doReopen = () => {
-    taskActions.reopen(t, reopenNote);
-    setReopening(false);
-    setReopenNote("");
-    say(`Reopened · back in ${f}’s list`);
-  };
-  const nudge = () => {
-    taskActions.nudge(t);
-    say(`Nudged · ${f} gets a reminder in their Zinwe app`);
-  };
-  const cancel = () => {
-    const prev = taskActions.cancel(t);
-    if (prev) say(`Task cancelled · removed from ${f}’s app`, prev);
-    onClose();
-  };
+  const approve = () => void run(() => taskActions.approve(t), t.status === "review" ? `Approved · ${f} sees this in their Zinwe app` : `Marked done · ${f} sees it approved`);
+  const doReopen = () =>
+    void run(() => taskActions.reopen(t, reopenNote), `Reopened · back in ${f}’s list`, () => {
+      setReopening(false);
+      setReopenNote("");
+    });
+  const nudge = () => void run(() => taskActions.nudge(t), `Nudged · ${f} gets a reminder in their Zinwe app`);
+  const cancel = () => void run(() => taskActions.cancel(t), `Task cancelled · it leaves ${f}’s list`, onClose);
   const sendReply = () => {
     if (!reply.trim()) return;
-    taskActions.reply(t, reply);
-    setReply("");
-    say(`Sent to ${f}`);
+    void run(() => taskActions.reply(t, reply), `Sent to ${f} · the task is back in progress`, () => setReply(""));
   };
 
   return (
@@ -164,7 +166,7 @@ export function TaskDrawer({
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <dt className="zk-lbl">Sign-off</dt>
               <dd style={{ margin: 0, fontSize: 13, color: "#3A352E" }}>
-                {t.byMember ? `Added by ${f}, nothing needed` : t.needsOk ? "Needs your OK when done" : `Closes when ${f} marks it done`}
+                {t.status === "cancelled" ? "Cancelled" : t.status === "approved" ? "You approved it" : `${f} marks it done, then you give the OK`}
               </dd>
             </div>
           </dl>
@@ -240,8 +242,8 @@ export function TaskDrawer({
                 Checklist · {doneN}/{t.steps.length}
               </h3>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-                {t.steps.map((x, i) => (
-                  <li key={`${i}-${x.label}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {t.steps.map((x) => (
+                  <li key={x.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span className={x.done ? "zk-box on" : "zk-box"} aria-hidden="true">
                       {x.done ? "✓" : ""}
                     </span>
@@ -256,8 +258,12 @@ export function TaskDrawer({
           <section aria-label="Actions" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {t.status === "review" ? (
-                <button type="button" className="z-btn sm green" onClick={approve}>
+                <button type="button" className="z-btn sm green" disabled={busy} onClick={approve}>
                   Approve
+                </button>
+              ) : !finished ? (
+                <button type="button" className="z-btn sm" disabled={busy} onClick={approve} title={`If ${f} forgot to mark it done`}>
+                  Mark done
                 </button>
               ) : null}
               {reopenable ? (
@@ -274,12 +280,12 @@ export function TaskDrawer({
                   Reopen with note
                 </button>
               ) : null}
-              {SUB[t.status] ? (
-                <button type="button" className="z-btn sm" disabled={!!t.nudgedAt} onClick={nudge}>
+              {NUDGEABLE.includes(t.status) ? (
+                <button type="button" className="z-btn sm" disabled={!!t.nudgedAt || busy} onClick={nudge}>
                   {t.nudgedAt ? "Nudged" : "Nudge"}
                 </button>
               ) : null}
-              {!t.byMember && !finished ? (
+              {!finished ? (
                 <button type="button" className="z-btn sm" onClick={() => onEdit(t)}>
                   Edit
                 </button>
@@ -287,7 +293,7 @@ export function TaskDrawer({
               <Link className="z-btn sm" to={chatHref}>
                 Open chat with {f}
               </Link>
-              {!t.byMember && !closed ? (
+              {!closed ? (
                 <button
                   type="button"
                   className="z-btn sm"
@@ -308,12 +314,12 @@ export function TaskDrawer({
                 <label htmlFor="dw-reply" className="zk-lab" style={{ color: "#5C3A00" }}>
                   Reply to {f}
                 </label>
-                <textarea id="dw-reply" rows={2} className="zk-inp" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Lands in their Zinwe app" style={{ resize: "vertical" }} />
+                <textarea id="dw-reply" rows={2} className="zk-inp" value={reply} maxLength={1000} onChange={(e) => setReply(e.target.value)} placeholder="Goes to their chat; the task goes back to In progress" style={{ resize: "vertical" }} />
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  <button type="button" className="z-btn sm pri" disabled={!reply.trim()} onClick={sendReply}>
+                  <button type="button" className="z-btn sm pri" disabled={!reply.trim() || busy} onClick={sendReply}>
                     Send reply
                   </button>
-                  <button type="button" className="z-btn sm" onClick={() => taskActions.moveDue(t)}>
+                  <button type="button" className="z-btn sm" disabled={busy} onClick={() => void run(() => taskActions.moveDue(t), `Due moved to tomorrow · ${f} sees the new day`)}>
                     Move due to tomorrow
                   </button>
                 </div>
@@ -327,7 +333,7 @@ export function TaskDrawer({
                 </label>
                 <textarea id="dw-reopen" rows={2} className="zk-inp" value={reopenNote} onChange={(e) => setReopenNote(e.target.value)} placeholder="e.g. The checkout export is missing" style={{ resize: "vertical" }} />
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" className="z-btn sm dark" onClick={doReopen}>
+                  <button type="button" className="z-btn sm dark" disabled={busy} onClick={doReopen}>
                     Reopen
                   </button>
                   <button
@@ -346,9 +352,9 @@ export function TaskDrawer({
 
             {confirming ? (
               <div role="alert" style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "#FCE8E4", borderRadius: 12 }}>
-                <span style={{ fontSize: 13, color: "#5C1A0E" }}>Cancel this task? It leaves {f}’s Zinwe app.</span>
+                <span style={{ fontSize: 13, color: "#5C1A0E" }}>Cancel this task? It leaves {f}’s list. You can reopen it later.</span>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" className="z-btn sm zk-red" onClick={cancel}>
+                  <button type="button" className="z-btn sm zk-red" disabled={busy} onClick={cancel}>
                     Cancel task
                   </button>
                   <button type="button" className="z-btn sm" onClick={() => setConfirming(false)}>

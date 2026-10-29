@@ -8,11 +8,10 @@ import { ChatThread } from "../chat/ChatThread";
 import { firstLine, type ReplyTarget } from "../chat/reply";
 import { PlanLock } from "../components/PlanLock";
 import { useEntitlements } from "../features/entitlements";
-import { SAMPLES_ON } from "../fixtures";
-import { isoDay, TASK_STATUS, type SampleTask } from "../fixtures/tasks";
 import { PageHead } from "../shell/PageHead";
 import { Avatar } from "../tasks/Avatar";
-import { dueLabel, dueStyle, entryDate, findPerson, isOpenTask, peopleOf, sepLabel, statusStyle, type TaskPerson } from "../tasks/model";
+import { dueLabel, dueStyle, findPerson, isOpenTask, peopleOf, sepLabel, statusStyle, type TaskPerson } from "../tasks/model";
+import { isoDay, TASK_STATUS, type TaskView } from "../tasks/types";
 import { TaskForm, type TaskFormValues } from "../tasks/TaskForm";
 import { taskActions, useTasks } from "../tasks/useTasks";
 import { EmptyBlock, ErrorBlock, SkRows } from "../ui/States";
@@ -24,10 +23,7 @@ import "../../styles/dash13/chat.css";
 /** How often the open conversation checks for new replies and receipts. */
 const THREAD_POLL_MS = 15_000;
 
-// Tasks are sample data until FR-20 (fixtures/tasks.ts): production builds (SAMPLES_ON off) don't offer them here.
-const LEDE = SAMPLES_ON
-  ? "Message your team in their Zinwe window, or send a task they can tick off. Tasks are free on every plan."
-  : "Message your team in their Zinwe window.";
+const LEDE = "Message your team in their Zinwe window, or send a task they can tick off.";
 
 type ChatPerson = TaskPerson & { memberId: number };
 
@@ -39,8 +35,9 @@ function sortForChat(people: ChatPerson[]): ChatPerson[] {
 }
 
 /**
- * /app/chat and /app/chat/:member (board DashChat; #m=<first> and ?member=<id> also pick a person). Plan: team_chat;
- * without it a lock card shows instead (tasks stay free on the Tasks page).
+ * /app/chat and /app/chat/:member (board DashChat; #m=<first> and ?member=<id> also pick a person). Plan: team_chat
+ * (chat and tasks); without it a lock card shows instead. The page fits the window: the thread scrolls inside, the
+ * composer always shows (chat.css).
  */
 export default function TeamChatPage(): ReactElement {
   usePageMeta({ title: "Chat — Zinwe", description: "Message your team and read their replies." });
@@ -59,7 +56,7 @@ export default function TeamChatPage(): ReactElement {
 function ChatPageContent(): ReactElement {
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
   const members = useResource(loadMembers, { pollMs: 30_000 });
-  const tasks = useTasks(members.data);
+  const tasks = useTasks();
   const params = useParams<{ member?: string }>();
   const [search] = useSearchParams();
   const { hash } = useLocation();
@@ -79,7 +76,10 @@ function ChatPageContent(): ReactElement {
   const [openCards, setOpenCards] = useState<ReadonlySet<number>>(new Set());
   const [flash, setFlash] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [form, setForm] = useState<{ who: string; editing: SampleTask | null; title?: string } | null>(null);
+  const [form, setForm] = useState<{ who: string; editing: TaskView | null; title?: string } | null>(null);
+  // Send → the thread goes to the bottom (pin) and shows your line at once (outbox) until the next fetch has it.
+  const [pin, setPin] = useState(0);
+  const [outbox, setOutbox] = useState<Message[]>([]);
   const [previews, setPreviews] = useState<Record<number, { text: string; at: Date; mine: boolean } | null>>({});
   const flashTimer = useRef<number | undefined>(undefined);
   const copyTimer = useRef<number | undefined>(undefined);
@@ -107,8 +107,8 @@ function ChatPageContent(): ReactElement {
   const [handledHash, setHandledHash] = useState<string | null>(null);
   if (selected && handledHash !== hash) {
     setHandledHash(hash);
-    if (SAMPLES_ON && hashParams.get("tab") === "tasks") setTab("tasks");
-    if (SAMPLES_ON && hashParams.get("new") === "1") setForm({ who: selected.key, editing: null });
+    if (hashParams.get("tab") === "tasks") setTab("tasks");
+    if (hashParams.get("new") === "1") setForm({ who: selected.key, editing: null });
   }
 
   // Keep the open conversation fresh while the tab is visible.
@@ -135,7 +135,8 @@ function ChatPageContent(): ReactElement {
     setShownFor(selected.memberId);
     setReply(null);
     setCopied(false);
-    const mine = allTasks.filter((t) => t.memberId === selected.memberId).sort((a, b) => entryTime(b) - entryTime(a));
+    setOutbox([]);
+    const mine = allTasks.filter((t) => t.memberId === selected.memberId && isOpenTask(t)).sort((a, b) => b.createdAt - a.createdAt);
     setOpenCards(new Set(mine.length ? [mine[0].id] : []));
   }
 
@@ -166,17 +167,18 @@ function ChatPageContent(): ReactElement {
     setPreviews((p) => ({ ...p, [selectedId]: newest ? { text: firstLine(newest), at: new Date(newest.created_at), mine: newest.sender === "owner" } : null }));
   }, [selectedId]);
 
-  const submitTask = (v: TaskFormValues, editing: SampleTask | null) => {
-    const saved = taskActions.submit(v, editing);
+  const submitTask = async (v: TaskFormValues, editing: TaskView | null) => {
+    const saved = await taskActions.submit(v, editing);
     setForm(null);
-    if (!saved || editing) return;
+    if (editing) return;
     // The card lands in that person's chat, and the chat switches to them (their route).
     const target = everyone.find((p) => p.key === v.person.key);
     if (target && target.memberId !== selected?.memberId) navigate(`/app/chat/${target.key}`);
     setTab("chat");
     setReply(null);
     setOpenCards((s) => new Set([...s, saved.id]));
-    window.setTimeout(() => flashItem(`t${saved.id}`), 300);
+    setThreadKey((k) => k + 1);
+    setPin((n) => n + 1);
   };
 
   if (members.data === undefined) {
@@ -218,7 +220,7 @@ function ChatPageContent(): ReactElement {
     );
   }
 
-  const selTasks = tasksOf(selected).sort((a, b) => entryTime(b) - entryTime(a));
+  const selTasks = tasksOf(selected).sort((a, b) => b.createdAt - a.createdAt);
   const route = `/app/chat/${selected.key}`;
   const presenceLine = selected.member?.device ? `${selected.pc} · ${selected.role} · ${selected.presence}` : `${selected.role} · Zinwe isn't on their PC yet: chat waits until it is, email arrives now`;
 
@@ -233,8 +235,8 @@ function ChatPageContent(): ReactElement {
             const unread = p.member?.unread ?? 0;
             const open = openOf(p);
             const pv = previews[p.memberId];
-            const lastTask = tasksOf(p).sort((a, b) => entryTime(b) - entryTime(a))[0];
-            const taskAt = lastTask ? entryTime(lastTask) : 0;
+            const lastTask = tasksOf(p).sort((a, b) => b.createdAt - a.createdAt)[0];
+            const taskAt = lastTask ? lastTask.createdAt : 0;
             const useTask = lastTask && (!pv || taskAt > pv.at.getTime());
             const lastAt = useTask ? new Date(taskAt) : pv ? pv.at : null;
             const last = useTask && lastTask ? `Task: ${lastTask.title}` : pv ? `${pv.mine ? "You: " : ""}${pv.text}` : unread ? `${unread} new ${unread === 1 ? "reply" : "replies"}` : pv === null ? `${p.presence} · no messages yet` : p.presence;
@@ -303,16 +305,14 @@ function ChatPageContent(): ReactElement {
                 </svg>
                 <span aria-live="polite">{copied ? "Link copied" : "Copy link to this chat"}</span>
               </button>
-              {SAMPLES_ON ? (
-                <div role="group" aria-label="Show" className="z-segs" style={{ flexWrap: "nowrap" }}>
-                  <button type="button" className={tab === "chat" ? "z-seg on" : "z-seg"} aria-pressed={tab === "chat"} onClick={() => setTab("chat")}>
-                    Chat
-                  </button>
-                  <button type="button" className={tab === "tasks" ? "z-seg on" : "z-seg"} aria-pressed={tab === "tasks"} onClick={() => setTab("tasks")}>
-                    Tasks · {openOf(selected)} open
-                  </button>
-                </div>
-              ) : null}
+              <div role="group" aria-label="Show" className="z-segs" style={{ flexWrap: "nowrap" }}>
+                <button type="button" className={tab === "chat" ? "z-seg on" : "z-seg"} aria-pressed={tab === "chat"} onClick={() => setTab("chat")}>
+                  Chat
+                </button>
+                <button type="button" className={tab === "tasks" ? "z-seg on" : "z-seg"} aria-pressed={tab === "tasks"} onClick={() => setTab("tasks")}>
+                  Tasks · {openOf(selected)} open
+                </button>
+              </div>
             </div>
           </div>
 
@@ -322,6 +322,8 @@ function ChatPageContent(): ReactElement {
               person={selected}
               tasks={tasks.data ? selTasks : []}
               reloadKey={threadKey}
+              pin={pin}
+              outbox={outbox}
               openCards={openCards}
               flash={flash}
               onToggleCard={(id) =>
@@ -338,6 +340,7 @@ function ChatPageContent(): ReactElement {
               onLoaded={onLoaded}
             />
           ) : (
+            <div className="cv-threadwrap">
             <div className="cv-thread" style={{ gap: 8 }}>
               <span style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "6px 12px", fontSize: 13, color: "#6B6459" }}>
                 Tasks with {selected.first}, newest first. Select one to open it in the chat.
@@ -366,7 +369,8 @@ function ChatPageContent(): ReactElement {
                   </span>
                 </button>
               ))}
-              {selTasks.length === 0 ? <p style={{ margin: 0, color: "#4A443C" }}>No tasks with {selected.first} yet. Use Add task below to send one.</p> : null}
+              {selTasks.length === 0 ? <p style={{ margin: 0, color: "#4A443C" }}>No tasks with {selected.first} yet. Use + Task below to send one.</p> : null}
+            </div>
             </div>
           )}
 
@@ -376,9 +380,11 @@ function ChatPageContent(): ReactElement {
             reply={reply}
             onCancelReply={() => setReply(null)}
             onJumpReply={() => reply && flashItem(reply.key)}
-            onTask={SAMPLES_ON ? (title) => setForm({ who: selected.key, editing: null, title }) : undefined}
-            onSent={() => {
+            onTask={(title) => setForm({ who: selected.key, editing: null, title })}
+            onSent={(_delivery, message) => {
               setReply(null);
+              if (message) setOutbox((o) => [...o, message]);
+              setPin((n) => n + 1);
               setThreadKey((k) => k + 1);
             }}
           />
@@ -402,6 +408,3 @@ function ChatPageContent(): ReactElement {
   );
 }
 
-function entryTime(t: SampleTask): number {
-  return entryDate(t.log[0] ?? { day: t.due, time: "9:00 AM" }).getTime();
-}

@@ -15,3 +15,4 @@ export * from "./earlyAccess";
 export * from "./feedback";
 export * from "./payments";
 export * from "./support";
+export * from "./tasks";

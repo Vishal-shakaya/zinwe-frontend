@@ -198,6 +198,14 @@ export default function NotificationsPage(): ReactElement {
           {has("team_chat") ? (
             <Toggle label="Replies from your team" desc="When someone answers you in Chat." on={current.chat} onFlip={() => void save({ chat: !current.chat })} />
           ) : null}
+          {has("team_chat") ? (
+            <Toggle
+              label="Tasks"
+              desc="When someone asks for help with a task, or finishes one and waits for your OK."
+              on={current.tasks ?? true}
+              onFlip={() => void save({ tasks: !(current.tasks ?? true) })}
+            />
+          ) : null}
           {has("work_time") ? (
             <Toggle
               label="Break and End day requests"

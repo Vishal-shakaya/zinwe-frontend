@@ -22,7 +22,8 @@ import { useResource } from "./useResource";
 import { usePlans } from "../portal/usePlans";
 import { useOwnerNotifications } from "./features/useOwnerNotifications";
 import { listNotes, markNotesRead } from "./fixtures/notifications";
-import { countTasksWaiting, TASKS_CHANGED_EVENT } from "./fixtures/tasks";
+import { needsOwner } from "./tasks/model";
+import { useTasks } from "./tasks/useTasks";
 import { DashNav } from "./shell/DashNav";
 import { PhoneShell } from "./shell/PhoneShell";
 import { activeFor, ShellContext, type ShellState } from "./shell/shellContext";
@@ -223,16 +224,13 @@ export default function AppLayout(): ReactElement {
   // Alerts badge: open "Needs attention" alerts, counted on the server.
   const counts = useEventCounts();
   const alertsBadge = counts.data?.critical_unhandled ?? 0;
-  // SAMPLE: the bell's history (fixtures/notifications.ts) and the Tasks badge (fixtures/tasks.ts).
+  // SAMPLE: the bell's history (fixtures/notifications.ts).
   const loadNotes = useCallback((signal: AbortSignal) => listNotes(signal), []);
   const notes = useResource(loadNotes);
   const setNotes = notes.setData;
-  const [tasksWaiting, setTasksWaiting] = useState(countTasksWaiting);
-  useEffect(() => {
-    const update = () => setTasksWaiting(countTasksWaiting());
-    window.addEventListener(TASKS_CHANGED_EVENT, update);
-    return () => window.removeEventListener(TASKS_CHANGED_EVENT, update);
-  }, []);
+  // Tasks badge (FR-20): open tasks waiting on you (they asked for help, or finished and wait for your OK).
+  const tasks = useTasks({ enabled: entitlements.has("team_chat"), pollMs: 60_000 });
+  const tasksWaiting = (tasks.data ?? []).filter(needsOwner).length;
 
   // Back from the upgrade flow: confirm the payment was sent, once.
   const upgradedTo = isUpgradeDone(location.state) ? location.state.upgradedTo : null;

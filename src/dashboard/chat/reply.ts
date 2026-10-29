@@ -1,5 +1,5 @@
 import type { Message } from "../../lib/api";
-import type { SampleTask } from "../fixtures/tasks";
+import type { TaskView } from "../tasks/types";
 
 /**
  * Replies in Chat. The messages API has no "reply to" field, so a reply goes out with its subject line saying what
@@ -27,13 +27,13 @@ export function firstLine(m: Pick<Message, "body" | "title">): string {
 }
 
 /** The quote above a reply you sent: what it answers, who said it, and where it is in the thread. */
-export function quoteOf(m: Message, thread: readonly Message[], tasks: readonly SampleTask[], first: string): { key: string | null; who: string; text: string } | null {
+export function quoteOf(m: Message, thread: readonly Message[], tasks: readonly TaskView[], first: string): { key: string | null; who: string; text: string } | null {
   const title = m.title ?? "";
   if (title.startsWith("About: ")) {
     const name = title.slice(7).replace(/…$/, "");
     const t = tasks.find((x) => x.title.startsWith(name));
     // Other notes use "About: …" subjects too (alert notes): only a task's title becomes a quote.
-    return t ? { key: `t${t.id}`, who: t.byMember ? first : "You", text: `Task: ${t.title}` } : null;
+    return t ? { key: `t${t.id}`, who: "You", text: `Task: ${t.title}` } : null;
   }
   if (title.startsWith("Re: ")) {
     const quoted = title.slice(4).replace(/…$/, "").trim();
