@@ -17,6 +17,7 @@ import {
   type MessagePayload,
 } from "../../lib/api";
 import { cx } from "../../lib/cx";
+import { TASK_STATUS } from "../tasks/types";
 import { compactErrors, focusFirstInvalid, requiredError, type FieldErrorMap } from "../../lib/validation";
 import { apiFieldErrors, apiFormError } from "../../portal/failure";
 import { Field } from "../../components/forms/Field";
@@ -151,11 +152,26 @@ export function MemberChatThread({
             m.channel === "email" && "team-chat__msg--email",
           )}
         >
-          {/* A long chat note is sent as a cut-down title + the full text; show the text once. */}
-          {m.sender === "owner" && m.title && !(m.body && m.body.startsWith(m.title.replace(/…$/, ""))) ? (
-            <b className="team-chat__title">{m.title}</b>
-          ) : null}
-          {m.body ? <span className="team-chat__body"><Linkified text={m.body} /></span> : m.title ? null : <span className="team-chat__body">—</span>}
+          {m.kind === "task" && m.task ? (
+            // FR-20: a task line shows the task and where it stands (the full card is on Chat and Tasks).
+            <>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", opacity: 0.8 }}>TASK · {TASK_STATUS[m.task.status][0].toUpperCase()}</span>
+              <b className="team-chat__title">{m.task.title}</b>
+              {m.task.steps.length ? (
+                <span className="team-chat__body">
+                  {m.task.steps.filter((s) => s.done).length}/{m.task.steps.length} steps
+                </span>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {/* A long chat note is sent as a cut-down title + the full text; show the text once. */}
+              {m.sender === "owner" && m.title && !(m.body && m.body.startsWith(m.title.replace(/…$/, ""))) ? (
+                <b className="team-chat__title">{m.title}</b>
+              ) : null}
+              {m.body ? <span className="team-chat__body"><Linkified text={m.body} /></span> : m.title ? null : <span className="team-chat__body">—</span>}
+            </>
+          )}
           <time className="team-chat__time">
             {m.sender === "owner" ? "You" : firstName} · {formatRelative(m.created_at, now, "just now")}
             {m.sender === "owner" && m.channel ? CHANNEL_NOTE[m.channel] : ""}

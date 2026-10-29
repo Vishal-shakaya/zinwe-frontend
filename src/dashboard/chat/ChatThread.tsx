@@ -2,9 +2,8 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactEleme
 import { errorMessage, getMemberThread, type Message } from "../../lib/api";
 import { Linkified } from "../components/Linkified";
 import { CHAT_READ_EVENT } from "../features/chatEvents";
-import { SAMPLES_ON } from "../fixtures";
-import { isoDay, type SampleTask } from "../fixtures/tasks";
-import { entryDate, sepLabel, type TaskPerson } from "../tasks/model";
+import { sepLabel, type TaskPerson } from "../tasks/model";
+import { isoDay, toView, type TaskView } from "../tasks/types";
 import { clockTime } from "../ui/time";
 import { Sk } from "../ui/States";
 import { TaskCard } from "./TaskCard";
@@ -12,8 +11,12 @@ import { firstLine, quoteOf, type ReplyTarget } from "./reply";
 
 const CHECK1 = "M2 7.5 5.5 11 12 4";
 const CHECK2 = "M1 7.5 4.5 11 11 4M8 10.5l.5.5L15 4";
+/** Within this distance of the bottom the thread counts as "at the bottom" and follows new lines. */
+const NEAR_BOTTOM_PX = 80;
+/** A task created this recently shows in the thread before its chat line comes back from the server. */
+const JUST_SENT_MS = 2 * 60 * 1000;
 
-type Item = { kind: "msg"; key: string; at: Date; m: Message } | { kind: "task"; key: string; at: Date; t: SampleTask };
+type Item = { kind: "msg"; key: string; at: Date; m: Message } | { kind: "task"; key: string; at: Date; t: TaskView; m: Message | null };
 
 function ReplyIcon(): ReactElement {
   return (
@@ -38,15 +41,32 @@ function Receipt({ kind }: { kind: "sent" | "delivered" | "seen" | "emailed" }):
 
 const CHANNEL_NOTE: Record<NonNullable<Message["channel"]>, string> = { chat: "", chat_email: " · chat + email", email: " · email only" };
 
+const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** The freshest copy of a task line's task: the Tasks list (polled, changed by your actions) or the line's own. */
+function taskOfLine(m: Message, tasks: readonly TaskView[]): TaskView | null {
+  if (!m.task) return null;
+  const fresh = tasks.find((t) => t.id === m.task?.id);
+  const own = toView(m.task);
+  return fresh && fresh.updatedAt >= own.updatedAt ? fresh : own;
+}
+
 /**
  * The conversation with one person (DashChat): their real messages (getMemberThread; reading it marks their replies
- * read, then CHAT_READ_EVENT lets the menu badge catch up) with the sample task cards placed at the time each task
- * was sent. Date separators, reply quotes, receipts Sent → Delivered → Seen on every line you sent.
+ * read, then CHAT_READ_EVENT lets the menu badge catch up). Task lines (FR-20, `kind: "task"`) show as task cards with
+ * a live stage bar. Date separators, reply quotes, receipts Sent → Delivered → Seen on every line you sent.
+ *
+ * Scrolling (v1.3.1): opening a chat lands at the newest line; new lines keep it pinned to the bottom (smoothly)
+ * unless you scrolled up, then a "New messages ↓" pill shows; after you send (`pin` changes) it always goes to the
+ * bottom. New lines slide in (~180 ms, none with reduced motion). `outbox` = lines you just sent, shown before the
+ * next fetch returns them.
  */
 export function ChatThread({
   person,
   tasks,
   reloadKey,
+  pin,
+  outbox,
   openCards,
   flash,
   onToggleCard,
@@ -56,19 +76,26 @@ export function ChatThread({
   onLoaded,
 }: {
   person: TaskPerson & { memberId: number };
-  tasks: readonly SampleTask[];
+  /** This person's tasks (fresh from the Tasks list). */
+  tasks: readonly TaskView[];
   reloadKey: number;
+  /** Changes when you send something: the thread goes to the bottom. */
+  pin: number;
+  outbox: readonly Message[];
   openCards: ReadonlySet<number>;
   flash: string | null;
   onToggleCard: (taskId: number) => void;
   onReply: (target: ReplyTarget) => void;
-  onEditTask: (t: SampleTask) => void;
+  onEditTask: (t: TaskView) => void;
   onJump: (key: string) => void;
   onLoaded: (messages: Message[]) => void;
 }): ReactElement {
   const [thread, setThread] = useState<Message[] | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
+  const [pill, setPill] = useState(false);
+  // When the thread was last fetched: a task created after that may not have its chat line in it yet.
+  const [fetchedAt, setFetchedAt] = useState(0);
   const lastReplyId = useRef<number | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const onLoadedRef = useRef(onLoaded);
@@ -85,6 +112,7 @@ export function ChatThread({
       .then((msgs) => {
         if (!alive) return;
         setThread(msgs);
+        setFetchedAt(Date.now());
         setError(null);
         onLoadedRef.current(msgs);
         const newest = msgs.find((m) => m.sender === "member")?.id ?? null;
@@ -102,157 +130,235 @@ export function ChatThread({
     };
   }, [person.memberId, reloadKey, retry]);
 
+  // Every line once: the fetched thread plus what you just sent and it doesn't have yet.
+  const lines: Message[] = [...(thread ?? [])];
+  for (const m of outbox) if (!lines.some((x) => x.id === m.id)) lines.push(m);
+  const lineIds = new Set(lines.map((m) => m.id));
   const items: Item[] = [
-    ...(thread ?? []).map((m): Item => ({ kind: "msg", key: `m${m.id}`, at: new Date(m.created_at), m })),
-    ...tasks.map((t): Item => ({ kind: "task", key: `t${t.id}`, at: entryDate(t.log[0] ?? { day: t.due, time: "9:00 AM" }), t })),
+    ...lines.map((m): Item => {
+      const t = m.kind === "task" ? taskOfLine(m, tasks) : null;
+      return t ? { kind: "task", key: `t${t.id}`, at: new Date(m.created_at), t, m } : { kind: "msg", key: `m${m.id}`, at: new Date(m.created_at), m };
+    }),
+    // A task you just sent whose chat line the thread hasn't fetched yet.
+    ...tasks
+      .filter((t) => t.messageId != null && !lineIds.has(t.messageId) && t.createdAt > fetchedAt - JUST_SENT_MS)
+      .map((t): Item => ({ kind: "task", key: `t${t.id}`, at: new Date(t.createdAt), t, m: null })),
   ].sort((a, b) => a.at.getTime() - b.at.getTime());
-  const count = items.length;
+  const lastKey = items.length ? items[items.length - 1].key : "";
+  const itemKeys = items.map((it) => it.key).join(" ");
 
-  // Start at the newest line; follow new lines while the reader is near the bottom.
+  // ---- Stick to the bottom ----
   const stick = useRef(true);
+  const autoScrolling = useRef(false);
+  const landed = useRef(false);
+  const prevLast = useRef("");
+  const prevPin = useRef(pin);
+  const known = useRef<Set<string>>(new Set());
+  const loaded = thread !== undefined;
   useLayoutEffect(() => {
     const el = box.current;
-    if (el && stick.current) el.scrollTop = el.scrollHeight;
-  }, [count, thread]);
+    if (!el || !loaded) return;
+    // New lines slide in (not the ones there when the chat opened).
+    for (const key of itemKeys.split(" ")) {
+      if (!key || known.current.has(key)) continue;
+      known.current.add(key);
+      if (landed.current && !reducedMotion()) document.getElementById(`msg-${key}`)?.classList.add("new");
+    }
+    const pinned = pin !== prevPin.current;
+    prevPin.current = pin;
+    const grew = lastKey !== prevLast.current;
+    prevLast.current = lastKey;
+    if (!landed.current) {
+      // Opening a chat lands at the newest line.
+      landed.current = true;
+      el.scrollTop = el.scrollHeight;
+      return;
+    }
+    if (pinned || (grew && stick.current)) {
+      stick.current = true;
+      autoScrolling.current = true;
+      setPill(false);
+      el.scrollTo({ top: el.scrollHeight, behavior: reducedMotion() ? "auto" : "smooth" });
+      window.setTimeout(() => {
+        autoScrolling.current = false;
+      }, 700);
+    } else if (grew) {
+      setPill(true);
+    }
+  }, [loaded, itemKeys, lastKey, pin]);
+
+  // A task card opening or updating at the bottom grows the thread: stay at the newest line if you were there.
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (el && landed.current && stick.current && !autoScrolling.current) el.scrollTop = el.scrollHeight;
+  }, [openCards, tasks]);
+
+  const toBottom = () => {
+    const el = box.current;
+    if (!el) return;
+    stick.current = true;
+    autoScrolling.current = true;
+    setPill(false);
+    el.scrollTo({ top: el.scrollHeight, behavior: reducedMotion() ? "auto" : "smooth" });
+    window.setTimeout(() => {
+      autoScrolling.current = false;
+    }, 700);
+  };
 
   if (error && thread === undefined) {
     return (
-      <div className="cv-thread" role="alert">
-        <p style={{ margin: "auto 0", textAlign: "center", color: "#B02A15" }}>
-          {error}{" "}
-          <button type="button" className="zk-link" onClick={() => setRetry((r) => r + 1)}>
-            Try again
-          </button>
-        </p>
+      <div className="cv-threadwrap">
+        <div className="cv-thread" role="alert">
+          <p style={{ margin: "auto 0", textAlign: "center", color: "#B02A15" }}>
+            {error}{" "}
+            <button type="button" className="zk-link" onClick={() => setRetry((r) => r + 1)}>
+              Try again
+            </button>
+          </p>
+        </div>
       </div>
     );
   }
   if (thread === undefined) {
     return (
-      <div className="cv-thread" role="status" aria-busy="true">
-        <span className="z-sr">Loading the conversation</span>
-        {[220, 300, 180, 260].map((w, i) => (
-          <div key={w} style={{ display: "flex", flexDirection: "column", alignItems: i % 2 ? "flex-end" : "flex-start", gap: 6 }}>
-            <Sk w={w} h={42} style={{ borderRadius: 14 }} />
-            <Sk w={90} h={10} />
-          </div>
-        ))}
+      <div className="cv-threadwrap">
+        <div className="cv-thread" role="status" aria-busy="true">
+          <span className="z-sr">Loading the conversation</span>
+          {[220, 300, 180, 260].map((w, i) => (
+            <div key={w} style={{ display: "flex", flexDirection: "column", alignItems: i % 2 ? "flex-end" : "flex-start", gap: 6 }}>
+              <Sk w={w} h={42} style={{ borderRadius: 14 }} />
+              <Sk w={90} h={10} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  const msgs = thread;
+  const msgs = lines;
   return (
-    <div
-      ref={box}
-      className="cv-thread"
-      role="log"
-      aria-label={`Conversation with ${person.name}`}
-      onScroll={(e) => {
-        const el = e.currentTarget;
-        stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-      }}
-    >
-      {items.length === 0 ? (
-        <p style={{ margin: "auto 0", textAlign: "center", color: "#4A443C" }}>No messages with {first} yet. Say hello below{SAMPLES_ON ? ", or use Add task to send something to tick off" : ""}.</p>
-      ) : null}
-      {items.map((it, i) => {
-        const day = isoDay(it.at);
-        const prevDay = i > 0 ? isoDay(items[i - 1].at) : null;
-        const sep =
-          day !== prevDay ? (
-            <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
-              <span className="cv-sep">{sepLabel(day)}</span>
-            </div>
-          ) : null;
-        const time = clockTime(it.at);
-        const flashCls = flash === it.key ? "msg flash" : "msg";
+    <div className="cv-threadwrap">
+      <div
+        ref={box}
+        className="cv-thread"
+        role="log"
+        aria-label={`Conversation with ${person.name}`}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const near = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;
+          if (near) {
+            autoScrolling.current = false;
+            setPill(false);
+          }
+          stick.current = near || autoScrolling.current;
+        }}
+      >
+        {items.length === 0 ? (
+          <p style={{ margin: "auto 0", textAlign: "center", color: "#4A443C" }}>No messages with {first} yet. Say hello below, or use + Task to send something to tick off.</p>
+        ) : null}
+        {items.map((it, i) => {
+          const day = isoDay(it.at);
+          const prevDay = i > 0 ? isoDay(items[i - 1].at) : null;
+          const sep =
+            day !== prevDay ? (
+              <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
+                <span className="cv-sep">{sepLabel(day)}</span>
+              </div>
+            ) : null;
+          const time = clockTime(it.at);
+          const flashCls = flash === it.key ? "msg flash" : "msg";
 
-        if (it.kind === "task") {
-          const t = it.t;
-          const mine = !t.byMember;
-          const rc = !mine ? null : t.status === "sent" ? (person.pcOn ? "delivered" : "sent") : "seen";
+          if (it.kind === "task") {
+            const t = it.t;
+            const m = it.m;
+            const rc = m ? (m.read_by_member || t.status !== "sent" ? "seen" : m.delivered_at ? "delivered" : "sent") : "sent";
+            return (
+              <Fragment key={it.key}>
+                {sep}
+                <div id={`msg-${it.key}`} className={`${flashCls} out`}>
+                  <div className="mrow">
+                    <TaskCard
+                      task={t}
+                      first={first}
+                      open={openCards.has(t.id)}
+                      onToggle={() => onToggleCard(t.id)}
+                      onEdit={() => onEditTask(t)}
+                      onReply={(draft) => onReply({ key: it.key, head: "Replying about this task", text: `Task: ${t.title}`, subject: `About: ${t.title}`.slice(0, 120), placeholder: first, draft })}
+                    />
+                    <button
+                      type="button"
+                      className="rbtn"
+                      aria-label={`Reply about this task: ${t.title}`}
+                      onClick={() => onReply({ key: it.key, head: "Replying about this task", text: `Task: ${t.title}`, subject: `About: ${t.title}`.slice(0, 120), placeholder: first })}
+                    >
+                      <ReplyIcon />
+                      Reply about this task
+                    </button>
+                  </div>
+                  <span className="cv-meta">
+                    You sent this task · {time}
+                    <Receipt kind={rc} />
+                  </span>
+                </div>
+              </Fragment>
+            );
+          }
+
+          const m = it.m;
+          const mine = m.sender === "owner";
+          const q = mine ? quoteOf(m, msgs, tasks, first) : null;
+          // A long chat note goes out as a cut-down title + the full text: show the text once.
+          const showTitle = mine && !q && !!m.title && !!m.body && !m.body.startsWith(m.title.replace(/…$/, ""));
+          const rc = !mine ? null : m.channel === "email" ? "emailed" : m.read_by_member ? "seen" : m.delivered_at ? "delivered" : "sent";
+          const text = firstLine(m);
           return (
             <Fragment key={it.key}>
               {sep}
               <div id={`msg-${it.key}`} className={`${flashCls} ${mine ? "out" : "in"}`}>
                 <div className="mrow">
-                  <TaskCard
-                    task={t}
-                    first={first}
-                    open={openCards.has(t.id)}
-                    onToggle={() => onToggleCard(t.id)}
-                    onEdit={() => onEditTask(t)}
-                    onReply={(draft) => onReply({ key: it.key, head: "Replying about this task", text: `Task: ${t.title}`, subject: `About: ${t.title}`.slice(0, 120), placeholder: first, draft })}
-                  />
+                  <div className={mine ? "cv-bubble out" : "cv-bubble in"}>
+                    {q ? (
+                      <button type="button" className="quote" onClick={() => q.key && onJump(q.key)} aria-label={`Show the message this replies to: ${q.text}`}>
+                        {q.who ? <b className="quote-who">{q.who}</b> : null}
+                        <span className="qt">{q.text}</span>
+                      </button>
+                    ) : null}
+                    {showTitle ? <b style={{ display: "block", fontSize: 13 }}>{m.title}</b> : null}
+                    <span style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.body ? <Linkified text={m.body} /> : m.title || "—"}</span>
+                  </div>
                   <button
                     type="button"
                     className="rbtn"
-                    aria-label={`Reply about this task: ${t.title}`}
-                    onClick={() => onReply({ key: it.key, head: "Replying about this task", text: `Task: ${t.title}`, subject: `About: ${t.title}`.slice(0, 120), placeholder: first })}
+                    aria-label={mine ? "Reply to your message" : `Reply to ${first}’s message`}
+                    onClick={() =>
+                      onReply({
+                        key: it.key,
+                        head: mine ? "Replying to your message" : `Replying to ${first}`,
+                        text,
+                        subject: `Re: ${text.length > 100 ? `${text.slice(0, 99).trimEnd()}…` : text}`,
+                        placeholder: mine ? "your message" : first,
+                      })
+                    }
                   >
                     <ReplyIcon />
-                    Reply about this task
+                    Reply
                   </button>
                 </div>
                 <span className="cv-meta">
-                  {mine ? `You sent this task · ${time} · by ${t.email ? "chat + email" : "chat"}` : `${first} added this for themselves · ${time} · nothing needed from you`}
+                  {mine ? "You" : first} · {time}
+                  {mine && m.channel ? CHANNEL_NOTE[m.channel] : ""}
                   {rc ? <Receipt kind={rc} /> : null}
                 </span>
               </div>
             </Fragment>
           );
-        }
-
-        const m = it.m;
-        const mine = m.sender === "owner";
-        const q = mine ? quoteOf(m, msgs, tasks, first) : null;
-        // A long chat note goes out as a cut-down title + the full text: show the text once.
-        const showTitle = mine && !q && !!m.title && !!m.body && !m.body.startsWith(m.title.replace(/…$/, ""));
-        const rc = !mine ? null : m.channel === "email" ? "emailed" : m.read_by_member ? "seen" : m.delivered_at ? "delivered" : "sent";
-        const text = firstLine(m);
-        return (
-          <Fragment key={it.key}>
-            {sep}
-            <div id={`msg-${it.key}`} className={`${flashCls} ${mine ? "out" : "in"}`}>
-              <div className="mrow">
-                <div className={mine ? "cv-bubble out" : "cv-bubble in"}>
-                  {q ? (
-                    <button type="button" className="quote" onClick={() => q.key && onJump(q.key)} aria-label={`Show the message this replies to: ${q.text}`}>
-                      {q.who ? <b className="quote-who">{q.who}</b> : null}
-                      <span className="qt">{q.text}</span>
-                    </button>
-                  ) : null}
-                  {showTitle ? <b style={{ display: "block", fontSize: 13 }}>{m.title}</b> : null}
-                  <span style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.body ? <Linkified text={m.body} /> : m.title || "—"}</span>
-                </div>
-                <button
-                  type="button"
-                  className="rbtn"
-                  aria-label={mine ? "Reply to your message" : `Reply to ${first}’s message`}
-                  onClick={() =>
-                    onReply({
-                      key: it.key,
-                      head: mine ? "Replying to your message" : `Replying to ${first}`,
-                      text,
-                      subject: `Re: ${text.length > 100 ? `${text.slice(0, 99).trimEnd()}…` : text}`,
-                      placeholder: mine ? "your message" : first,
-                    })
-                  }
-                >
-                  <ReplyIcon />
-                  Reply
-                </button>
-              </div>
-              <span className="cv-meta">
-                {mine ? "You" : first} · {time}
-                {mine && m.channel ? CHANNEL_NOTE[m.channel] : ""}
-                {rc ? <Receipt kind={rc} /> : null}
-              </span>
-            </div>
-          </Fragment>
-        );
-      })}
+        })}
+      </div>
+      {pill ? (
+        <button type="button" className="cv-newpill" onClick={toBottom}>
+          New messages <span aria-hidden="true">↓</span>
+        </button>
+      ) : null}
     </div>
   );
 }

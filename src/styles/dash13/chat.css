@@ -589,3 +589,173 @@
     transition: none;
   }
 }
+
+/* ---- v1.3.1: the thread wrapper (the "New messages" pill sits on it), send animation, + Task, task stage bar ---- */
+.zp-chat .cv-threadwrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.zp-chat .cv-threadwrap > .cv-thread {
+  flex: 1 1 auto;
+}
+.zp-chat .cv-newpill {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #141210;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 24px -12px rgba(20, 18, 16, 0.6);
+}
+.zp-chat .cv-newpill:hover {
+  background: #2b2723;
+}
+@keyframes cv-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.zp-chat .msg.new {
+  animation: cv-msg-in 180ms ease-out both;
+}
+.zp-chat .msg.out.new {
+  transform-origin: right bottom;
+}
+.zp-chat .cicon.ctask {
+  width: auto;
+  padding: 0 10px;
+  gap: 5px;
+  border: 1px solid #e7e3da;
+  border-radius: 999px;
+  height: 34px;
+  align-self: center;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a352e;
+  white-space: nowrap;
+}
+.zp-chat .cicon.ctask:hover {
+  border-color: #f26a0a;
+  color: #8a3a04;
+  background: #fff8f1;
+}
+.zp-chat .cv-track {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.zp-chat .cv-track > li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.zp-chat .cv-track__bar {
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+  transition: background-color 0.4s;
+}
+.zp-chat .cv-track > li > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.zp-chat .cv-card.off {
+  opacity: 0.62;
+}
+
+/* ---- v1.3.1: the Chat page fits the window. The thread scrolls inside; the composer always shows. ---- */
+@media (min-width: 761px) and (min-height: 560px) {
+  .zn-main:has(> .zp-chat) {
+    height: 100vh;
+    height: 100dvh;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+  }
+  .zp-chat {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .zp-chat .cv-box {
+    min-height: 0;
+    flex-wrap: nowrap;
+  }
+  .zp-chat .cv-list {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .zp-chat .cv-pane {
+    min-height: 0;
+  }
+  .zp-chat .cv-thread {
+    max-height: none;
+    min-height: 0;
+  }
+}
+@media (max-width: 760px) {
+  /* The open conversation: between the phone bar (57 px) and the tab bar, thread scrolling inside. */
+  .zn-main:has(> .zp-chat.m-thread) {
+    height: calc(100vh - 57px);
+    height: calc(100dvh - 57px);
+    padding: 0 0 calc(64px + env(safe-area-inset-bottom)) !important;
+    gap: 0 !important;
+    box-sizing: border-box;
+  }
+  .zp-chat.m-thread {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0;
+  }
+  .zp-chat.m-thread .cv-box {
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-wrap: nowrap; /* one flex line = the box's own height, so the pane can't grow past it */
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+  }
+  .zp-chat.m-thread .cv-pane {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .zp-chat.m-thread .cv-thread {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .zp-chat.m-thread .cv-compose {
+    position: static;
+    border-radius: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zp-chat .msg.new {
+    animation: none;
+  }
+  .zp-chat .cv-track__bar {
+    transition: none;
+  }
+}

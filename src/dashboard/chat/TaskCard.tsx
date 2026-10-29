@@ -1,14 +1,15 @@
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { TASK_STATUS, type SampleTask } from "../fixtures/tasks";
+import { errorMessage } from "../../lib/api";
 import { ClockMark, TaskMark } from "../tasks/icons";
 import { chatTrackOf, dueLabel, dueStyle, isClosed, isFinished, noteByOf, RED, statusStyle } from "../tasks/model";
 import { taskActions } from "../tasks/useTasks";
+import { TASK_STATUS, type TaskView } from "../tasks/types";
 
 /**
- * A task in the chat thread (DashChat): kicker, title, status / priority / due / steps pills, and when opened the
- * details, steps, stage bars, the person's note and the actions (Approve, Reopen, Reply in chat, Move due,
- * Edit task, Open in Tasks). Same sample task as the Tasks page (fixtures/tasks.ts).
+ * A task in the chat thread (DashChat): kicker, title, status / priority / due / steps pills and the live stage bar
+ * (Sent → Seen → … → Approved, refreshed as their Zinwe app reports back); opened, the details, steps, their note and
+ * the actions (Approve, Reopen, Reply in chat, Move due, Edit task, Open in Tasks). FR-20 v2 API.
  */
 export function TaskCard({
   task: t,
@@ -18,7 +19,7 @@ export function TaskCard({
   onEdit,
   onReply,
 }: {
-  task: SampleTask;
+  task: TaskView;
   first: string;
   open: boolean;
   onToggle: () => void;
@@ -29,16 +30,29 @@ export function TaskCard({
   const finished = isFinished(t);
   const doneN = t.steps.filter((x) => x.done).length;
   const track = chatTrackOf(t);
-  const mine = !t.byMember;
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async (p: () => Promise<unknown>) => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await p();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
-    <article aria-label={`Task: ${t.title}`} className={mine ? "cv-card" : "cv-card mem"}>
+    <article aria-label={`Task: ${t.title}`} className={t.status === "cancelled" ? "cv-card off" : "cv-card"}>
       <button type="button" className="tb-head" aria-expanded={open} onClick={onToggle}>
         <span className="cv-card__mark" aria-hidden="true">
           <TaskMark />
         </span>
         <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <span className="cv-kicker">{t.byMember ? `TASK · ADDED BY ${first.toUpperCase()}` : "TASK"}</span>
+            <span className="cv-kicker">TASK</span>
             <b style={{ fontSize: 15, lineHeight: 1.3 }}>{t.title}</b>
           </span>
           <span style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
@@ -71,14 +85,27 @@ export function TaskCard({
         </span>
       </button>
 
+      {t.status !== "cancelled" ? (
+        <ol aria-label={`Stage: ${TASK_STATUS[t.status][0]}`} className="cv-track" style={{ gridTemplateColumns: `repeat(${track.length}, minmax(0, 1fr))` }}>
+          {track.map((k) => (
+            <li key={k.key} aria-current={k.current ? "step" : undefined}>
+              <span className="cv-track__bar" style={{ background: k.help ? "#8A5300" : k.reached ? (k.green ? "#17663F" : "#F26A0A") : k.awaitingOk ? "#BFE3CC" : "#E7E3DA" }} />
+              <span style={{ fontSize: 11, color: k.reached || k.awaitingOk ? "#3A352E" : "#6B6358", fontWeight: k.current ? 700 : 500 }}>
+                {k.awaitingOk ? "Your OK" : k.label}
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
       {open ? (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #F0EDE6", display: "flex", flexDirection: "column", gap: 12 }}>
-          {t.details ? <p style={{ margin: 0, color: "#3A352E" }}>{t.details}</p> : null}
+          {t.details ? <p style={{ margin: 0, color: "#3A352E", whiteSpace: "pre-wrap" }}>{t.details}</p> : null}
           {t.steps.length ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <span className="cv-kicker">STEPS</span>
-              {t.steps.map((x, i) => (
-                <div key={`${i}-${x.label}`} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+              {t.steps.map((x) => (
+                <div key={x.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
                   <span aria-hidden="true" className={x.done ? "zk-box on" : "zk-box"}>
                     {x.done ? "✓" : ""}
                   </span>
@@ -88,17 +115,7 @@ export function TaskCard({
               ))}
             </div>
           ) : null}
-          {!t.byMember ? (
-            <ol aria-label="Progress" style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4, gridTemplateColumns: `repeat(${track.length}, minmax(0, 1fr))` }}>
-              {track.map((k) => (
-                <li key={k.key} style={{ display: "flex", flexDirection: "column", gap: 4 }} aria-current={k.current ? "step" : undefined}>
-                  <span style={{ display: "block", height: 5, borderRadius: 999, background: k.help ? "#8A5300" : k.reached ? (k.green ? "#17663F" : "#F26A0A") : "#E7E3DA" }} />
-                  <span style={{ fontSize: 11, color: k.reached ? "#3A352E" : "#6B6358", fontWeight: k.current ? 700 : 500 }}>{k.label}</span>
-                </li>
-              ))}
-            </ol>
-          ) : null}
-          {t.needsOk && !finished ? <span style={{ fontSize: 13, color: "#4A443C" }}>Needs your OK when done.</span> : null}
+          {!finished ? <span style={{ fontSize: 13, color: "#4A443C" }}>Needs your OK when {first} marks it done.</span> : null}
           {t.note && !isClosed(t) ? (
             <p style={{ margin: 0, padding: "10px 12px", borderRadius: 10, fontSize: 13, ...(t.status === "help" ? { background: "#FBF0D9", color: "#5C3A00" } : { background: "#F7F6F2", color: "#3A352E" }) }}>
               <b>{noteByOf(t, first)}:</b> {t.note}
@@ -106,32 +123,37 @@ export function TaskCard({
           ) : null}
           {t.status === "review" ? (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button type="button" className="z-btn sm green" onClick={() => taskActions.approve(t)}>
+              <button type="button" className="z-btn sm green" disabled={busy} onClick={() => void run(() => taskActions.approve(t))}>
                 Approve
               </button>
-              <button type="button" className="z-btn sm" onClick={() => taskActions.reopenQuick(t)}>
+              <button type="button" className="z-btn sm" disabled={busy} onClick={() => void run(() => taskActions.reopen(t, "Please check the last step again."))}>
                 Reopen
               </button>
             </div>
           ) : null}
           {t.status === "help" ? (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button type="button" className="z-btn sm pri" onClick={() => onReply(/edit access/i.test(t.note) ? "Done, you have edit access now. " : "")}>
+              <button type="button" className="z-btn sm pri" onClick={() => onReply("")}>
                 Reply in chat
               </button>
-              <button type="button" className="z-btn sm" onClick={() => taskActions.moveDue(t)}>
+              <button type="button" className="z-btn sm" disabled={busy} onClick={() => void run(() => taskActions.moveDue(t))}>
                 Move due to tomorrow
               </button>
             </div>
           ) : null}
+          {error ? (
+            <p role="alert" style={{ margin: 0, fontSize: 13, color: "#B02A15" }}>
+              {error}
+            </p>
+          ) : null}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
-            {!t.byMember && !finished ? (
+            {!finished ? (
               <button type="button" className="zk-link" onClick={onEdit}>
                 Edit task
               </button>
             ) : null}
-            {t.status === "done" && !t.byMember ? (
-              <button type="button" className="zk-link" onClick={() => taskActions.reopenQuick(t)}>
+            {isClosed(t) ? (
+              <button type="button" className="zk-link" disabled={busy} onClick={() => void run(() => taskActions.reopen(t, "Please take another look."))}>
                 Reopen
               </button>
             ) : null}

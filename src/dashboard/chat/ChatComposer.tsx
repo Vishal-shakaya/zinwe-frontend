@@ -1,5 +1,5 @@
 import { useRef, useState, type KeyboardEvent, type ReactElement } from "react";
-import { errorMessage, MESSAGE_BODY_MAX, sendMessage, type MessageChannel } from "../../lib/api";
+import { errorMessage, MESSAGE_BODY_MAX, sendMessage, type Message, type MessageChannel } from "../../lib/api";
 import { ComposerMenu } from "../components/TaggedComposer";
 import { DashIcon } from "../components/DashIcon";
 import { DELIVERIES, deliveryFor, draftPreview, subjectLine, tagsFor, URGENCY, type MessageTag, type Urgency } from "../features/messageTags";
@@ -11,8 +11,7 @@ import type { ReplyTarget } from "./reply";
  * The Chat page composer (DashChat): the task button, the message box and the round Send inside one box; "/" opens
  * the actions menu ("/task Send the deck" opens the task form with the title filled in). Under it, the same
  * Suggestions / Priority / Send via (Chat, Chat + email, Email only) as the chat bubble. Enter sends,
- * Shift + Enter starts a new line. Without `onTask` (production builds: tasks are sample data until FR-20) there is
- * no task button and no "/" menu.
+ * Shift + Enter starts a new line. Without `onTask` there is no task button and no "/" menu.
  */
 export function ChatComposer({
   person,
@@ -28,7 +27,8 @@ export function ChatComposer({
   onJumpReply: () => void;
   /** Open the task form for this person, optionally with a title. Leave out to hide every task control. */
   onTask?: (title?: string) => void;
-  onSent: (delivery: MessageChannel) => void;
+  /** After a send: how it went out, and the new line (shown in the thread at once). */
+  onSent: (delivery: MessageChannel, message?: Message) => void;
 }): ReactElement {
   const first = person.first;
   const email = person.member?.email ?? "their email";
@@ -74,7 +74,7 @@ export function ChatComposer({
     setError(null);
     try {
       const fallback = body.split("\n")[0].slice(0, 80) + (body.length > 80 ? "…" : "");
-      await sendMessage(person.memberId, {
+      const sent = await sendMessage(person.memberId, {
         title: reply ? reply.subject : subjectLine(tag, null, fallback),
         body,
         severity: urgency,
@@ -83,7 +83,7 @@ export function ChatComposer({
       setNotice(delivery === "email" ? `Emailed to ${email}.` : delivery === "chat_email" ? `Sent to ${first}'s PC and emailed.` : null);
       setText("");
       setTag(null);
-      onSent(delivery);
+      onSent(delivery, sent);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -170,8 +170,9 @@ export function ChatComposer({
         ) : null}
         <div className="cbox">
           {onTask ? (
-            <button type="button" id="new-task" className="cicon" aria-label={`Add a task for ${first} (or type /task)`} title="Add a task · or type /task" aria-haspopup="dialog" onClick={() => onTask()}>
-              <TaskMark size={18} stroke={2} />
+            <button type="button" id="new-task" className="cicon ctask" aria-label={`Add a task for ${first} (or type /task)`} title="Add a task · or type /task" aria-haspopup="dialog" onClick={() => onTask()}>
+              <TaskMark size={16} stroke={2} />
+              <span aria-hidden="true">+ Task</span>
             </button>
           ) : null}
           <label htmlFor="msg" className="z-sr">
