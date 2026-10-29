@@ -763,17 +763,6 @@
   font-size: 13px;
   font-weight: 700;
 }
-.zf-z {
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
-  background: var(--zs-orange);
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 13px;
-}
 .zf-consent__body {
   padding: 14px 20px;
   display: flex;
@@ -899,5 +888,68 @@
   }
   .zf-perf b {
     width: 92px;
+  }
+}
+
+/* ---------- Phones (v1.3.1): nothing under 13 px, jump chips as one swipeable row, 44 px targets. ---------- */
+@media (max-width: 760px) {
+  .zf-chat__who span,
+  .zf-day,
+  .zf-quote,
+  .zf-meta,
+  .zf-stages,
+  .zf-box,
+  .zf-legend,
+  .zf-axis,
+  .zf-kpi > span:first-child,
+  .zf-kpi__s,
+  .zf-next,
+  .zf-raw span,
+  .zf-said__top .zs-mono,
+  .zf-consent__k {
+    font-size: 13px;
+  }
+  .zf-av {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .zf-perf__n--wide {
+    width: 44px;
+  }
+  .zf-jumps {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 0 6px;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+  .zf-jumps::-webkit-scrollbar {
+    display: none;
+  }
+  .zf-jumps > * {
+    flex: none;
+    min-height: 44px;
+  }
+}
+
+/* Tablets (761–900 px) get the same 13 px floor for small text (v1.3.1). */
+@media (min-width: 761px) and (max-width: 900px) {
+  .zf-chat__who span,
+  .zf-day,
+  .zf-quote,
+  .zf-meta,
+  .zf-stages,
+  .zf-box,
+  .zf-legend,
+  .zf-axis,
+  .zf-kpi > span:first-child,
+  .zf-kpi__s,
+  .zf-next,
+  .zf-raw span,
+  .zf-said__top .zs-mono,
+  .zf-consent__k {
+    font-size: 13px;
   }
 }

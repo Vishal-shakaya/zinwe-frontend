@@ -32,18 +32,6 @@
   font-size: 13px;
   font-weight: 700;
 }
-.zp-z {
-  display: inline-flex;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: var(--zs-orange);
-  color: var(--zs-ink);
-  font-weight: 800;
-  font-size: 12px;
-  align-items: center;
-  justify-content: center;
-}
 .zp-url {
   flex: 1;
   display: flex;
@@ -909,7 +897,8 @@
   }
 }
 
-@media (max-width: 760px) {
+/* Phones and small tablets: the menu becomes a tab row above the page (the side menu needs 900 px). */
+@media (max-width: 900px) {
   .zp-side {
     flex: 1 1 100%;
     width: auto;
@@ -939,5 +928,219 @@
   }
   .zp-chat {
     min-height: 0;
+  }
+}
+
+/* ---------- Phones (v1.3.1): one page at a time under a swipeable tab row; no tour; nothing under 13 px. ---------- */
+@media (max-width: 760px) {
+  .zp {
+    font-size: 15px;
+  }
+  .zp-win {
+    border-radius: 22px;
+  }
+  .zp-bar {
+    min-height: 52px;
+    padding: 8px 14px;
+  }
+  .zp-pill {
+    font-size: 13px;
+    padding: 3px 10px;
+  }
+  /* The tab row scrolls sideways; a soft fade on the right says there is more. */
+  .zp-side {
+    padding: 8px 10px;
+    gap: 6px;
+    scroll-padding: 0 12px;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+  .zp-side::-webkit-scrollbar {
+    display: none;
+  }
+  .zp-side .zp-tab {
+    min-height: 46px;
+    padding: 0 14px;
+    gap: 8px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+  .zp-side .zp-tab:last-child {
+    margin-right: 40px;
+  }
+  .zp-badge {
+    min-width: 24px;
+    height: 22px;
+    font-size: 13px;
+  }
+  .zp-main {
+    padding: 16px 14px 18px;
+  }
+  .zp-b {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  .zp-in {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .zp-lbl,
+  .zp-sub,
+  .zp-tile__l,
+  .zp-tile__s,
+  .zp-need__t span,
+  .zp-person__time,
+  .zp-chatrow__t span,
+  .zp-thread__who > span,
+  .zp-day,
+  .zp-msg__meta,
+  .zp-taskmsg__k,
+  .zp-stage__l,
+  .zp-col__h span,
+  .zp-week__n,
+  .zp-week__days span,
+  .zp-perf__rank,
+  .zp-perf__line,
+  .zp-next,
+  .zp-raw span,
+  .zp-raw code,
+  .zp-alert__body,
+  .zp-url > span,
+  .zp-co__who span {
+    font-size: 13px;
+  }
+  .zp-need__t b,
+  .zp-person > b,
+  .zp-col__h b,
+  .zp-task > b,
+  .zp-alert__title b {
+    font-size: 15px;
+  }
+  .zp-alert__body,
+  .zp-next {
+    font-size: 14px;
+  }
+  .zp-av,
+  .zp-av--22,
+  .zp-av--24,
+  .zp-av--26,
+  .zp-av--30 {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .zp-need {
+    padding: 12px 0;
+  }
+  .zp-need__t {
+    flex-basis: 170px;
+  }
+
+  /* Tasks: the four columns become a board you swipe, one column and a peek of the next. */
+  .zp-cols {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    margin: 0 -14px;
+    padding: 0 14px 6px;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 14px;
+    scrollbar-width: none;
+  }
+  .zp-cols::-webkit-scrollbar {
+    display: none;
+  }
+  .zp-col {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+    padding: 10px;
+  }
+  .zp-task {
+    padding: 12px;
+    gap: 9px;
+  }
+  .zp-task__acts .zp-b {
+    flex: 1;
+  }
+
+  /* Alerts: the icon sits beside the title; the buttons get the full width below. */
+  .zp-alert {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px 12px;
+    padding: 14px;
+  }
+  .zp-alert__acts {
+    grid-column: 1 / -1;
+  }
+  .zp-alert__acts .zp-b {
+    flex: 1;
+  }
+
+  /* Chat: the input takes the room; the two buttons stay compact. */
+  .zp-compose {
+    padding: 10px;
+    gap: 6px;
+  }
+  .zp-compose .zp-b {
+    padding: 0 12px;
+  }
+  .zp-caption {
+    font-size: 14px;
+    padding: 0 8px;
+  }
+  .zp-stage__l {
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.25;
+  }
+  /* Needs you: the button lines up with the text, not under the icon. */
+  .zp-need {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px 12px;
+  }
+  .zp-need > :nth-child(3) {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+/* Tablets (761–900 px) get the same 13 px floor for small text (v1.3.1). */
+@media (min-width: 761px) and (max-width: 900px) {
+  .zp-lbl,
+  .zp-sub,
+  .zp-tile__l,
+  .zp-tile__s,
+  .zp-need__t span,
+  .zp-person__time,
+  .zp-chatrow__t span,
+  .zp-thread__who > span,
+  .zp-day,
+  .zp-msg__meta,
+  .zp-taskmsg__k,
+  .zp-stage__l,
+  .zp-col__h span,
+  .zp-week__n,
+  .zp-week__days span,
+  .zp-perf__rank,
+  .zp-perf__line,
+  .zp-next,
+  .zp-raw span,
+  .zp-raw code,
+  .zp-alert__body,
+  .zp-url > span,
+  .zp-co__who span {
+    font-size: 13px;
+  }
+  .zp-pill,
+  .zp-badge,
+  .zp-b {
+    font-size: 13px;
   }
 }

@@ -24,10 +24,12 @@ import {
   type DemoTask,
   type TaskStage,
 } from "../../content/site/portalDemo";
+import { useIsPhone } from "../../hooks/useIsPhone";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
 import { cx } from "../../lib/cx";
 import { ICONS } from "./icons";
 import { PathIcon, PauseGlyph, PlayGlyph } from "./SiteIcon";
+import { Brand } from "../ui/Brand";
 import "../../styles/site-portal.css";
 
 function Avatar({ ini, size }: { ini: string; size: 22 | 24 | 26 | 30 }): ReactElement {
@@ -46,7 +48,11 @@ function Avatar({ ini, size }: { ini: string; size: 22 | 24 | 26 | 30 }): ReactE
  */
 export function SitePortal({ start = "overview", autoplay = true }: { start?: DemoTab; autoplay?: boolean }): ReactElement {
   const reduce = usePrefersReducedMotion();
-  const canAuto = autoplay && !reduce;
+  // ≤ 900 px the menu is a tab row (site-portal.css); the same width turns the tour off.
+  const phone = useIsPhone(900);
+  // On a phone the window shows one page at a time under a swipeable tab row, and never changes page by itself:
+  // a tour there would make the page jump under the reader's thumb.
+  const canAuto = autoplay && !reduce && !phone;
   const [tab, setTab] = useState<DemoTab>(start);
   const [manual, setManual] = useState(false);
   const [msgs, setMsgs] = useState<readonly DemoMessage[]>(MSGS0);
@@ -58,6 +64,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
   const [hovered, setHovered] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
+  const sideRef = useRef<HTMLDivElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(10);
   const timers = useRef<number[]>([]);
@@ -94,6 +101,15 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
     const list = timers.current;
     return () => list.forEach((t) => window.clearTimeout(t));
   }, []);
+
+  // Phone: keep the open page's tab in view inside the tab row (the row scrolls sideways, the page does not).
+  useEffect(() => {
+    const row = sideRef.current;
+    const el = document.getElementById(`zp-tab-${tab}`);
+    if (!phone || !row || !el) return;
+    const left = el.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft - 12;
+    row.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
+  }, [tab, phone, reduce]);
 
   // New messages scroll into view inside the chat log (not the page).
   useEffect(() => {
@@ -157,10 +173,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
         {/* Window bar: the address of the page shown, and a plain note that this is sample data. */}
         <div className="zp-bar">
           <span className="zp-brand">
-            <span className="zp-z" aria-hidden="true">
-              Z
-            </span>
-            Zinwe
+            <Brand variant="static" height={20} />
           </span>
           <span className="zp-url zs-mono">
             <span>
@@ -189,7 +202,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
 
         <div className="zp-body">
           {/* The same menu as the real dashboard, cut down to the five places owners use most. */}
-          <div className="zp-side" role="tablist" aria-label="Dashboard pages" aria-orientation="vertical">
+          <div className="zp-side" ref={sideRef} role="tablist" aria-label="Dashboard pages" aria-orientation={phone ? "horizontal" : "vertical"}>
             <div className="zp-co">
               <span className="zp-av zp-av--30 tone-ink" aria-hidden="true">
                 AR
@@ -367,7 +380,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
                         if (e.key === "Enter") send(false);
                       }}
                       onFocus={takeOver}
-                      placeholder="Message Priya, or type a task"
+                      placeholder={phone ? "Message Priya" : "Message Priya, or type a task"}
                       autoComplete="off"
                     />
                     <button type="button" className="zp-b" onClick={() => send(true)} title="Send as a task">

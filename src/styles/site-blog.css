@@ -700,18 +700,6 @@
   border-bottom: 1px solid var(--zs-line-2);
   line-height: 1.5;
 }
-.za-by__z {
-  display: inline-flex;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--zs-orange);
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  color: var(--zs-ink);
-  font-size: 13px;
-}
 .za-cover {
   display: block;
   width: 100%;
@@ -963,5 +951,49 @@
   }
   .za-wrap {
     padding-top: 24px;
+  }
+}
+
+/* ---------- Phones (v1.3.1): no text under 13 px. ---------- */
+@media (max-width: 760px) {
+  .zb-release__v,
+  .zb-tag,
+  .zb-meta,
+  .zb-latest__k,
+  .zb-side-a__t span,
+  .zb-count,
+  .zb-gc__k,
+  .zb-guide__foot .zs-mono,
+  .zb-show__k,
+  .zb-show__foot .zs-mono,
+  .za-k,
+  .za-pick__k,
+  .za-more__a span,
+  .zb-card time,
+  .zs .zb-wrap .zs-mono,
+  .zs .za-side .zs-mono {
+    font-size: 13px;
+  }
+}
+
+/* Tablets (761–900 px) get the same 13 px floor for small text (v1.3.1). */
+@media (min-width: 761px) and (max-width: 900px) {
+  .zb-release__v,
+  .zb-tag,
+  .zb-meta,
+  .zb-latest__k,
+  .zb-side-a__t span,
+  .zb-count,
+  .zb-gc__k,
+  .zb-guide__foot .zs-mono,
+  .zb-show__k,
+  .zb-show__foot .zs-mono,
+  .za-k,
+  .za-pick__k,
+  .za-more__a span,
+  .zb-card time,
+  .zs .zb-wrap .zs-mono,
+  .zs .za-side .zs-mono {
+    font-size: 13px;
   }
 }

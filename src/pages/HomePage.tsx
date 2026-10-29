@@ -5,6 +5,8 @@ import { SiteFaq } from "../components/site/SiteFaq";
 import { ICONS } from "../components/site/icons";
 import { PathIcon, PauseGlyph, PlayGlyph, Tick, Cross } from "../components/site/SiteIcon";
 import { SitePortal } from "../components/site/SitePortal";
+import { useHeroCtaRef } from "../components/layout/heroCtaContext";
+import { Brand } from "../components/ui/Brand";
 import { JsonLd } from "../components/ui/JsonLd";
 import {
   CLOSE,
@@ -65,6 +67,7 @@ function useTilesOnScreen(count: number): [RefObject<HTMLDivElement | null>, boo
  */
 export default function HomePage(): ReactElement {
   usePageMeta(seoFor("/"));
+  const heroCta = useHeroCtaRef();
   const [still, setStill] = useState(false);
   const [rules, setRules] = useState<Record<RuleKey, string>>(RULE_DEFAULTS);
   const [tilesRef, vis] = useTilesOnScreen(5);
@@ -84,7 +87,7 @@ export default function HomePage(): ReactElement {
         </span>
         <h1 className="zs-h1 zh-hero__h">{HERO.title}</h1>
         <p className="zs-lead zh-hero__lead">{HERO.lead}</p>
-        <div className="zh-hero__acts">
+        <div className="zh-hero__acts" ref={heroCta}>
           <Link className="zs-btn zs-btn--lg zs-btn--pri" to="/signup?plan=free">
             Start free, up to 3 PCs
           </Link>
@@ -482,6 +485,10 @@ export default function HomePage(): ReactElement {
           </div>
           <div className="zh-tray-wrap">
             <div className="zh-tray" aria-label="The Zinwe window on a team member's PC (sample)" role="img">
+              <div className="zh-tray__title">
+                <Brand variant="static" height={16} />
+                <span>Kitecrest Digital</span>
+              </div>
               <div className="zh-tray__head">
                 <span className="zh-av34 tone-purple" aria-hidden="true">
                   EC
@@ -617,9 +624,7 @@ export default function HomePage(): ReactElement {
       {/* 11 · Close. */}
       <section className="zs-wrap zh-closewrap">
         <div className="zs-close">
-          <span className="zs-close__z" aria-hidden="true">
-            Z
-          </span>
+          <img className="zs-close__z" src="/brand/zinwe-mark-256.png" width={256} height={256} alt="" aria-hidden="true" />
           <div className="zs-close__copy">
             <h2>{CLOSE.title}</h2>
             <p>{CLOSE.body}</p>

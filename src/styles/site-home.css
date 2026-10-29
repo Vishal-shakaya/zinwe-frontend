@@ -1050,6 +1050,17 @@
   overflow: hidden;
   font-size: 13.5px;
 }
+.zh-tray__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 16px;
+  background: var(--zs-card-2);
+  border-bottom: 1px solid var(--zs-line-2);
+  font-size: 12.5px;
+  color: var(--zs-muted);
+}
 .zh-tray__head {
   background: #fff;
   padding: 14px 16px;
@@ -1422,5 +1433,299 @@
   }
   .zh-quote blockquote {
     font-size: 22px;
+  }
+}
+
+/* ---------- Phones as a first-class layout (v1.3.1, design width 390 px) ---------- */
+@media (max-width: 760px) {
+  /* Hero: a tight badge, the promise, full-width buttons, reassurances in one column. */
+  .zh-hero {
+    padding-top: 32px;
+    gap: 18px;
+  }
+  .zh-badge {
+    flex-wrap: nowrap;
+    gap: 10px;
+    max-width: 100%;
+    border-radius: 14px;
+    padding: 6px 12px 6px 6px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    text-align: left;
+  }
+  .zh-badge__ok {
+    flex: none;
+    padding: 3px 9px;
+  }
+  .zh-hero__h {
+    font-size: 40px !important;
+    line-height: 1.04;
+  }
+  .zh-hero__acts {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .zh-hero__acts .zs-btn {
+    width: 100%;
+    min-height: 54px;
+    font-size: 16.5px;
+  }
+  .zh-hero__ticks {
+    margin-top: -2px;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+  }
+  .zh-tour {
+    padding-top: 28px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .zh-members {
+    padding-top: 28px;
+  }
+
+  /* Tiles: one column, roomy type, the sample screens at a readable size. */
+  .zh-parts {
+    gap: 28px;
+  }
+  .zh-parts__intro {
+    gap: 12px;
+  }
+  .zh-pp {
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+  .zh-tiles {
+    gap: 14px;
+  }
+  .zh-tile {
+    padding: 36px 16px 0;
+    gap: 10px;
+  }
+  .zh-tile__kick {
+    font-size: 15px;
+  }
+  .zh-tile__h,
+  .zh-tile--half .zh-tile__h {
+    font-size: 30px;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+  .zh-tile__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 0;
+    font-size: 16px;
+  }
+  .zh-vis {
+    padding-top: 20px;
+  }
+  .zh-tile:hover .zh-shot {
+    transform: none;
+  }
+  .zh-shot {
+    border-radius: 18px 18px 0 0;
+  }
+  .zh-shot--pad {
+    padding: 16px;
+  }
+  .zh-shot__h {
+    font-size: 14px;
+  }
+  .zh-chathead {
+    padding: 12px 14px;
+  }
+  .zh-chatbody {
+    min-height: 0;
+    padding: 14px;
+  }
+  .zh-bub {
+    max-width: 86%;
+  }
+  .zh-taskcard {
+    width: 94%;
+  }
+  .zh-shot--tasks {
+    padding: 12px;
+    gap: 10px;
+  }
+  .zh-bigtask {
+    flex-basis: 100%;
+    padding: 14px;
+  }
+  .zh-sidetasks {
+    flex-basis: 100%;
+  }
+  .zh-rawlog {
+    font-size: 13px;
+  }
+  .zh-chathead__who span,
+  .zh-taskcard__k,
+  .zh-stagebars,
+  .zh-stagebars--lg,
+  .zh-seen,
+  .zh-box,
+  .zh-mini,
+  .zh-pc__note,
+  .zh-outcome__when,
+  .zh-tray__title,
+  .zh-tray__who span,
+  .zh-tray__k,
+  .zh-tray__acts span,
+  .zh-tray__tabs,
+  .zh-av34 {
+    font-size: 13px;
+  }
+  .zh-av24 {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .zh-perf__n--wide {
+    width: 44px;
+  }
+
+  /* Protection: no card inside a card. Rules and the PC's answer sit on the page as two white panels. */
+  .zh-protect {
+    padding-top: 40px;
+  }
+  .zh-stage {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    gap: 22px;
+  }
+  .zh-stage__head {
+    gap: 16px;
+  }
+  .zh-stage__head .zs-btn {
+    width: 100%;
+  }
+  .zh-stage__body {
+    gap: 14px;
+  }
+  .zh-rule {
+    background: #fff;
+    border-color: var(--zs-line);
+    padding: 16px;
+  }
+  .zh-rule__t span {
+    font-size: 14px;
+  }
+  .zh-opt {
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+  .zh-pc {
+    background: #fff;
+    border-color: var(--zs-line);
+    padding: 14px;
+  }
+  .zh-pc__head {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+  .zh-outcome {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 4px 12px;
+    background: var(--zs-ground);
+    border-color: var(--zs-line-2);
+  }
+  .zh-outcome__icon {
+    grid-row: 1 / span 2;
+  }
+  .zh-outcome > .zs-pill {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+  }
+  .zh-outcome__t {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .zh-outcome__t b {
+    font-size: 15.5px;
+  }
+  .zh-outcome__b {
+    font-size: 14.5px;
+  }
+  .zh-pc__sum {
+    font-size: 14.5px;
+  }
+
+  /* Mid sign-up */
+  .zh-mid {
+    padding-top: 40px;
+  }
+  .zh-mid .zs-btn {
+    width: 100%;
+    min-height: 54px;
+  }
+  .zh-mid > span {
+    font-size: 14px;
+  }
+
+  /* Team side: copy on the card, the tray picture on its tint below. */
+  .zh-team {
+    padding: 8px;
+    gap: 8px;
+    border-radius: 24px;
+  }
+  .zh-team__copy {
+    padding: 22px 14px 14px !important;
+  }
+  .zh-team__lead {
+    font-size: 16.5px;
+  }
+  .zh-tray-wrap {
+    padding: 28px 16px;
+    border-radius: 18px;
+  }
+
+  /* How it works, consent, questions */
+  .zh-how__in {
+    gap: 22px;
+  }
+  .zh-how__t h2 {
+    font-size: 26px;
+  }
+  .zh-how__in .zs-btn {
+    width: 100%;
+  }
+  .zh-fair__card {
+    padding: 20px;
+  }
+  .zh-nevers {
+    gap: 8px;
+  }
+}
+
+/* Tablets (761–900 px) get the same 13 px floor for small text (v1.3.1). */
+@media (min-width: 761px) and (max-width: 900px) {
+  .zh-rawlog,
+  .zh-chathead__who span,
+  .zh-taskcard__k,
+  .zh-stagebars,
+  .zh-stagebars--lg,
+  .zh-seen,
+  .zh-box,
+  .zh-mini,
+  .zh-pc__note,
+  .zh-outcome__when,
+  .zh-tray__title,
+  .zh-tray__who span,
+  .zh-tray__k,
+  .zh-tray__acts span,
+  .zh-tray__tabs,
+  .zh-av34 {
+    font-size: 13px;
   }
 }

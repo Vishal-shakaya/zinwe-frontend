@@ -97,6 +97,8 @@ export default function PlansPage(): ReactElement {
   const [cycle, setCycle] = useState<BillingCycle>(() => hashPick.cycle ?? stored(CYCLE_KEY, ["monthly", "yearly"]) ?? "monthly");
   const [pcs, setPcsState] = useState<number>(() => pcsForTeamSize(account?.company?.team_size) ?? 8);
   const [typed, setTyped] = useState<string | null>(null);
+  // Phone: the compare table shows one plan beside the features; this picks which (null = the plan that fits).
+  const [cmpPick, setCmpPick] = useState<string | null>(null);
 
   const setPcs = (n: number) => {
     setPcsState(Math.max(1, Math.min(200, Math.round(Number(n)) || 1)));
@@ -215,6 +217,9 @@ export default function PlansPage(): ReactElement {
     return { q: fill(f.q, v), a: fill(f.a, v) };
   });
   const tablePlans = list.slice(0, 4);
+  const cmpNames = tablePlans.length ? tablePlans.map((p) => ({ code: p.code, name: p.name })) : [];
+  const cmpCode = cmpPick ?? (fit && tablePlans.some((p) => p.code === fit.code) ? fit.code : (tablePlans[1]?.code ?? tablePlans[0]?.code));
+  const cmpCol = Math.max(0, tablePlans.findIndex((p) => p.code === cmpCode)) + 2;
 
   return (
     <div className="zp2">
@@ -351,8 +356,17 @@ export default function PlansPage(): ReactElement {
 
       <section className="zs-wrap zs-wrap--wide zp2-compare">
         <h2>Compare plans</h2>
+        {cmpNames.length ? (
+          <div className="zp2-cmp-pick" role="group" aria-label="Plan to compare">
+            {cmpNames.map((p) => (
+              <button key={p.code} type="button" className={cx("zp2-cmp-pick__b", p.code === cmpCode && "is-on")} aria-pressed={p.code === cmpCode} onClick={() => setCmpPick(p.code)}>
+                {p.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="zp2-table-wrap">
-          <table className="zp2-table">
+          <table className="zp2-table" data-col={cmpNames.length ? cmpCol : undefined}>
             <thead>
               <tr>
                 <th scope="col" className="zp2-table__f">
@@ -446,9 +460,7 @@ export default function PlansPage(): ReactElement {
 
       <section className="zs-wrap zs-wrap--wide zp2-closewrap">
         <div className="zs-close zp2-close">
-          <span className="zs-close__z" aria-hidden="true">
-            Z
-          </span>
+          <img className="zs-close__z" src="/brand/zinwe-mark-256.png" width={256} height={256} alt="" aria-hidden="true" />
           <div className="zs-close__copy">
             <h2>{PLANS_CLOSE.title}</h2>
             <p>{PLANS_CLOSE.body}</p>

@@ -1,5 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { useHeroCtaRef } from "../components/layout/heroCtaContext";
 import { SiteClients } from "../components/site/SiteClients";
 import { ICONS } from "../components/site/icons";
 import { Cross, PathIcon, Tick } from "../components/site/SiteIcon";
@@ -21,6 +22,7 @@ import { seoFor } from "../content/seo";
 import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { cx } from "../lib/cx";
+import { SiteMark } from "../components/site/SiteMark";
 import "../styles/site-product.css";
 
 function Ticks({ items }: { items: readonly string[] }): ReactElement {
@@ -51,6 +53,7 @@ function Av({ ini, size = 28 }: { ini: string; size?: 24 | 28 }): ReactElement {
  */
 export default function ProductPage(): ReactElement {
   usePageMeta(seoFor("/product"));
+  const heroCta = useHeroCtaRef();
   useHashTarget();
   const [demo, setDemo] = useState<DemoKey>("usb");
   const d = ALERTS.demos[demo];
@@ -61,7 +64,7 @@ export default function ProductPage(): ReactElement {
         <span className="zs-eyebrow">{PRODUCT_HERO.eyebrow}</span>
         <h1 className="zs-h1 zf-hero__h">{PRODUCT_HERO.title}</h1>
         <p className="zs-lead zf-hero__lead">{PRODUCT_HERO.lead}</p>
-        <nav className="zf-jumps" aria-label="On this page">
+        <nav className="zf-jumps" aria-label="On this page" ref={heroCta}>
           {PRODUCT_HERO.jumps.map((j) => (
             <a key={j.href} className="zf-jump" href={j.href}>
               <span className={cx("zf-dot", `zf-dot--${j.dot}`)} aria-hidden="true" />
@@ -386,9 +389,7 @@ export default function ProductPage(): ReactElement {
           <div className="zf-consent">
             <div className="zf-consent__head">
               <span className="zf-consent__app">
-                <span className="zf-z" aria-hidden="true">
-                  Z
-                </span>
+                <SiteMark size={22} />
                 Zinwe on this PC
               </span>
               <b>Kitecrest Digital uses Zinwe on this PC. Here is what it records.</b>

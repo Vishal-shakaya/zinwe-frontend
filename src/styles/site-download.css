@@ -44,27 +44,6 @@
   align-items: center;
   gap: 14px;
 }
-.zd-z {
-  display: inline-flex;
-  flex: none;
-  background: var(--zs-orange);
-  color: var(--zs-ink);
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-}
-.zd-z--56 {
-  width: 56px;
-  height: 56px;
-  border-radius: 15px;
-  font-size: 28px;
-}
-.zd-z--26 {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  font-size: 13px;
-}
 .zd-get__t {
   display: flex;
   flex-direction: column;
@@ -649,5 +628,68 @@
   .zd-warnwrap {
     padding-top: 48px;
     padding-bottom: 48px;
+  }
+}
+
+/* ---------- Phones (v1.3.1): the sample screens keep their look, but no text under 13 px. ---------- */
+@media (max-width: 760px) {
+  .zd-sha__body > code,
+  .zd-sha__how,
+  .zd-step__n,
+  .zd-mock,
+  .zd-mock > b,
+  .zd-fld,
+  .zd-mbtn,
+  .zd-file__t b,
+  .zd-file__t span,
+  .zd-hint,
+  .zd-cmd,
+  .zd-cmd__k,
+  .zd-online b,
+  .zd-online > span:last-child,
+  .zd-dlg,
+  .zd-it code,
+  .zd-yes,
+  .zd-no,
+  .zd-dlg__txt,
+  .zd-dlg__ok,
+  .zd-mock .zs-mono,
+  .zd-mock b,
+  .zd-mock span {
+    font-size: 13px;
+  }
+  .zd-av {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+}
+
+/* Tablets (761–900 px) get the same 13 px floor for small text (v1.3.1). */
+@media (min-width: 761px) and (max-width: 900px) {
+  .zd-sha__body > code,
+  .zd-sha__how,
+  .zd-step__n,
+  .zd-mock,
+  .zd-mock > b,
+  .zd-fld,
+  .zd-mbtn,
+  .zd-file__t b,
+  .zd-file__t span,
+  .zd-hint,
+  .zd-cmd,
+  .zd-cmd__k,
+  .zd-online b,
+  .zd-online > span:last-child,
+  .zd-dlg,
+  .zd-it code,
+  .zd-yes,
+  .zd-no,
+  .zd-dlg__txt,
+  .zd-dlg__ok,
+  .zd-mock .zs-mono,
+  .zd-mock b,
+  .zd-mock span {
+    font-size: 13px;
   }
 }

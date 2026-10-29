@@ -27,6 +27,7 @@ import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { copyText } from "../lib/clipboard";
 import { cx } from "../lib/cx";
+import { SiteMark } from "../components/site/SiteMark";
 import "../styles/site-download.css";
 
 interface InstallerInfo {
@@ -91,7 +92,7 @@ function StepMockup({ mock, file, size }: { mock: StepMock; file: string; size: 
       return (
         <>
           <span className="zd-file">
-            <span className="zd-z zd-z--26">Z</span>
+            <SiteMark size={28} tile />
             <span className="zd-file__t">
               <b>{file}</b>
               <span>{size ? `${size} · done` : "done"}</span>
@@ -231,9 +232,7 @@ export default function DownloadPage(): ReactElement {
         </div>
         <div className="zs-card zd-get">
           <div className="zd-get__head">
-            <span className="zd-z zd-z--56" aria-hidden="true">
-              Z
-            </span>
+            <SiteMark size={56} tile label />
             <span className="zd-get__t">
               <b>Zinwe {AGENT_RELEASE.version}</b>
               <span>{[size, "Windows 10 and 11", "64-bit"].filter(Boolean).join(" · ")}</span>

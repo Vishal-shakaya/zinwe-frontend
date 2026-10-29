@@ -493,3 +493,128 @@
     padding-top: 56px;
   }
 }
+
+/* ---------- Phones (v1.3.1): stacked controls, readable cards, and a compare table that shows one plan at a time
+   (pick it above the table) instead of a wide table you scroll sideways. ---------- */
+.zp2-cmp-pick {
+  display: none;
+}
+@media (max-width: 760px) {
+  .zp2-hero {
+    padding-top: 36px;
+  }
+  .zp2-hero__lead {
+    font-size: 16.5px;
+  }
+  .zp2-ctls {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .zp2-ctl {
+    justify-content: space-between;
+    padding: 8px 8px 8px 16px;
+  }
+  .zp2-ctl--seg {
+    padding: 8px;
+  }
+  .zp2-ctl__l {
+    font-size: 14px;
+  }
+  .zp2-cur select {
+    font-size: 16px;
+  }
+  .zp2-seg {
+    width: 100%;
+  }
+  .zp2-seg__b {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .zp2-sub,
+  .zp2-badge,
+  .zp2-new,
+  .zp2-table .zp2-grp th {
+    font-size: 13px;
+  }
+  .zp2-faq__h {
+    font-size: 28px;
+  }
+  .zp2-faq {
+    padding-top: 40px;
+    padding-bottom: 48px;
+    gap: 24px;
+  }
+  .zp2-closewrap {
+    padding-bottom: 56px;
+  }
+}
+
+/* The one-plan compare table also serves small tablets (the full table needs 860 px). */
+@media (max-width: 860px) {
+  .zp2-cmp-pick {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--zs-sand);
+    border-radius: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .zp2-cmp-pick__b {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 48px;
+    padding: 4px 6px;
+    line-height: 1.2;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--zs-body);
+    white-space: normal;
+  }
+  .zp2-cmp-pick__b.is-on {
+    background: #fff;
+    color: var(--zs-ink);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  .zp2-table[data-col] {
+    min-width: 0;
+    font-size: 15px;
+  }
+  .zp2-table[data-col="2"] tr > :not(:first-child):not(:nth-child(2)),
+  .zp2-table[data-col="3"] tr > :not(:first-child):not(:nth-child(3)),
+  .zp2-table[data-col="4"] tr > :not(:first-child):not(:nth-child(4)),
+  .zp2-table[data-col="5"] tr > :not(:first-child):not(:nth-child(5)) {
+    display: none;
+  }
+  .zp2-table th,
+  .zp2-table td {
+    padding: 13px 14px;
+  }
+  .zp2-table[data-col] tr > :first-child:not([colspan]) {
+    width: 66%;
+  }
+  .zp2-table[data-col] td,
+  .zp2-table[data-col] thead th:not(:first-child) {
+    width: 34%;
+    text-align: center;
+  }
+  .zp2-table[data-col] td svg {
+    display: inline-block;
+  }
+}
+
+/* Tablets (761–900 px) get the same 13 px floor for small text (v1.3.1). */
+@media (min-width: 761px) and (max-width: 900px) {
+  .zp2-sub,
+  .zp2-badge,
+  .zp2-new,
+  .zp2-table .zp2-grp th {
+    font-size: 13px;
+  }
+}

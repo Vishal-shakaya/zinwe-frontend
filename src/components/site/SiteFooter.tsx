@@ -49,7 +49,7 @@ export function SiteFooter(): ReactElement {
         </div>
         <div className="zs-foot__line">
           <p className="zs-foot__tag">
-            <span>Zinwe</span>
+            <Brand variant="static" tone="light" height={24} className="zs-foot__mark" />
             <span className="sep" aria-hidden="true">
               —
             </span>

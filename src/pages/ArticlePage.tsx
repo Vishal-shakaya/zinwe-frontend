@@ -7,6 +7,7 @@ import { trackEvent } from "../lib/analytics";
 import { ApiError, errorMessage } from "../lib/api";
 import { blogAsset, getArticle, withAssetBase, type Article } from "../lib/api/blog";
 import { formatDate } from "../lib/format";
+import { SiteMark } from "../components/site/SiteMark";
 import "../styles/site-blog.css";
 
 const SITE = "https://zinwe.io";
@@ -144,9 +145,7 @@ export default function ArticlePage(): ReactElement {
           <h1 className="za-h1">{article.title}</h1>
           {article.summary ? <p className="za-sum">{article.summary}</p> : null}
           <div className="za-by">
-            <span className="za-by__z" aria-hidden="true">
-              Z
-            </span>
+            <SiteMark size={28} tile className="za-by__z" />
             {article.author_name || "Zinwe team"} · <time dateTime={article.published_at}>{formatDate(article.published_at)}</time> · {article.reading_minutes} min read
           </div>
           {article.cover ? <img className="za-cover" src={blogAsset(article.cover.url)} alt={article.cover_alt} fetchPriority="high" /> : null}
