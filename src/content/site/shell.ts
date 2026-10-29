@@ -18,14 +18,14 @@ export const NAV_LINKS: readonly NavLink[] = [
 ];
 
 /**
- * The dark strip above the header, off for now. Only shipped features may be named (rule, 29 Oct): tasks,
- * performance and alerts by email are not built yet, so the text names the scheduled PDF reports (reports_pro).
+ * The dark strip above the header, off for now. Only shipped features may be named (rule, 29 Oct): performance
+ * and alerts by email are not built yet. Tasks (FR-20) come back in 1.3.1.
  */
 export const WHATS_NEW_BAR = {
   on: false,
-  text: "Zinwe 1.3: PDF reports in your inbox, daily, weekly or monthly.",
+  text: "Zinwe 1.3: send tasks from chat, and PDF reports in your inbox.",
   link: "See what's new →",
-  to: "/product#reports",
+  to: "/product#tasks",
 } as const;
 
 export interface FooterLink {
@@ -35,13 +35,14 @@ export interface FooterLink {
 }
 
 export const FOOTER_ABOUT =
-  "Data safety, chat, work hours and reports for small teams on Windows. Made by SKYTECHNO in New Delhi.";
+  "Data safety, chat, tasks, work hours and reports for small teams on Windows. Made by SKYTECHNO in New Delhi.";
 
 export const FOOTER_COLUMNS: ReadonlyArray<{ label: string; links: readonly FooterLink[]; note?: string }> = [
   {
     label: "PRODUCT",
     links: [
       { label: "Chat", to: "/product#chat" },
+      { label: "Tasks", to: "/product#tasks" },
       { label: "Work hours", to: "/product#hours" },
       { label: "Reports", to: "/product#reports" },
       { label: "Data protection", to: "/product#protection" },

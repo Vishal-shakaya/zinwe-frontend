@@ -8,16 +8,21 @@ import {
   PERSON_HOURS,
   PERSON_TONE,
   RAW_LOG,
+  STAGES,
   TAB_ICON,
   TAB_LABEL,
   TAB_ORDER,
   TAB_ROUTE,
+  TASKS0,
+  TASK_COLUMNS,
   TOP_APPS,
   TOUR_STEP_MS,
   WEEK_DAYS,
   WEEK_HOURS,
   type DemoMessage,
   type DemoTab,
+  type DemoTask,
+  type TaskStage,
 } from "../../content/site/portalDemo";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
 import { cx } from "../../lib/cx";
@@ -46,6 +51,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
   const [manual, setManual] = useState(false);
   const [msgs, setMsgs] = useState<readonly DemoMessage[]>(MSGS0);
   const [draft, setDraft] = useState("");
+  const [tasks, setTasks] = useState<readonly DemoTask[]>(TASKS0);
   const [needsDone, setNeedsDone] = useState<Record<string, boolean>>({});
   const [fine, setFine] = useState<Record<string, "ask" | "fine">>({});
   const [onScreen, setOnScreen] = useState(true);
@@ -109,25 +115,36 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
     document.getElementById(`zp-tab-${next}`)?.focus();
   };
 
-  const send = () => {
+  const send = (asTask: boolean) => {
     const text = draft.trim();
     if (!text) return;
     const id = nextId.current++;
-    const msg: DemoMessage = { id, me: true, text, time: "2:21 PM", receipt: "Sent" };
+    const msg: DemoMessage = asTask
+      ? { id, kind: "task", text, due: "Today", stage: 0 }
+      : { id, kind: "text", me: true, text, time: "2:21 PM", receipt: "Sent" };
     setMsgs((m) => [...m, msg]);
     setDraft("");
     takeOver();
-    // Delivered once her PC has it, Seen once she opens the chat.
-    const bump = (receipt: string) => setMsgs((m) => m.map((x) => (x.id !== id ? x : { ...x, receipt })));
-    timers.current.push(window.setTimeout(() => bump("Delivered"), 1200));
-    timers.current.push(window.setTimeout(() => bump("Seen"), 2600));
+    // Delivered once her PC has it, Seen once she opens the chat (a task moves to Seen the same way).
+    const bump = (receipt: string, stage: number) =>
+      setMsgs((m) => m.map((x) => (x.id !== id ? x : x.kind === "task" ? { ...x, stage } : { ...x, receipt })));
+    timers.current.push(window.setTimeout(() => bump("Delivered", 0), 1200));
+    timers.current.push(window.setTimeout(() => bump("Seen", 1), 2600));
   };
 
+  const move = (id: number, stage: TaskStage) => {
+    setTasks((all) => all.map((t) => (t.id === id ? { ...t, stage } : t)));
+    takeOver();
+  };
+
+  const reviewCount = tasks.filter((t) => t.stage === "review").length;
+  const openTasks = tasks.filter((t) => t.stage !== "done").length + 5;
   const mostMins = Math.max(...PERSON_HOURS.map((p) => p.mins));
   const alertsOpen = ALERTS.length - Object.keys(fine).length;
   const badges: Record<DemoTab, { n: number; tone: string }> = {
     overview: { n: 0, tone: "" },
     chat: { n: 2, tone: "dark" },
+    tasks: { n: openTasks, tone: "soft" },
     reports: { n: 0, tone: "" },
     alerts: { n: alertsOpen, tone: "red" },
   };
@@ -171,7 +188,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
         </div>
 
         <div className="zp-body">
-          {/* The same menu as the real dashboard, cut down to the four places owners use most. */}
+          {/* The same menu as the real dashboard, cut down to the five places owners use most. */}
           <div className="zp-side" role="tablist" aria-label="Dashboard pages" aria-orientation="vertical">
             <div className="zp-co">
               <span className="zp-av zp-av--30 tone-ink" aria-hidden="true">
@@ -214,8 +231,8 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
                     <span className="zp-lbl">Wednesday, 28 October</span>
                     <h3 className="zp-h3">Good afternoon, Ananya</h3>
                   </div>
-                  <button type="button" className="zp-b zp-b--pri" onClick={() => pick("chat")}>
-                    Send a message
+                  <button type="button" className="zp-b zp-b--pri" onClick={() => pick("tasks")}>
+                    Send a task
                   </button>
                 </div>
                 <div className="zp-tiles">
@@ -223,7 +240,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
                     { label: "Working now", value: "9", sub: "of 12 people", cls: "is-green" },
                     { label: "On a break", value: "1", sub: "Emily, 42 min", cls: "is-amber" },
                     { label: "Alerts to check", value: String(alertsOpen + 2), sub: "since this morning", cls: "is-red" },
-                    { label: "Unread chats", value: "2", sub: "Arjun and Sneha", cls: "" },
+                    { label: "Open tasks", value: String(openTasks), sub: `${reviewCount} waiting for you`, cls: "" },
                   ].map((k) => (
                     <div key={k.label} className="zp-card zp-tile">
                       <span className="zp-tile__l">{k.label}</span>
@@ -308,12 +325,34 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
                   </div>
                   <div className="zp-log" role="log" aria-label="Messages with Priya" ref={logRef}>
                     <span className="zp-day">Today</span>
-                    {msgs.map((m) => (
-                      <div key={m.id} className={cx("zp-msg", m.me && "is-me")}>
-                        <div className="zp-msg__b">{m.text}</div>
-                        <span className="zp-msg__meta">{m.me ? `${m.time} · ${m.receipt ?? ""}` : m.time}</span>
-                      </div>
-                    ))}
+                    {msgs.map((m) =>
+                      m.kind === "task" ? (
+                        <div key={m.id} className="zp-taskmsg">
+                          <span className="zp-taskmsg__k">
+                            <PathIcon d={["M4 4h16v16H4z", "M8.5 12.5l2.5 2.5 4.5-5"]} size={13} stroke={2.2} />
+                            TASK
+                          </span>
+                          <b>{m.text}</b>
+                          <span className="zp-taskmsg__pills">
+                            <span className="zp-pill tone-amber">Due {m.due}</span>
+                            <span className={cx("zp-pill", m.stage >= 2 ? "tone-orange" : "tone-stone")}>{STAGES[m.stage]}</span>
+                          </span>
+                          <div className="zp-stages" aria-label={`Progress: ${STAGES[m.stage]}`}>
+                            {STAGES.map((label, i) => (
+                              <span key={label} className={cx("zp-stage", i < m.stage && "is-past", i === m.stage && "is-now")}>
+                                <span className="zp-stage__bar" />
+                                <span className="zp-stage__l">{label}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={m.id} className={cx("zp-msg", m.me && "is-me")}>
+                          <div className="zp-msg__b">{m.text}</div>
+                          <span className="zp-msg__meta">{m.me ? `${m.time} · ${m.receipt ?? ""}` : m.time}</span>
+                        </div>
+                      ),
+                    )}
                   </div>
                   <div className="zp-compose">
                     <label htmlFor="zp-draft" className="zs-sr">
@@ -325,16 +364,67 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") send();
+                        if (e.key === "Enter") send(false);
                       }}
                       onFocus={takeOver}
-                      placeholder="Message Priya"
+                      placeholder="Message Priya, or type a task"
                       autoComplete="off"
                     />
-                    <button type="button" className="zp-b zp-b--dark" onClick={send}>
+                    <button type="button" className="zp-b" onClick={() => send(true)} title="Send as a task">
+                      + Task
+                    </button>
+                    <button type="button" className="zp-b zp-b--dark" onClick={() => send(false)}>
                       Send
                     </button>
                   </div>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === "tasks" ? (
+              <div className="zp-fade zp-stack zp-stack--12">
+                <div className="zp-headrow zp-headrow--center">
+                  <div>
+                    <h3 className="zp-h3 zp-h3--sm">Tasks</h3>
+                    <span className="zp-sub">Sent from Chat or here, ticked off in each person's Zinwe app.</span>
+                  </div>
+                  <span className="zp-pills">
+                    <span className="zp-pill tone-green">{reviewCount} waiting for your OK</span>
+                    <span className="zp-pill tone-red">1 overdue</span>
+                  </span>
+                </div>
+                <div className="zp-cols">
+                  {TASK_COLUMNS.map(([key, label]) => {
+                    const items = tasks.filter((t) => t.stage === key);
+                    return (
+                      <section key={key} className="zp-col" aria-label={label}>
+                        <div className="zp-col__h">
+                          <b>{label}</b>
+                          <span className="zs-num">{items.length}</span>
+                        </div>
+                        {items.map((t) => (
+                          <div key={t.id} className="zp-card zp-task zp-fade">
+                            <b>{t.title}</b>
+                            <span className="zp-task__meta">
+                              <Avatar ini={t.ini} size={22} />
+                              <span className={cx("zp-pill", t.late ? "tone-red" : key === "done" ? "tone-green" : "tone-grey")}>{t.due}</span>
+                              {t.steps ? <span className="zp-pill zs-num tone-grey">{t.steps}</span> : null}
+                            </span>
+                            {key === "review" ? (
+                              <span className="zp-task__acts">
+                                <button type="button" className="zp-b zp-b--pri zp-b--grow" onClick={() => move(t.id, "done")}>
+                                  Approve
+                                </button>
+                                <button type="button" className="zp-b" onClick={() => move(t.id, "progress")}>
+                                  Reopen
+                                </button>
+                              </span>
+                            ) : null}
+                          </div>
+                        ))}
+                      </section>
+                    );
+                  })}
                 </div>
               </div>
             ) : null}

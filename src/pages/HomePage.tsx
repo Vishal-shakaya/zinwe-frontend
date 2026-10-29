@@ -18,6 +18,7 @@ import {
   RULES,
   RULE_DEFAULTS,
   STEPS,
+  TASK_ROWS,
   TEAM_SIDE,
   TILES_INTRO,
   type RuleKey,
@@ -58,7 +59,7 @@ function useTilesOnScreen(count: number): [RefObject<HTMLDivElement | null>, boo
 
 /**
  * Home v3.2 (board SiteHome, 29 Oct review): promise + reassurances → the live dashboard → Active members →
- * the four tiles (each loops like a GIF only while on screen; one button pauses them all; reduced motion shows the
+ * the five tiles (each loops like a GIF only while on screen; one button pauses them all; reduced motion shows the
  * end state) → protection, hands-on → mid-page sign-up → the team's side → how it works → consent first → questions
  * → close. The client quote shows only once a real client has agreed (content/site/home.ts MEMBER_QUOTE).
  */
@@ -66,7 +67,7 @@ export default function HomePage(): ReactElement {
   usePageMeta(seoFor("/"));
   const [still, setStill] = useState(false);
   const [rules, setRules] = useState<Record<RuleKey, string>>(RULE_DEFAULTS);
-  const [tilesRef, vis] = useTilesOnScreen(4);
+  const [tilesRef, vis] = useTilesOnScreen(5);
   const plans = usePlans();
   const priceAnswer = plans.data ? homePriceAnswer(plans.data) : null;
   const faqs = HOME_FAQ.map((f) => (f.q === HOME_PRICE_Q && priceAnswer ? { ...f, a: priceAnswer } : f));
@@ -123,7 +124,7 @@ export default function HomePage(): ReactElement {
         </div>
 
         <div className={cx("zh-tiles", still && "is-still")} ref={tilesRef}>
-          {/* Chat · full width, light. Loop (10 s): Priya writes → you reply → seen → she answers → she types. */}
+          {/* Chat · full width, light. Loop (10 s): Priya writes → you reply → a task → seen → in progress → she types. */}
           <Link to="/product#chat" className={cx("zh-tile zh-tile--full", off(0))} data-i="0">
             <span className="zh-tile__kick is-blue">Chat</span>
             <h3 className="zh-tile__h">Message anyone, right at their PC.</h3>
@@ -142,9 +143,30 @@ export default function HomePage(): ReactElement {
                 </div>
                 <div className="zh-chatbody">
                   <span className="hl-lp hl-in1 zh-bub">Sharma Traders sent only 3 of 5 invoices.</span>
-                  <span className="hl-lp hl-in2 zh-bub zh-bub--me">Thanks Priya. Can you chase them for the other 2 today?</span>
-                  <span className="hl-lp hl-in3 zh-seen">2:14 PM · Seen</span>
-                  <span className="hl-lp hl-in4 zh-bub">On it, calling them now.</span>
+                  <span className="hl-lp hl-in2 zh-bub zh-bub--me">Thanks Priya. Making it a task.</span>
+                  <span className="hl-lp hl-in3 zh-taskcard">
+                    <span className="zh-taskcard__k">TASK</span>
+                    <b>Chase Sharma Traders for 2 missing invoices</b>
+                    <span className="zh-stagebars">
+                      <span>
+                        <span className="zh-sb is-green" />
+                        Sent
+                      </span>
+                      <span>
+                        <span className="hl-lp hl-seen zh-sb is-green" />
+                        Seen
+                      </span>
+                      <span>
+                        <span className="hl-lp hl-prog zh-sb is-orange" />
+                        In progress
+                      </span>
+                      <span>
+                        <span className="zh-sb" />
+                        Done
+                      </span>
+                    </span>
+                  </span>
+                  <span className="hl-lp hl-in4 zh-seen">2:14 PM · Seen</span>
                   <span className="hl-lp hl-in5 zh-typing" aria-hidden="true">
                     <span className="hl-dot" />
                     <span className="hl-dot hl-d2" />
@@ -155,11 +177,95 @@ export default function HomePage(): ReactElement {
             </div>
           </Link>
 
+          {/* Tasks · full width, dark. Loop: the last step is ticked → Done → you approve Arjun's task. */}
+          <Link to="/product#tasks" className={cx("zh-tile zh-tile--full zh-tile--dark", off(1))} data-i="1">
+            <span className="zh-tile__kick is-orange">Tasks</span>
+            <h3 className="zh-tile__h">Send a task. Watch it move.</h3>
+            <p className="zh-tile__p">Due dates, steps and a stage bar. Approve the work when it's done.</p>
+            <span className="zh-tile__link">How tasks work ›</span>
+            <div className="zh-vis">
+              <div className="zh-shot zh-shot--tasks">
+                <div className="zh-bigtask">
+                  <span className="zh-bigtask__top">
+                    <b>Reconcile October GST input credit</b>
+                    <span className="zh-pills">
+                      <span className="zs-pill tone-red">High</span>
+                      <span className="zs-pill tone-amber">Today, 5 PM</span>
+                    </span>
+                  </span>
+                  <span className="zh-stagebars zh-stagebars--lg">
+                    <span>
+                      <span className="zh-sb is-green" />
+                      Sent
+                    </span>
+                    <span>
+                      <span className="zh-sb is-green" />
+                      Seen
+                    </span>
+                    <span>
+                      <span className="hl-lp hl-toGreen zh-sb is-green" />
+                      In progress
+                    </span>
+                    <span>
+                      <span className="hl-lp hl-toDone zh-sb is-orange" />
+                      Done
+                    </span>
+                  </span>
+                  <span className="zh-substeps">
+                    <span>
+                      <span className="zh-box is-done" aria-hidden="true">
+                        ✓
+                      </span>
+                      <span className="zh-struck">Download the GSTR-2B for October</span>
+                    </span>
+                    <span>
+                      <span className="zh-box is-done" aria-hidden="true">
+                        ✓
+                      </span>
+                      <span className="zh-struck">Match it with the purchase register</span>
+                    </span>
+                    <span>
+                      <span className="hl-lp hl-tick zh-box is-done" aria-hidden="true">
+                        ✓
+                      </span>
+                      <span className="hl-lp hl-strike zh-struck zh-struck--last">List the mismatches for the CA</span>
+                    </span>
+                  </span>
+                </div>
+                <div className="zh-sidetasks">
+                  <span className="zh-minitask">
+                    <b>Ship the client-portal login fix</b>
+                    <span className="zh-minitask__row">
+                      <span className="zh-av24 tone-orange" aria-hidden="true">
+                        AM
+                      </span>
+                      <span className="zh-swap">
+                        <span className="zs-pill tone-green hl-lp hl-swapOut">Waiting for your OK</span>
+                        <span className="zs-pill tone-solid-green hl-lp hl-swapIn">Approved ✓</span>
+                      </span>
+                    </span>
+                  </span>
+                  {TASK_ROWS.map((t) => (
+                    <span key={t.ini} className="zh-minitask">
+                      <b>{t.title}</b>
+                      <span className="zh-minitask__row">
+                        <span className={cx("zh-av24", t.tone)} aria-hidden="true">
+                          {t.ini}
+                        </span>
+                        <span className={cx("zs-pill", t.pill)}>{t.status}</span>
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Link>
+
           {/* Reports · full width, light. Loop: the bars grow one after another, then each person's week fills in. */}
-          <Link to="/product#reports" className={cx("zh-tile zh-tile--full", off(1))} data-i="1">
+          <Link to="/product#reports" className={cx("zh-tile zh-tile--full", off(2))} data-i="2">
             <span className="zh-tile__kick is-green">Reports</span>
             <h3 className="zh-tile__h">See the week in ten seconds.</h3>
-            <p className="zh-tile__p">Hours, apps and websites, per person. Emailed as a PDF every Monday if you like.</p>
+            <p className="zh-tile__p">Hours, tasks done, apps and websites, per person. Emailed as a PDF every Monday if you like.</p>
             <span className="zh-tile__link">What reports show ›</span>
             <div className="zh-vis">
               <div className="zh-shot zh-shot--pad">
@@ -194,7 +300,7 @@ export default function HomePage(): ReactElement {
           </Link>
 
           {/* Work hours · half, warm. Loop: the day fills in for everyone → you approve Emily's lunch break. */}
-          <Link to="/product#hours" className={cx("zh-tile zh-tile--half zh-tile--warm", off(2))} data-i="2">
+          <Link to="/product#hours" className={cx("zh-tile zh-tile--half zh-tile--warm", off(3))} data-i="3">
             <span className="zh-tile__kick is-amber">Work hours</span>
             <h3 className="zh-tile__h">Attendance that runs itself.</h3>
             <p className="zh-tile__p">Start day, Take a break, End day: one tap on each PC. Long breaks ask for your OK.</p>
@@ -235,7 +341,7 @@ export default function HomePage(): ReactElement {
           </Link>
 
           {/* Alerts · half, dark. Loop: the PC logs a big copy → Zinwe turns it into a sentence → USB read-only. */}
-          <Link to="/product#alerts" className={cx("zh-tile zh-tile--half zh-tile--dark", off(3))} data-i="3">
+          <Link to="/product#alerts" className={cx("zh-tile zh-tile--half zh-tile--dark", off(4))} data-i="4">
             <span className="zh-tile__kick is-coral">Alerts</span>
             <h3 className="zh-tile__h">Plain English, not logs.</h3>
             <p className="zh-tile__p">What happened, what it means, and one button for what to do next.</p>
@@ -390,12 +496,12 @@ export default function HomePage(): ReactElement {
                   <span>Take a break</span>
                   <span className="is-dark">End day</span>
                 </div>
-                <div className="zh-tray__card">
-                  <span className="zh-tray__k">NEW MESSAGE FROM ANANYA</span>
-                  <b>Can you share the Brightway timeline before 4?</b>
+                <div className="zh-tray__task">
+                  <span className="zh-tray__k">NEW TASK FROM ANANYA</span>
+                  <b>Update the Brightway project timeline</b>
                   <span className="zh-tray__acts">
-                    <span className="is-pri">Reply</span>
-                    <span>Open chat</span>
+                    <span className="is-pri">Start</span>
+                    <span>Needs help</span>
                   </span>
                 </div>
                 <div className="zh-tray__msg">
@@ -408,6 +514,7 @@ export default function HomePage(): ReactElement {
               <div className="zh-tray__tabs">
                 <span className="is-on">Home</span>
                 <span>Chat</span>
+                <span>Tasks</span>
                 <span>Me</span>
               </div>
             </div>

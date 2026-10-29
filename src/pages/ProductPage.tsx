@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactElement } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, type ReactElement } from "react";
+import { Link } from "react-router-dom";
 import { SiteClients } from "../components/site/SiteClients";
 import { ICONS } from "../components/site/icons";
 import { Cross, PathIcon, Tick } from "../components/site/SiteIcon";
@@ -14,6 +14,7 @@ import {
   PRODUCT_HERO,
   PROTECTION,
   REPORTS,
+  TASKS,
   type DemoKey,
 } from "../content/site/product";
 import { seoFor } from "../content/seo";
@@ -45,17 +46,11 @@ function Av({ ini, size = 28 }: { ini: string; size?: 24 | 28 }): ReactElement {
 
 /**
  * Product (board SiteFeatures): one section per thing owners use, each with the real UI piece beside it.
- * Home tiles and the footer link here with #chat, #hours, #reports, #alerts, #protection, #privacy
- * (the layout's useScrollOnNavigate scrolls to the anchor). The Tasks section is off until tasks ship (FR-20); old
- * #tasks links land on #chat.
+ * Home tiles and the footer link here with #chat, #tasks, #hours, #reports, #alerts, #protection, #privacy
+ * (the layout's useScrollOnNavigate scrolls to the anchor).
  */
 export default function ProductPage(): ReactElement {
   usePageMeta(seoFor("/product"));
-  const { hash } = useLocation();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (hash === "#tasks") navigate({ pathname: "/product", hash: "#chat" }, { replace: true });
-  }, [hash, navigate]);
   useHashTarget();
   const [demo, setDemo] = useState<DemoKey>("usb");
   const d = ALERTS.demos[demo];
@@ -110,6 +105,7 @@ export default function ProductPage(): ReactElement {
               <span className="zf-bub">Got it, thank you! Exporting now.</span>
               <div className="zf-compose" aria-hidden="true">
                 <span className="zf-compose__in">Message Sneha</span>
+                <span className="zf-compose__b">+ Task</span>
                 <span className="zf-compose__b is-dark">Send</span>
               </div>
             </div>
@@ -117,131 +113,187 @@ export default function ProductPage(): ReactElement {
         </div>
       </section>
 
-      {/* WORK HOURS */}
+      {/* TASKS */}
       <section className="zf-band">
-        <div id="hours" className="zf-feat zf-feat--flip" aria-labelledby="hours-h">
+        <div id="tasks" className="zf-feat zf-feat--flip" aria-labelledby="tasks-h">
           <div className="zf-txt">
-            <span className="zs-pill tone-amber zf-pill">{HOURS.pill}</span>
-            <h2 id="hours-h" className="zf-h2">
-              {HOURS.title}
+            <span className="zs-pill tone-orange zf-pill">{TASKS.pill}</span>
+            <h2 id="tasks-h" className="zf-h2">
+              {TASKS.title}
             </h2>
-            <p className="zf-lead">{HOURS.lead}</p>
-            <Ticks items={HOURS.points} />
+            <p className="zf-lead">{TASKS.lead}</p>
+            <Ticks items={TASKS.points} />
           </div>
           <div className="zf-vis">
-            <div className="zs-card zf-hours">
-              <span className="zf-hours__top">
-                <b>Everyone, today</b>
-                <span className="zf-legend">
-                  <span>
-                    <span className="zf-key" aria-hidden="true" />
-                    Working
+            <div className="zf-panel">
+              <div className="zs-card zf-task">
+                <span className="zf-task__top">
+                  <b>Reconcile October GST input credit</b>
+                  <span className="zf-pills">
+                    <span className="zs-pill tone-red">High</span>
+                    <span className="zs-pill tone-amber">Today, 5 PM</span>
                   </span>
-                  <span>
-                    <span className="zf-key is-break" aria-hidden="true" />
-                    Break
-                  </span>
+                </span>
+                <span className="zf-task__who">
+                  <Av ini="PN" size={24} />
+                  Priya Nair · sent by you at 9:40 AM
+                </span>
+                <div className="zf-stages">
+                  {["Sent", "Seen", "In progress", "Done"].map((label, i) => (
+                    <span key={label} className={cx("zf-stage", i < 2 && "is-past", i === 2 && "is-now")}>
+                      <span className="zf-stage__bar" />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                <ul className="zf-steps">
+                  {TASKS.steps.map((s) => (
+                    <li key={s.label}>
+                      <span aria-hidden="true" className={cx("zf-box", s.done && "is-done")}>
+                        {s.done ? "✓" : ""}
+                      </span>
+                      <span className={s.done ? "zf-struck" : "zf-todo"}>{s.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="zf-inapp">
+                <span className="zf-inapp__l">In their Zinwe app:</span>
+                <span className="zf-mini">Confirm</span>
+                <span className="zf-mini zf-mini--pri">Start</span>
+                <span className="zf-mini">Needs help</span>
+                <span className="zf-mini zf-mini--ok">Mark done</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WORK HOURS */}
+      <section id="hours" className="zf-feat" aria-labelledby="hours-h">
+        <div className="zf-txt">
+          <span className="zs-pill tone-amber zf-pill">{HOURS.pill}</span>
+          <h2 id="hours-h" className="zf-h2">
+            {HOURS.title}
+          </h2>
+          <p className="zf-lead">{HOURS.lead}</p>
+          <Ticks items={HOURS.points} />
+        </div>
+        <div className="zf-vis">
+          <div className="zs-card zf-hours">
+            <span className="zf-hours__top">
+              <b>Everyone, today</b>
+              <span className="zf-legend">
+                <span>
+                  <span className="zf-key" aria-hidden="true" />
+                  Working
+                </span>
+                <span>
+                  <span className="zf-key is-break" aria-hidden="true" />
+                  Break
                 </span>
               </span>
-              {HOURS.strips.map((r) => (
-                <div key={r.name} className="zf-strip">
-                  <b>{r.name}</b>
-                  <span className="zf-strip__track" role="img" aria-label={`${r.name}: ${r.total} worked today`}>
-                    {r.segs.map(([a, b, k]) => (
-                      <span
-                        key={a}
-                        className={cx("zf-seg", k === "b" && "is-break")}
-                        style={{ left: `${((a / 600) * 100).toFixed(1)}%`, width: `${(((b - a) / 600) * 100).toFixed(1)}%` }}
-                      />
-                    ))}
-                  </span>
-                  <span className="zf-strip__total zs-num">{r.total}</span>
-                </div>
-              ))}
-              <div className="zf-axis" aria-hidden="true">
-                <span>9 AM</span>
-                <span>12 PM</span>
-                <span>3 PM</span>
-                <span>7 PM</span>
-              </div>
-              <div className="zf-ask">
-                <span className="zf-ask__t">
-                  <b>Emily wants her lunch break approved.</b> “Client lunch, back by 2.” 42 min so far.
+            </span>
+            {HOURS.strips.map((r) => (
+              <div key={r.name} className="zf-strip">
+                <b>{r.name}</b>
+                <span className="zf-strip__track" role="img" aria-label={`${r.name}: ${r.total} worked today`}>
+                  {r.segs.map(([a, b, k]) => (
+                    <span
+                      key={a}
+                      className={cx("zf-seg", k === "b" && "is-break")}
+                      style={{ left: `${((a / 600) * 100).toFixed(1)}%`, width: `${(((b - a) / 600) * 100).toFixed(1)}%` }}
+                    />
+                  ))}
                 </span>
-                <span className="zf-pills">
-                  <span className="zf-mini zf-mini--pri">Approve</span>
-                  <span className="zf-mini">Not approved</span>
-                </span>
+                <span className="zf-strip__total zs-num">{r.total}</span>
               </div>
+            ))}
+            <div className="zf-axis" aria-hidden="true">
+              <span>9 AM</span>
+              <span>12 PM</span>
+              <span>3 PM</span>
+              <span>7 PM</span>
+            </div>
+            <div className="zf-ask">
+              <span className="zf-ask__t">
+                <b>Emily wants her lunch break approved.</b> “Client lunch, back by 2.” 42 min so far.
+              </span>
+              <span className="zf-pills">
+                <span className="zf-mini zf-mini--pri">Approve</span>
+                <span className="zf-mini">Not approved</span>
+              </span>
             </div>
           </div>
         </div>
       </section>
 
       {/* REPORTS */}
-      <section id="reports" className="zf-feat" aria-labelledby="rep-h">
-        <div className="zf-txt">
-          <span className="zs-pill tone-green zf-pill">{REPORTS.pill}</span>
-          <h2 id="rep-h" className="zf-h2">
-            {REPORTS.title}
-          </h2>
-          <p className="zf-lead">{REPORTS.lead}</p>
-          <ul className="zs-ticks">
-            {REPORTS.points.map((t) => (
-              <li key={t.text}>
-                <Tick />
-                <span>
-                  {t.text} <span className={cx("zs-pill", PLAN_TAG[t.tag].tone)}>{PLAN_TAG[t.tag].label}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="zf-vis">
-          <div className="zf-panel">
-            <div className="zf-kpis">
-              {REPORTS.kpis.map((k) => (
-                <div key={k.l} className="zs-card zf-kpi">
-                  <span>{k.l}</span>
-                  <b className="zs-num">{k.v}</b>
-                  <span className="zf-kpi__s">{k.s}</span>
-                </div>
-              ))}
-            </div>
-            <div className="zs-card zf-perfcard">
-              <span className="zf-perfcard__h">
-                <b>Hours per person, this week</b>
-                <span className="zs-pill tone-grey">All plans</span>
-              </span>
-              {REPORTS.people.map((p) => (
-                <span key={p.name} className="zf-perf">
-                  <b>{p.name}</b>
-                  <span className="zf-perf__track">
-                    <span
-                      className="zf-perf__fill"
-                      style={{ width: `${Math.round((p.mins / Math.max(...REPORTS.people.map((x) => x.mins))) * 100)}%` }}
-                    />
+      <section className="zf-band">
+        <div id="reports" className="zf-feat zf-feat--flip" aria-labelledby="rep-h">
+          <div className="zf-txt">
+            <span className="zs-pill tone-green zf-pill">{REPORTS.pill}</span>
+            <h2 id="rep-h" className="zf-h2">
+              {REPORTS.title}
+            </h2>
+            <p className="zf-lead">{REPORTS.lead}</p>
+            <ul className="zs-ticks">
+              {REPORTS.points.map((t) => (
+                <li key={t.text}>
+                  <Tick />
+                  <span>
+                    {t.text} <span className={cx("zs-pill", PLAN_TAG[t.tag].tone)}>{PLAN_TAG[t.tag].label}</span>
                   </span>
-                  <span className="zf-perf__n zf-perf__n--wide zs-num">{p.hours}</span>
-                </span>
+                </li>
               ))}
-              <span className="zf-next">
-                <b>Top apps:</b> Excel, Chrome and Tally Prime.
-              </span>
-            </div>
-            <div className="zs-card zf-weekly">
-              <PathIcon d={ICONS.mail} size={18} className="zf-weekly__i" />
-              <span className="zf-weekly__t">
-                <b>Weekly team report</b> · PDF every Monday, 9:00 AM
-              </span>
-              <span className="zs-pill tone-green">Startups and up</span>
+            </ul>
+          </div>
+          <div className="zf-vis">
+            <div className="zf-panel">
+              <div className="zf-kpis">
+                {REPORTS.kpis.map((k) => (
+                  <div key={k.l} className="zs-card zf-kpi">
+                    <span>{k.l}</span>
+                    <b className="zs-num">{k.v}</b>
+                    <span className="zf-kpi__s">{k.s}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="zs-card zf-perfcard">
+                <span className="zf-perfcard__h">
+                  <b>Hours per person, this week</b>
+                  <span className="zs-pill tone-grey">All plans</span>
+                </span>
+                {REPORTS.people.map((p) => (
+                  <span key={p.name} className="zf-perf">
+                    <b>{p.name}</b>
+                    <span className="zf-perf__track">
+                      <span
+                        className="zf-perf__fill"
+                        style={{ width: `${Math.round((p.mins / Math.max(...REPORTS.people.map((x) => x.mins))) * 100)}%` }}
+                      />
+                    </span>
+                    <span className="zf-perf__n zf-perf__n--wide zs-num">{p.hours}</span>
+                  </span>
+                ))}
+                <span className="zf-next">
+                  <b>Top apps:</b> Excel, Chrome and Tally Prime.
+                </span>
+              </div>
+              <div className="zs-card zf-weekly">
+                <PathIcon d={ICONS.mail} size={18} className="zf-weekly__i" />
+                <span className="zf-weekly__t">
+                  <b>Weekly team report</b> · PDF every Monday, 9:00 AM
+                </span>
+                <span className="zs-pill tone-green">Startups and up</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ALERTS */}
-      <section id="alerts" className="zf-feat zf-feat--flip" aria-labelledby="al-h">
+      <section id="alerts" className="zf-feat" aria-labelledby="al-h">
         <div className="zf-txt">
           <span className="zs-pill tone-red zf-pill">{ALERTS.pill}</span>
           <h2 id="al-h" className="zf-h2">

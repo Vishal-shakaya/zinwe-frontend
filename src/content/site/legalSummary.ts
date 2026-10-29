@@ -31,7 +31,7 @@ export const POLICY_SUMMARIES: readonly PolicySummary[] = [
       "Following the law where you are is your job. In India (DPDP Act, 2023) a clause in an offer letter is not valid consent: use Zinwe's consent screen for each person. In the US, give the written notice your state requires before monitoring starts.",
       "Priced flat by PCs, not per seat, in four plans: Free forever (up to 3 PCs), Startups (10), Teams (25) and Businesses (50). India pays in rupees plus GST; outside India pays in US dollars, without Indian GST.",
       "You choose monthly or yearly each time you pay. Each payment covers one billing period and nothing is charged automatically. Online payments (Razorpay) switch the plan on when confirmed; bank transfer or Skydo usually within one working day. Every payment gets an invoice, a GST invoice in India.",
-      "You own the data your use of Zinwe creates, including activity logs, alerts and chats. We use it only to provide, maintain and improve the service.",
+      "You own the data your use of Zinwe creates, including activity logs, alerts, chats and tasks. We use it only to provide, maintain and improve the service.",
       "Our total liability for a claim is capped at what you paid us in the 12 months before it. Indian law applies, with the courts in New Delhi. We give at least 30 days' notice of any material change.",
       "Help or a complaint: hello@zinwe.io. Grievance Officer: Vishal Shakaya. We acknowledge within 2 business days and respond with a resolution within 5 business days.",
     ],

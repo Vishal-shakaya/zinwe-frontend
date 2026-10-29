@@ -72,7 +72,7 @@ function useArticleHead(article: Article | undefined): void {
 
 /**
  * Public /blog/:slug, v3 (board SiteArticle): the article on a white sheet (breadcrumb, title, summary, byline, cover,
- * body from the API), a dark "start free" call to action, and a side column with Share, the closest free guide
+ * body from the API), a dark "send it as a task" call to action, and a side column with Share, the closest free guide
  * (or series episode) and the newsletter; then "Keep reading". Loading, not-found and error states as before.
  */
 export default function ArticlePage(): ReactElement {
@@ -153,7 +153,7 @@ export default function ArticlePage(): ReactElement {
           <div className="zs-prose za-prose" dangerouslySetInnerHTML={{ __html: withAssetBase(article.body_html) }} />
           <div className="za-cta">
             <span>
-              <b>Run your office with Zinwe.</b> Chat, work hours and data safety, free for up to 3 PCs.
+              <b>Send this week's change as a task.</b> Chat, tasks and data safety, free for up to 3 PCs.
             </span>
             <Link className="zs-btn zs-btn--pri zs-btn--flat" to="/signup?plan=free">
               Start free

@@ -12,7 +12,7 @@ import { cx } from "../lib/cx";
 
 const ON_CALL = [
   "Set your first rules together, in plain words",
-  "Connect your first PCs and send a test message",
+  "Connect your first PCs and send a test task",
   "Answer your questions about privacy and consent",
 ];
 const SIZES: ReadonlyArray<readonly [string, string]> = [
@@ -21,7 +21,7 @@ const SIZES: ReadonlyArray<readonly [string, string]> = [
   ["26-50", "26–50"],
   ["50+", "More than 50"],
 ];
-const TOPICS = ["Chat", "Work hours", "Reports", "USB and file copies", "Remote-control apps", "DPDP and consent"];
+const TOPICS = ["Chat and tasks", "Work hours", "Reports", "USB and file copies", "Remote-control apps", "DPDP and consent"];
 const SUBJECTS = ["Is Zinwe right for us?", "Plans and billing", "Partnership", "Something else"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -44,7 +44,7 @@ export default function ContactPage(): ReactElement {
   const [company, setCompany] = useState("");
   const [phone, setPhone] = useState("");
   const [size, setSize] = useState("11-25");
-  const [topics, setTopics] = useState<string[]>(["Chat"]);
+  const [topics, setTopics] = useState<string[]>(["Chat and tasks"]);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<{ text: string; field: Field | null; mailto?: boolean } | null>(null);
@@ -119,7 +119,7 @@ export default function ContactPage(): ReactElement {
         <div className="zc-left">
           <span className="zs-eyebrow">Talk to us</span>
           <h1 className="zs-h1 zc-h1">A person, not a ticket.</h1>
-          <p className="zs-lead">Book a free 20-minute call and we set up Zinwe with you: your rules and your first PCs. Or just send a message.</p>
+          <p className="zs-lead">Book a free 20-minute call and we set up Zinwe with you: your rules, your first PCs, your first tasks. Or just send a message.</p>
           <div className="zc-oncall">
             <b>On the call we</b>
             {ON_CALL.map((o) => (

@@ -5,9 +5,8 @@
  * Deliberate departures from the board, for the hard rules in .claude/marketing/context.md §3 (owner to confirm):
  * - the price question reads its numbers from the plans API (no price is typed here),
  * - the third "Consent first" card does not name a law (rule 5: no legal or compliance claims), and
- * - (29 Oct, rule "only shipped features") no tasks and no performance scores anywhere until their backends ship
- *   (FR-20 tasks, performance): the Tasks tile is gone, the Reports tile shows hours per person, and the team-side
- *   copy talks about messages. See .claude/dev/docs/06-website-portal.md to put them back.
+ * - (rule "only shipped features") no performance scores until that backend ships: the Reports tile shows hours per
+ *   person. Tasks came back in 1.3.1 with FR-20. See .claude/dev/docs/06-website-portal.md.
  */
 import { ICONS } from "../../components/site/icons";
 
@@ -15,15 +14,20 @@ export const HERO = {
   badge: "IT Is OK.",
   badgeText: "For offices of 5 to 50 people with no IT department",
   title: "Run a safe, organised office from one screen.",
-  lead: "Zinwe protects company data on every Windows PC and gives you chat, work hours and reports in the same place. Simple enough to set up this afternoon.",
+  lead: "Zinwe protects company data on every Windows PC and gives you chat, tasks, work hours and reports in the same place. Simple enough to set up this afternoon.",
   ticks: ["No card needed", "Windows 10 and 11", "Each person agrees on their own PC"],
 } as const;
 
 export const TILES_INTRO = {
   eyebrow: "One app, the whole office",
   title: "Everything an owner needs. Nothing they don't.",
-  lead: "Talk to your team, see the hours and keep data safe. Each part is one click from the others.",
+  lead: "Talk to your team, hand out work, see the hours and keep data safe. Each part is one click from the others.",
 } as const;
+
+export const TASK_ROWS: ReadonlyArray<{ ini: string; title: string; status: string; pill: string; tone: string }> = [
+  { ini: "SR", title: "Export the brand screens for review", status: "Needs help", pill: "tone-amber", tone: "tone-green" },
+  { ini: "OM", title: "Smoke test the 2.4 release", status: "Done", pill: "tone-solid-green", tone: "tone-grey" },
+];
 
 /** Day strips, 9 AM (0) to 7 PM (600 min): w = working, b = break. */
 export type Seg = readonly [number, number, "w" | "b"];
@@ -120,9 +124,9 @@ export const PROTECTION = {
 export const TEAM_SIDE = {
   eyebrow: "For your team",
   title: "Your team gets a helpful app, not a hidden one.",
-  lead: "The Zinwe window sits by the clock on each PC. Your people chat with you, start and end their day, and can always see exactly what Zinwe records.",
+  lead: "The Zinwe window sits by the clock on each PC. Your people chat with you, tick off tasks, start and end their day, and can always see exactly what Zinwe records.",
   points: [
-    "Messages from you land right on their screen",
+    "Chat and tasks from you land right on their screen",
     "One tap to start the day, take a break or end the day",
     "A plain list of what is recorded, always one click away",
   ],

@@ -3,19 +3,20 @@
  * company (Kitecrest Digital). One departure (rule 5, .claude/marketing/context.md §3; owner to confirm): the
  * "Fair by design" lead drops the board's last sentence naming India's DPDP Act and US notice rules.
  * Plan tags follow what each plan really includes (GET /api/auth/plans/): PDF and emailed reports are "Startups and up".
- * 29 Oct, rule "only shipped features": no Tasks section, no task wording in Chat, no Performance in Reports and no
- * "major alerts by email" until those backends ship. See .claude/dev/docs/06-website-portal.md to put them back.
+ * Rule "only shipped features": no Performance in Reports and no "major alerts by email" until those backends ship.
+ * Tasks came back in 1.3.1 (FR-20). See .claude/dev/docs/06-website-portal.md.
  */
 import { ICONS } from "../../components/site/icons";
 
-export const PRODUCT_SECTIONS = ["chat", "hours", "reports", "alerts", "protection", "privacy"] as const;
+export const PRODUCT_SECTIONS = ["chat", "tasks", "hours", "reports", "alerts", "protection", "privacy"] as const;
 
 export const PRODUCT_HERO = {
   eyebrow: "Product",
   title: "One app for a safe, well-run office.",
-  lead: "The five things owners of small teams ask for, in one place. Each one is simple on its own, and better together.",
+  lead: "The six things owners of small teams ask for, in one place. Each one is simple on its own, and better together.",
   jumps: [
     { label: "Chat", href: "#chat", dot: "blue" },
+    { label: "Tasks", href: "#tasks", dot: "orange" },
     { label: "Work hours", href: "#hours", dot: "amber" },
     { label: "Reports", href: "#reports", dot: "green" },
     { label: "Alerts", href: "#alerts", dot: "red" },
@@ -31,6 +32,7 @@ export const CHAT = {
   points: [
     "One chat per person, with Sent, Delivered and Seen ticks",
     "Reply to a message with a quote, so nothing gets mixed up",
+    "Turn any message into a task in one click",
     "Unread counts on your dashboard and on their taskbar icon",
   ],
   people: [
@@ -38,6 +40,23 @@ export const CHAT = {
     { ini: "PN", name: "Priya Nair", last: "On it, calling them now.", on: false },
     { ini: "AM", name: "Arjun Mehta", last: "Deployed at 11:05.", on: false },
     { ini: "EC", name: "Emily Carter", last: "Back by 2!", on: false },
+  ],
+} as const;
+
+export const TASKS = {
+  pill: "Tasks · all plans",
+  title: "Send a task. Watch it move.",
+  lead: "Give work a due date and a few steps. Your person taps Start, asks for help if they're stuck, and marks it done. You approve it, or send it back.",
+  points: [
+    "A stage bar everyone understands: Sent, Seen, In progress, Done",
+    "Steps inside a task, ticked off one by one",
+    "Needs help brings the question straight to you",
+    "Approve finished work, or reopen it with a note",
+  ],
+  steps: [
+    { label: "Download the GSTR-2B for October", done: true },
+    { label: "Match it with the purchase register", done: true },
+    { label: "List the mismatches for the CA", done: false },
   ],
 } as const;
 
@@ -68,7 +87,7 @@ export const PLAN_TAG: Record<PlanTag, { label: string; tone: string }> = {
 export const REPORTS = {
   pill: "Reports · all plans",
   title: "Reports that answer a question.",
-  lead: "Who worked when, and where the time and data went. Pick a week or a person; every number adds up.",
+  lead: "Who worked when, what got done, and where the time and data went. Pick a week or a person; every number adds up.",
   points: [
     { text: "Who worked when, day by day and hour by hour", tag: "all" as PlanTag },
     { text: "Apps, websites and internet data, per person", tag: "all" as PlanTag },
@@ -76,7 +95,7 @@ export const REPORTS = {
   ],
   kpis: [
     { l: "Worked in total", v: "301 h", s: "avg 7 h 10m a day" },
-    { l: "Apps used", v: "38", s: "Excel used most" },
+    { l: "Tasks done", v: "41", s: "of 49 sent" },
     { l: "Alerts", v: "9", s: "3 needed you" },
   ],
   /** Hours in the week, per person; bars are drawn against the longest week. */
@@ -160,5 +179,5 @@ export const PRIVACY = {
 
 export const PRODUCT_CLOSE = {
   title: "Try every part free, on 3 PCs.",
-  body: "Chat, work hours, reports and protection. No card, no time limit.",
+  body: "Chat, tasks, work hours, reports and protection. No card, no time limit.",
 } as const;

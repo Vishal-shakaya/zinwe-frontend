@@ -25,7 +25,7 @@ export const AGENT_RELEASE: { version: string; sha256: string | null } = {
 export const DOWNLOAD_HERO = {
   eyebrow: "Download",
   title: "Zinwe for Windows.",
-  lead: "One small app by the clock on each PC. It keeps company data safe, brings your team's chat, and tracks work hours with one tap.",
+  lead: "One small app by the clock on each PC. It keeps company data safe, brings your team's chat and tasks, and tracks work hours with one tap.",
   facts: ["Free to download", "Installs in about a minute", "Each person agrees first", "No kernel driver"],
 } as const;
 
@@ -37,7 +37,7 @@ export const PATHS: Record<InstallPath, ReadonlyArray<{ mock: StepMock; t: strin
     { mock: "download", t: "Download and open the installer", b: "Use the orange button above. Windows asks for an administrator’s OK once; ask whoever looks after your PCs if you don’t have it." },
     { mock: "connect", t: "Type your email and Member ID", b: "Both are in the invite email from your company. Press Connect." },
     { mock: "consent", t: "Read what Zinwe records, then choose", b: "Nothing is recorded until you press I agree. You can read the list again any time." },
-    { mock: "tray", t: "You’re in", b: "Zinwe sits by the clock: start your day, take breaks and chat with your manager." },
+    { mock: "tray", t: "You’re in", b: "Zinwe sits by the clock: start your day, take breaks, chat with your manager and tick off tasks." },
   ],
   owner: [
     { mock: "signup", t: "Create your free account", b: "Sign up with Google, LinkedIn or email. No card needed." },

@@ -5,8 +5,8 @@
  * Only what each plan really includes today (rule "only shipped features", 29 Oct): every plan has every feature
  * except `reports_pro` (PDF reports, emailed and scheduled: paid plans); plans differ by PCs and history kept;
  * Startups and Teams have email support, Businesses priority support and a guided setup call. The prototype's
- * proposed extras (major alerts by email, performance, one person on two PCs, tasks) stay off until their
- * backends ship: see .claude/dev/docs/06-website-portal.md. Copy is keyed by plan code; an unknown code falls back
+ * proposed extras (major alerts by email, performance, one person on two PCs) stay off until their backends
+ * ship; tasks (FR-20) are on every plan since 1.3.1: see .claude/dev/docs/06-website-portal.md. Copy is keyed by plan code; an unknown code falls back
  * to the API's own feature list.
  */
 
@@ -21,7 +21,7 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
     tag: "Try everything on your own office PCs.",
     points: [
       ["All six protections, with plain-English alerts", true, false],
-      ["Chat with each person", true, false],
+      ["Chat and tasks with each person", true, false],
       ["Work hours with break approvals", true, false],
       ["Reports on screen, CSV download", true, false],
     ],
@@ -104,6 +104,7 @@ export const COMPARE_ROWS: readonly CompareRow[] = [
   { f: "Plain-English alerts in the dashboard", cells: ["y", "y", "y", "y"] },
   { group: "YOUR TEAM" },
   { f: "Chat with each person", cells: ["y", "y", "y", "y"] },
+  { f: "Tasks with steps, due dates and approvals", cells: ["y", "y", "y", "y"] },
   { f: "Work hours and break approvals", cells: ["y", "y", "y", "y"] },
   { group: "REPORTS" },
   { f: "Reports on screen and CSV", cells: ["y", "y", "y", "y"] },
@@ -117,7 +118,7 @@ export const COMPARE_ROWS: readonly CompareRow[] = [
 export const PLANS_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   { q: "Is GST included in the price?", a: "In India the price you see is before 18% GST; the card shows the total with GST too, and every payment gets a GST invoice. Outside India you pay in US dollars with no Indian GST." },
   { q: "Will I be charged automatically?", a: "No. Each payment covers one month or one year. We email you before it ends, and you pay for the next one only if you want to." },
-  { q: "Can I change plans later?", a: "Yes, any time from Billing in your dashboard. Moving up starts right away; your rules, chats and history all stay." },
+  { q: "Can I change plans later?", a: "Yes, any time from Billing in your dashboard. Moving up starts right away; your rules, chats, tasks and history all stay." },
   { q: 'What does "Up to {first} PCs" mean?', a: "The number of Windows PCs with Zinwe connected. People are free: two people sharing one PC count once." },
   { q: "Which currency will I pay in?", a: "Pick it in the Currency menu above. Businesses in India pay in rupees by UPI, card or bank transfer. Everyone else pays in US dollars by card or bank transfer." },
   { q: "We have more than {top} PCs.", a: "{topName} covers up to {top} PCs. If you are growing past that, write to hello@zinwe.io and we will help you plan it." },
@@ -125,7 +126,7 @@ export const PLANS_FAQ: ReadonlyArray<{ q: string; a: string }> = [
 
 export const PLANS_CLOSE = {
   title: "Start on Free. Move up in one click.",
-  body: "Your rules, chats and history come with you when you change plan.",
+  body: "Your rules, chats, tasks and history come with you when you change plan.",
 } as const;
 
 /** "{x}" placeholders filled from the catalogue. */
