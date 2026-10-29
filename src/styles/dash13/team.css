@@ -533,11 +533,14 @@
   vertical-align: 2px;
 }
 
+/* One line, cut with an ellipsis (full address on hover): wrapping broke it mid-word, "name@firm.loca" / "l". */
 .zp-team .zt-email {
   display: block;
   font-size: 13px;
   color: #4a443c;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .zp-team .zt-since {

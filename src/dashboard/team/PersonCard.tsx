@@ -431,7 +431,9 @@ export function PersonCard(props: PersonCardProps): ReactElement {
               {unread} new
             </span>
           ) : null}
-          <span className="zt-email">{member.email}</span>
+          <span className="zt-email" title={member.email}>
+            {member.email}
+          </span>
           {since ? <span className="zt-since">{since}</span> : null}
         </div>
         <div className="zt-top-right">
