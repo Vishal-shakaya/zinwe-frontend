@@ -21,8 +21,8 @@ import { higherPlans, isUpgradeDone, UpgradeContext } from "./features/upgrade";
 import { useResource } from "./useResource";
 import { usePlans } from "../portal/usePlans";
 import { useOwnerNotifications } from "./features/useOwnerNotifications";
-import { listNotes, markNotesRead } from "./fixtures/notifications";
 import { countTasksWaiting, TASKS_CHANGED_EVENT } from "./fixtures/tasks";
+import { useBellFeed } from "./shell/bellFeed";
 import { DashNav } from "./shell/DashNav";
 import { PhoneShell } from "./shell/PhoneShell";
 import { activeFor, ShellContext, type ShellState } from "./shell/shellContext";
@@ -223,10 +223,16 @@ export default function AppLayout(): ReactElement {
   // Alerts badge: open "Needs attention" alerts, counted on the server.
   const counts = useEventCounts();
   const alertsBadge = counts.data?.critical_unhandled ?? 0;
-  // SAMPLE: the bell's history (fixtures/notifications.ts) and the Tasks badge (fixtures/tasks.ts).
-  const loadNotes = useCallback((signal: AbortSignal) => listNotes(signal), []);
-  const notes = useResource(loadNotes);
-  const setNotes = notes.setData;
+  // The bell: real items only (alerts that need you, unread chats, requests, tasks, news), see shell/bellFeed.ts.
+  const bell = useBellFeed({
+    userId: user?.id,
+    members: members.data,
+    announcements,
+    chat: entitlements.has("team_chat"),
+    work: entitlements.has("work_time"),
+  });
+  const reloadBell = bell.reload;
+  // SAMPLE: the Tasks badge (fixtures/tasks.ts).
   const [tasksWaiting, setTasksWaiting] = useState(countTasksWaiting);
   useEffect(() => {
     const update = () => setTasksWaiting(countTasksWaiting());
@@ -246,10 +252,11 @@ export default function AppLayout(): ReactElement {
     setRefreshKey((k) => k + 1);
     reloadMembers();
     reloadCounts();
+    reloadBell();
     void refresh();
     window.clearTimeout(refreshTimer.current);
     refreshTimer.current = window.setTimeout(() => setRefreshing(false), 500);
-  }, [refresh, reloadMembers, reloadCounts]);
+  }, [refresh, reloadMembers, reloadCounts, reloadBell]);
   useEffect(() => () => window.clearTimeout(refreshTimer.current), []);
 
   // A chat thread just read a member's reply: refresh the Chat badge now, not on the next poll.
@@ -294,13 +301,12 @@ export default function AppLayout(): ReactElement {
       tasksWaiting,
       members: members.data,
       reloadMembers,
-      notes: notes.data,
-      markNotesRead: (ids) => setNotes(markNotesRead(ids)),
+      bell,
       openFeedback: () => setFeedbackOpen(true),
       refreshAll,
       refreshing,
     }),
-    [alertsBadge, unread, tasksWaiting, members.data, reloadMembers, notes.data, setNotes, refreshAll, refreshing],
+    [alertsBadge, unread, tasksWaiting, members.data, reloadMembers, bell, refreshAll, refreshing],
   );
 
   const displayName = user ? user.full_name || user.email : "Your account";
