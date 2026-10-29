@@ -530,6 +530,9 @@
   text-align: right;
   color: var(--zs-ink-3);
 }
+.zh-perf__n--wide {
+  width: 40px;
+}
 
 /* Work hours tile */
 .zh-shot--hours {
@@ -1091,7 +1094,7 @@
   border-color: var(--zs-dark);
   color: #fff;
 }
-.zh-tray__task {
+.zh-tray__card {
   background: #fff;
   border: 1px solid var(--zs-line-2);
   border-radius: 12px;
@@ -1148,7 +1151,7 @@
 }
 .zh-tray__tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   background: #fff;
   border-top: 1px solid var(--zs-line-2);
   font-size: 11.5px;

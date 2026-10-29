@@ -2,19 +2,20 @@
  * Product page copy and sample data (board SiteFeatures, 29 Oct 2026), word for word. Sample people are the demo
  * company (Kitecrest Digital). One departure (rule 5, .claude/marketing/context.md §3; owner to confirm): the
  * "Fair by design" lead drops the board's last sentence naming India's DPDP Act and US notice rules.
- * Plan tags ("Startups and up", "Teams and up") follow the owner's proposed v1.3 split, the same as /plans.
+ * Plan tags follow what each plan really includes (GET /api/auth/plans/): PDF and emailed reports are "Startups and up".
+ * 29 Oct, rule "only shipped features": no Tasks section, no task wording in Chat, no Performance in Reports and no
+ * "major alerts by email" until those backends ship. See .claude/dev/docs/06-website-portal.md to put them back.
  */
 import { ICONS } from "../../components/site/icons";
 
-export const PRODUCT_SECTIONS = ["chat", "tasks", "hours", "reports", "alerts", "protection", "privacy"] as const;
+export const PRODUCT_SECTIONS = ["chat", "hours", "reports", "alerts", "protection", "privacy"] as const;
 
 export const PRODUCT_HERO = {
   eyebrow: "Product",
   title: "One app for a safe, well-run office.",
-  lead: "The six things owners of small teams ask for, in one place. Each one is simple on its own, and better together.",
+  lead: "The five things owners of small teams ask for, in one place. Each one is simple on its own, and better together.",
   jumps: [
     { label: "Chat", href: "#chat", dot: "blue" },
-    { label: "Tasks", href: "#tasks", dot: "orange" },
     { label: "Work hours", href: "#hours", dot: "amber" },
     { label: "Reports", href: "#reports", dot: "green" },
     { label: "Alerts", href: "#alerts", dot: "red" },
@@ -30,7 +31,6 @@ export const CHAT = {
   points: [
     "One chat per person, with Sent, Delivered and Seen ticks",
     "Reply to a message with a quote, so nothing gets mixed up",
-    "Turn any message into a task in one click",
     "Unread counts on your dashboard and on their taskbar icon",
   ],
   people: [
@@ -38,23 +38,6 @@ export const CHAT = {
     { ini: "PN", name: "Priya Nair", last: "On it, calling them now.", on: false },
     { ini: "AM", name: "Arjun Mehta", last: "Deployed at 11:05.", on: false },
     { ini: "EC", name: "Emily Carter", last: "Back by 2!", on: false },
-  ],
-} as const;
-
-export const TASKS = {
-  pill: "Tasks · all plans",
-  title: "Send a task. Watch it move.",
-  lead: "Give work a due date and a few steps. Your person taps Start, asks for help if they're stuck, and marks it done. You approve it, or send it back.",
-  points: [
-    "A stage bar everyone understands: Sent, Seen, In progress, Done",
-    "Steps inside a task, ticked off one by one",
-    "Needs help brings the question straight to you",
-    "Approve finished work, or reopen it with a note",
-  ],
-  steps: [
-    { label: "Download the GSTR-2B for October", done: true },
-    { label: "Match it with the purchase register", done: true },
-    { label: "List the mismatches for the CA", done: false },
   ],
 } as const;
 
@@ -76,33 +59,32 @@ export const HOURS = {
   ],
 } as const;
 
-export type PlanTag = "all" | "startups" | "teams";
+export type PlanTag = "all" | "startups";
 export const PLAN_TAG: Record<PlanTag, { label: string; tone: string }> = {
   all: { label: "All plans", tone: "tone-grey" },
   startups: { label: "Startups and up", tone: "tone-green" },
-  teams: { label: "Teams and up", tone: "tone-orange" },
 };
 
 export const REPORTS = {
   pill: "Reports · all plans",
   title: "Reports that answer a question.",
-  lead: "Who worked when, what got done, and where the time and data went. Pick a week or a person; every number adds up.",
+  lead: "Who worked when, and where the time and data went. Pick a week or a person; every number adds up.",
   points: [
     { text: "Who worked when, day by day and hour by hour", tag: "all" as PlanTag },
     { text: "Apps, websites and internet data, per person", tag: "all" as PlanTag },
     { text: "PDF and CSV, emailed daily, weekly or monthly", tag: "startups" as PlanTag },
-    { text: "Performance: a fair score, a rank and next steps to help each person", tag: "teams" as PlanTag },
   ],
   kpis: [
     { l: "Worked in total", v: "301 h", s: "avg 7 h 10m a day" },
-    { l: "Tasks done", v: "41", s: "of 49 sent" },
+    { l: "Apps used", v: "38", s: "Excel used most" },
     { l: "Alerts", v: "9", s: "3 needed you" },
   ],
-  perf: [
-    { name: "Arjun Mehta", score: 92 },
-    { name: "Priya Nair", score: 88 },
-    { name: "Emily Carter", score: 81 },
-    { name: "Sneha Reddy", score: 64 },
+  /** Hours in the week, per person; bars are drawn against the longest week. */
+  people: [
+    { name: "Arjun Mehta", hours: "34 h", mins: 2050 },
+    { name: "Priya Nair", hours: "33 h", mins: 1965 },
+    { name: "Emily Carter", hours: "29 h", mins: 1760 },
+    { name: "Sneha Reddy", hours: "27 h", mins: 1625 },
   ],
 } as const;
 
@@ -113,7 +95,6 @@ export const ALERTS = {
   points: [
     { text: "Three levels: Needs you, Worth a look and Info", tag: "" },
     { text: "Ask the person or fix it from the alert itself", tag: "" },
-    { text: "Major alerts by email the moment they happen", tag: "Startups and up" },
   ],
   demos: {
     usb: {
@@ -179,5 +160,5 @@ export const PRIVACY = {
 
 export const PRODUCT_CLOSE = {
   title: "Try every part free, on 3 PCs.",
-  body: "Chat, tasks, work hours, reports and protection. No card, no time limit.",
+  body: "Chat, work hours, reports and protection. No card, no time limit.",
 } as const;

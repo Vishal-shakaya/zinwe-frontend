@@ -8,7 +8,7 @@ const POPULAR: ReadonlyArray<{ label: string; to: string; icon: string }> = [
   { label: "Log in to your dashboard", to: "/login", icon: ICONS.login },
   { label: "Plans and prices", to: "/plans", icon: ICONS.wallet },
   { label: "Download Zinwe for Windows", to: "/download", icon: ICONS.download },
-  { label: "Chat, tasks and reports", to: "/product", icon: ICONS.chat },
+  { label: "Chat, work hours and reports", to: "/product", icon: ICONS.chat },
   { label: "Guides and articles", to: "/blog", icon: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6" },
 ];
 

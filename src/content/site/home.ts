@@ -2,9 +2,12 @@
  * Home v3.2 copy and sample data (board SiteHome, owner review 29 Oct 2026), word for word.
  * Sample people and companies are the demo company (Kitecrest Digital, Wed 28 Oct 2026), never real customers.
  *
- * Two deliberate departures from the board, for the hard rules in .claude/marketing/context.md §3 (owner to confirm):
- * - the price question reads its numbers from the plans API (no price is typed here), and
- * - the third "Consent first" card does not name a law (rule 5: no legal or compliance claims).
+ * Deliberate departures from the board, for the hard rules in .claude/marketing/context.md §3 (owner to confirm):
+ * - the price question reads its numbers from the plans API (no price is typed here),
+ * - the third "Consent first" card does not name a law (rule 5: no legal or compliance claims), and
+ * - (29 Oct, rule "only shipped features") no tasks and no performance scores anywhere until their backends ship
+ *   (FR-20 tasks, performance): the Tasks tile is gone, the Reports tile shows hours per person, and the team-side
+ *   copy talks about messages. See .claude/dev/docs/06-website-portal.md to put them back.
  */
 import { ICONS } from "../../components/site/icons";
 
@@ -12,20 +15,15 @@ export const HERO = {
   badge: "IT Is OK.",
   badgeText: "For offices of 5 to 50 people with no IT department",
   title: "Run a safe, organised office from one screen.",
-  lead: "Zinwe protects company data on every Windows PC and gives you chat, tasks, work hours and reports in the same place. Simple enough to set up this afternoon.",
+  lead: "Zinwe protects company data on every Windows PC and gives you chat, work hours and reports in the same place. Simple enough to set up this afternoon.",
   ticks: ["No card needed", "Windows 10 and 11", "Each person agrees on their own PC"],
 } as const;
 
 export const TILES_INTRO = {
   eyebrow: "One app, the whole office",
   title: "Everything an owner needs. Nothing they don't.",
-  lead: "Talk to your team, hand out work, see the hours and keep data safe. Each part is one click from the others.",
+  lead: "Talk to your team, see the hours and keep data safe. Each part is one click from the others.",
 } as const;
-
-export const TASK_ROWS: ReadonlyArray<{ ini: string; title: string; status: string; pill: string; tone: string }> = [
-  { ini: "SR", title: "Export the brand screens for review", status: "Needs help", pill: "tone-amber", tone: "tone-green" },
-  { ini: "OM", title: "Smoke test the 2.4 release", status: "Done", pill: "tone-solid-green", tone: "tone-grey" },
-];
 
 /** Day strips, 9 AM (0) to 7 PM (600 min): w = working, b = break. */
 export type Seg = readonly [number, number, "w" | "b"];
@@ -36,10 +34,11 @@ export const HOUR_STRIPS: ReadonlyArray<{ name: string; segs: readonly Seg[] }> 
 ];
 
 export const REPORT_HOURS: readonly number[] = [58, 61, 12, 0, 63, 66, 41];
-export const REPORT_PERF: ReadonlyArray<{ name: string; score: number }> = [
-  { name: "Arjun", score: 92 },
-  { name: "Priya", score: 88 },
-  { name: "Sneha", score: 64 },
+/** Hours worked this week, per person (the Reports tile). Bars are drawn against the longest week. */
+export const REPORT_PEOPLE: ReadonlyArray<{ name: string; hours: string; mins: number }> = [
+  { name: "Arjun", hours: "34 h", mins: 2050 },
+  { name: "Priya", hours: "33 h", mins: 1965 },
+  { name: "Sneha", hours: "27 h", mins: 1625 },
 ];
 
 export type RuleKey = "usb" | "app" | "web";
@@ -121,9 +120,9 @@ export const PROTECTION = {
 export const TEAM_SIDE = {
   eyebrow: "For your team",
   title: "Your team gets a helpful app, not a hidden one.",
-  lead: "The Zinwe window sits by the clock on each PC. Your people chat with you, tick off tasks, start and end their day, and can always see exactly what Zinwe records.",
+  lead: "The Zinwe window sits by the clock on each PC. Your people chat with you, start and end their day, and can always see exactly what Zinwe records.",
   points: [
-    "Chat and tasks from you land right on their screen",
+    "Messages from you land right on their screen",
     "One tap to start the day, take a break or end the day",
     "A plain list of what is recorded, always one click away",
   ],

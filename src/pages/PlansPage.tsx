@@ -330,14 +330,18 @@ export default function PlansPage(): ReactElement {
           <h2>Each plan takes one more job off your plate.</h2>
         </div>
         <div className="zp2-why__grid">
-          {WHY.map((w) => (
-            <div key={w.plan} className="zp2-why__card">
-              <span className={cx("zs-pill", w.tone)}>{w.plan}</span>
-              <span className="zp2-why__pain">“{w.pain}”</span>
-              <b>{w.fix}</b>
-              <span className="zp2-why__how">{w.how}</span>
-            </div>
-          ))}
+          {WHY.map((w) => {
+            const p = list.find((x) => x.code === w.code);
+            const how = p ? fill(w.how, { pcs: p.max_devices, history: historyLabel(p.history_days) }) : (w.fallback ?? w.how);
+            return (
+              <div key={w.plan} className="zp2-why__card">
+                <span className={cx("zs-pill", w.tone)}>{w.plan}</span>
+                <span className="zp2-why__pain">“{w.pain}”</span>
+                <b>{w.fix}</b>
+                <span className="zp2-why__how">{how}</span>
+              </div>
+            );
+          })}
         </div>
       </section>
 

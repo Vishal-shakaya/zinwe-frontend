@@ -69,12 +69,12 @@ export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
     a: "No. Add a person in your dashboard, they install Zinwe and type their email and Member ID. Most offices finish in an afternoon.",
   },
   {
-    q: "Can I use Zinwe just for chat and tasks?",
-    a: "Yes. Switch on only what you need. Many owners start with chat, tasks and work hours, and turn on data protection later.",
+    q: "Can I use Zinwe just for chat and work hours?",
+    a: "Yes. Switch on only what you need. Many owners start with chat and work hours, and turn on data protection later.",
   },
   {
     q: "What does my team see?",
-    a: "A small Zinwe window by the clock: their tasks, your messages, their work time and the list of what Zinwe records on their PC.",
+    a: "A small Zinwe window by the clock: your messages, their work time and the list of what Zinwe records on their PC.",
   },
   {
     q: "What happens when a PC is offline?",
@@ -97,19 +97,19 @@ const PAGES: readonly SeoPage[] = [
     ogDescription: "Know what's happening to your company's data. In plain English. No IT department needed.",
     h1: "Run a safe, organised office from one screen.",
     intro: [
-      "Zinwe protects company data on every Windows PC and gives you chat, tasks, work hours and reports in the same place. It flags USB copies, files leaving the office, remote-access tools and new software, and tells you what each one means.",
+      "Zinwe protects company data on every Windows PC and gives you chat, work hours and reports in the same place. It flags USB copies, files leaving the office, remote-access tools and new software, and tells you what each one means.",
       "Free forever for up to 3 PCs. No card needed. For teams of 5–50 in India and the United States, on Windows today.",
     ],
     sitemap: true,
   },
   {
     path: "/product",
-    title: "Chat, tasks, work hours and data protection | Zinwe",
+    title: "Chat, work hours, reports and data protection | Zinwe",
     description:
-      "One app for a small office on Windows: chat with each person, send tasks, see work hours and reports, and get plain-English alerts when data leaves.",
+      "One app for a small office on Windows: chat with each person, see work hours and reports, and get plain-English alerts when data leaves.",
     h1: "One app for a safe, well-run office.",
     intro: [
-      "The six things owners of small teams ask for, in one place: chat, tasks, work hours, reports, plain-English alerts and data protection. Each one is simple on its own, and better together.",
+      "The five things owners of small teams ask for, in one place: chat, work hours, reports, plain-English alerts and data protection. Each one is simple on its own, and better together.",
       "Nothing starts until each person agrees on their own PC. Free forever for up to 3 PCs.",
     ],
     sitemap: true,
