@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
+import { Link } from "react-router-dom";
 import { errorMessage } from "../../lib/api";
 import { ZIcon } from "../ui/ZIcon";
 import { CalendarMark } from "./icons";
@@ -173,13 +174,24 @@ export function TaskForm({
             <label className="zk-lab" htmlFor="cm-who">
               Assign to
             </label>
-            <select id="cm-who" className="zk-sel" style={{ minHeight: 40, fontSize: 14 }} value={f.who} disabled={isEditing} onChange={(e) => set({ who: e.target.value })}>
-              {people.map((p) => (
-                <option key={p.key} value={p.key}>
-                  {p.name} · {p.role}
-                </option>
-              ))}
-            </select>
+            {people.length === 0 && !isEditing ? (
+              // A new owner with nobody on Team yet: an empty "Assign to" list was a dead end.
+              <p id="cm-who" style={{ margin: 0, padding: "12px 14px", borderRadius: 12, background: "#FBF0D9", color: "#5C3A00", fontSize: 14, lineHeight: 1.45 }}>
+                A task goes to one person's Zinwe app, and nobody is on your team yet.{" "}
+                <Link to="/app/team#add=1" onClick={onClose} style={{ fontWeight: 600, color: "#8A3A04" }}>
+                  Add your first person
+                </Link>
+                , then send them a task.
+              </p>
+            ) : (
+              <select id="cm-who" className="zk-sel" style={{ minHeight: 40, fontSize: 14 }} value={f.who} disabled={isEditing} onChange={(e) => set({ who: e.target.value })}>
+                {people.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {p.name} · {p.role}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <label className="zk-lab" htmlFor="cm-title">
