@@ -10,7 +10,8 @@ import { useShell } from "../shell/shellContext";
 import { formatDateTime } from "../time";
 import { ZIcon } from "../ui/ZIcon";
 import type { DockWin } from "./dock";
-import { avatarStyle, dotColor, firstNameOf, initialsOf, statusLine } from "./people";
+import { MemberAvatar } from "../team/Avatar";
+import { avatarStyle, dotColor, firstNameOf, INHERIT_TINT, initialsOf, statusLine } from "./people";
 
 const P_MIN = "M6 12h12";
 const P_MAX = "M6 15l6-6 6 6";
@@ -125,7 +126,7 @@ export function ChatWindow({
       <header className="zf-whd">
         <button type="button" className="zf-whead" aria-expanded={expanded} aria-label={toggleLabel} onClick={onToggle}>
           <span className="zfl-av" aria-hidden="true" style={avatarStyle(member?.role, 30)}>
-            {initialsOf(person.name)}
+            <MemberAvatar member={{ id: person.id, name: person.name, picture: member?.picture }} size={30} initials={initialsOf(person.name)} style={INHERIT_TINT} />
             <span className="zfl-dot" style={{ background: dotColor(presenceOf(member?.device)) }} />
           </span>
           <span className="zf-who">

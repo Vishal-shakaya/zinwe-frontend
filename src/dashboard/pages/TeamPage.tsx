@@ -17,7 +17,6 @@ import {
 import { useEntitlements } from "../features/entitlements";
 import { summarizeDay, isoDay, shiftDay, type PersonDay } from "../features/workDay";
 import { keepBoth, removeSecondPc, secondPcsNow } from "../fixtures/pcs";
-import { listPhotos, savePhoto, type MemberPhoto } from "../fixtures/photos";
 import { PageHead } from "../shell/PageHead";
 import { useShell } from "../shell/shellContext";
 import { AddPerson } from "../team/AddPerson";
@@ -81,8 +80,6 @@ export default function TeamPage(): ReactElement {
   // Last 7 days per person (active time, worked, internet data): one team report.
   const loadWeek = useCallback((signal: AbortSignal) => getReport(weekFrom, today, signal), [weekFrom, today]);
   const week = useResource(loadWeek, { pollMs: 5 * 60_000 });
-  const loadPhotos = useCallback((signal: AbortSignal) => listPhotos(signal), []);
-  const photos = useResource(loadPhotos);
   const [pcsTick, setPcsTick] = useState(0);
 
   const someoneWaiting = (members.data ?? []).some((m) => m.is_active && !m.device);
@@ -183,7 +180,6 @@ export default function TeamPage(): ReactElement {
 
   const onCreated = (member: Member) => {
     members.setData([member, ...(members.data ?? []).filter((m) => m.id !== member.id)]);
-    photos.reload();
     shell.reloadMembers();
   };
   const onUpdated = (member: Member) => {
@@ -199,7 +195,6 @@ export default function TeamPage(): ReactElement {
     const first = firstName(member.name);
     setToast(slots !== null ? `${first} removed. ${slots} PC ${slots === 1 ? "slot" : "slots"} free.` : `${first} removed from your team.`);
   };
-  const onPhoto = (memberId: number, photo: MemberPhoto | null) => photos.setData(savePhoto(memberId, photo));
 
   const filterBtnLabel = filter === "all" ? "Filters" : "Filters · 1";
   const counts = (k: TeamFilter) => active.filter((m) => inFilter(m, k)).length;
@@ -375,7 +370,6 @@ export default function TeamPage(): ReactElement {
                   status={status}
                   statusRows={statusRows(member, status, today, now)}
                   tag={tagOf(member)}
-                  photo={photos.data?.[String(member.id)]}
                   week={weekOf(week.data, member.id, dates)}
                   weekFailed={week.data === undefined && Boolean(week.error)}
                   today={dates[6]}
@@ -387,7 +381,6 @@ export default function TeamPage(): ReactElement {
                   onUpdated={onUpdated}
                   onRemoved={onRemoved}
                   onDeviceChanged={devices.reload}
-                  onPhoto={onPhoto}
                   onKeepBoth={() => {
                     keepBoth(members.data);
                     setPcsTick((t) => t + 1);

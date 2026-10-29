@@ -1,5 +1,6 @@
 /** PCs, members, rules and activity (z_devices). */
 import { authedDownload, authedRequest } from "./http";
+import { rememberPictures, type MemberPicture } from "./pictures";
 import type { Task } from "./tasks";
 
 /**
@@ -64,6 +65,8 @@ export interface Member {
   download_url?: string;
   /** Unread replies from this member the admin hasn't opened yet (chat badge). */
   unread?: number;
+  /** FR-44: library avatar or photo; null = initials. Older backends leave it out. */
+  picture?: MemberPicture | null;
 }
 
 /** The slice of a Device the Team page shows beside a member. */
@@ -320,8 +323,10 @@ export function listDevices(signal?: AbortSignal, { includeRemoved = false }: { 
 }
 
 /** GET /api/devices/members/ — the people the owner has added, newest first. */
-export function listMembers(signal?: AbortSignal): Promise<Member[]> {
-  return authedRequest<Member[]>("/api/devices/members/", { signal });
+export async function listMembers(signal?: AbortSignal): Promise<Member[]> {
+  const members = await authedRequest<Member[]>("/api/devices/members/", { signal });
+  rememberPictures(members);
+  return members;
 }
 
 export type MemberRole =

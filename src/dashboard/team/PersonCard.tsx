@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactElement } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import {
   deactivateMember,
@@ -17,15 +17,14 @@ import { MemberUsage } from "../components/MemberUsage";
 import { UsbRestore } from "../components/UsbRestore";
 import { useChatBubble } from "../features/chatBubble";
 import { consentOf, consentReminder } from "../features/memberStatus";
-import { SAMPLES_ON } from "../fixtures";
-import type { MemberPhoto } from "../fixtures/photos";
 import type { SecondPc } from "../fixtures/pcs";
 import { TipBody } from "../ui/Tooltip";
 import type { Tip } from "../ui/useTip";
-import { PictureArt } from "./Avatar";
-import { frameStyle, shrinkPhoto } from "./photo";
-import { AVATARS, PRESET_KEYS, roleColors } from "./avatars";
-import { dayMonthYear, firstName, initialsOf } from "./format";
+import { MemberAvatar } from "./Avatar";
+import { roleColors } from "./avatars";
+import { dayMonthYear, firstName } from "./format";
+import { PicturePicker } from "./PicturePicker";
+import { useMemberPicture, usePictureSaver } from "./pictureState";
 import { STATUS, systemFull, systemShort, type CardStatus, type MemberWeek } from "./teamData";
 
 export interface PersonCardProps {
@@ -34,7 +33,6 @@ export interface PersonCardProps {
   status: CardStatus;
   statusRows: [string, string][];
   tag: MemberTag | null;
-  photo: MemberPhoto | undefined;
   week: MemberWeek | undefined;
   weekFailed: boolean;
   today: string;
@@ -47,7 +45,6 @@ export interface PersonCardProps {
   onUpdated: (member: Member) => void;
   onRemoved: (member: Member) => void;
   onDeviceChanged: () => void;
-  onPhoto: (memberId: number, photo: MemberPhoto | null) => void;
   onKeepBoth: () => void;
   onRemoveSecond: () => void;
 }
@@ -83,13 +80,15 @@ function offlineSince(iso: string | null | undefined, now: number): string {
  * data, and the typed-confirm Remove.
  */
 export function PersonCard(props: PersonCardProps): ReactElement {
-  const { member, device, status, statusRows, tag, photo, week, weekFailed, today, now, second, chatOn, tip, linked } = props;
+  const { member, device, status, statusRows, tag, week, weekFailed, today, now, second, chatOn, tip, linked } = props;
   const first = firstName(member.name);
   const firstKey = first.toLowerCase();
   const pc = member.device;
   const invited = !pc;
   const st = STATUS[status];
-  const [line, tint, ink] = roleColors(member.role);
+  const [line] = roleColors(member.role);
+  const picture = useMemberPicture(member.id, member.picture);
+  const saver = usePictureSaver(member.id, member.name, picture);
   const bubble = useChatBubble();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -100,7 +99,6 @@ export function PersonCard(props: PersonCardProps): ReactElement {
   const [actionError, setActionError] = useState("");
   const [copied, setCopied] = useState(false);
   const [msg, setMsg] = useState("");
-  const [photoNote, setPhotoNote] = useState("");
   const [roleBusy, setRoleBusy] = useState(false);
   const [pcRemoving, setPcRemoving] = useState(false);
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -200,19 +198,6 @@ export function PersonCard(props: PersonCardProps): ReactElement {
     } catch (err) {
       setActionError(errorMessage(err));
       setBusy(false);
-    }
-  };
-
-  const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    try {
-      const shrunk = await shrinkPhoto(file);
-      props.onPhoto(member.id, { kind: "photo", ...shrunk });
-      setPhotoNote(`Photo uploaded. Shrunk to 256 × 256 px, ${shrunk.kb} KB.`);
-    } catch (err) {
-      setPhotoNote(err instanceof Error ? err.message : "That picture couldn't be used.");
     }
   };
 
@@ -317,13 +302,10 @@ export function PersonCard(props: PersonCardProps): ReactElement {
     >
       <div className="zt-top">
         <div className="zt-pop">
-          {/* Pictures are sample data until the member photo API ships: production builds show initials only. */}
-          {SAMPLES_ON ? (
           <button
             ref={avRef}
             type="button"
             className="zt-av"
-            style={photo ? { background: "transparent" } : { background: tint, color: ink }}
             aria-label={`Change picture for ${member.name}`}
             aria-haspopup="dialog"
             aria-expanded={picOpen}
@@ -333,17 +315,12 @@ export function PersonCard(props: PersonCardProps): ReactElement {
               tip.hide();
             }}
           >
-            {photo ? <PictureArt photo={photo} size={44} /> : <span aria-hidden="true">{initialsOf(member.name)}</span>}
+            <MemberAvatar member={{ ...member, picture }} size={44} />
           </button>
-          ) : (
-            <span className="zt-av zt-av--static" style={{ background: tint, color: ink }} aria-hidden="true">
-              {initialsOf(member.name)}
-            </span>
-          )}
           {picOpen ? (
-            <div ref={popRef} className="zt-popover" role="dialog" aria-label={`Profile picture for ${member.name}`}>
+            <div ref={popRef} className="zt-popover" role="dialog" aria-label={`Picture for ${member.name}`}>
               <div className="zt-pop-head">
-                <b>Profile picture</b>
+                <b>Picture</b>
                 <button
                   type="button"
                   className="z-btn sm"
@@ -355,70 +332,19 @@ export function PersonCard(props: PersonCardProps): ReactElement {
                   Done
                 </button>
               </div>
-              <div role="group" aria-label="Ready-made pictures" className="zt-presets">
-                <button
-                  type="button"
-                  aria-label={`Use ${first}’s initials`}
-                  aria-pressed={!photo}
-                  className="zt-preset"
-                  onClick={() => {
-                    props.onPhoto(member.id, null);
-                    setPhotoNote("Initials set.");
-                  }}
-                >
-                  <span aria-hidden="true" className="zt-preset__init" style={{ background: tint, color: ink }}>
-                    {initialsOf(member.name)}
-                  </span>
-                </button>
-                {PRESET_KEYS.map((key) => {
-                  const on = photo?.kind === "avatar" && photo.key === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      aria-label={`Use the ${AVATARS[key].label} picture`}
-                      aria-pressed={on}
-                      className="zt-preset"
-                      onClick={() => {
-                        props.onPhoto(member.id, { kind: "avatar", key });
-                        setPhotoNote(`${AVATARS[key].label} picture set.`);
-                      }}
-                    >
-                      <span style={frameStyle(40)}>
-                        <PictureArt photo={{ kind: "avatar", key }} size={40} />
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="zt-pop-acts">
-                <label className="z-btn sm dark zt-upl">
-                  <input type="file" accept="image/*" onChange={(e) => void onUpload(e)} />
-                  Upload a photo
-                </label>
-                {photo ? (
-                  <button
-                    type="button"
-                    className="z-btn sm"
-                    onClick={() => {
-                      props.onPhoto(member.id, null);
-                      setPhotoNote(`Photo removed. ${first}’s initials show instead.`);
-                    }}
-                  >
-                    Remove photo
-                  </button>
-                ) : null}
-              </div>
-              <span className="zt-hint">Any photo works; we shrink it to 256 × 256 px (about 100 KB).</span>
-              {photoNote ? (
-                <span role="status" className="zt-ok-note zt-with-ico">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                  {photoNote}
-                </span>
-              ) : null}
-              <span className="zt-hint zt-pop-foot">The member can change it from their Zinwe app.</span>
+              <PicturePicker
+                idPrefix={`pic-${member.id}`}
+                name={member.name}
+                role={member.role}
+                value={picture}
+                busy={saver.busy}
+                onAvatar={saver.pickAvatar}
+                onUpload={(file) => void saver.upload(file)}
+                onRemove={saver.remove}
+                note={saver.note}
+                error={saver.error}
+              />
+              <span className="zt-hint zt-pop-foot">{first} can change it from their Zinwe app too.</span>
             </div>
           ) : null}
         </div>
@@ -500,14 +426,12 @@ export function PersonCard(props: PersonCardProps): ReactElement {
                 >
                   Copy Member ID
                 </button>
-                {SAMPLES_ON ? (
-                  <button type="button" role="menuitem" className="zt-mi" tabIndex={-1} onClick={() => {
-                      setMenuOpen(false);
-                      setPicOpen(true);
-                    }}>
-                    Change photo
-                  </button>
-                ) : null}
+                <button type="button" role="menuitem" className="zt-mi" tabIndex={-1} onClick={() => {
+                    setMenuOpen(false);
+                    setPicOpen(true);
+                  }}>
+                  Change picture
+                </button>
                 <button
                   type="button"
                   role="menuitem"

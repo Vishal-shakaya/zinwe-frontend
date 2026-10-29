@@ -34,6 +34,12 @@
   color: #6b6358;
 }
 
+.zp-team .zt-err-note {
+  font-size: 13px;
+  color: #b02a15;
+  font-weight: 500;
+}
+
 .zp-team .zt-err {
   margin: 0;
   color: #b02a15;
@@ -175,18 +181,6 @@
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
-}
-
-.zp-team .zt-photo-empty {
-  display: inline-flex;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 1px dashed #c9c1b3;
-  align-items: center;
-  justify-content: center;
-  color: #6b6358;
 }
 
 .zp-team .zt-check {
@@ -414,13 +408,9 @@
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #dcd6cb;
 }
 
-/* Production builds: initials only, nothing to click (pictures are sample data, dashboard/fixtures). */
-.zp-team .zt-av--static {
-  cursor: default;
-}
-
-.zp-team .zt-av--static:hover {
-  box-shadow: none;
+.zp-team .zt-av:focus-visible {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
 }
 
 .zp-team .zt-popover {
@@ -428,7 +418,7 @@
   left: 0;
   top: calc(100% + 8px);
   z-index: 45;
-  width: 300px;
+  width: 348px;
   max-width: calc(100vw - 48px);
   background: #fff;
   border: 1px solid #e7e3da;
@@ -454,32 +444,69 @@
   font-size: 14px;
 }
 
+/* FR-44 picture picker: initials + 16 drawn people (one Tab stop, arrows move), upload, remove. */
+.zp-team .zt-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
 .zp-team .zt-presets {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+  gap: 6px;
 }
 
 .zp-team .zt-preset {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
-  padding: 4px;
+  min-width: 44px;
+  min-height: 48px;
+  padding: 2px;
   border-radius: 12px;
   background: #fff;
   border: 2px solid #e7e3da;
   cursor: pointer;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.zp-team .zt-preset:hover:not(:disabled) {
+  border-color: #c9c1b3;
+}
+
+.zp-team .zt-preset:focus-visible {
+  outline: 2px solid #f26a0a;
+  outline-offset: 2px;
 }
 
 .zp-team .zt-preset[aria-pressed="true"] {
   border-color: #f26a0a;
+  box-shadow: 0 0 0 1px #f26a0a inset;
+}
+
+.zp-team .zt-preset:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.zp-team .zt-preset__art {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.zp-team .zt-upl.is-busy {
+  cursor: progress;
 }
 
 .zp-team .zt-preset__init {
   display: inline-flex;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
@@ -1254,7 +1281,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zp-team .zt-bar {
+  .zp-team .zt-bar,
+  .zp-team .zt-preset {
     transition: none;
   }
 }

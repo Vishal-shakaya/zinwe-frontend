@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import type { Member } from "../../lib/api";
 import { PRESENCE_LABEL, presenceOf } from "../features/memberStatus";
-import { avatarStyle, dotColor, initialsOf, statusLine } from "../float/people";
+import { avatarStyle, dotColor, INHERIT_TINT, initialsOf, statusLine } from "../float/people";
+import { MemberAvatar } from "../team/Avatar";
 import { announcePanel, inFloat, useFloatSlot, useOtherPanel, usePanelEscape } from "../float/slots";
 import { Sk } from "../ui/States";
 import { ZIcon } from "../ui/ZIcon";
@@ -101,7 +102,7 @@ export function ChatLauncher({
                   onClick={() => onPick(m)}
                 >
                   <span className="zfl-av" aria-hidden="true" style={avatarStyle(m.role, 34)}>
-                    {initialsOf(m.name)}
+                    <MemberAvatar member={m} size={34} initials={initialsOf(m.name)} style={INHERIT_TINT} />
                     <span className="zfl-dot" style={{ background: dotColor(status) }} />
                   </span>
                   <span className="zf-who">

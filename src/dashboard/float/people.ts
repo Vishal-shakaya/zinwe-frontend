@@ -38,6 +38,9 @@ export function avatarStyle(role: MemberRole | "" | undefined, size: number): CS
   return { width: size, height: size, background: bg, color: ink };
 }
 
+/** For a MemberAvatar inside a tinted frame: the initials keep the frame's tint and type (FR-44). */
+export const INHERIT_TINT: CSSProperties = { background: "inherit", color: "inherit", fontSize: "inherit" };
+
 export function dotColor(status: PresenceStatus): string {
   return DOT[status];
 }
