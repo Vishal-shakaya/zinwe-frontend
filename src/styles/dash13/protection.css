@@ -148,7 +148,7 @@
 }
 
 /* ---------- Tiles ---------- */
-.zp-tiles {
+:where(.zd) .zp-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 12px;
@@ -162,7 +162,7 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-.zp-tile {
+:where(.zd) .zp-tile {
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -490,7 +490,7 @@
   overflow: hidden;
 }
 
-.zp-side {
+:where(.zd) .zp-side {
   flex: 1 1 300px;
   min-width: 0;
   display: flex;
@@ -713,7 +713,7 @@
   color: #6b6459;
 }
 
-.zp-badge {
+:where(.zd) .zp-badge {
   display: inline-flex;
   flex: none;
   width: 30px;
@@ -1100,7 +1100,7 @@
     gap: 16px;
   }
 
-  .zp-tiles,
+  :where(.zd) .zp-tiles,
   .zp-data .zp-tiles,
   .zp-apps .zp-tiles,
   .zst {

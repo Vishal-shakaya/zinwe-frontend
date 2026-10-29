@@ -1,14 +1,14 @@
 /* Chat (board DashChat): conversation list, thread with task cards, composer. Scoped under .zp-chat.
    The task form it opens uses the shared .zk-* classes in tasks.css. */
 
-.zp-chat {
+:where(.zd) .zp-chat {
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
 }
 
-.zp-chat .cv-box {
+:where(.zd) .zp-chat .cv-box {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
@@ -20,7 +20,7 @@
 }
 
 /* People */
-.zp-chat .cv-list {
+:where(.zd) .zp-chat .cv-list {
   flex: 1 1 260px;
   min-width: 0;
   border-right: 1px solid #efece5;
@@ -29,7 +29,7 @@
   flex-direction: column;
   gap: 2px;
 }
-.zp-chat .conv {
+:where(.zd) .zp-chat .conv {
   width: 100%;
   display: flex;
   gap: 10px;
@@ -41,21 +41,21 @@
   text-align: left;
   color: #141210;
 }
-.zp-chat .conv:hover {
+:where(.zd) .zp-chat .conv:hover {
   background: #f2efe8;
 }
-.zp-chat .conv.on {
+:where(.zd) .zp-chat .conv.on {
   background: #fdebdc;
 }
-.zp-chat .conv-av {
+:where(.zd) .zp-chat .conv-av {
   position: relative;
   flex: none;
   display: inline-flex;
 }
-.zp-chat .conv-av > span:first-child {
+:where(.zd) .zp-chat .conv-av > span:first-child {
   font-size: 12px !important;
 }
-.zp-chat .conv-dot {
+:where(.zd) .zp-chat .conv-dot {
   position: absolute;
   right: -1px;
   bottom: -1px;
@@ -64,7 +64,7 @@
   border-radius: 50%;
   border: 2px solid #fff;
 }
-.zp-chat .conv-unread {
+:where(.zd) .zp-chat .conv-unread {
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
@@ -78,7 +78,7 @@
   justify-content: center;
 }
 
-.zp-chat .cv-pill {
+:where(.zd) .zp-chat .cv-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -90,13 +90,13 @@
 }
 
 /* Conversation */
-.zp-chat .cv-pane {
+:where(.zd) .zp-chat .cv-pane {
   flex: 999 1 460px;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
-.zp-chat .cv-head {
+:where(.zd) .zp-chat .cv-head {
   padding: 14px 18px;
   border-bottom: 1px solid #efece5;
   display: flex;
@@ -105,7 +105,7 @@
   align-items: center;
   flex-wrap: wrap;
 }
-.zp-chat .cv-back {
+:where(.zd) .zp-chat .cv-back {
   width: 44px;
   height: 44px;
   margin-left: -6px;
@@ -113,7 +113,7 @@
   background: transparent;
   color: #141210;
 }
-.zp-chat .cv-thread {
+:where(.zd) .zp-chat .cv-thread {
   flex: 1;
   padding: 18px;
   display: flex;
@@ -124,7 +124,7 @@
   max-height: 520px;
   min-height: 380px;
 }
-.zp-chat .cv-sep {
+:where(.zd) .zp-chat .cv-sep {
   padding: 3px 12px;
   border-radius: 999px;
   background: #efece5;
@@ -132,7 +132,7 @@
   font-size: 12px;
   font-weight: 600;
 }
-.zp-chat .msg {
+:where(.zd) .zp-chat .msg {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -144,49 +144,49 @@
     background-color 0.3s,
     box-shadow 0.3s;
 }
-.zp-chat .msg.out {
+:where(.zd) .zp-chat .msg.out {
   align-items: flex-end;
 }
-.zp-chat .msg.in {
+:where(.zd) .zp-chat .msg.in {
   align-items: flex-start;
 }
-.zp-chat .msg.flash {
+:where(.zd) .zp-chat .msg.flash {
   background: #fdebdc;
   box-shadow: 0 0 0 4px #fdebdc;
 }
-.zp-chat .mrow {
+:where(.zd) .zp-chat .mrow {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
 }
-.zp-chat .msg.out .mrow {
+:where(.zd) .zp-chat .msg.out .mrow {
   flex-direction: row-reverse;
 }
-.zp-chat .cv-bubble {
+:where(.zd) .zp-chat .cv-bubble {
   max-width: 440px;
   min-width: 0;
   padding: 10px 14px;
   border-radius: 14px;
   font-size: 14px;
 }
-.zp-chat .cv-bubble.out {
+:where(.zd) .zp-chat .cv-bubble.out {
   background: #141210;
   color: #fff;
   border-bottom-right-radius: 4px;
 }
-.zp-chat .cv-bubble.in {
+:where(.zd) .zp-chat .cv-bubble.in {
   background: #fff;
   border: 1px solid #e7e3da;
   border-bottom-left-radius: 4px;
 }
-.zp-chat .cv-bubble.out a {
+:where(.zd) .zp-chat .cv-bubble.out a {
   color: #fdba8c;
 }
-.zp-chat .cv-bubble.out .chat-link__copy {
+:where(.zd) .zp-chat .cv-bubble.out .chat-link__copy {
   color: #f1eee8;
 }
-.zp-chat .quote {
+:where(.zd) .zp-chat .quote {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -202,25 +202,25 @@
   background: #f2efe8;
   color: #3a352e;
 }
-.zp-chat .cv-bubble.out .quote {
+:where(.zd) .zp-chat .cv-bubble.out .quote {
   background: rgba(255, 255, 255, 0.13);
   color: #f1eee8;
 }
-.zp-chat .quote-who {
+:where(.zd) .zp-chat .quote-who {
   font-size: 12px;
   color: #a84505;
 }
-.zp-chat .cv-bubble.out .quote-who {
+:where(.zd) .zp-chat .cv-bubble.out .quote-who {
   color: #fdba8c;
 }
-.zp-chat .qt {
+:where(.zd) .zp-chat .qt {
   display: block;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.zp-chat .rbtn {
+:where(.zd) .zp-chat .rbtn {
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -237,20 +237,20 @@
   opacity: 0;
   transition: opacity 0.12s;
 }
-.zp-chat .rbtn:hover {
+:where(.zd) .zp-chat .rbtn:hover {
   border-color: #141210;
   color: #141210;
 }
-.zp-chat .mrow:hover .rbtn,
-.zp-chat .mrow:focus-within .rbtn {
+:where(.zd) .zp-chat .mrow:hover .rbtn,
+:where(.zd) .zp-chat .mrow:focus-within .rbtn {
   opacity: 1;
 }
 @media (hover: none) {
-  .zp-chat .rbtn {
+  :where(.zd) .zp-chat .rbtn {
     opacity: 1;
   }
 }
-.zp-chat .cv-meta {
+:where(.zd) .zp-chat .cv-meta {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -258,19 +258,19 @@
   font-size: 11px;
   color: #6b6459;
 }
-.zp-chat .cv-rc {
+:where(.zd) .zp-chat .cv-rc {
   display: inline-flex;
   align-items: center;
   gap: 3px;
   color: #6b6459;
 }
-.zp-chat .cv-rc.seen {
+:where(.zd) .zp-chat .cv-rc.seen {
   color: #a84505;
   font-weight: 600;
 }
 
 /* Task card in the thread */
-.zp-chat .cv-card {
+:where(.zd) .zp-chat .cv-card {
   flex: 0 1 480px;
   min-width: 0;
   max-width: 480px;
@@ -281,14 +281,14 @@
   border-bottom-right-radius: 4px;
   box-shadow: 0 10px 28px -22px rgba(20, 18, 16, 0.4);
 }
-.zp-chat .cv-card.mem {
+:where(.zd) .zp-chat .cv-card.mem {
   background: #fbfaf6;
   border: 1px dashed #cfc8bb;
   border-bottom-right-radius: 16px;
   border-bottom-left-radius: 4px;
   box-shadow: none;
 }
-.zp-chat .tb-head {
+:where(.zd) .zp-chat .tb-head {
   width: 100%;
   display: flex;
   gap: 10px;
@@ -299,7 +299,7 @@
   text-align: left;
   color: #141210;
 }
-.zp-chat .cv-card__mark {
+:where(.zd) .zp-chat .cv-card__mark {
   flex: none;
   width: 30px;
   height: 30px;
@@ -310,13 +310,13 @@
   align-items: center;
   justify-content: center;
 }
-.zp-chat .cv-kicker {
+:where(.zd) .zp-chat .cv-kicker {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #6b6459;
 }
-.zp-chat .cv-chev {
+:where(.zd) .zp-chat .cv-chev {
   flex: none;
   width: 30px;
   height: 30px;
@@ -330,7 +330,7 @@
 }
 
 /* Tasks tab */
-.zp-chat .cv-trow {
+:where(.zd) .zp-chat .cv-trow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -342,12 +342,12 @@
   text-align: left;
   color: #141210;
 }
-.zp-chat .cv-trow:hover {
+:where(.zd) .zp-chat .cv-trow:hover {
   border-color: #141210;
 }
 
 /* Composer */
-.zp-chat .cv-compose {
+:where(.zd) .zp-chat .cv-compose {
   border-top: 1px solid #efece5;
   padding: 14px 18px;
   display: flex;
@@ -355,7 +355,7 @@
   gap: 8px;
   background: #fff;
 }
-.zp-chat .cv-replying {
+:where(.zd) .zp-chat .cv-replying {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -364,7 +364,7 @@
   border: 1px solid #e7e3da;
   border-radius: 10px;
 }
-.zp-chat .cv-replying__what {
+:where(.zd) .zp-chat .cv-replying__what {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -375,7 +375,7 @@
   background: transparent;
   text-align: left;
 }
-.zp-chat .cv-replying__x {
+:where(.zd) .zp-chat .cv-replying__x {
   flex: none;
   width: 32px;
   height: 32px;
@@ -385,7 +385,7 @@
   color: #4a443c;
   font-size: 18px;
 }
-.zp-chat .cbox {
+:where(.zd) .zp-chat .cbox {
   display: flex;
   align-items: flex-end;
   gap: 6px;
@@ -394,11 +394,11 @@
   border-radius: 14px;
   background: #fff;
 }
-.zp-chat .cbox:focus-within {
+:where(.zd) .zp-chat .cbox:focus-within {
   border-color: #f26a0a;
   box-shadow: 0 0 0 3px #fdebdc;
 }
-.zp-chat .cv-text {
+:where(.zd) .zp-chat .cv-text {
   flex: 1;
   min-width: 0;
   min-height: 40px;
@@ -412,11 +412,11 @@
   background: transparent;
   field-sizing: content;
 }
-.zp-chat .cv-text:focus-visible {
+:where(.zd) .zp-chat .cv-text:focus-visible {
   outline: none;
 }
-.zp-chat .cicon,
-.zp-chat .csend {
+:where(.zd) .zp-chat .cicon,
+:where(.zd) .zp-chat .csend {
   flex: none;
   width: 40px;
   height: 40px;
@@ -428,28 +428,28 @@
   cursor: pointer;
   padding: 0;
 }
-.zp-chat .cicon {
+:where(.zd) .zp-chat .cicon {
   background: transparent;
   color: #4a443c;
 }
-.zp-chat .cicon:hover {
+:where(.zd) .zp-chat .cicon:hover {
   background: #f2efe8;
   color: #141210;
 }
-.zp-chat .csend {
+:where(.zd) .zp-chat .csend {
   border-radius: 50%;
   background: #f26a0a;
   color: #141210;
 }
-.zp-chat .csend:hover {
+:where(.zd) .zp-chat .csend:hover {
   background: #e86402;
 }
-.zp-chat .csend:disabled {
+:where(.zd) .zp-chat .csend:disabled {
   background: #efece5;
   color: #8a8276;
   cursor: not-allowed;
 }
-.zp-chat .cv-slash {
+:where(.zd) .zp-chat .cv-slash {
   position: absolute;
   left: 0;
   right: 0;
@@ -464,14 +464,14 @@
   flex-direction: column;
   gap: 2px;
 }
-.zp-chat .cv-slash__head {
+:where(.zd) .zp-chat .cv-slash__head {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   color: #6b6358;
   padding: 4px 8px 2px;
 }
-.zp-chat .cv-slash__mark {
+:where(.zd) .zp-chat .cv-slash__mark {
   flex: none;
   width: 32px;
   height: 32px;
@@ -482,7 +482,7 @@
   align-items: center;
   justify-content: center;
 }
-.zp-chat .slash-opt {
+:where(.zd) .zp-chat .slash-opt {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -496,25 +496,25 @@
   color: #141210;
   cursor: pointer;
 }
-.zp-chat .cv-tools {
+:where(.zd) .zp-chat .cv-tools {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
-.zp-chat .cv-hint {
+:where(.zd) .zp-chat .cv-hint {
   font-size: 12px;
   color: #6b6459;
 }
-.zp-chat .cv-hint b {
+:where(.zd) .zp-chat .cv-hint b {
   color: #3a352e;
 }
-.zp-chat .cv-err {
+:where(.zd) .zp-chat .cv-err {
   margin: 0;
   font-size: 13px;
   color: #b02a15;
 }
-.zp-chat .cv-ok {
+:where(.zd) .zp-chat .cv-ok {
   margin: 0;
   font-size: 13px;
   color: #17663f;
@@ -523,85 +523,85 @@
 /* Phone: the conversation list is its own screen; a person's thread opens full screen with a back arrow and
    the composer pinned above the tab bar. */
 @media (max-width: 760px) {
-  .zp-chat .cv-box {
+  :where(.zd) .zp-chat .cv-box {
     min-height: 0;
     overflow: visible;
   }
-  .zp-chat .cv-list {
+  :where(.zd) .zp-chat .cv-list {
     flex-basis: 100%;
     border-right: 0;
     padding: 6px;
   }
-  .zp-chat .cv-list .conv {
+  :where(.zd) .zp-chat .cv-list .conv {
     min-height: 60px;
   }
-  .zp-chat.m-list .cv-pane {
+  :where(.zd) .zp-chat.m-list .cv-pane {
     display: none;
   }
-  .zp-chat.m-thread .cv-list {
+  :where(.zd) .zp-chat.m-thread .cv-list {
     display: none;
   }
-  .zp-chat.m-thread > .zn-head {
+  :where(.zd) .zp-chat.m-thread > .zn-head {
     display: none;
   }
-  .zp-chat .cv-head {
+  :where(.zd) .zp-chat .cv-head {
     padding: 10px 12px;
   }
-  .zp-chat .cv-thread {
+  :where(.zd) .zp-chat .cv-thread {
     max-height: none;
     min-height: 55vh;
     overflow: visible;
     padding: 14px 12px;
   }
-  .zp-chat .cv-compose {
+  :where(.zd) .zp-chat .cv-compose {
     position: sticky;
     bottom: calc(64px + env(safe-area-inset-bottom));
     z-index: 6;
     padding: 10px 12px;
     border-radius: 0 0 16px 16px;
   }
-  .zp-chat .cv-hint {
+  :where(.zd) .zp-chat .cv-hint {
     display: none;
   }
-  .zp-chat .cv-head .z-seg,
-  .zp-chat .rbtn,
-  .zp-chat .cv-tools .tc-dd__btn {
+  :where(.zd) .zp-chat .cv-head .z-seg,
+  :where(.zd) .zp-chat .rbtn,
+  :where(.zd) .zp-chat .cv-tools .tc-dd__btn {
     min-height: 44px;
   }
-  .zp-chat .mrow {
+  :where(.zd) .zp-chat .mrow {
     flex-wrap: wrap;
   }
-  .zp-chat .cv-bubble {
+  :where(.zd) .zp-chat .cv-bubble {
     max-width: 100%;
   }
-  .zp-chat .cv-card {
+  :where(.zd) .zp-chat .cv-card {
     flex: 1 1 100%;
   }
-  .zp-chat .cv-card .cv-pill {
+  :where(.zd) .zp-chat .cv-card .cv-pill {
     white-space: normal;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zp-chat .msg,
-  .zp-chat .rbtn,
-  .zp-chat .cv-chev {
+  :where(.zd) .zp-chat .msg,
+  :where(.zd) .zp-chat .rbtn,
+  :where(.zd) .zp-chat .cv-chev {
     transition: none;
   }
 }
 
 /* ---- v1.3.1: the thread wrapper (the "New messages" pill sits on it), send animation, + Task, task stage bar ---- */
-.zp-chat .cv-threadwrap {
+:where(.zd) .zp-chat .cv-threadwrap {
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
-.zp-chat .cv-threadwrap > .cv-thread {
+:where(.zd) .zp-chat .cv-threadwrap > .cv-thread {
   flex: 1 1 auto;
 }
-.zp-chat .cv-newpill {
+:where(.zd) .zp-chat .cv-newpill {
   position: absolute;
   left: 50%;
   bottom: 12px;
@@ -622,7 +622,7 @@
   cursor: pointer;
   box-shadow: 0 10px 24px -12px rgba(20, 18, 16, 0.6);
 }
-.zp-chat .cv-newpill:hover {
+:where(.zd) .zp-chat .cv-newpill:hover {
   background: #2b2723;
 }
 @keyframes cv-msg-in {
@@ -635,13 +635,13 @@
     transform: none;
   }
 }
-.zp-chat .msg.new {
+:where(.zd) .zp-chat .msg.new {
   animation: cv-msg-in 180ms ease-out both;
 }
-.zp-chat .msg.out.new {
+:where(.zd) .zp-chat .msg.out.new {
   transform-origin: right bottom;
 }
-.zp-chat .cicon.ctask {
+:where(.zd) .zp-chat .cicon.ctask {
   width: auto;
   padding: 0 10px;
   gap: 5px;
@@ -655,36 +655,36 @@
   color: #3a352e;
   white-space: nowrap;
 }
-.zp-chat .cicon.ctask:hover {
+:where(.zd) .zp-chat .cicon.ctask:hover {
   border-color: #f26a0a;
   color: #8a3a04;
   background: #fff8f1;
 }
-.zp-chat .cv-track {
+:where(.zd) .zp-chat .cv-track {
   list-style: none;
   margin: 10px 0 0;
   padding: 0;
   display: grid;
   gap: 4px;
 }
-.zp-chat .cv-track > li {
+:where(.zd) .zp-chat .cv-track > li {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
-.zp-chat .cv-track__bar {
+:where(.zd) .zp-chat .cv-track__bar {
   display: block;
   height: 5px;
   border-radius: 999px;
   transition: background-color 0.4s;
 }
-.zp-chat .cv-track > li > span:last-child {
+:where(.zd) .zp-chat .cv-track > li > span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.zp-chat .cv-card.off {
+:where(.zd) .zp-chat .cv-card.off {
   opacity: 0.62;
 }
 
@@ -696,22 +696,22 @@
     padding-bottom: 20px;
     box-sizing: border-box;
   }
-  .zp-chat {
+  :where(.zd) .zp-chat {
     flex: 1 1 auto;
     min-height: 0;
   }
-  .zp-chat .cv-box {
+  :where(.zd) .zp-chat .cv-box {
     min-height: 0;
     flex-wrap: nowrap;
   }
-  .zp-chat .cv-list {
+  :where(.zd) .zp-chat .cv-list {
     min-height: 0;
     overflow-y: auto;
   }
-  .zp-chat .cv-pane {
+  :where(.zd) .zp-chat .cv-pane {
     min-height: 0;
   }
-  .zp-chat .cv-thread {
+  :where(.zd) .zp-chat .cv-thread {
     max-height: none;
     min-height: 0;
   }
@@ -725,12 +725,12 @@
     gap: 0 !important;
     box-sizing: border-box;
   }
-  .zp-chat.m-thread {
+  :where(.zd) .zp-chat.m-thread {
     flex: 1 1 auto;
     min-height: 0;
     gap: 0;
   }
-  .zp-chat.m-thread .cv-box {
+  :where(.zd) .zp-chat.m-thread .cv-box {
     flex: 1 1 auto;
     min-height: 0;
     flex-wrap: nowrap; /* one flex line = the box's own height, so the pane can't grow past it */
@@ -738,24 +738,24 @@
     border: 0;
     border-radius: 0;
   }
-  .zp-chat.m-thread .cv-pane {
+  :where(.zd) .zp-chat.m-thread .cv-pane {
     flex: 1 1 auto;
     min-height: 0;
   }
-  .zp-chat.m-thread .cv-thread {
+  :where(.zd) .zp-chat.m-thread .cv-thread {
     min-height: 0;
     overflow-y: auto;
   }
-  .zp-chat.m-thread .cv-compose {
+  :where(.zd) .zp-chat.m-thread .cv-compose {
     position: static;
     border-radius: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .zp-chat .msg.new {
+  :where(.zd) .zp-chat .msg.new {
     animation: none;
   }
-  .zp-chat .cv-track__bar {
+  :where(.zd) .zp-chat .cv-track__bar {
     transition: none;
   }
 }

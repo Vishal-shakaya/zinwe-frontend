@@ -214,7 +214,7 @@ export default function DownloadPage(): ReactElement {
   const note = PATH_NOTE[who];
 
   return (
-    <div className="zd">
+    <div className="zd-page">
       {/* 1 · Hero: the promise on the left, the one big download on the right. */}
       <section className="zs-wrap zd-hero">
         <div className="zd-hero__copy">

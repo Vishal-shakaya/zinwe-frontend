@@ -59,7 +59,7 @@ export default function ProductPage(): ReactElement {
   const d = ALERTS.demos[demo];
 
   return (
-    <div className="zf">
+    <div className="zf-page">
       <section className="zs-wrap zf-hero">
         <span className="zs-eyebrow">{PRODUCT_HERO.eyebrow}</span>
         <h1 className="zs-h1 zf-hero__h">{PRODUCT_HERO.title}</h1>

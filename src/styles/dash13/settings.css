@@ -19,7 +19,7 @@
   min-width: 0;
 }
 
-.zp-panel {
+:where(.zd) .zp-panel {
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -39,7 +39,7 @@
   color: #6b6459;
 }
 
-.zp-body {
+:where(.zd) .zp-body {
   color: #4a443c;
 }
 
@@ -689,7 +689,7 @@
     flex-direction: column;
   }
 
-  .zp-panel {
+  :where(.zd) .zp-panel {
     display: none !important;
   }
 
