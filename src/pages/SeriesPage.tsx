@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useEffect, type ReactElement } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { GrowCard } from "../components/series/GrowCard";
 import { noteSeriesVisit } from "../lib/attribution";
@@ -8,14 +8,16 @@ import { pageTitle } from "../lib/pageTitle";
 import { useResource } from "../dashboard/useResource";
 import { LockIcon, MemberGate } from "../components/series/MemberGate";
 import { ReaderPill } from "../components/series/ReaderPill";
+import { EpisodeTile, UpcomingTile } from "../components/stories/EpisodeTile";
+import { Rail } from "../components/stories/Rail";
+import { NextUp, Play, SeriesHero } from "../components/stories/SeriesHero";
 import { ApiError, errorMessage } from "../lib/api";
-import { blogAsset } from "../lib/api/blog";
-import { episodeCode, episodePath, getSeries, useReaderKey, type EpisodeCard, type SeriesDetail } from "../lib/api/series";
-import { formatDate } from "../lib/format";
-import { cx } from "../lib/cx";
+import { episodePath, getSeries, useReaderKey, type SeriesDetail } from "../lib/api/series";
+import { accessOf, epNo, readRecent, soonestUpcoming } from "../lib/stories";
 import "../styles/series.css";
+import "../styles/site-stories.css";
 
-/** Public /blog/series/:slug: a members-only series, Netflix-style: hero, seasons, episodes. */
+/** Public /blog/series/:slug (v1.3.2): a members-only series as a show page: billboard, then one rail per season. */
 export default function SeriesPage(): ReactElement {
   const { slug = "" } = useParams();
   const [key, setKey] = useReaderKey();
@@ -37,16 +39,25 @@ export default function SeriesPage(): ReactElement {
   if (res.error && !show) {
     const missing = res.error instanceof ApiError && res.error.kind === "not_found";
     return (
-      <div className="wrap blog-empty blog-empty--page">
-        <b>{missing ? "This series isn't here" : "The series didn't load"}</b>
-        <span>{missing ? "It may have moved." : errorMessage(res.error)}</span>
-        <Link className="btn btn--ghost" to="/blog/series">
-          All series
-        </Link>
+      <div className="zst-tv">
+        <div className="zst-wrap zst-tv__top">
+          <div className="zst-state">
+            <b>{missing ? "This series isn't here" : "The series didn't load"}</b>
+            <span>{missing ? "It may have moved." : errorMessage(res.error)}</span>
+            <Link className="zst-btn zst-btn--ghost" to="/blog/series">
+              All series
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
-  if (!show) return <div className="sx sx--loading" aria-busy="true" />;
+  if (!show)
+    return (
+      <div className="zst-tv" aria-busy="true">
+        <div className="zst-hero zst-hero--big zst-hero--skel" />
+      </div>
+    );
 
   return <SeriesView show={show} onForget={() => setKey("")} />;
 }
@@ -55,17 +66,15 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
   const member = !!show.reader;
   const voice = seriesVoice(show.slug);
   const first = show.episodes[0];
-  const latest = show.episodes[show.episodes.length - 1];
-  const seasonsWithWork = useMemo(
-    () => new Set([...show.episodes, ...show.upcoming].map((e) => e.season)),
-    [show.episodes, show.upcoming],
-  );
-  const [season, setSeason] = useState(() => latest?.season ?? show.seasons[0]?.number ?? 1);
-  const current = show.seasons.find((s) => s.number === season);
-  const released = show.episodes.filter((e) => e.season === season);
-  const upcoming = show.upcoming.filter((e) => e.season === season);
+  const open = show.episodes.filter((e) => accessOf(e, member) === "open");
+  const latestOpen = open[open.length - 1];
+  // Where this browser left off in this series, if anywhere: the episode after it.
+  const lastRead = readRecent().find((r) => r.series === show.slug);
+  const after = lastRead ? show.episodes[show.episodes.findIndex((e) => e.slug === lastRead.slug) + 1] : undefined;
+  const target = after && lastRead ? after : member && latestOpen ? latestOpen : first;
   const minutes = show.episodes.map((e) => e.reading_minutes);
   const [shortest, longest] = [Math.min(...minutes), Math.max(...minutes)];
+  const next = soonestUpcoming(show.upcoming);
 
   const facts = [
     show.seasons.length > 1 ? `${show.seasons.length} seasons` : null,
@@ -74,108 +83,87 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
     show.cadence || null,
   ].filter(Boolean);
 
-  return (
-    <div className="sx" data-series={show.slug}>
-      <header className="sx-hero">
-        {show.cover ? <img className="sx-hero__art" src={blogAsset(show.cover.url)} alt="" fetchPriority="high" /> : null}
-        <div className="sx-hero__shade" aria-hidden="true" />
-        <div className="wrap sx-hero__inner">
-          <nav className="sx-crumbs" aria-label="Breadcrumb">
-            <Link to="/blog">Blog</Link>
-            <span aria-hidden="true">/</span>
-            <Link to="/blog/series">Series</Link>
-          </nav>
-          <p className="sx-eyebrow">A Zinwe original · members' series</p>
-          <h1 className="sx-hero__title">{show.title}</h1>
-          {show.tagline ? <p className="sx-hero__tagline">{show.tagline}</p> : null}
-          {facts.length ? (
-            <p className="sx-facts">
-              {facts.map((f, i) => (
-                <span key={i}>{f}</span>
-              ))}
-            </p>
-          ) : null}
-          {show.description ? <p className="sx-hero__desc">{show.description}</p> : null}
-          <div className="sx-hero__ctas">
-            {first ? (
-              <Link className="sx-btn sx-btn--light" to={episodePath(show.slug, (member ? latest : first).slug)}>
-                <PlayIcon /> {member ? (latest === first ? "Read episode 1" : "Read the latest episode") : "Start with episode 1"}
-              </Link>
-            ) : null}
-            {member ? null : (
-              <a className="sx-btn sx-btn--glass" href="#join">
-                <LockIcon /> Get free access
-              </a>
-            )}
-          </div>
-          {show.reader ? <ReaderPill reader={show.reader} onForget={onForget} /> : null}
-          {show.reader?.drip && show.reader.progress ? (
-            <p className="sx-progress">
-              Your episodes: <b>{show.reader.progress.unlocked}</b> of {show.reader.progress.released} open · the next one arrives
-              by email
-            </p>
-          ) : null}
-        </div>
-      </header>
+  const seasons = show.seasons.length ? show.seasons : [{ number: 1, title: "", theme: "" }];
 
-      <section className="wrap sx-episodes" aria-labelledby="episodes-title">
-        <div className="sx-episodes__head">
-          <h2 id="episodes-title">Episodes</h2>
-          {show.seasons.length > 1 ? (
-            <div className="sx-seasons" role="tablist" aria-label="Seasons">
-              {show.seasons.map((s) => (
-                <button
-                  key={s.number}
-                  type="button"
-                  role="tab"
-                  aria-selected={season === s.number}
-                  className={cx("sx-season", season === s.number && "is-on", !seasonsWithWork.has(s.number) && "is-soon")}
-                  onClick={() => setSeason(s.number)}
-                >
-                  Season {s.number}
-                  {s.title ? <small>{s.title}</small> : null}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        {current?.title || current?.theme ? (
-          <p className="sx-season-note">
-            <b>
-              Season {current.number}
-              {current.title ? `: ${current.title}` : ""}
-            </b>
-            {current.theme ? <span> · {current.theme}</span> : null}
+  return (
+    <div className="zst-tv" data-series={show.slug}>
+      <SeriesHero art={show.cover} artAlt="">
+        <nav className="zst-crumbs" aria-label="Breadcrumb">
+          <Link to="/blog">Blog</Link>
+          <span aria-hidden="true">/</span>
+          <Link to="/blog/series">Series</Link>
+        </nav>
+        <p className="zst-kicker">A Zinwe original · members' series</p>
+        <h1 className="zst-hero__t zst-hero__t--show">{show.title}</h1>
+        {show.tagline ? <p className="zst-hero__tag">{show.tagline}</p> : null}
+        {facts.length ? (
+          <p className="zst-hero__meta">
+            {facts.map((f, i) => (
+              <span key={i}>{f}</span>
+            ))}
           </p>
         ) : null}
+        {show.description ? <p className="zst-hero__desc">{show.description}</p> : null}
+        <div className="zst-hero__ctas">
+          {target ? (
+            <Link className="zst-btn zst-btn--light" to={episodePath(show.slug, target.slug)}>
+              <Play />{" "}
+              {target === after && lastRead
+                ? `Continue: ${epNo(target)}`
+                : target === first
+                  ? "Start with episode 1"
+                  : `Read episode ${target.episode ?? ""}`.trim()}
+            </Link>
+          ) : null}
+          {member ? null : (
+            <a className="zst-btn zst-btn--glass" href="#join">
+              <LockIcon /> Get free access
+            </a>
+          )}
+        </div>
+        {show.reader ? <ReaderPill reader={show.reader} onForget={onForget} /> : null}
+        {show.reader?.drip && show.reader.progress ? (
+          <p className="zst-hero__progress">
+            Your episodes: <b>{show.reader.progress.unlocked}</b> of {show.reader.progress.released} open · the next one arrives by email
+          </p>
+        ) : null}
+        {next ? <NextUp u={next} /> : null}
+      </SeriesHero>
 
-        {released.length || upcoming.length ? (
-          <ol className="sx-list">
-            {released.map((e) => (
-              <EpisodeRow key={e.slug} seriesSlug={show.slug} episode={e} member={member} />
-            ))}
-            {upcoming.map((e) => (
-              <li key={e.slug} className="sx-row is-upcoming">
-                <span className="sx-row__num">{e.episode ?? "·"}</span>
-                <div className="sx-row__thumb sx-row__thumb--soon" aria-hidden="true">
-                  <span>Soon</span>
-                </div>
-                <div className="sx-row__body">
-                  <h3>{e.title}</h3>
-                  <p className="sx-row__meta">Arrives {formatDate(e.published_at)}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <div className="sx-soon">
-            <b>Season {season} is in the writers' room.</b>
-            <span>{member ? "Members get each episode by email the day it's out." : "Join free and each episode reaches your inbox the day it's out."}</span>
-          </div>
-        )}
-      </section>
+      <div className="zst-tv__rails">
+        {seasons.map((s) => {
+          const released = show.episodes.filter((e) => e.season === s.number);
+          const upcoming = show.upcoming.filter((e) => e.season === s.number);
+          return (
+            <Rail
+              key={s.number}
+              title={
+                <>
+                  Season {s.number}
+                  {s.title ? <span className="zst-rail__sub">{s.title}</span> : null}
+                </>
+              }
+              note={s.theme || undefined}
+            >
+              {released.map((e) => (
+                <EpisodeTile key={e.slug} seriesSlug={show.slug} e={e} member={member} />
+              ))}
+              {upcoming.map((u) => (
+                <UpcomingTile key={u.slug} u={u} />
+              ))}
+              {released.length || upcoming.length ? null : (
+                <li className="zst-tile zst-tile--empty">
+                  <span>
+                    <b>In the writers' room.</b> {member ? "Members get each episode by email the day it's out." : "Join free and each episode reaches your inbox the day it's out."}
+                  </span>
+                </li>
+              )}
+            </Rail>
+          );
+        })}
+      </div>
 
-      <section className="wrap sx-perks" aria-label="What members get">
+      <section className="zst-wrap zst-perks" aria-label="What members get">
         {voice.perks.map((p) => (
           <div key={p.title}>
             <b>{p.title}</b>
@@ -184,63 +172,18 @@ function SeriesView({ show, onForget }: { show: SeriesDetail; onForget: () => vo
         ))}
       </section>
 
-      <div className="wrap">
+      <div className="zst-wrap">
         <GrowCard seriesSlug={show.slug} seriesTitle={show.title} episode={null} reader={show.reader} />
       </div>
 
       {member ? null : (
-        <div className="wrap" id="join">
+        <div className="zst-wrap zst-tv__join" id="join">
           <MemberGate title={`Get ${show.title} in your inbox, free`} variant="band">
             <p className="sx-gate__lede">{voice.joinLede}</p>
           </MemberGate>
         </div>
       )}
-      <p className="wrap sx-disclaimer">{voice.disclaimer}</p>
+      <p className="zst-wrap zst-tv__fine">{voice.disclaimer}</p>
     </div>
-  );
-}
-
-function EpisodeRow({ seriesSlug, episode: e, member }: { seriesSlug: string; episode: EpisodeCard; member: boolean }): ReactElement {
-  const open = e.free_preview || (member && e.unlocked !== false);
-  return (
-    <li className="sx-row">
-      <Link to={episodePath(seriesSlug, e.slug)} className="sx-row__link">
-        <span className="sx-row__num">{e.episode ?? "·"}</span>
-        <div className="sx-row__thumb">
-          {e.cover ? <img src={blogAsset(e.cover.url)} alt={e.cover_alt} loading="lazy" decoding="async" /> : <span>{episodeCode(e)}</span>}
-          <span className="sx-row__play" aria-hidden="true">
-            <PlayIcon />
-          </span>
-        </div>
-        <div className="sx-row__body">
-          <h3>{e.title}</h3>
-          {e.summary ? <p>{e.summary}</p> : null}
-          <p className="sx-row__meta">
-            <span>{e.reading_minutes} min read</span>
-            {e.files ? <span>{e.files === 1 ? "1 download" : `${e.files} downloads`}</span> : null}
-            <span>{formatDate(e.published_at)}</span>
-            {e.free_preview ? (
-              <span className="sx-chip sx-chip--free">Free episode</span>
-            ) : open ? null : member ? (
-              <span className="sx-chip sx-chip--soon">
-                <LockIcon /> {e.unlocks_on ? `Opens ${formatDate(e.unlocks_on)}` : "Opens with a coming email"}
-              </span>
-            ) : (
-              <span className="sx-chip">
-                <LockIcon /> Members
-              </span>
-            )}
-          </p>
-        </div>
-      </Link>
-    </li>
-  );
-}
-
-export function PlayIcon(): ReactElement {
-  return (
-    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-      <path fill="currentColor" d="M4 2.8v10.4a.8.8 0 0 0 1.2.7l8.4-5.2a.8.8 0 0 0 0-1.4L5.2 2.1A.8.8 0 0 0 4 2.8Z" />
-    </svg>
   );
 }
