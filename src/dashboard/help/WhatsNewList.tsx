@@ -54,7 +54,7 @@ function Note({ note, current }: { note: ReleaseNote; current: boolean }): React
     <section className={`z-card zp-card zp-wn${current ? " now" : ""}`} aria-labelledby={id}>
       <span className="zp-wn__meta">
         <span className={`z-mono zp-ver${current ? " now" : ""}`}>Zinwe {note.version}</span>
-        {current ? <span className="z-pill green">Current</span> : null}
+        {current ? <span className="z-pill orange">Current</span> : null}
         <span className="zp-k">{current ? note.summary || when : [when, note.summary].filter(Boolean).join(" · ")}</span>
       </span>
       <b id={id} className="zp-wn__title">

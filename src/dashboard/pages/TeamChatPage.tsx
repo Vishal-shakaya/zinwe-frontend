@@ -27,7 +27,7 @@ const LEDE = "Message your team in their Zinwe window, or send a task they can t
 
 type ChatPerson = TaskPerson & { memberId: number };
 
-const DOT: Record<TaskPerson["presenceKind"], string> = { working: "#17663F", break: "#8A5300", online: "#1B4FB0", offline: "#A79E90", waiting: "#A79E90" };
+const DOT: Record<TaskPerson["presenceKind"], string> = { working: "#17663F", break: "#A84505", online: "#404040", offline: "#8A8A8A", waiting: "#8A8A8A" };
 
 /** People with unread replies first, then by name (the existing Chat order). */
 function sortForChat(people: ChatPerson[]): ChatPerson[] {
@@ -250,9 +250,9 @@ function ChatPageContent(): ReactElement {
                 <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
                   <span style={{ display: "flex", justifyContent: "space-between", gap: 6 }}>
                     <b style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</b>
-                    <span style={{ fontSize: 11, color: "#6B6459", flex: "none" }}>{when}</span>
+                    <span style={{ fontSize: 11, color: "#6B6B6B", flex: "none" }}>{when}</span>
                   </span>
-                  <span style={{ fontSize: 12, color: "#6B6459", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{last}</span>
+                  <span style={{ fontSize: 12, color: "#6B6B6B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{last}</span>
                 </span>
                 <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                   {unread > 0 ? <span className="conv-unread">{unread}</span> : null}
@@ -278,7 +278,7 @@ function ChatPageContent(): ReactElement {
               <Avatar person={selected} size={40} />
               <div style={{ minWidth: 0, display: "flex", flexDirection: "column", lineHeight: 1.35 }}>
                 <b style={{ fontSize: 16 }}>{selected.name}</b>
-                <span style={{ fontSize: 12, color: "#6B6459" }}>
+                <span style={{ fontSize: 12, color: "#6B6B6B" }}>
                   {selected.member?.device ? (
                     <>
                       <span className="z-mono">{selected.pc}</span> · {selected.role} · {selected.presence}
@@ -342,7 +342,7 @@ function ChatPageContent(): ReactElement {
           ) : (
             <div className="cv-threadwrap">
             <div className="cv-thread" style={{ gap: 8 }}>
-              <span style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "6px 12px", fontSize: 13, color: "#6B6459" }}>
+              <span style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "6px 12px", fontSize: 13, color: "#6B6B6B" }}>
                 Tasks with {selected.first}, newest first. Select one to open it in the chat.
                 <Link to={`/app/tasks#m=${selected.key}`} style={{ fontWeight: 600 }}>
                   See {selected.first}’s tasks on the Tasks page
@@ -360,7 +360,7 @@ function ChatPageContent(): ReactElement {
                   }}
                 >
                   <b style={{ flex: "1 1 220px", minWidth: 0, fontWeight: 600 }}>{t.title}</b>
-                  <span style={{ fontSize: 12, color: "#6B6459" }}>{t.byMember ? `Added by ${selected.first}` : "From you"}</span>
+                  <span style={{ fontSize: 12, color: "#6B6B6B" }}>{t.byMember ? `Added by ${selected.first}` : "From you"}</span>
                   <span className="cv-pill" style={dueStyle(t)}>
                     {dueLabel(t)}
                   </span>
@@ -369,7 +369,7 @@ function ChatPageContent(): ReactElement {
                   </span>
                 </button>
               ))}
-              {selTasks.length === 0 ? <p style={{ margin: 0, color: "#4A443C" }}>No tasks with {selected.first} yet. Use + Task below to send one.</p> : null}
+              {selTasks.length === 0 ? <p style={{ margin: 0, color: "#404040" }}>No tasks with {selected.first} yet. Use + Task below to send one.</p> : null}
             </div>
             </div>
           )}

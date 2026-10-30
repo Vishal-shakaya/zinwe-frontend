@@ -82,7 +82,7 @@ export function SentTab({
           <SkRows label="Loading sent reports…" rows={3} avatar={false} />
         )
       ) : rows.length === 0 ? (
-        <div style={{ borderTop: "1px solid #F0EDE6" }}>
+        <div style={{ borderTop: "1px solid #F5F5F5" }}>
           <EmptyBlock icon="mail" title="Nothing sent yet">
             Reports you email, or that a schedule sends, show up here.
           </EmptyBlock>

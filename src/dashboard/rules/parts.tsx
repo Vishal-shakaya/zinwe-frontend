@@ -30,7 +30,7 @@ export function SwitchRow({
   return (
     <div
       className="rl-row"
-      style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between", ...(divided ? { borderTop: "1px solid #F0EDE6", paddingTop: 14 } : {}) }}
+      style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between", ...(divided ? { borderTop: "1px solid #F5F5F5", paddingTop: 14 } : {}) }}
     >
       <span>
         <b>{title}</b>
@@ -50,7 +50,7 @@ export function OptCard({ on, label, desc, onPick }: { on: boolean; label: strin
       <span>
         <b>{label}</b>
         <br />
-        <span style={{ fontSize: 13, color: "#4A443C" }}>{desc}</span>
+        <span style={{ fontSize: 13, color: "#404040" }}>{desc}</span>
       </span>
     </button>
   );

@@ -15,18 +15,18 @@ export function PlanNote({ module, title, children }: { module: PlanModule; titl
     <div
       role="region"
       aria-label={title ?? MODULE_TITLES[module]}
-      style={{ display: "flex", flexWrap: "wrap", gap: "10px 14px", alignItems: "center", padding: "14px 16px", borderRadius: 12, background: "#FBFAF7", border: "1px solid #E7E3DA" }}
+      style={{ display: "flex", flexWrap: "wrap", gap: "10px 14px", alignItems: "center", padding: "14px 16px", borderRadius: 12, background: "#FAFAFA", border: "1px solid #E5E5E5" }}
     >
       <span
         aria-hidden="true"
-        style={{ flex: "none", width: 34, height: 34, borderRadius: 10, background: "#fff", border: "1px solid #E7E3DA", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#4A443C" }}
+        style={{ flex: "none", width: 34, height: 34, borderRadius: 10, background: "#fff", border: "1px solid #E5E5E5", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#404040" }}
       >
         <ZIcon name="lock" size={16} />
       </span>
       <span style={{ flex: "1 1 260px", minWidth: 0 }}>
         <b>{title ?? MODULE_TITLES[module]}</b>
         <br />
-        <span style={{ fontSize: 13, color: "#4A443C" }}>
+        <span style={{ fontSize: 13, color: "#404040" }}>
           {children}
           {plan ? (
             <>

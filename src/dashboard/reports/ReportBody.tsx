@@ -126,7 +126,7 @@ export function ReportBody({
                   <button
                     type="button"
                     className="rp-def rp-tl"
-                    style={{ fontSize: 13, fontWeight: 500, color: "#4A443C" }}
+                    style={{ fontSize: 13, fontWeight: 500, color: "#404040" }}
                     {...tip.anchor(`tile-${t.label}`, <TipBody text={t.def} />)}
                   >
                     {t.label}
@@ -279,8 +279,8 @@ export function ReportBody({
           </>
         )}
         {report.no_activity.length > 0 ? (
-          <p className="rp-k" style={{ margin: 0, padding: "10px 16px 14px", borderTop: "1px solid #F0EDE6", fontSize: 13 }}>
-            <b style={{ color: "#3A352E" }}>No activity:</b> {report.no_activity.join(", ")}
+          <p className="rp-k" style={{ margin: 0, padding: "10px 16px 14px", borderTop: "1px solid #F5F5F5", fontSize: 13 }}>
+            <b style={{ color: "#404040" }}>No activity:</b> {report.no_activity.join(", ")}
           </p>
         ) : null}
       </section>
@@ -290,7 +290,7 @@ export function ReportBody({
           <TopCard key={t.title} title={t.title} rows={t.rows} />
         ))}
       </div>
-      <p style={{ margin: "-6px 0 0", fontSize: 12, color: "#6B6459" }}>Local network copies and Windows itself are left out.</p>
+      <p style={{ margin: "-6px 0 0", fontSize: 12, color: "#6B6B6B" }}>Local network copies and Windows itself are left out.</p>
     </>
   );
 }

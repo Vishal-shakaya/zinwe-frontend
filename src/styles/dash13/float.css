@@ -6,13 +6,13 @@
 /* ---------- The floating corner ---------- */
 
 .zf-wrap {
-  --ink: #141210;
-  --paper: #f7f6f2;
-  --line: #e7e3da;
-  --orange: #f26a0a;
-  --orange-text: #a84505;
-  --orange-tint: #fdebdc;
-  --orange-ink: #8a3a04;
+  --ink: var(--z-ink);
+  --paper: var(--z-surface-2);
+  --line: var(--z-line);
+  --orange: var(--z-accent);
+  --orange-text: var(--z-accent-text);
+  --orange-tint: var(--z-accent-tint);
+  --orange-ink: var(--z-accent-ink);
   --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   position: fixed;
   right: 24px;
@@ -25,7 +25,7 @@
   font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #141210;
+  color: var(--z-ink);
   /* The box itself never blocks the page behind it; only its pieces take clicks. */
   pointer-events: none;
 }
@@ -47,7 +47,7 @@
 }
 
 .zf-wrap :focus-visible {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: 2px;
 }
 
@@ -116,21 +116,21 @@
 }
 
 .zfl-chat {
-  background: #f26a0a;
-  color: #141210 !important;
+  background: var(--z-accent);
+  color: var(--z-ink) !important;
 }
 
 .zfl-chat:hover {
-  background: #e86402;
+  background: var(--z-accent);
 }
 
 .zf-sup {
-  background: #141210;
-  color: #fff !important;
+  background: var(--z-ink);
+  color: var(--z-on-ink) !important;
 }
 
 .zf-sup:hover {
-  background: #2a2622;
+  background: var(--z-ink);
 }
 
 .zf-badge {
@@ -141,14 +141,14 @@
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #c0331c;
-  color: #fff;
+  background: var(--z-danger);
+  color: var(--z-on-ink);
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--z-surface);
 }
 
 .zf-supwrap {
@@ -163,9 +163,9 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 1px solid #e7e3da;
-  background: #fff;
-  color: #3a352e;
+  border: 1px solid var(--z-line);
+  background: var(--z-surface);
+  color: var(--z-ink-2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -180,7 +180,7 @@
 }
 
 .zf-hide:hover {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 
 @media (max-width: 760px) {
@@ -194,8 +194,8 @@
 
 .zfl-panel {
   width: 360px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 16px;
   box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.4);
   display: flex;
@@ -215,7 +215,7 @@
 
 .zf-phead {
   padding: 14px 16px 10px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -227,7 +227,7 @@
 
 .zf-phead small {
   font-size: 12.5px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-plist {
@@ -253,11 +253,11 @@
   background: transparent;
   text-decoration: none;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zf-row:hover {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
 }
 
 .zf-row--sk:hover {
@@ -282,7 +282,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--z-surface);
 }
 
 .zf-who {
@@ -303,7 +303,7 @@
 
 .zf-who small {
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -315,8 +315,8 @@
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #c0331c;
-  color: #fff;
+  background: var(--z-danger);
+  color: var(--z-on-ink);
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
@@ -330,15 +330,15 @@
   justify-content: center;
   gap: 6px;
   padding: 12px;
-  border-top: 1px solid #f0ede6;
-  color: #a84505 !important;
+  border-top: 1px solid var(--z-line-soft);
+  color: var(--z-accent-text) !important;
   font-weight: 600;
   font-size: 14px;
   text-decoration: none;
 }
 
 .zf-pall:hover {
-  background: #fbfaf7;
+  background: var(--z-surface-3);
 }
 
 .zf-pempty {
@@ -351,11 +351,11 @@
   padding: 24px 16px;
   text-align: center;
   font-size: 14px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zf-pempty b {
-  color: #141210;
+  color: var(--z-ink);
   font-size: 15px;
 }
 
@@ -363,7 +363,7 @@
 
 .zf-shead {
   padding: 12px 12px 10px 16px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -378,7 +378,7 @@
   background: transparent;
   cursor: pointer;
   font-size: 18px;
-  color: #3a352e;
+  color: var(--z-ink-2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -386,7 +386,7 @@
 }
 
 .zf-sicon:hover {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 
 .zf-stitle {
@@ -402,7 +402,7 @@
 
 .zf-stitle small {
   font-size: 12.5px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-sbody {
@@ -421,7 +421,7 @@ form.zf-sbody {
 .zf-sintro {
   margin: 0;
   font-size: 14px;
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 
 .zf-sbtn {
@@ -429,8 +429,8 @@ form.zf-sbody {
   padding: 0 18px;
   border-radius: 10px;
   border: 0;
-  background: #f26a0a;
-  color: #141210 !important;
+  background: var(--z-accent);
+  color: var(--z-ink) !important;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
@@ -440,12 +440,12 @@ form.zf-sbody {
 }
 
 .zf-sbtn:hover {
-  background: #e86402;
+  background: var(--z-accent);
 }
 
 .zf-sbtn.is-off {
-  background: #efece5;
-  color: #6b6358 !important;
+  background: var(--z-surface-2);
+  color: var(--z-ink-3) !important;
   cursor: not-allowed;
 }
 
@@ -453,7 +453,7 @@ form.zf-sbody {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-slist {
@@ -473,18 +473,18 @@ form.zf-sbody {
   min-height: 52px;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid #f0ede6;
-  background: #fff;
+  border: 1px solid var(--z-line-soft);
+  background: var(--z-surface);
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zf-tk:hover {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
 }
 
 .zf-tk--sk:hover {
-  background: #fff;
+  background: var(--z-surface);
 }
 
 .zf-tk__txt {
@@ -507,7 +507,7 @@ form.zf-sbody {
 
 .zf-tk__txt small {
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-spill {
@@ -516,18 +516,18 @@ form.zf-sbody {
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #efece5;
-  color: #4a443c;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
 }
 
 .zf-spill.green {
-  background: #e3f4ea;
-  color: #17663f;
+  background: var(--z-ok-tint);
+  color: var(--z-ok);
 }
 
 .zf-spill.amber {
-  background: #fbf0d9;
-  color: #8a5300;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
 }
 
 .zf-slink {
@@ -536,7 +536,7 @@ form.zf-sbody {
   background: transparent;
   padding: 0;
   font-size: 13px;
-  color: #a84505 !important;
+  color: var(--z-accent-text) !important;
   font-weight: 600;
   text-decoration: none;
 }
@@ -548,7 +548,7 @@ form.zf-sbody {
 .zf-serr {
   margin: 0;
   font-size: 13px;
-  color: #c0331c;
+  color: var(--z-danger);
 }
 
 .zf-sfield {
@@ -563,11 +563,11 @@ form.zf-sbody {
 .zf-sfield select {
   font-size: 14px;
   font-weight: 400;
-  border: 1px solid #d9d3c7;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
   padding: 9px 10px;
-  background: #fff;
-  color: #141210;
+  background: var(--z-surface);
+  color: var(--z-ink);
   width: 100%;
 }
 
@@ -584,13 +584,13 @@ form.zf-sbody {
   position: absolute;
   bottom: calc(100% + 10px);
   right: 0;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 8px;
   padding: 8px 10px;
-  box-shadow: 0 12px 40px -16px rgba(13, 13, 14, 0.28);
+  box-shadow: 0 12px 40px -16px rgba(20, 18, 16, 0.28);
   font-size: 13px;
-  color: #141210;
+  color: var(--z-ink);
   width: max-content;
   max-width: 240px;
   pointer-events: none;
@@ -602,8 +602,8 @@ form.zf-sbody {
   top: 100%;
   right: 18px;
   border: 6px solid transparent;
-  border-top-color: #fff;
-  filter: drop-shadow(0 1px 0 #e7e3da);
+  border-top-color: var(--z-surface);
+  filter: drop-shadow(0 1px 0 var(--z-line));
 }
 
 .zf-sthread {
@@ -640,24 +640,24 @@ form.zf-sbody {
 
 .zf-smsg small {
   font-size: 11.5px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-smsg.is-me {
-  background: #fdebdc;
+  background: var(--z-accent-tint);
   align-self: flex-end;
 }
 
 .zf-smsg.is-them {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
   align-self: flex-start;
 }
 
 .zf-sreply {
   flex: none;
   padding: 8px 10px 10px;
-  border-top: 1px solid #f0ede6;
-  background: #fff;
+  border-top: 1px solid var(--z-line-soft);
+  background: var(--z-surface);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -669,14 +669,14 @@ form.zf-sbody {
   align-items: flex-end;
   gap: 4px;
   padding: 4px 4px 4px 8px;
-  border: 1px solid #d9d3c7;
+  border: 1px solid var(--z-line-2);
   border-radius: 14px;
-  background: #fff;
+  background: var(--z-surface);
 }
 
 .zf-cbox:focus-within {
-  border-color: #f26a0a;
-  box-shadow: 0 0 0 3px #fdebdc;
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 3px var(--z-accent-tint);
 }
 
 textarea.zf-msg {
@@ -695,7 +695,7 @@ textarea.zf-msg {
   padding: 8px 4px;
   font-size: 14px;
   line-height: 20px;
-  color: #141210;
+  color: var(--z-ink);
   background: transparent;
   overflow-y: auto;
   scrollbar-width: none;
@@ -708,7 +708,7 @@ textarea.zf-msg::-webkit-scrollbar {
 }
 
 textarea.zf-msg::placeholder {
-  color: #8a8276;
+  color: var(--z-ink-4);
   opacity: 1;
 }
 
@@ -718,8 +718,8 @@ textarea.zf-msg::placeholder {
   height: 36px;
   border-radius: 50%;
   border: 0;
-  background: #f26a0a;
-  color: #141210 !important;
+  background: var(--z-accent);
+  color: var(--z-ink) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -728,19 +728,19 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-send:hover {
-  background: #e86402;
+  background: var(--z-accent);
 }
 
 .zf-send:disabled {
-  background: #efece5;
-  color: #8a8276 !important;
+  background: var(--z-surface-2);
+  color: var(--z-ink-4) !important;
   cursor: not-allowed;
 }
 
 /* The dark one-line note (DashFloat toast: "Support button hidden…" with Undo). */
 .zf-dtoast {
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 13.5px;
@@ -755,7 +755,7 @@ textarea.zf-msg::placeholder {
 .zf-dtoast button {
   border: 0;
   background: transparent;
-  color: #fdb37a !important;
+  color: var(--z-accent-line) !important;
   font-weight: 700;
   cursor: pointer;
   padding: 4px;
@@ -766,8 +766,8 @@ textarea.zf-msg::placeholder {
 .zf-toast {
   width: 360px;
   max-width: calc(100vw - 32px);
-  background: #fff;
-  border: 1px solid #e2e2e2;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -776,7 +776,7 @@ textarea.zf-msg::placeholder {
 
 .zf-toast.need,
 .zf-toast.error {
-  border: 1.5px solid #141210;
+  border: 1.5px solid var(--z-ink);
 }
 
 .zf-toast__row {
@@ -794,21 +794,21 @@ textarea.zf-msg::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #1f8a4c;
-  color: #fff;
+  background: var(--z-ok);
+  color: var(--z-on-ink);
 }
 
 .zf-toast.info .zf-toast__ico {
-  background: #2563eb;
+  background: var(--z-ink-2);
 }
 
 .zf-toast.warn .zf-toast__ico {
-  background: #8a5300;
+  background: var(--z-accent-text);
 }
 
 .zf-toast.need .zf-toast__ico,
 .zf-toast.error .zf-toast__ico {
-  background: #c0331c;
+  background: var(--z-danger);
 }
 
 .zf-toast__txt {
@@ -829,7 +829,7 @@ textarea.zf-msg::placeholder {
   background: transparent;
   border-radius: 6px;
   font-size: 16px;
-  color: #6b6459 !important;
+  color: var(--z-ink-3) !important;
   cursor: pointer;
 }
 
@@ -844,19 +844,19 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-toast__x:hover {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 
 .zf-toast__bar {
   display: block;
   height: 3px;
-  background: #efece5;
+  background: var(--z-surface-2);
 }
 
 .zf-toast__bar span {
   display: block;
   height: 100%;
-  background: #141210;
+  background: var(--z-ink);
   animation-name: zf-countdown;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
@@ -888,8 +888,8 @@ textarea.zf-msg::placeholder {
   width: 320px;
   height: 440px;
   max-height: calc(100vh - 120px);
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px 14px 12px 12px;
   box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.4);
   display: flex;
@@ -908,7 +908,7 @@ textarea.zf-msg::placeholder {
   display: flex;
   align-items: center;
   gap: 2px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
 }
 
 .zf-win.is-min .zf-whd {
@@ -923,7 +923,7 @@ textarea.zf-msg::placeholder {
   gap: 8px;
   border: 0;
   background: transparent;
-  color: #141210;
+  color: var(--z-ink);
   cursor: pointer;
   padding: 4px;
   border-radius: 9px;
@@ -931,7 +931,7 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-whead:hover {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
 }
 
 .zf-whead .zf-who {
@@ -949,7 +949,7 @@ textarea.zf-msg::placeholder {
   border-radius: 9px;
   border: 0;
   background: transparent;
-  color: #3a352e !important;
+  color: var(--z-ink-2) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -959,8 +959,8 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-ib:hover {
-  background: #f2efe8;
-  color: #141210 !important;
+  background: var(--z-surface-2);
+  color: var(--z-ink) !important;
 }
 
 .zf-wbody {
@@ -982,22 +982,22 @@ textarea.zf-msg::placeholder {
   width: 100%;
   padding: 8px 12px;
   border: 0;
-  border-bottom: 1px solid #f0ede6;
-  background: #fbf0d9;
-  color: #8a5300;
+  border-bottom: 1px solid var(--z-line-soft);
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
   text-align: left;
   font-size: 13px;
   line-height: 1.4;
 }
 
 .zf-wctx.is-critical {
-  background: #fce8e4;
-  color: #b02a15;
+  background: var(--z-danger-tint);
+  color: var(--z-danger);
 }
 
 .zf-wctx.is-info {
-  background: #e6eefb;
-  color: #1b4fb0;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
 }
 
 .zf-wctx > span {
@@ -1008,13 +1008,13 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-wctx b {
-  color: #141210;
+  color: var(--z-ink);
   font-size: 13px;
 }
 
 .zf-wctx small {
   font-size: 12px;
-  color: #4a443c;
+  color: var(--z-ink-2);
   overflow-wrap: anywhere;
 }
 
@@ -1029,7 +1029,7 @@ textarea.zf-msg::placeholder {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  background: #fbfaf7;
+  background: var(--z-surface-3);
 }
 
 /* The real thread (MemberChatThread) in the board's bubbles. */
@@ -1052,26 +1052,26 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-log .team-chat__msg--out {
-  background: #fdebdc;
+  background: var(--z-accent-tint);
   border: 0;
   border-bottom-right-radius: 4px;
 }
 
 .zf-log .team-chat__msg--out.team-chat__msg--email {
-  background: #fff;
-  border: 1px dashed #f3cfae;
+  background: var(--z-surface);
+  border: 1px dashed var(--z-accent-line);
 }
 
 .zf-log .team-chat__msg--in {
-  background: #fff;
-  border: 1px solid #efece5;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line-soft);
   border-bottom-left-radius: 4px;
 }
 
 .zf-log .team-chat__time,
 .zf-log .team-chat__receipt {
   font-size: 11px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-log .team-chat__msg--out .team-chat__time {
@@ -1079,7 +1079,7 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-log .team-chat__receipt.is-seen {
-  color: #a84505;
+  color: var(--z-accent-text);
   font-weight: 600;
 }
 
@@ -1088,25 +1088,25 @@ textarea.zf-msg::placeholder {
   margin: auto 0;
   text-align: center;
   font-size: 13px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-wcomp {
   flex: none;
   position: relative;
   padding: 8px 10px 10px;
-  border-top: 1px solid #f0ede6;
-  background: #fff;
+  border-top: 1px solid var(--z-line-soft);
+  background: var(--z-surface);
 }
 
 .zf-wcomp .tc__box {
-  border: 1px solid #d9d3c7;
+  border: 1px solid var(--z-line-2);
   border-radius: 14px;
 }
 
 .zf-wcomp .tc__box:focus-within {
-  border-color: #f26a0a;
-  box-shadow: 0 0 0 3px #fdebdc;
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 3px var(--z-accent-tint);
 }
 
 .zf-wcomp .tc__box .tc__text {
@@ -1141,8 +1141,8 @@ textarea.zf-msg::placeholder {
   right: 10px;
   bottom: calc(100% + 6px);
   z-index: 6;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   box-shadow: 0 18px 44px -18px rgba(20, 18, 16, 0.35);
   padding: 6px;
@@ -1155,9 +1155,9 @@ textarea.zf-msg::placeholder {
   min-height: 44px;
   padding: 6px 8px;
   border-radius: 9px;
-  background: #f7f6f2;
+  background: var(--z-surface-2);
   text-decoration: none;
-  color: #141210 !important;
+  color: var(--z-ink) !important;
 }
 
 .zf-slash__ico {
@@ -1165,8 +1165,8 @@ textarea.zf-msg::placeholder {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1186,13 +1186,13 @@ textarea.zf-msg::placeholder {
 
 .zf-slash__txt small {
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zf-slash__cmd {
   font-family: "Geist Mono", ui-monospace, monospace;
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 @media (max-width: 1180px) {
@@ -1291,21 +1291,21 @@ textarea.zf-msg::placeholder {
   flex-wrap: wrap;
   padding: 10px 12px 10px 14px;
   border-radius: 12px;
-  background: #fdebdc;
-  border: 1px solid #fdebdc;
-  color: #141210;
+  background: var(--z-accent-tint);
+  border: 1px solid var(--z-accent-tint);
+  color: var(--z-ink);
   font-size: 14px;
 }
 
 .zf-bar.amber {
-  background: #fbf0d9;
-  border-color: #fbf0d9;
+  background: var(--z-accent-tint);
+  border-color: var(--z-accent-tint);
 }
 
 .zf-bar.dark {
-  background: #141210;
-  border-color: #141210;
-  color: #ede8de;
+  background: var(--z-ink);
+  border-color: var(--z-ink);
+  color: var(--z-line);
 }
 
 .zf-bar__ico {
@@ -1316,16 +1316,16 @@ textarea.zf-msg::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  color: #a84505;
+  background: var(--z-surface);
+  color: var(--z-accent-text);
 }
 
 .zf-bar.amber .zf-bar__ico {
-  color: #8a5300;
+  color: var(--z-accent-text);
 }
 
 .zf-bar.dark .zf-bar__ico {
-  color: #ff9a55;
+  color: var(--z-accent-on-ink);
 }
 
 .zf-bar__txt {
@@ -1334,15 +1334,15 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-bar__txt > span {
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 
 .zf-bar.dark .zf-bar__txt b {
-  color: #fff;
+  color: var(--z-on-ink);
 }
 
 .zf-bar.dark .zf-bar__txt > span {
-  color: #ede8de;
+  color: var(--z-line);
 }
 
 .zf-bar__cta {
@@ -1353,9 +1353,9 @@ textarea.zf-msg::placeholder {
   min-height: 36px;
   padding: 0 14px;
   border-radius: 9px;
-  border: 1px solid #141210;
-  background: #141210;
-  color: #fff !important;
+  border: 1px solid var(--z-ink);
+  background: var(--z-ink);
+  color: var(--z-on-ink) !important;
   font-weight: 600;
   font-size: 13px;
   text-decoration: none;
@@ -1363,17 +1363,17 @@ textarea.zf-msg::placeholder {
 }
 
 .zf-bar__cta.orange {
-  background: #f26a0a;
-  border-color: #f26a0a;
-  color: #141210 !important;
+  background: var(--z-accent);
+  border-color: var(--z-accent);
+  color: var(--z-ink) !important;
 }
 
 .zf-bar__cta.orange:hover {
-  background: #e05e04;
+  background: var(--z-accent-hover);
 }
 
 .zf-bar__link {
-  color: #ff9a55 !important;
+  color: var(--z-accent-on-ink) !important;
   font-weight: 600;
   white-space: nowrap;
   text-decoration: none;
@@ -1415,8 +1415,8 @@ textarea.zf-msg::placeholder {
   justify-content: space-between;
   gap: 10px;
   align-items: center;
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 13px;
@@ -1425,7 +1425,7 @@ textarea.zf-msg::placeholder {
 .zf-barnote button {
   border: 0;
   background: none;
-  color: #ff9a55 !important;
+  color: var(--z-accent-on-ink) !important;
   font-weight: 600;
   padding: 4px;
   min-height: 32px;
@@ -1478,11 +1478,11 @@ dialog.zn-modal {
   max-width: none;
   max-height: calc(100dvh - 48px);
   padding: 0;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 16px;
   box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.45);
-  color: #141210;
+  color: var(--z-ink);
   font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -1524,7 +1524,7 @@ dialog.zn-modal[open] {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zn-modal .dash-confirm__actions {
@@ -1572,7 +1572,7 @@ dialog.zn-modal[open] {
 .tour.zn-tour {
   z-index: 95;
   font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zn-tour .tour__dim {
@@ -1581,14 +1581,14 @@ dialog.zn-modal[open] {
 
 .zn-tour .tour__ring {
   border-radius: 12px;
-  box-shadow: 0 0 0 3px #f26a0a, 0 0 0 9999px rgba(20, 18, 16, 0.38);
+  box-shadow: 0 0 0 3px var(--z-accent), 0 0 0 9999px rgba(20, 18, 16, 0.38);
 }
 
 .zn-tour .tour__card {
   width: min(320px, calc(100vw - 32px));
   padding: 20px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 16px;
   box-shadow: 0 24px 60px -20px rgba(20, 18, 16, 0.45);
   animation: zf-in 0.18s ease-out;
@@ -1599,8 +1599,8 @@ dialog.zn-modal[open] {
   height: 36px;
   margin-bottom: 12px;
   border-radius: 10px;
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
 }
 
 .zn-tour .tour__title {
@@ -1614,15 +1614,15 @@ dialog.zn-modal[open] {
   margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.5;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zn-tour .tour__dots i {
-  background: #dcd6cb;
+  background: var(--z-line-2);
 }
 
 .zn-tour .tour__dots i.is-on {
-  background: #f26a0a;
+  background: var(--z-accent);
 }
 
 .zn-tour .zn-tour__skip {
@@ -1632,7 +1632,7 @@ dialog.zn-modal[open] {
   min-height: 32px;
   font-weight: 600;
   font-size: 13px;
-  color: #a84505;
+  color: var(--z-accent-text);
   cursor: pointer;
 }
 
@@ -1641,7 +1641,7 @@ dialog.zn-modal[open] {
 }
 
 .zn-tour button:focus-visible {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: 2px;
 }
 

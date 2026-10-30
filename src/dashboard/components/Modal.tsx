@@ -16,7 +16,7 @@ interface ModalProps {
 }
 
 /**
- * A dialog in the v1.3 look (the boards' `.zn-dialog`: white, radius 16, border #E7E3DA; a bottom sheet on a phone),
+ * A dialog in the v1.3 look (the boards' `.zn-dialog`: white, radius 16, border #E5E5E5; a bottom sheet on a phone),
  * built on the native <dialog>: the browser handles the focus trap, Esc to close and inert background, so this stays
  * tiny. Clicking the backdrop also closes it. Content unmounts when closed (forms start fresh).
  */

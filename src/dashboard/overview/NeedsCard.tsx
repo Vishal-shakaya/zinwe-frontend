@@ -33,7 +33,7 @@ const LEVEL_TEXT: Record<string, string> = {
 
 const TONE = {
   alert: { bg: "#FCE8E4", fg: "#C0331C" },
-  request: { bg: "#FBF0D9", fg: "#8A5300" },
+  request: { bg: "#FDEBDC", fg: "#A84505" },
   task: { bg: "#FDEBDC", fg: "#8A3A04" },
 } as const;
 
@@ -382,7 +382,7 @@ export function NeedsCard({
         <h2 id="needs-h" className="zn-ov-h2">
           Needs you
         </h2>
-        <span className="z-num" style={{ fontSize: 13, color: "#4A443C", fontWeight: 600 }}>
+        <span className="z-num" style={{ fontSize: 13, color: "#404040", fontWeight: 600 }}>
           {loading ? "Loading…" : needsLine(left.length, reqItems.length, alertItems.length, taskItems.length)}
         </span>
       </div>
@@ -423,7 +423,7 @@ export function NeedsCard({
                   {n.ask ? (
                     <div className="zn-need-ask">
                       <span className="z-pill blue">{n.ask.label}</span>
-                      {n.ask.reply ? <span style={{ fontSize: 13, lineHeight: "18px", color: "#3A352E", minWidth: 0 }}>{n.ask.reply}</span> : null}
+                      {n.ask.reply ? <span style={{ fontSize: 13, lineHeight: "18px", color: "#404040", minWidth: 0 }}>{n.ask.reply}</span> : null}
                     </div>
                   ) : null}
                   <span className="z-sr">{n.body}</span>
@@ -446,7 +446,7 @@ export function NeedsCard({
         </div>
       ) : null}
       <div className="zn-ov-foot">
-        <span style={{ color: "#6B6459" }}>{worthText ?? ""}</span>
+        <span style={{ color: "#6B6B6B" }}>{worthText ?? ""}</span>
         <span className="zn-ov-foot-r">
           <Link to="/app/alerts" style={{ fontWeight: 600 }}>
             Open Alerts →

@@ -4,7 +4,7 @@
 /* ---------- Get started ---------- */
 .zh-prog {
   height: 8px;
-  background: #efece5;
+  background: var(--z-surface-2);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -12,7 +12,7 @@
 .zh-prog > span {
   display: block;
   height: 100%;
-  background: #17663f;
+  background: var(--z-accent);
 }
 
 .zh-steps {
@@ -28,7 +28,7 @@
   gap: 14px;
   align-items: flex-start;
   padding: 14px 0;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zhp-box {
@@ -39,21 +39,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 2px solid #c9c1b3;
+  background: var(--z-surface);
+  border: 2px solid var(--z-ink-4);
   color: transparent;
   cursor: pointer;
   padding: 0;
 }
 
 .zhp-box.on {
-  background: #17663f;
+  background: var(--z-ok);
   border: 0;
-  color: #fff;
+  color: var(--z-on-ink);
 }
 
 .zh-done {
-  color: #6b6459;
+  color: var(--z-ink-3);
   text-decoration: line-through;
 }
 
@@ -68,24 +68,24 @@
 .zh-text {
   width: 100%;
   padding: 12px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 12px;
   resize: vertical;
   font: inherit;
   font-size: 14px;
-  color: #141210;
-  background: #fff;
+  color: var(--z-ink);
+  background: var(--z-surface);
 }
 
 .zh-text:focus {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: 0;
-  border-color: #f26a0a;
+  border-color: var(--z-accent);
 }
 
 .zh-sent {
-  background: #e3f4ea;
-  color: #17663f;
+  background: var(--z-ok-tint);
+  color: var(--z-ok);
   border-radius: 12px;
   padding: 14px;
   font-weight: 600;
@@ -103,7 +103,7 @@
   text-align: left;
   font: inherit;
   font-weight: 600;
-  color: #141210;
+  color: var(--z-ink);
   cursor: pointer;
 }
 
@@ -119,24 +119,24 @@
   flex-direction: column;
   gap: 2px;
   padding: 14px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   text-decoration: none;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zd .zh-doc,
 .zd .zh-doc:hover {
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zh-doc:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zh-doc span {
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zhp-never {
@@ -145,7 +145,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 
 .zh-rec {
@@ -162,7 +162,7 @@
 
 .zh-rec span {
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 /* ---------- What's new ---------- */
@@ -171,7 +171,7 @@
 }
 
 .zp-wn.now {
-  border-color: #f26a0a;
+  border-color: var(--z-accent);
 }
 
 .zp-wn__meta {
@@ -185,18 +185,18 @@
   font-size: 12px;
   padding: 3px 8px;
   border-radius: 6px;
-  background: #f2efe8;
-  color: #3a352e;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
 }
 
 .zp-ver.now {
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
 }
 
 .zp-wn.now + .zp-wn .zp-ver {
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
 }
 
 .zp-wn__title {
@@ -209,7 +209,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 
 /* ---------- Feedback form (Help → Feedback, the modal, /app/feedback) ---------- */
@@ -240,7 +240,7 @@
   padding: 0;
   font-weight: 600;
   font-size: 14px;
-  color: #141210;
+  color: var(--z-ink);
   margin-bottom: 10px;
 }
 
@@ -260,24 +260,24 @@
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  border: 1px solid #dcd6cb;
-  background: #fff;
+  border: 1px solid var(--z-line-2);
+  background: var(--z-surface);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zf-score:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zf-score.on {
-  background: #141210;
-  color: #fff;
-  border-color: #141210;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
+  border-color: var(--z-ink);
 }
 
 .zf-score input {
@@ -289,7 +289,7 @@
 }
 
 .zf-score:has(input:focus-visible) {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: 2px;
 }
 
@@ -298,7 +298,7 @@
   justify-content: space-between;
   gap: 8px;
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   max-width: 500px;
   margin: 0;
 }
@@ -306,31 +306,31 @@
 .zf-text {
   width: 100%;
   padding: 12px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 12px;
   resize: vertical;
   font: inherit;
   font-size: 14px;
-  color: #141210;
-  background: #fff;
+  color: var(--z-ink);
+  background: var(--z-surface);
 }
 
 .zf-text:focus {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: 0;
-  border-color: #f26a0a;
+  border-color: var(--z-accent);
 }
 
 .zf-k {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zf-err {
   margin: 0;
   font-size: 13px;
   font-weight: 500;
-  color: #b02a15;
+  color: var(--z-danger);
 }
 
 .zf-acts {
@@ -347,7 +347,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
   padding-top: 14px;
 }
 
@@ -364,7 +364,7 @@
   gap: 12px;
   align-items: flex-start;
   padding: 10px 0;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zf-hist li:first-child {
@@ -376,7 +376,7 @@
   min-width: 48px;
   padding: 2px 8px;
   border-radius: 6px;
-  background: #f2efe8;
+  background: var(--z-surface-2);
   font-weight: 700;
   font-size: 13px;
   text-align: center;
@@ -400,7 +400,7 @@
     position: sticky;
     bottom: calc(64px + env(safe-area-inset-bottom));
     z-index: 5;
-    background: #fff;
+    background: var(--z-surface);
     padding: 10px 0;
     box-shadow: 0 -10px 12px -12px rgba(20, 18, 16, 0.25);
   }

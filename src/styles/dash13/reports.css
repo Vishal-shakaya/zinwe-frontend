@@ -12,20 +12,20 @@
   border-bottom: 2px solid transparent;
   background: transparent;
   font-weight: 600;
-  color: #4a443c;
+  color: var(--z-ink-2);
   white-space: nowrap;
 }
 
 .zp-reports .rp-tab.on {
-  color: #141210;
-  border-bottom-color: #f26a0a;
+  color: var(--z-ink);
+  border-bottom-color: var(--z-accent);
 }
 
 .zp-reports .rp-tabs {
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
-  border-bottom: 1px solid #e7e3da;
+  border-bottom: 1px solid var(--z-line);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -33,7 +33,7 @@
 .zp-reports .rp-segs {
   display: inline-flex;
   gap: 2px;
-  background: #efece5;
+  background: var(--z-surface-2);
   border-radius: 10px;
   padding: 3px;
 }
@@ -46,21 +46,21 @@
   background: transparent;
   font-weight: 600;
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-reports .rp-seg.on {
-  background: #fff;
-  color: #141210;
+  background: var(--z-surface);
+  color: var(--z-ink);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .zp-reports .rp-sel {
   min-height: 38px;
   padding: 0 10px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
 }
 
 .zp-reports .rp-fl {
@@ -73,7 +73,7 @@
 
 .zp-reports .rp-k {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zp-reports .rp-pill {
@@ -106,25 +106,25 @@
   text-align: left;
   font-size: 12px;
   font-weight: 600;
-  color: #6b6459;
+  color: var(--z-ink-3);
   padding: 10px 14px;
-  border-bottom: 1px solid #e7e3da;
+  border-bottom: 1px solid var(--z-line);
   white-space: nowrap;
 }
 
 .zp-reports .rp-tbl td {
   padding: 11px 14px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
   vertical-align: middle;
   white-space: nowrap;
 }
 
 .zp-reports .rp-tbl tr:hover td {
-  background: #fbfaf7;
+  background: var(--z-surface-3);
 }
 
 .zp-reports .rp-tbl tr.hl td {
-  background: #fff4ec;
+  background: var(--z-accent-tint-2);
 }
 
 .zp-reports .rp-ptbl {
@@ -136,8 +136,8 @@
   margin-left: 4px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #f2efe8;
-  color: #4a443c;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
   font-size: 11px;
   font-weight: 700;
 }
@@ -148,15 +148,15 @@
   padding: 0;
   font-weight: 600;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
   text-decoration: underline;
-  text-decoration-color: #dcd6cb;
+  text-decoration-color: var(--z-line-2);
   text-underline-offset: 3px;
 }
 
 .zp-reports .rp-lnk:hover {
-  color: #a84505;
-  text-decoration-color: #a84505;
+  color: var(--z-accent-text);
+  text-decoration-color: var(--z-accent-text);
 }
 
 .zp-reports .rp-def {
@@ -182,12 +182,12 @@
   padding: 3px;
   display: inline-flex;
   flex: none;
-  background: #c9c1b3;
+  background: var(--z-ink-4);
   justify-content: flex-start;
 }
 
 .zp-reports .rp-toggle[aria-checked="true"] {
-  background: #17663f;
+  background: var(--z-accent);
   justify-content: flex-end;
 }
 
@@ -196,7 +196,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--z-surface);
 }
 
 .zp-reports .rp-toggle:disabled {
@@ -210,15 +210,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
   padding: 0;
 }
 
 .zp-reports .rp-icbtn:hover,
 .zp-reports .rp-icbtn.on {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 /* Tiles */
@@ -235,8 +235,8 @@
 }
 
 .zp-reports .rp-tile {
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   padding: 16px 18px;
   display: flex;
@@ -252,13 +252,13 @@
 
 .zp-reports .rp-tl {
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
   font-weight: 500;
 }
 
 .zp-reports .rp-ts {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 /* Who worked when */
@@ -284,7 +284,7 @@
 }
 
 .zp-reports .rp-ww-seg:focus-visible {
-  outline: 2px solid #141210;
+  outline: 2px solid var(--z-ink);
   outline-offset: 1px;
   z-index: 2;
 }
@@ -294,7 +294,7 @@
   right: 0;
   transform: translateY(50%);
   font-size: 11px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -304,7 +304,7 @@
   min-width: 0;
   text-align: center;
   font-size: 11px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   white-space: nowrap;
 }
 
@@ -314,21 +314,21 @@
   gap: 7px;
   min-height: 30px;
   padding: 0 11px 0 9px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 12px;
   font-weight: 600;
   transition: opacity 0.15s;
 }
 
 .zp-reports .rp-lg:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zp-reports .rp-lg.on {
-  border-color: #141210;
-  box-shadow: inset 0 0 0 1px #141210;
+  border-color: var(--z-ink);
+  box-shadow: inset 0 0 0 1px var(--z-ink);
 }
 
 /* Performance */
@@ -344,11 +344,11 @@
 }
 
 .zp-reports .rp-pcol:hover {
-  background: #fbf4ec;
+  background: var(--z-accent-tint);
 }
 
 .zp-reports .rp-pcol.on {
-  background: #fdebdc;
+  background: var(--z-accent-tint);
 }
 
 .zp-reports .rp-pname {
@@ -356,14 +356,14 @@
   min-width: 0;
   text-align: center;
   font-size: 12px;
-  color: #4a443c;
+  color: var(--z-ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .zp-reports .rp-pname.on {
-  color: #141210;
+  color: var(--z-ink);
   font-weight: 700;
 }
 
@@ -372,7 +372,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 7px 0;
-  border-top: 1px solid #f4f1eb;
+  border-top: 1px solid var(--z-line-soft);
   font-size: 13px;
 }
 
@@ -387,20 +387,20 @@
   gap: 8px 16px;
   align-items: center;
   padding: 12px 16px;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zp-reports .rp-isel {
   min-height: 34px;
   padding: 0 8px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 8px;
-  background: #fff;
+  background: var(--z-surface);
   font-weight: 600;
 }
 
 .zp-reports .rp-isel:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zp-reports .rp-emails {
@@ -410,15 +410,15 @@
   align-items: center;
   min-height: 34px;
   padding: 3px 6px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 8px;
-  background: #fff;
+  background: var(--z-surface);
   flex: 1 1 280px;
   min-width: 0;
 }
 
 .zp-reports .rp-emails:focus-within {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zp-reports .rp-emails input {
@@ -437,21 +437,21 @@
   gap: 8px;
   min-height: 36px;
   padding: 0 14px;
-  border: 1px dashed #c9c1b3;
+  border: 1px dashed var(--z-ink-4);
   border-radius: 999px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 13px;
 }
 
 .zp-reports .rp-preset:hover:not(:disabled) {
-  border: 1px solid #141210;
+  border: 1px solid var(--z-ink);
 }
 
 .zp-reports .rp-preset:disabled {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
   border-style: solid;
-  border-color: #e7e3da;
-  color: #6b6459;
+  border-color: var(--z-line);
+  color: var(--z-ink-3);
   cursor: default;
 }
 
@@ -462,8 +462,8 @@
   left: 0;
   z-index: 30;
   width: 304px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   box-shadow: 0 14px 36px rgba(20, 18, 16, 0.16);
   padding: 14px;
@@ -482,7 +482,7 @@
 
 .zp-reports .rp-wk {
   font-size: 11px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   text-align: center;
   padding-bottom: 2px;
 }
@@ -498,26 +498,26 @@
 }
 
 .zp-reports .rp-cd:hover:not(:disabled) {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 
 .zp-reports .rp-cd:disabled {
-  color: #cfc8bb;
+  color: var(--z-line-2);
   cursor: default;
 }
 
 .zp-reports .rp-cd.today {
-  box-shadow: inset 0 0 0 1px #141210;
+  box-shadow: inset 0 0 0 1px var(--z-ink);
 }
 
 .zp-reports .rp-cd.in {
-  background: #fdebdc;
+  background: var(--z-accent-tint);
   border-radius: 0;
 }
 
 .zp-reports .rp-cd.edge {
-  background: #f26a0a;
-  color: #141210;
+  background: var(--z-accent);
+  color: var(--z-ink);
   font-weight: 700;
 }
 
@@ -528,23 +528,23 @@
 .zp-reports .rp-chip {
   min-height: 28px;
   padding: 0 10px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 12px;
   font-weight: 600;
 }
 
 .zp-reports .rp-chip:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zp-reports .rp-nav {
   width: 30px;
   height: 30px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--z-surface);
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -568,10 +568,10 @@
   right: 0;
   z-index: 30;
   min-width: 220px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 12px;
-  box-shadow: 0 12px 40px -16px rgba(13, 13, 14, 0.28);
+  box-shadow: 0 12px 40px -16px rgba(20, 18, 16, 0.28);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -594,13 +594,13 @@
 
 .zp-reports .rp-dlmenu button:hover,
 .zp-reports .rp-dlmenu button:focus-visible {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
 }
 
 .zp-reports .rp-dlmenu button span {
   font-weight: 400;
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 /* Phone-only pieces: cards in place of tables, the "Show chart" button and the sticky Email report bar. */
@@ -617,18 +617,18 @@
 }
 
 .zp-reports .rp-pcard {
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--z-surface);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .zp-reports .rp-pcard.hl {
-  background: #fff4ec;
-  border-color: #f3c7a6;
+  background: var(--z-accent-tint-2);
+  border-color: var(--z-accent-line);
 }
 
 .zp-reports .rp-pcard dl {
@@ -646,7 +646,7 @@
 
 .zp-reports .rp-pcard dt {
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zp-reports .rp-pcard dd {
@@ -661,7 +661,7 @@
   bottom: calc(64px + env(safe-area-inset-bottom));
   z-index: 5;
   padding: 10px 60px 10px 0;
-  background: linear-gradient(rgba(247, 246, 242, 0), #f7f6f2 30%);
+  background: linear-gradient(rgba(255, 255, 255, 0), var(--z-ground) 30%);
 }
 
 .zp-reports .rp-sticky .z-btn {
@@ -695,7 +695,7 @@
     border-radius: 16px 16px 0 0 !important;
     border-width: 1px 0 0 !important;
     padding: 18px 16px calc(18px + env(safe-area-inset-bottom)) !important;
-    box-shadow: 0 -16px 40px -16px rgba(13, 13, 14, 0.35);
+    box-shadow: 0 -16px 40px -16px rgba(20, 18, 16, 0.35);
   }
 
   .zp-reports .rp-esheet .z-btn {

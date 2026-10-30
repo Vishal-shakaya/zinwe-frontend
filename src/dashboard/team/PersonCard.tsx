@@ -503,7 +503,7 @@ export function PersonCard(props: PersonCardProps): ReactElement {
             </Link>
           )}
           <span className="zt-pcstate">
-            <span className="zt-dot" style={{ background: pc?.is_online ? "#17663F" : "#6B6358" }} aria-hidden="true" />
+            <span className="zt-dot" style={{ background: pc?.is_online ? "#17663F" : "#6B6B6B" }} aria-hidden="true" />
             {pcState}
           </span>
         </div>
@@ -589,7 +589,7 @@ export function PersonCard(props: PersonCardProps): ReactElement {
           ].map((c) => (
             <div key={c.name} className="zt-multi__row">
               <span className="zt-multi__name">
-                <span className="zt-dot" style={{ background: c.online ? "#17663F" : "#6B6358" }} aria-hidden="true" />
+                <span className="zt-dot" style={{ background: c.online ? "#17663F" : "#6B6B6B" }} aria-hidden="true" />
                 <b className="z-mono">{c.name}</b>
               </span>
               <span className="zt-multi__state">

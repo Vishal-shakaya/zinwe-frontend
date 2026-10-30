@@ -22,7 +22,7 @@ export function SkRows({ label, rows = 4, avatar = true }: { label: string; rows
     <div role="status" aria-live="polite" aria-busy="true" style={{ display: "flex", flexDirection: "column" }}>
       <span className="z-sr">{label}</span>
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderTop: i ? "1px solid #F0EDE6" : 0 }}>
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderTop: i ? "1px solid #F5F5F5" : 0 }}>
           {avatar ? <Sk w={32} h={32} round /> : null}
           <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
             <Sk w={`${58 - (i % 3) * 9}%`} h={12} />

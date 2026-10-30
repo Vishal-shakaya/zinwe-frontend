@@ -78,10 +78,10 @@ export function MiniDays({
         <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, top: 0, height: 170, pointerEvents: "none" }}>
           {grid.map((v) => (
             <span key={v}>
-              <span style={{ position: "absolute", left: 32, right: 0, height: 0, bottom: `${pc(v)}%`, borderTop: `1px solid ${v === 0 ? "#D9D4CA" : "#EFECE5"}` }} />
+              <span style={{ position: "absolute", left: 32, right: 0, height: 0, bottom: `${pc(v)}%`, borderTop: `1px solid ${v === 0 ? "#D4D4D4" : "#F5F5F5"}` }} />
               <span
                 className="z-num"
-                style={{ position: "absolute", left: 0, width: 24, textAlign: "right", bottom: `${pc(v)}%`, transform: "translateY(50%)", fontSize: 11, lineHeight: 1, color: "#6B6358" }}
+                style={{ position: "absolute", left: 0, width: 24, textAlign: "right", bottom: `${pc(v)}%`, transform: "translateY(50%)", fontSize: 11, lineHeight: 1, color: "#6B6B6B" }}
               >
                 {v}
               </span>
@@ -136,7 +136,7 @@ export function MiniDays({
                 <span className="zp-lp-lab">
                   <b style={{ fontSize: 12, fontWeight: 600 }}>{d.day}</b>
                   {d.sub !== undefined ? (
-                    <span className="zp-lp-sub" style={{ fontSize: 11, color: "#6B6358", lineHeight: 1.2 }}>
+                    <span className="zp-lp-sub" style={{ fontSize: 11, color: "#6B6B6B", lineHeight: 1.2 }}>
                       {d.sub}
                     </span>
                   ) : null}

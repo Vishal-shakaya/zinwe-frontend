@@ -385,14 +385,14 @@ export default function RulesPage(): ReactElement {
               ))}
             </div>
             {d.web === "block" ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, borderTop: "1px solid #F0EDE6", paddingTop: 14 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, borderTop: "1px solid #F5F5F5", paddingTop: 14 }}>
                 <b id="cats-l">Block these kinds of sites</b>
-                <div role="list" aria-labelledby="cats-l" style={{ display: "flex", flexDirection: "column", border: "1px solid #E7E3DA", borderRadius: 12 }}>
+                <div role="list" aria-labelledby="cats-l" style={{ display: "flex", flexDirection: "column", border: "1px solid #E5E5E5", borderRadius: 12 }}>
                   {CATEGORIES.map((c, i) => (
                     <div
                       key={c.key}
                       role="listitem"
-                      style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "10px 14px", borderTop: i ? "1px solid #F0EDE6" : undefined }}
+                      style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "10px 14px", borderTop: i ? "1px solid #F5F5F5" : undefined }}
                     >
                       <Toggle
                         on={catOn(c.key)}
@@ -606,10 +606,10 @@ export default function RulesPage(): ReactElement {
                           <b>{t.name}</b>
                           {t.custom ? <span className="rl-ctag">Custom</span> : null}
                         </td>
-                        <td data-l="What it is" style={{ color: "#3A352E" }}>
+                        <td data-l="What it is" style={{ color: "#404040" }}>
                           {t.what}
                         </td>
-                        <td data-l="How it’s spotted" style={{ color: "#4A443C" }}>
+                        <td data-l="How it’s spotted" style={{ color: "#404040" }}>
                           {t.custom ? (t.exe ? `By app file ${t.exe}` : "By app name") : "By app name and network port"}
                         </td>
                         <td className="rl-act">
@@ -678,7 +678,7 @@ export default function RulesPage(): ReactElement {
                 ))}
               </div>
             ) : null}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, borderTop: "1px solid #F0EDE6", paddingTop: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, borderTop: "1px solid #F5F5F5", paddingTop: 14 }}>
               <b>Add a tool</b>
               <span className="rl-k">For a remote-control app that isn’t listed. Its name is enough. New tools start as Block.</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>

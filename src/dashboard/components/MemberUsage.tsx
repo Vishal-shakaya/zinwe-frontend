@@ -136,7 +136,7 @@ export function MemberUsage({ memberId, name, week, failed = false, today, tip }
               >
                 <span
                   className="zt-bar__fill"
-                  style={on ? { height: `${pct}%`, background: "#F26A0A" } : { height: 3, background: "#E7E3DA" }}
+                  style={on ? { height: `${pct}%`, background: "#F26A0A" } : { height: 3, background: "#E5E5E5" }}
                 />
               </Link>
             );

@@ -118,7 +118,7 @@ export function FeedbackForm({ page, showHistory = false, onDone, initialRating 
           </fieldset>
 
           <label htmlFor="zf-msg" style={{ fontWeight: 600 }}>
-            What should we improve? <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+            What should we improve? <span style={{ fontWeight: 400, color: "#6B6B6B" }}>(optional)</span>
           </label>
           <textarea
             id="zf-msg"

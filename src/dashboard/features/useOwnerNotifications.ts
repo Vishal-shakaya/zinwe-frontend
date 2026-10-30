@@ -69,7 +69,7 @@ function dottedIcon(src: string): Promise<string> {
       g.fill();
       g.beginPath();
       g.arc(24, 8, 6, 0, Math.PI * 2);
-      g.fillStyle = "#D2361F";
+      g.fillStyle = "#C0331C";
       g.fill();
       resolve(c.toDataURL("image/png"));
     };

@@ -37,7 +37,7 @@ export function SheetBody({
       {filters.map((f) => (
         <button key={f.key} type="button" className="zt-opt" aria-pressed={f.on} onClick={() => onFilter(f.key)}>
           <span>{f.label}</span>
-          <span className="z-num" style={{ color: "#6B6358" }}>
+          <span className="z-num" style={{ color: "#6B6B6B" }}>
             {f.n}
           </span>
         </button>

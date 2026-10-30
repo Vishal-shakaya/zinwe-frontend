@@ -59,7 +59,7 @@ export function TaskCard({
             <span className="cv-pill" style={statusStyle(t.status)}>
               {TASK_STATUS[t.status][0]}
             </span>
-            <span className="cv-pill" style={t.high ? RED : { background: "#F2EFE8", color: "#4A443C" }}>
+            <span className="cv-pill" style={t.high ? RED : { background: "#F5F5F5", color: "#404040" }}>
               {t.high ? "High priority" : "Normal"}
             </span>
             <span className="cv-pill" style={dueStyle(t)}>
@@ -67,12 +67,12 @@ export function TaskCard({
               {dueLabel(t)}
             </span>
             {t.steps.length ? (
-              <span className="cv-pill" style={{ background: "#F2EFE8", color: "#3A352E" }}>
+              <span className="cv-pill" style={{ background: "#F5F5F5", color: "#404040" }}>
                 {doneN}/{t.steps.length} steps
               </span>
             ) : null}
             {t.edited ? (
-              <span className="cv-pill" style={{ background: "#F2EFE8", color: "#6B6459" }}>
+              <span className="cv-pill" style={{ background: "#F5F5F5", color: "#6B6B6B" }}>
                 Edited
               </span>
             ) : null}
@@ -89,8 +89,8 @@ export function TaskCard({
         <ol aria-label={`Stage: ${TASK_STATUS[t.status][0]}`} className="cv-track" style={{ gridTemplateColumns: `repeat(${track.length}, minmax(0, 1fr))` }}>
           {track.map((k) => (
             <li key={k.key} aria-current={k.current ? "step" : undefined}>
-              <span className="cv-track__bar" style={{ background: k.help ? "#8A5300" : k.reached ? (k.green ? "#17663F" : "#F26A0A") : k.awaitingOk ? "#BFE3CC" : "#E7E3DA" }} />
-              <span style={{ fontSize: 11, color: k.reached || k.awaitingOk ? "#3A352E" : "#6B6358", fontWeight: k.current ? 700 : 500 }}>
+              <span className="cv-track__bar" style={{ background: k.help ? "#A84505" : k.reached ? (k.green ? "#17663F" : "#F26A0A") : k.awaitingOk ? "#BFE5CF" : "#E5E5E5" }} />
+              <span style={{ fontSize: 11, color: k.reached || k.awaitingOk ? "#404040" : "#6B6B6B", fontWeight: k.current ? 700 : 500 }}>
                 {k.awaitingOk ? "Your OK" : k.label}
               </span>
             </li>
@@ -99,8 +99,8 @@ export function TaskCard({
       ) : null}
 
       {open ? (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #F0EDE6", display: "flex", flexDirection: "column", gap: 12 }}>
-          {t.details ? <p style={{ margin: 0, color: "#3A352E", whiteSpace: "pre-wrap" }}>{t.details}</p> : null}
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #F5F5F5", display: "flex", flexDirection: "column", gap: 12 }}>
+          {t.details ? <p style={{ margin: 0, color: "#404040", whiteSpace: "pre-wrap" }}>{t.details}</p> : null}
           {t.steps.length ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <span className="cv-kicker">STEPS</span>
@@ -109,15 +109,15 @@ export function TaskCard({
                   <span aria-hidden="true" className={x.done ? "zk-box on" : "zk-box"}>
                     {x.done ? "✓" : ""}
                   </span>
-                  <span style={x.done ? { color: "#6B6358", textDecoration: "line-through" } : { color: "#141210" }}>{x.label}</span>
+                  <span style={x.done ? { color: "#6B6B6B", textDecoration: "line-through" } : { color: "#141210" }}>{x.label}</span>
                   <span className="z-sr">{x.done ? "done" : "not done yet"}</span>
                 </div>
               ))}
             </div>
           ) : null}
-          {!finished ? <span style={{ fontSize: 13, color: "#4A443C" }}>Needs your OK when {first} marks it done.</span> : null}
+          {!finished ? <span style={{ fontSize: 13, color: "#404040" }}>Needs your OK when {first} marks it done.</span> : null}
           {t.note && !isClosed(t) ? (
-            <p style={{ margin: 0, padding: "10px 12px", borderRadius: 10, fontSize: 13, ...(t.status === "help" ? { background: "#FBF0D9", color: "#5C3A00" } : { background: "#F7F6F2", color: "#3A352E" }) }}>
+            <p style={{ margin: 0, padding: "10px 12px", borderRadius: 10, fontSize: 13, ...(t.status === "help" ? { background: "#FDEBDC", color: "#8A3A04" } : { background: "#F5F5F5", color: "#404040" }) }}>
               <b>{noteByOf(t, first)}:</b> {t.note}
             </p>
           ) : null}
@@ -142,7 +142,7 @@ export function TaskCard({
             </div>
           ) : null}
           {error ? (
-            <p role="alert" style={{ margin: 0, fontSize: 13, color: "#B02A15" }}>
+            <p role="alert" style={{ margin: 0, fontSize: 13, color: "#C0331C" }}>
               {error}
             </p>
           ) : null}

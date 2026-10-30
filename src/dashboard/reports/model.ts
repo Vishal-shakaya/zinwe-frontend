@@ -5,8 +5,9 @@
 import type { Member, ReportDay, ReportDayPerson, ReportPerson, TeamReport } from "../../lib/api";
 import { hourLbl, MON, toDate, WD } from "./dates";
 
-/** One colour per person in "Who worked when" (the board's order; the first five match the live product). */
-export const COLORS = ["#D95F02", "#1F6FE5", "#17804F", "#7B4CC2", "#0F7C8A", "#C2185B", "#B08900", "#4F5D75", "#8C564B", "#6FA81E"] as const;
+/** One colour per person in "Who worked when": orange plus greys only (v1.3.2 colour rule). Neighbours differ in
+ *  lightness so stacked segments stay apart; the legend chip and the hover card name the person. */
+export const COLORS = ["#F26A0A", "#141210", "#F6C9A6", "#6B6B6B", "#A84505", "#D4D4D4", "#404040", "#FDEBDC", "#8A8A8A", "#8A3A04"] as const;
 
 export type Metric = "worked" | "active";
 

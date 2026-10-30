@@ -151,14 +151,14 @@ export default function OverviewPage(): ReactElement {
       value: needsLoaded ? String(counts.total) : "–",
       sub: counts.total ? needsBreakdown(counts.req, counts.alerts, counts.tasks) : "Nothing waiting",
       to: "#needs",
-      color: counts.total ? "#C0331C" : "#17663F",
+      color: counts.total ? "#C0331C" : "#141210",
     },
     {
       label: "Working now",
       value: workOn ? `${working} of ${active.length}` : "–",
       sub: workOn ? "Pressed Start day, not on a break" : "Work hours aren’t on your plan",
       to: workOn ? "/app/activity" : "/app/upgrade",
-      color: "#17663F",
+      color: "#141210",
     },
     {
       label: "On a break",
@@ -173,7 +173,7 @@ export default function OverviewPage(): ReactElement {
         : pendingBreaks[0]?.member_name
           ? `/app/activity#m=${pendingBreaks[0].member_name.split(" ")[0].toLowerCase()}`
           : "/app/activity",
-      color: "#8A5300",
+      color: "#A84505",
     },
     {
       label: "PCs offline",
@@ -235,7 +235,7 @@ export default function OverviewPage(): ReactElement {
               <>
                 <span data-tip-at="1" className="zn-tile-l">
                   {t.label}
-                  <ZIcon name="info" size={13} stroke={2} style={{ color: "#6B6358" }} />
+                  <ZIcon name="info" size={13} stroke={2} style={{ color: "#6B6B6B" }} />
                 </span>
                 <b className="z-num" style={{ color: t.color }}>
                   {t.value}

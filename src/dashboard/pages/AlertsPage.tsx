@@ -390,7 +390,7 @@ export default function AlertsPage(): ReactElement {
             ) : (
               <>
                 <b style={{ fontSize: 16 }}>{emptyTitle}</b>
-                <span style={{ color: "#6B6459" }}>{emptyBody}</span>
+                <span style={{ color: "#6B6B6B" }}>{emptyBody}</span>
               </>
             )}
           </div>

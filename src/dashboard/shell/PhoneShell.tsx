@@ -106,7 +106,7 @@ export function PhoneShell({
         </span>
       ) : null}
       {isNews ? (
-        <span className="z-mono" style={{ flex: "none", fontSize: 12, color: "#6B6459" }}>
+        <span className="z-mono" style={{ flex: "none", fontSize: 12, color: "#6B6B6B" }}>
           Zinwe 1.3
         </span>
       ) : null}
@@ -189,7 +189,7 @@ export function PhoneShell({
             </div>
             {sheet === "more" ? (
               <>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#6B6358", padding: "6px 8px 2px" }}>Protection</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#6B6B6B", padding: "6px 8px 2px" }}>Protection</span>
                 {row(active === "websites", "Internet usage", "/app/internet", "websites")}
                 {row(active === "data", "Data safety", "/app/data", "data")}
                 {row(active === "apps", "Apps & remote", "/app/remote", "apps")}
@@ -210,7 +210,7 @@ export function PhoneShell({
                   <ZIcon name="logout" size={20} />
                   <span>Log out</span>
                 </button>
-                <span style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px 0", fontSize: 12, color: "#6B6459" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px 0", fontSize: 12, color: "#6B6B6B" }}>
                   <Brand variant="static" height={18} />
                   <span style={{ minWidth: 0 }}>
                     Signed in as {name} · Owner · {company}
@@ -226,11 +226,11 @@ export function PhoneShell({
                     </span>
                     <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1, lineHeight: 1.3 }}>
                       <b style={{ fontSize: 15, fontWeight: 600 }}>{c.label}</b>
-                      <span style={{ fontSize: 13, color: "#4A443C" }}>{c.sub}</span>
+                      <span style={{ fontSize: 13, color: "#404040" }}>{c.sub}</span>
                     </span>
                   </Link>
                 ))}
-                <button type="button" onClick={closeSheet} style={{ marginTop: 8, minHeight: 48, borderRadius: 12, border: "1px solid #D9D3C7", background: "#FFFFFF", color: "#141210", fontWeight: 600 }}>
+                <button type="button" onClick={closeSheet} style={{ marginTop: 8, minHeight: 48, borderRadius: 12, border: "1px solid #D4D4D4", background: "#FFFFFF", color: "#141210", fontWeight: 600 }}>
                   Cancel
                 </button>
               </>

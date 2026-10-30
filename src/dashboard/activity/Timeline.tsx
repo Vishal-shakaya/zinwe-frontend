@@ -18,8 +18,8 @@ interface Line {
 }
 
 const WORK = "#17663F";
-const BREAK = "#8A5300";
-const END = "#6B6459";
+const BREAK = "#A84505";
+const END = "#6B6B6B";
 
 function approvalText(approval: string, decisionNote: string, local: LocalDecision | undefined): string {
   if (local) return local.val === "approved" ? "Approved by you" : `Not approved${local.note ? `: “${local.note}”` : ""}`;
@@ -81,7 +81,7 @@ function linesOf(p: PersonDay, isToday: boolean, decisions: Record<number, Local
     const [y, m, d] = day.split("-").map(Number);
     const at = new Date(y, m - 1, d, 11, 5).getTime();
     if (at <= Date.now()) {
-      lines.push({ at, t: second.connectedAt, what: "Connected a second PC", note: `${second.name} joined; the day keeps running on ${p.hostname}`, color: "#1B4FB0" });
+      lines.push({ at, t: second.connectedAt, what: "Connected a second PC", note: `${second.name} joined; the day keeps running on ${p.hostname}`, color: "#404040" });
       lines.sort((a, b) => a.at - b.at);
     }
   }
@@ -125,7 +125,7 @@ export function Timeline({
   const nowMin = isToday ? (now - new Date(y, m - 1, d).getTime()) / 60_000 : null;
   const { d0, d1, ticks } = windowOf(segs, nowMin);
   const pct = (min: number) => Math.max(0, Math.min(100, ((min - d0) / (d1 - d0)) * 100));
-  const fill = (k: "work" | "break") => (k === "work" ? { background: WORK } : { background: "#FBF0D9", boxShadow: "inset 0 0 0 1.5px #8A5300" });
+  const fill = (k: "work" | "break") => (k === "work" ? { background: WORK } : { background: "#FDEBDC", boxShadow: "inset 0 0 0 1.5px #A84505" });
   const nameOf = (s: (typeof segs)[number]) => (s.kind === "work" ? "Working" : `On a break: ${s.why}`);
 
   return (
@@ -158,7 +158,7 @@ export function Timeline({
               const content = (
                 <TipBody
                   title={nameOf(s)}
-                  color={s.kind === "work" ? WORK : "#FBF0D9"}
+                  color={s.kind === "work" ? WORK : "#FDEBDC"}
                   sub={`${row.first} · ${info.tip}`}
                   rows={[
                     { label: "From", value: hmOfMinutes(s.from) },
@@ -217,7 +217,7 @@ export function Timeline({
               Working
             </span>
             <span>
-              <i style={{ background: "#FBF0D9", boxShadow: "inset 0 0 0 1.5px #8A5300" }} />
+              <i style={{ background: "#FDEBDC", boxShadow: "inset 0 0 0 1.5px #A84505" }} />
               On a break
             </span>
             {nowMin !== null ? (

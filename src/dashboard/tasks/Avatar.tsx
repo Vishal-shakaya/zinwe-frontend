@@ -9,7 +9,7 @@ export function Avatar({ person, size }: { person: Pick<TaskPerson, "initials" |
       member={{ id: person.memberId, name: person.name, picture: person.member?.picture }}
       size={size}
       initials={person.initials}
-      style={{ fontSize: Math.round(size * 0.4), color: "#3A352E", background: person.tint }}
+      style={{ fontSize: Math.round(size * 0.4), color: "#404040", background: person.tint }}
     />
   );
 }

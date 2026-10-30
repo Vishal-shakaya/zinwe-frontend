@@ -99,7 +99,7 @@ export function TaskDrawer({
     padding: "10px 12px",
     borderRadius: 10,
     fontSize: 13,
-    ...(isHelp ? { background: "#FBF0D9", color: "#5C3A00" } : t.noteBy === "You" ? { background: "#FCE8E4", color: "#5C1A0E" } : { background: "#E3F4EA", color: "#0F3D25" }),
+    ...(isHelp ? { background: "#FDEBDC", color: "#8A3A04" } : t.noteBy === "You" ? { background: "#F5F5F5", color: "#141210" } : { background: "#FFF6EF", color: "#141210" }),
   };
   const finalReached = track.findIndex((k) => k.current) === track.length - 1;
 
@@ -120,7 +120,7 @@ export function TaskDrawer({
     <div>
       <button type="button" className="zk-sheet-bg" aria-label="Close task" tabIndex={-1} onClick={onClose} style={{ zIndex: 91, background: "rgba(20,18,16,.32)" }} />
       <aside ref={panel} role="dialog" aria-modal="true" aria-labelledby="dw-h" className="zk-sheet" style={{ zIndex: 92, width: "min(540px, 100%)", boxShadow: "-14px 0 36px rgba(20,18,16,.16)", overflowY: "auto" }}>
-        <div style={{ padding: "18px 22px 16px", borderBottom: "1px solid #EFECE5", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ padding: "18px 22px 16px", borderBottom: "1px solid #F5F5F5", display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
             <span className="zk-pill" style={statusStyle(t.status)}>
               {TASK_STATUS[t.status][0]}
@@ -132,7 +132,7 @@ export function TaskDrawer({
           <h2 id="dw-h" style={{ margin: 0, fontSize: 20, lineHeight: 1.25, letterSpacing: "-0.01em" }}>
             {t.title}
           </h2>
-          {t.details ? <p style={{ margin: 0, color: "#3A352E" }}>{t.details}</p> : null}
+          {t.details ? <p style={{ margin: 0, color: "#404040" }}>{t.details}</p> : null}
           <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px 16px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <dt className="zk-lbl">Person</dt>
@@ -140,7 +140,7 @@ export function TaskDrawer({
                 <Avatar person={p} size={36} />
                 <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.25, minWidth: 0 }}>
                   <b style={{ fontWeight: 600 }}>{p.name}</b>
-                  <span style={{ fontSize: 12, color: "#6B6459" }}>
+                  <span style={{ fontSize: 12, color: "#6B6B6B" }}>
                     {p.role}
                     {p.presence ? ` · ${p.presence}` : ""}
                   </span>
@@ -165,7 +165,7 @@ export function TaskDrawer({
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <dt className="zk-lbl">Sign-off</dt>
-              <dd style={{ margin: 0, fontSize: 13, color: "#3A352E" }}>
+              <dd style={{ margin: 0, fontSize: 13, color: "#404040" }}>
                 {t.status === "cancelled" ? "Cancelled" : t.status === "approved" ? "You approved it" : `${f} marks it done, then you give the OK`}
               </dd>
             </div>
@@ -179,15 +179,15 @@ export function TaskDrawer({
             </h3>
             <ol style={{ listStyle: "none", margin: 0, padding: "4px 0 0", display: "grid", gap: 0, gridTemplateColumns: `repeat(${track.length}, minmax(0, 1fr))` }}>
               {track.map((k, i) => {
-                const fill = k.help ? "#FBF0D9" : k.reached ? (k.green ? "#17663F" : "#F26A0A") : "#fff";
-                const border = k.help ? "#8A5300" : k.awaitingOk ? "#17663F" : k.reached ? fill : "#DCD6CB";
+                const fill = k.help ? "#FDEBDC" : k.reached ? (k.green ? "#17663F" : "#F26A0A") : "#fff";
+                const border = k.help ? "#A84505" : k.awaitingOk ? "#17663F" : k.reached ? fill : "#D4D4D4";
                 const lineOn = k.reached || k.awaitingOk;
                 return (
                   <li key={k.key} aria-current={k.current ? "step" : undefined} style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, textAlign: "center", minWidth: 0 }}>
                     {i > 0 ? (
                       <span
                         aria-hidden="true"
-                        style={{ position: "absolute", top: 11, left: "-50%", right: "50%", height: 2, background: lineOn ? (k.help ? "#8A5300" : k.green ? "#17663F" : "#F26A0A") : "#E7E3DA" }}
+                        style={{ position: "absolute", top: 11, left: "-50%", right: "50%", height: 2, background: lineOn ? (k.help ? "#A84505" : k.green ? "#17663F" : "#F26A0A") : "#E5E5E5" }}
                       />
                     ) : null}
                     <span
@@ -205,8 +205,8 @@ export function TaskDrawer({
                         fontWeight: 800,
                         border: `2px ${k.awaitingOk ? "dashed" : "solid"} ${border}`,
                         background: k.awaitingOk ? "#fff" : fill,
-                        color: k.help ? "#8A5300" : k.green ? "#fff" : "#141210",
-                        boxShadow: k.current || k.awaitingOk ? `0 0 0 4px ${k.help ? "#FBF0D9" : k.green || k.awaitingOk ? "#E3F4EA" : "#FDEBDC"}` : undefined,
+                        color: k.help ? "#A84505" : k.green ? "#fff" : "#141210",
+                        boxShadow: k.current || k.awaitingOk ? `0 0 0 4px ${k.help ? "#FDEBDC" : k.green || k.awaitingOk ? "#E3F4EA" : "#FDEBDC"}` : undefined,
                       }}
                     >
                       {k.help ? "!" : k.reached ? "✓" : ""}
@@ -215,13 +215,13 @@ export function TaskDrawer({
                       style={{
                         fontSize: 12,
                         lineHeight: 1.2,
-                        color: k.help ? "#8A5300" : k.reached || k.awaitingOk ? "#141210" : "#6B6358",
+                        color: k.help ? "#A84505" : k.reached || k.awaitingOk ? "#141210" : "#6B6B6B",
                         fontWeight: k.current || k.awaitingOk || (finalReached && k.current) ? 700 : 500,
                       }}
                     >
                       {k.label}
                     </span>
-                    <span className="z-num" style={{ fontSize: 11, color: "#6B6459", lineHeight: 1.2 }}>
+                    <span className="z-num" style={{ fontSize: 11, color: "#6B6B6B", lineHeight: 1.2 }}>
                       {k.when}
                     </span>
                   </li>
@@ -247,7 +247,7 @@ export function TaskDrawer({
                     <span className={x.done ? "zk-box on" : "zk-box"} aria-hidden="true">
                       {x.done ? "✓" : ""}
                     </span>
-                    <span style={x.done ? { color: "#6B6358", textDecoration: "line-through" } : { color: "#141210" }}>{x.label}</span>
+                    <span style={x.done ? { color: "#6B6B6B", textDecoration: "line-through" } : { color: "#141210" }}>{x.label}</span>
                     <span className="z-sr">{x.done ? "done" : "not done yet"}</span>
                   </li>
                 ))}
@@ -297,7 +297,7 @@ export function TaskDrawer({
                 <button
                   type="button"
                   className="z-btn sm"
-                  style={{ color: "#B02A15" }}
+                  style={{ color: "#C0331C" }}
                   aria-expanded={confirming}
                   onClick={() => {
                     setConfirming((c) => !c);
@@ -310,8 +310,8 @@ export function TaskDrawer({
             </div>
 
             {isHelp ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "#FBF0D9", borderRadius: 12 }}>
-                <label htmlFor="dw-reply" className="zk-lab" style={{ color: "#5C3A00" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "#FDEBDC", borderRadius: 12 }}>
+                <label htmlFor="dw-reply" className="zk-lab" style={{ color: "#8A3A04" }}>
                   Reply to {f}
                 </label>
                 <textarea id="dw-reply" rows={2} className="zk-inp" value={reply} maxLength={1000} onChange={(e) => setReply(e.target.value)} placeholder="Goes to their chat; the task goes back to In progress" style={{ resize: "vertical" }} />
@@ -327,7 +327,7 @@ export function TaskDrawer({
             ) : null}
 
             {reopening ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "#F7F6F2", border: "1px solid #E7E3DA", borderRadius: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "#F5F5F5", border: "1px solid #E5E5E5", borderRadius: 12 }}>
                 <label htmlFor="dw-reopen" className="zk-lab">
                   What needs another look?
                 </label>
@@ -352,7 +352,7 @@ export function TaskDrawer({
 
             {confirming ? (
               <div role="alert" style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "#FCE8E4", borderRadius: 12 }}>
-                <span style={{ fontSize: 13, color: "#5C1A0E" }}>Cancel this task? It leaves {f}’s list. You can reopen it later.</span>
+                <span style={{ fontSize: 13, color: "#8A1F0E" }}>Cancel this task? It leaves {f}’s list. You can reopen it later.</span>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="z-btn sm zk-red" disabled={busy} onClick={cancel}>
                     Cancel task
@@ -372,10 +372,10 @@ export function TaskDrawer({
             <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" }}>
               {t.log.map((e, i) => (
                 <li key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
-                  <span aria-hidden="true" style={{ flex: "none", marginTop: 6, width: 8, height: 8, borderRadius: "50%", background: LOGDOT[e.k] ?? "#CFC8BB" }} />
+                  <span aria-hidden="true" style={{ flex: "none", marginTop: 6, width: 8, height: 8, borderRadius: "50%", background: LOGDOT[e.k] ?? "#D4D4D4" }} />
                   <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
                     <span style={{ fontSize: 13 }}>{logText(e, f)}</span>
-                    <span className="z-num" style={{ fontSize: 11, color: "#6B6459" }}>
+                    <span className="z-num" style={{ fontSize: 11, color: "#6B6B6B" }}>
                       {whenOf(e)}
                     </span>
                   </span>

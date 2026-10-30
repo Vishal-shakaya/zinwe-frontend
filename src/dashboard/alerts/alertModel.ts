@@ -12,8 +12,8 @@ import { clockTime } from "../ui/time";
 
 export const LEVEL_TONE: Record<AlertLevel, { pill: string; bar: string; bg: string; fg: string }> = {
   needs: { pill: "red", bar: "#C0331C", bg: "#FCE8E4", fg: "#C0331C" },
-  worth: { pill: "amber", bar: "#8A5300", bg: "#FBF0D9", fg: "#8A5300" },
-  auto: { pill: "", bar: "#B9B0A2", bg: "#EFECE5", fg: "#4A443C" },
+  worth: { pill: "amber", bar: "#A84505", bg: "#FDEBDC", fg: "#A84505" },
+  auto: { pill: "", bar: "#8A8A8A", bg: "#F5F5F5", fg: "#404040" },
 };
 
 /** Icon paths per type, from the board. */

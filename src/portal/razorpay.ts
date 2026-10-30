@@ -64,7 +64,7 @@ export type CheckoutOutcome =
  * Open the checkout for `order` and wait. "failed" is a declined attempt (the customer can try again in the same
  * window); it settles only when they close it, so a retry that succeeds still counts.
  */
-export async function openCheckout(order: OnlineOrder, brandColour = "#fd6d02"): Promise<CheckoutOutcome> {
+export async function openCheckout(order: OnlineOrder, brandColour = "#f26a0a"): Promise<CheckoutOutcome> {
   const Razorpay = await loadCheckout();
   return new Promise<CheckoutOutcome>((resolve) => {
     let lastFailure = "";

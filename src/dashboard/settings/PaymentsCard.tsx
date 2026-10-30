@@ -84,7 +84,7 @@ export function PaymentsCard({
                   <b>{formatDate(p.paid_on)}</b>
                   <b className="z-num">{formatMoney(p.amount_inr, p.currency)}</b>
                 </div>
-                <span style={{ fontSize: 13, color: "#4A443C" }}>
+                <span style={{ fontSize: 13, color: "#404040" }}>
                   {what(p)} · {period(p)}
                 </span>
                 {p.status === "rejected" && p.rejection_reason ? (

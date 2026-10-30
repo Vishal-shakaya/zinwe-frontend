@@ -52,7 +52,7 @@ export function SupportTab({ email }: { email: string }): ReactElement {
         {asked ? (
           <div className="zh-sent" role="status">
             Sent. We'll reply to {email || "your email"}, usually within a few hours.
-            <button type="button" className="zp-linkbtn" style={{ display: "block", marginTop: 6, color: "#17663F" }} onClick={openSupport}>
+            <button type="button" className="zp-linkbtn" style={{ display: "block", marginTop: 6, color: "#A84505" }} onClick={openSupport}>
               Open the conversation
             </button>
           </div>
@@ -111,14 +111,14 @@ export function SupportTab({ email }: { email: string }): ReactElement {
           Common questions
         </h2>
         {FAQS.map(([q, a], i) => (
-          <div key={q} style={{ borderTop: "1px solid #F0EDE6" }}>
+          <div key={q} style={{ borderTop: "1px solid #F5F5F5" }}>
             <button type="button" className="zhp-faq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
               <span>{q}</span>
               <span aria-hidden="true" style={{ color: "#A84505" }}>
                 {faq === i ? "−" : "+"}
               </span>
             </button>
-            {faq === i ? <p style={{ margin: "0 0 12px", color: "#4A443C" }}>{a}</p> : null}
+            {faq === i ? <p style={{ margin: "0 0 12px", color: "#404040" }}>{a}</p> : null}
           </div>
         ))}
       </section>

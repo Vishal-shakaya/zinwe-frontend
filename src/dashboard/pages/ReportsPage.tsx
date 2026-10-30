@@ -337,7 +337,7 @@ export default function ReportsPage(): ReactElement {
 
       {showFilters ? (
         <div className="z-card" style={{ padding: "12px 16px", display: "flex", flexWrap: "wrap", gap: "10px 12px", alignItems: "center" }}>
-          <label htmlFor="about" style={{ fontSize: 13, color: "#4A443C" }}>
+          <label htmlFor="about" style={{ fontSize: 13, color: "#404040" }}>
             Report about
           </label>
           <select id="about" className="rp-sel" value={memberId ?? ""} onChange={(e) => setMember(e.target.value ? Number(e.target.value) : null)}>
@@ -349,7 +349,7 @@ export default function ReportsPage(): ReactElement {
             ))}
             {memberId && !activeMembers.some((m) => m.id === memberId) && r?.member ? <option value={memberId}>{r.member.name}</option> : null}
           </select>
-          <label htmlFor="period" style={{ fontSize: 13, color: "#4A443C", marginLeft: 4 }}>
+          <label htmlFor="period" style={{ fontSize: 13, color: "#404040", marginLeft: 4 }}>
             Period
           </label>
           <select
@@ -398,7 +398,7 @@ export default function ReportsPage(): ReactElement {
               />
             ) : null}
           </div>
-          <span className="rp-mono rp-num" style={{ marginLeft: "auto", fontSize: 12, color: "#4A443C" }}>
+          <span className="rp-mono rp-num" style={{ marginLeft: "auto", fontSize: 12, color: "#404040" }}>
             {rangeLine}
           </span>
         </div>

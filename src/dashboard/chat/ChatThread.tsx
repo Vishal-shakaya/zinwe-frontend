@@ -30,7 +30,7 @@ function Receipt({ kind }: { kind: "sent" | "delivered" | "seen" | "emailed" }):
   const label = { sent: "Sent", delivered: "Delivered", seen: "Seen", emailed: "Emailed" }[kind];
   return (
     <span className={kind === "seen" ? "cv-rc seen" : "cv-rc"}>
-      <span style={{ color: "#6B6459" }}>·</span>
+      <span style={{ color: "#6B6B6B" }}>·</span>
       <svg width="14" height="11" viewBox="0 0 16 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d={kind === "sent" || kind === "emailed" ? CHECK1 : CHECK2} />
       </svg>
@@ -209,7 +209,7 @@ export function ChatThread({
     return (
       <div className="cv-threadwrap">
         <div className="cv-thread" role="alert">
-          <p style={{ margin: "auto 0", textAlign: "center", color: "#B02A15" }}>
+          <p style={{ margin: "auto 0", textAlign: "center", color: "#C0331C" }}>
             {error}{" "}
             <button type="button" className="zk-link" onClick={() => setRetry((r) => r + 1)}>
               Try again
@@ -254,7 +254,7 @@ export function ChatThread({
         }}
       >
         {items.length === 0 ? (
-          <p style={{ margin: "auto 0", textAlign: "center", color: "#4A443C" }}>No messages with {first} yet. Say hello below, or use + Task to send something to tick off.</p>
+          <p style={{ margin: "auto 0", textAlign: "center", color: "#404040" }}>No messages with {first} yet. Say hello below, or use + Task to send something to tick off.</p>
         ) : null}
         {items.map((it, i) => {
           const day = isoDay(it.at);

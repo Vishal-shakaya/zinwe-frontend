@@ -39,16 +39,16 @@ const APPS_NEVER = [
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DAYS_FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const TONES = ["#FDEBDC", "#E6EEFB", "#E3F4EA", "#F4ECFB", "#FBF0D9"];
+const TONES = ["#FDEBDC", "#F5F5F5", "#FFF6EF", "#EEEEEE", "#FDEBDC"];
 /** Detections of the same tool on the same PC this close together are one session. */
 const SESSION_GAP_MS = 30 * 60_000;
 const LIST_SHOWN = 4;
 
 const CHIP = {
   fine: { label: "Marked fine", style: { background: "#E3F4EA", color: "#17663F" } },
-  asked: { label: "Asked · waiting for reply", style: { background: "#E6EEFB", color: "#1B4FB0" } },
-  normal: { label: "Normal", style: { background: "#F0EDE6", color: "#4A443C" } },
-  worth: { label: "Worth a look", style: { background: "#FBF0D9", color: "#8A5300" } },
+  asked: { label: "Asked · waiting for reply", style: { background: "#F5F5F5", color: "#404040" } },
+  normal: { label: "Normal", style: { background: "#F5F5F5", color: "#404040" } },
+  worth: { label: "Worth a look", style: { background: "#FDEBDC", color: "#A84505" } },
   needs: { label: "Needs you", style: { background: "#FCE8E4", color: "#C0331C" } },
   blocked: { label: "Blocked", style: { background: "#141210", color: "#fff" } },
 } as const;
@@ -289,7 +289,7 @@ function RemotePageContent(): ReactElement {
       tip: (
         <TipBody
           title={dayFull(softW, i)}
-          color={wl ? "#8A5300" : "#141210"}
+          color={wl ? "#A84505" : "#141210"}
           rows={[
             { label: "Installs", value: n },
             { label: "Worth a look", value: wl },
@@ -405,7 +405,7 @@ function RemotePageContent(): ReactElement {
               <b className="z-num zp-tile__val">{apps.data ? friendlyDuration(appTotal) : "–"}</b>
             )
           ) : (
-            <b className="zp-tile__val" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#6B6459" }}>
+            <b className="zp-tile__val" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#6B6B6B" }}>
               <ZIcon name="lock" size={20} stroke={2} />
               <span style={{ fontSize: 15 }}>Not on your plan</span>
             </b>
@@ -452,7 +452,7 @@ function RemotePageContent(): ReactElement {
           ) : apps.data === undefined ? (
             <SkRows label="Loading top apps" rows={5} />
           ) : top5.length === 0 ? (
-            <p className="zp-empty-line" style={{ padding: "10px 0", borderTop: "1px solid #F0EDE6" }}>
+            <p className="zp-empty-line" style={{ padding: "10px 0", borderTop: "1px solid #F5F5F5" }}>
               {who ? `No app use from ${who.name} in the last 7 days.` : "No app use in the last 7 days. It shows once a connected PC is used."}
             </p>
           ) : (
@@ -481,7 +481,7 @@ function RemotePageContent(): ReactElement {
                           <b className="z-ell" style={{ display: "block", fontWeight: 600 }}>
                             {a.key}
                           </b>
-                          <span style={{ fontSize: 12, color: "#6B6358" }}>{kind}</span>
+                          <span style={{ fontSize: 12, color: "#6B6B6B" }}>{kind}</span>
                         </span>
                       </span>
                       <span className="z-num" style={{ textAlign: "right", whiteSpace: "nowrap", fontWeight: 600 }}>
@@ -490,7 +490,7 @@ function RemotePageContent(): ReactElement {
                           <span style={{ width: `${((a.seconds / top5[0].seconds) * 100).toFixed(2)}%`, background: i === 0 ? "#F26A0A" : "#141210" }} />
                         </span>
                       </span>
-                      <span className="z-num" style={{ textAlign: "right", whiteSpace: "nowrap", color: "#4A443C" }}>
+                      <span className="z-num" style={{ textAlign: "right", whiteSpace: "nowrap", color: "#404040" }}>
                         {share}%
                       </span>
                     </li>
@@ -499,7 +499,7 @@ function RemotePageContent(): ReactElement {
               </ol>
             </>
           )}
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6B6459" }}>Last 7 days, apps in front only. Windows and Zinwe itself aren&rsquo;t counted.</p>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6B6B6B" }}>Last 7 days, apps in front only. Windows and Zinwe itself aren&rsquo;t counted.</p>
         </section>
       ) : (
         <PlanLock module="app_usage" compact title="Top 5 apps">
@@ -531,7 +531,7 @@ function RemotePageContent(): ReactElement {
               Normal
             </span>
             <span className="zp-lg">
-              <span style={{ display: "inline-block", width: 6, height: 12, borderRadius: 3, background: "#8A5300" }} />
+              <span style={{ display: "inline-block", width: 6, height: 12, borderRadius: 3, background: "#A84505" }} />
               Worth a look
             </span>
           </div>
@@ -545,7 +545,7 @@ function RemotePageContent(): ReactElement {
                 days={softDays}
                 steps={[1, 2, 5, 10, 20]}
                 minTop={1}
-                flagColor="#8A5300"
+                flagColor="#A84505"
                 baseColor="#141210"
                 picked={softDay}
                 onPick={setSoftDay}
@@ -571,7 +571,7 @@ function RemotePageContent(): ReactElement {
                           <b>{x.name}</b>
                           {a.chip}
                         </span>
-                        {x.note ? <span style={{ fontSize: 13, color: "#4A443C" }}>{x.note}</span> : null}
+                        {x.note ? <span style={{ fontSize: 13, color: "#404040" }}>{x.note}</span> : null}
                         <span className="m">
                           {x.who} · <span className="z-mono">{x.pc}</span> · {when}
                         </span>
@@ -580,7 +580,7 @@ function RemotePageContent(): ReactElement {
                     </div>
                   );
                 })}
-                {softList.length === 0 ? <p className="zp-ev" style={{ margin: 0, color: "#6B6459", fontSize: 13 }}>No new software in this period.</p> : null}
+                {softList.length === 0 ? <p className="zp-ev" style={{ margin: 0, color: "#6B6B6B", fontSize: 13 }}>No new software in this period.</p> : null}
                 {softDay < 0 && softList.length > LIST_SHOWN ? (
                   <button type="button" className="z-btn sm" style={{ marginTop: 4 }} onClick={() => setSoftAll((v) => !v)}>
                     {softAll ? "Show fewer" : `Show all ${softList.length}`}
@@ -667,7 +667,7 @@ function RemotePageContent(): ReactElement {
                               : `${dayWord(remW, x.d)} ${span > 60_000 ? `${clock(x.start)}–${clock(x.end)} · seen for ${friendlyDuration(span / 1000)}` : clock(x.start)}`}
                           </span>
                           {" · "}
-                          <span style={x.blocked || x.flagged ? { color: "#C0331C", fontWeight: 600 } : { color: "#4A443C" }}>
+                          <span style={x.blocked || x.flagged ? { color: "#C0331C", fontWeight: 600 } : { color: "#404040" }}>
                             {x.blocked ? "Against your rule" : `Seen ${how}${x.events.length > 1 ? `, ${x.events.length} times` : ""}`}
                           </span>
                         </span>
@@ -676,7 +676,7 @@ function RemotePageContent(): ReactElement {
                     </div>
                   );
                 })}
-                {remList.length === 0 ? <p className="zp-ev" style={{ margin: 0, color: "#6B6459", fontSize: 13 }}>No remote sessions in this period.</p> : null}
+                {remList.length === 0 ? <p className="zp-ev" style={{ margin: 0, color: "#6B6B6B", fontSize: 13 }}>No remote sessions in this period.</p> : null}
                 {remDay < 0 && remList.length > LIST_SHOWN ? (
                   <button type="button" className="z-btn sm" style={{ marginTop: 4 }} onClick={() => setRemAll((v) => !v)}>
                     {remAll ? "Show fewer" : `Show all ${remList.length}`}
@@ -685,7 +685,7 @@ function RemotePageContent(): ReactElement {
               </div>
             </>
           )}
-          <p style={{ margin: "auto 0 0", fontSize: 12, color: "#6B6459" }}>
+          <p style={{ margin: "auto 0 0", fontSize: 12, color: "#6B6B6B" }}>
             Sessions over your rule or from outside also appear in <Link to="/app/alerts">Alerts</Link>.
           </p>
         </section>

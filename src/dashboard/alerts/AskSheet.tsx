@@ -80,7 +80,7 @@ function AskSheetBody({
         Message
       </label>
       <textarea id={id} rows={4} value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={2000} />
-      <span style={{ fontSize: 12.5, color: "#6B6358" }}>
+      <span style={{ fontSize: 12.5, color: "#6B6B6B" }}>
         {/* The alert ↔ reply link is sample data until FR-35: production builds only promise Chat. */}
         It goes to {target.first}’s Zinwe app. The reply shows {SAMPLES_ON ? `${where === "alert" ? "on this alert" : "here"} and ` : ""}in Chat.
         The wording asks, it doesn’t accuse; edit it freely.

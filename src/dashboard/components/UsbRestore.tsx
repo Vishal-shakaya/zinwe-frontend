@@ -37,7 +37,7 @@ export function UsbRestore({ device, onRestored }: { device: Device | undefined;
         USB read-only {sinceLabel(device.usb_locked_at, now)}
       </span>
       {restoring ? (
-        <small style={{ fontSize: 12.5, color: "#4A443C" }}>Restoring — the PC picks it up within about a minute.</small>
+        <small style={{ fontSize: 12.5, color: "#404040" }}>Restoring — the PC picks it up within about a minute.</small>
       ) : (
         <button type="button" className="z-btn xs" onClick={() => void restore()} disabled={busy}>
           {busy ? "Restoring…" : "Restore USB"}
