@@ -1,0 +1,1502 @@
+/* Home below the demo caption, v1.3.2 (owner, 31 Oct): Notion-calm. Every class is .zh2-* and scoped under .zh2,
+   so nothing here can reach the hero, the demo window or the dashboard. Tokens come from site-v3.css (.zs).
+   One spacing scale for every section (--zh2-sec), one reading measure (--zh2-measure), hairlines instead of
+   shadows, and the orange only on buttons and a few small marks.
+   Owner rule (31 Oct): white, black and orange only. Every colour written here is white, black, a neutral grey or
+   orange (#F26A0A and its tint); the faces keep their own art. The page ground and the shared --zs-* tokens are
+   converted by the colour track, so text uses those tokens and follows them. */
+
+.zh2 {
+  --zh2-sec: 128px;
+  --zh2-measure: 1080px;
+  --zh2-ink: #141414;
+  --zh2-logo: #5c5c5c;
+  --zh2-hair: #e6e6e6;
+  --zh2-soft: #f5f5f5;
+  --zh2-soft-2: #ededed;
+  --zh2-orange: #f26a0a;
+  --zh2-orange-tint: #fff1e6;
+  --zh2-orange-text: #a84505;
+  --zh2-glass: rgba(255, 255, 255, 0.66);
+  --zh2-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman", serif;
+  color: var(--zs-ink);
+}
+
+/* ---------- Shared rhythm ---------- */
+
+.zh2-sec {
+  padding-top: var(--zh2-sec);
+}
+.zh2 > .zh2-sec:last-child {
+  padding-bottom: var(--zh2-sec);
+}
+.zh2-measure {
+  max-width: calc(var(--zh2-measure) + 48px);
+}
+.zh2-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 680px;
+}
+.zh2-head--center {
+  margin: 0 auto;
+  align-items: center;
+  text-align: center;
+}
+.zh2-head--split {
+  max-width: none;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 40px;
+}
+.zh2-head--split > div {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 680px;
+}
+.zh2-kick {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--zs-muted);
+  letter-spacing: -0.005em;
+}
+.zh2-h {
+  margin: 0;
+  font-size: 48px;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.zh2-lead {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--zs-body);
+  text-wrap: pretty;
+}
+.zh2-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--zs-orange-text);
+  text-decoration: none;
+}
+.zh2-more:hover {
+  color: var(--zs-orange-text-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.zh2-center {
+  margin: 0;
+  text-align: center;
+}
+.zh2-ticks {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.zh2-ticks li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 16px;
+  color: var(--zs-ink-3);
+}
+.zh2-ticks svg {
+  margin-top: 4px;
+  color: var(--zh2-ink);
+}
+.zh2-face {
+  display: block;
+  flex: none;
+  border-radius: 50%;
+}
+
+/* ---------- 2 · Client wall (Notion style) ---------- */
+
+.zh2-wall {
+  padding-top: 88px;
+}
+.zh2-wall > .zs-wrap {
+  max-width: 1296px;
+}
+.zh2-wall__lead {
+  margin: 0 0 30px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--zs-muted);
+  text-wrap: balance;
+}
+.zh2-wall__list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1248px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  row-gap: 18px;
+  font-size: 18.5px;
+  color: var(--zh2-logo);
+}
+.zh2-wall__break {
+  flex-basis: 100%;
+  height: 0;
+}
+.zh2-wall__item {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  white-space: nowrap;
+}
+/* The small dot between names, as on Notion's wall. */
+.zh2-wall__item::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  margin: 0 15px;
+  border-radius: 50%;
+  background: #c4c4c4;
+}
+.zh2-wall__item:last-child::after,
+.zh2-wall__item:has(+ .zh2-wall__break)::after {
+  display: none;
+}
+
+/* The wordmarks. Sizes in em, so the phone scales the whole wall from one font-size. */
+.zh2-wm {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.18em;
+  font-family: var(--zs-font);
+  font-weight: 600;
+  font-size: 1em;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: inherit;
+}
+.zh2-wm b,
+.zh2-wm i,
+.zh2-wm small {
+  font: inherit;
+}
+.zh2-wm--markone {
+  font-weight: 800;
+  font-size: 1.12em;
+  letter-spacing: -0.06em;
+  text-transform: lowercase;
+}
+.zh2-wm--feelsafe {
+  gap: 0;
+  font-weight: 400;
+  font-size: 1.08em;
+}
+.zh2-wm--feelsafe b {
+  font-weight: 750;
+}
+.zh2-wm--stack {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.22em;
+}
+.zh2-wm--stack b {
+  font-weight: 800;
+  font-size: 0.8em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.zh2-wm--stack small {
+  font-weight: 500;
+  font-size: 0.46em;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  margin-right: -0.38em;
+}
+.zh2-wm--pk {
+  font-family: var(--zh2-serif);
+  font-weight: 400;
+  font-size: 0.72em;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.zh2-wm--pk i {
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.6em;
+  letter-spacing: -0.02em;
+  margin-right: 0.1em;
+}
+.zh2-wm--looklush {
+  font-family: var(--zh2-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.22em;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+}
+.zh2-wm--eco {
+  gap: 0;
+  font-weight: 400;
+  font-size: 1.04em;
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+}
+.zh2-wm--eco b {
+  font-weight: 800;
+}
+.zh2-wm--dumbo b {
+  font-weight: 900;
+  font-size: 0.98em;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.zh2-wm--dumbo i {
+  font-family: var(--zh2-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.02em;
+}
+.zh2-wm--nutra {
+  font-weight: 600;
+  font-size: 1.04em;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+.zh2-wm--wide {
+  font-family: var(--zh2-serif);
+  font-weight: 400;
+  font-size: 0.74em;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  margin-right: -0.28em;
+}
+.zh2-wm--rudra {
+  font-family: var(--zh2-serif);
+  font-weight: 700;
+  font-size: 1.1em;
+  letter-spacing: -0.01em;
+}
+.zh2-wm--rudra i {
+  font-style: italic;
+  font-weight: 400;
+}
+.zh2-wm--nail {
+  font-weight: 800;
+  font-style: oblique 10deg;
+  font-size: 0.86em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.zh2-wm--mono {
+  font-family: var(--zs-mono);
+  font-weight: 500;
+  font-size: 0.84em;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+.zh2-wm--ib {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12em;
+}
+.zh2-wm--ib small {
+  font-weight: 400;
+  font-size: 0.56em;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+.zh2-wm--ib b {
+  font-weight: 800;
+  font-size: 0.86em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.zh2-wm--ar {
+  gap: 0.3em;
+}
+.zh2-wm--ar b {
+  font-family: var(--zh2-serif);
+  font-weight: 700;
+  font-size: 1.24em;
+  letter-spacing: -0.03em;
+}
+.zh2-wm--ar small {
+  font-weight: 500;
+  font-size: 0.66em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.zh2-wm--aqua {
+  font-weight: 700;
+  font-size: 1.1em;
+  letter-spacing: -0.045em;
+  text-transform: lowercase;
+}
+.zh2-wm--redr {
+  gap: 0.32em;
+}
+.zh2-wm--redr b {
+  font-weight: 900;
+  font-size: 0.9em;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+.zh2-wm--redr small {
+  font-family: var(--zs-mono);
+  font-weight: 500;
+  font-size: 0.7em;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
+/* ---------- 3 · Feature rail (Apple style) ---------- */
+
+.zh2-feat__head {
+  max-width: calc(var(--zh2-measure) + 48px);
+}
+.zh2-rail {
+  --zh2-inset: max(24px, calc((100% - var(--zh2-measure)) / 2));
+  list-style: none;
+  margin: 48px 0 0;
+  padding: 4px var(--zh2-inset) 8px;
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--zh2-inset);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.zh2-rail::-webkit-scrollbar {
+  display: none;
+}
+.zh2-card {
+  position: relative;
+  flex: 0 0 372px;
+  height: 520px;
+  scroll-snap-align: start;
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* White at the top, a soft neutral grey below and a faint orange glow behind the glass panel. */
+  background:
+    radial-gradient(55% 40% at 88% 70%, var(--zh2-orange-tint) 0%, transparent 100%),
+    radial-gradient(70% 50% at 8% 92%, var(--zh2-soft-2) 0%, transparent 100%),
+    linear-gradient(180deg, #fff 0%, #fff 34%, var(--zh2-soft) 100%);
+  border: 1px solid var(--zh2-hair);
+}
+.zh2-card__text {
+  padding: 30px 30px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.zh2-card__kick {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--zs-muted);
+}
+.zh2-card__h {
+  margin: 0;
+  font-size: 27px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.zh2-card__p {
+  margin: 2px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--zs-body);
+}
+.zh2-card__vis {
+  flex: 1;
+  min-height: 0;
+  padding: 22px 22px 22px;
+  display: flex;
+  align-items: flex-end;
+}
+/* The whole card is the link (its ::after covers the card), with a quiet round arrow as the visible sign. */
+.zh2-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+}
+.zh2-card__more {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--zh2-ink);
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+.zh2-card:hover .zh2-card__more {
+  transform: scale(1.06);
+}
+.zs .zh2-card__link:focus-visible {
+  outline: none;
+}
+.zh2-card__link:focus-visible .zh2-card__more {
+  outline: 2px solid var(--zs-orange);
+  outline-offset: 3px;
+}
+.zh2-arrow__r {
+  transform: rotate(-90deg);
+}
+.zh2-arrow__l {
+  transform: rotate(90deg);
+}
+
+/* Glass: a frosted panel over the card's colour (solid white where blur isn't supported). */
+.zh2-glass {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13.5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .zh2-glass {
+    background: var(--zh2-glass);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+  }
+}
+/* Leave room for the round link at the bottom right. */
+.zh2-card:has(.zh2-card__link) .zh2-card__vis {
+  padding-bottom: 74px;
+}
+.zh2-sc__h {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--zs-ink-3);
+}
+.zh2-chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--zh2-hair);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--zs-ink-3);
+  white-space: nowrap;
+}
+.zh2-chip--ink {
+  background: var(--zh2-ink);
+  border-color: var(--zh2-ink);
+  color: #fff;
+}
+.zh2-chip--orange {
+  background: var(--zh2-orange-tint);
+  border-color: transparent;
+  color: var(--zh2-orange-text);
+}
+.zh2-chip--grey {
+  background: var(--zh2-soft);
+  border-color: transparent;
+  color: var(--zs-ink-3);
+}
+
+/* Bubbles (rail chat card and the chat window). */
+.zh2-msg,
+.zh2-line {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.zh2-msg--me,
+.zh2-line--me {
+  justify-content: flex-end;
+}
+.zh2-bub {
+  max-width: 82%;
+  padding: 9px 12px;
+  border-radius: 16px 16px 16px 5px;
+  background: #fff;
+  border: 1px solid var(--zh2-hair);
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--zs-ink-2);
+}
+.zh2-bub--me {
+  border-radius: 16px 16px 5px 16px;
+  background: var(--zh2-ink);
+  border-color: var(--zh2-ink);
+  color: #fff;
+}
+.zh2-seen {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--zs-muted);
+}
+
+/* Stage bar: Sent · Seen · In progress · Done. */
+.zh2-stages {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.zh2-stages > span {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--zh2-soft-2);
+}
+.zh2-stages > .is-done {
+  background: var(--zh2-ink);
+}
+.zh2-stages > .is-now {
+  background: var(--zh2-orange);
+}
+.zh2-stages__l {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: -4px;
+  font-size: 11.5px;
+  color: var(--zs-muted);
+}
+.zh2-sc-task__top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.zh2-sc-task__top b {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.zh2-rep {
+  display: grid;
+  grid-template-columns: 28px 50px 1fr 36px;
+  gap: 8px;
+  align-items: center;
+}
+.zh2-rep__n {
+  font-weight: 600;
+  font-size: 13px;
+}
+.zh2-rep__bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--zh2-soft-2);
+  overflow: hidden;
+}
+.zh2-rep__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--zh2-ink);
+}
+.zh2-rep__h {
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--zs-body);
+}
+
+.zh2-rule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  color: var(--zs-ink-3);
+}
+.zh2-rule + .zh2-rule {
+  border-top: 1px solid var(--zh2-hair);
+  padding-top: 10px;
+}
+.zh2-rule__t {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--zs-ink);
+}
+
+.zh2-ask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.zh2-ask__t {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--zs-body);
+}
+.zh2-ask__t b {
+  color: var(--zs-ink);
+}
+.zh2-day {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.zh2-day__track {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--zh2-soft-2);
+}
+.zh2-day__track > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 5px;
+  background: var(--zh2-ink);
+}
+
+.zh2-sc-alert__who {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.zh2-sc-alert__who b {
+  font-size: 14px;
+  line-height: 1.3;
+}
+.zh2-sc-alert__b {
+  font-size: 13px;
+  color: var(--zs-body);
+}
+.zh2-sc-alert__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.zh2-sc-pics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+  gap: 12px;
+  padding: 18px;
+}
+.zh2-sc-pics .zh2-face {
+  width: 100%;
+  height: auto;
+  max-width: 56px;
+}
+.zh2-sc-pics .is-picked {
+  outline: 3px solid var(--zh2-orange);
+  outline-offset: 3px;
+}
+
+/* Arrows: under the rail, right-aligned with the content (Apple). Phones swipe instead. */
+.zh2-rail__nav {
+  max-width: calc(var(--zh2-measure) + 48px);
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.zh2-arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--zh2-soft-2);
+  color: var(--zh2-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.zh2-arrow:hover:not(:disabled) {
+  background: #dedede;
+}
+.zh2-arrow:disabled {
+  background: var(--zh2-soft);
+  color: #b8b8b8;
+  cursor: default;
+}
+
+/* ---------- 4 · Chat in depth ---------- */
+
+.zh2-chat__in {
+  max-width: calc(var(--zh2-measure) + 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 64px;
+  align-items: center;
+}
+.zh2-chat__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.zh2-chat__copy .zh2-more {
+  align-self: flex-start;
+}
+.zh2-win {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  background: #fff;
+  border: 1px solid var(--zh2-hair);
+  border-radius: 24px;
+  overflow: hidden;
+  font-size: 13.5px;
+}
+.zh2-win__people {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 2px;
+  border-right: 1px solid var(--zh2-hair);
+  background: #fafafa;
+}
+.zh2-person {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 14px;
+}
+.zh2-person.is-on {
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--zh2-hair);
+}
+.zh2-person__face {
+  position: relative;
+  flex: none;
+}
+.zh2-person.is-on .zh2-person__face::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--zh2-orange);
+  border: 2px solid #fff;
+}
+.zh2-person__t {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.zh2-person__t b {
+  font-size: 13.5px;
+}
+.zh2-person__t span {
+  font-size: 12.5px;
+  color: var(--zs-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zh2-win__talk {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.zh2-win__head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--zh2-hair);
+}
+.zh2-win__head > span {
+  display: flex;
+  flex-direction: column;
+}
+.zh2-online {
+  font-size: 12.5px;
+  color: var(--zs-muted);
+}
+.zh2-win__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 18px;
+  background: #fff;
+}
+.zh2-win__body .zh2-bub {
+  background: var(--zh2-soft);
+  border-color: transparent;
+}
+.zh2-win__body .zh2-bub--me {
+  background: var(--zh2-ink);
+}
+.zh2-seen--me {
+  margin-top: -4px;
+}
+.zh2-task {
+  width: min(300px, 86%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--zh2-hair);
+}
+.zh2-task__k {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--zh2-orange-text);
+}
+.zh2-task b {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.zh2-stages--sm > span {
+  height: 5px;
+}
+.zh2-task__s {
+  font-size: 12px;
+  color: var(--zs-muted);
+}
+.zh2-win__compose {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 14px 14px;
+  padding: 0 6px 0 14px;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--zh2-hair);
+  color: var(--zs-muted);
+  background: #fff;
+}
+.zh2-win__send {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--zh2-orange);
+  color: var(--zh2-ink);
+}
+
+/* ---------- 5 · Protection ---------- */
+
+.zh2-prot__grid {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.zh2-rules {
+  display: flex;
+  flex-direction: column;
+}
+.zh2-rulerow {
+  margin: 0;
+  padding: 22px 0;
+  border: 0;
+  border-top: 1px solid var(--zh2-hair);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.zh2-rulerow:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.zh2-rulerow__head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.zh2-rulerow__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--zs-ink-3);
+}
+.zh2-rulerow__t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.zh2-rulerow__t b {
+  font-size: 17px;
+}
+.zh2-rulerow__t span {
+  font-size: 14.5px;
+  color: var(--zs-muted);
+}
+/* A segmented control: the chosen answer is a white key on a sand track. */
+.zh2-seg {
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 14px;
+  background: var(--zh2-soft);
+}
+.zh2-seg__opt {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--zs-body);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.zh2-seg__opt:hover {
+  color: var(--zs-ink);
+}
+.zh2-seg__opt.is-on {
+  background: #fff;
+  color: var(--zs-ink);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+.zh2-pc {
+  background: #fff;
+  border: 1px solid var(--zh2-hair);
+  border-radius: 24px;
+  overflow: hidden;
+}
+.zh2-pc__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--zh2-hair);
+}
+.zh2-pc__head > span {
+  display: flex;
+  flex-direction: column;
+}
+.zh2-pc__head b {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.zh2-pc__head span span {
+  font-size: 13px;
+  color: var(--zs-muted);
+}
+.zh2-pc__list {
+  display: flex;
+  flex-direction: column;
+}
+.zh2-out {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.zh2-out + .zh2-out {
+  border-top: 1px solid var(--zh2-hair);
+}
+.zh2-out__when {
+  font-size: 13px;
+  color: var(--zs-muted);
+}
+.zh2-out__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.zh2-out__row b {
+  font-size: 15.5px;
+  line-height: 1.35;
+}
+.zh2-out__state {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.zh2-out__state.is-block {
+  background: var(--zh2-ink);
+  color: #fff;
+}
+.zh2-out__state.is-note,
+.zh2-out__state.is-ok {
+  background: var(--zh2-soft);
+  color: var(--zs-ink-3);
+}
+.zh2-out__b {
+  font-size: 14.5px;
+  color: var(--zs-body);
+}
+.zh2-pc__sum {
+  margin: 0;
+  padding: 14px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #fafafa;
+  border-top: 1px solid var(--zh2-hair);
+  font-size: 14px;
+  color: var(--zs-body);
+}
+.zh2-pc__shield {
+  flex: none;
+  margin-top: 2px;
+  color: var(--zh2-orange-text);
+}
+.zh2-mid {
+  margin-top: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--zs-muted);
+}
+
+/* ---------- 6 · The team's side ---------- */
+
+.zh2-team__in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: center;
+}
+.zh2-team__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.zh2-team__vis {
+  display: flex;
+  justify-content: center;
+  padding: 48px 24px;
+  border-radius: 28px;
+  background:
+    radial-gradient(80% 70% at 85% 10%, var(--zh2-orange-tint) 0%, transparent 70%),
+    var(--zh2-soft);
+}
+.zh2-team .zh-tray {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+/* White, black and orange only: the tray's green "Working" line reads in grey here. */
+.zh2-team .zh-tray__who span {
+  color: var(--zs-muted);
+}
+
+/* ---------- 7 · How it works ---------- */
+
+.zh2-steps {
+  list-style: none;
+  margin: 48px auto 24px;
+  padding: 0;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  counter-reset: none;
+}
+.zh2-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  position: relative;
+}
+/* A hairline joining the numbers. */
+.zh2-steps li + li::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  right: calc(50% + 32px);
+  width: calc(100% - 64px + 32px);
+  height: 1px;
+  background: var(--zh2-hair);
+}
+.zh2-steps__n {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+.zh2-steps b {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ---------- 8 · Fair by design ---------- */
+
+.zh2-cols {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+}
+.zh2-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--zh2-ink);
+}
+.zh2-col__icon {
+  color: var(--zs-ink-3);
+  margin-bottom: 6px;
+}
+.zh2-col b {
+  font-size: 17px;
+}
+.zh2-col span {
+  font-size: 15.5px;
+  color: var(--zs-body);
+}
+.zh2-nevers {
+  margin: 40px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  font-size: 15px;
+  color: var(--zs-ink-3);
+}
+.zh2-nevers__l {
+  font-weight: 600;
+  color: var(--zs-ink);
+}
+.zh2-never {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.zh2-never__x {
+  color: var(--zh2-orange-text);
+}
+
+/* ---------- 9 · Quote · 10 · Questions · 11 · Close ---------- */
+
+.zh2-quote__in {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+.zh2-quote blockquote {
+  margin: 0;
+  max-width: 760px;
+  font-size: 30px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+.zh2-quote figcaption {
+  display: flex;
+  flex-direction: column;
+  font-size: 15px;
+  color: var(--zs-muted);
+}
+.zh2-quote figcaption b {
+  color: var(--zs-ink);
+}
+.zh2-faq .zs-qa__intro {
+  gap: 14px;
+}
+/* The questions without a box: hairlines only. */
+.zh2 .zh2-faqlist {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  border-top: 1px solid var(--zh2-hair);
+  border-bottom: 1px solid var(--zh2-hair);
+}
+.zh2 .zh2-faqlist .zs-faq__row + .zs-faq__row {
+  border-top-color: var(--zh2-hair);
+}
+
+/* ---------- Tablets ---------- */
+
+@media (max-width: 1020px) {
+  .zh2 {
+    --zh2-sec: 104px;
+  }
+  /* Two rows no longer fit: a tidy grid of four, no dots (a wrapped row would end on a stray dot). */
+  .zh2-wall__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-items: center;
+    row-gap: 14px;
+    column-gap: 16px;
+    font-size: 17.5px;
+  }
+  .zh2-wall__item::after,
+  .zh2-wall__break {
+    display: none;
+  }
+  .zh2-chat__in,
+  .zh2-team__in {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .zh2-chat__copy,
+  .zh2-team__copy {
+    max-width: 640px;
+  }
+  .zh2-prot__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+
+/* ---------- Phones (designed at 390 px; 360 checked) ---------- */
+
+@media (max-width: 760px) {
+  .zh2 {
+    --zh2-sec: 80px;
+  }
+  .zh2-h {
+    font-size: 33px;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+  .zh2-lead {
+    font-size: 16.5px;
+  }
+  .zh2-wall {
+    padding-top: 64px;
+  }
+  .zh2-wall__lead {
+    margin-bottom: 22px;
+    font-size: 15px;
+  }
+  /* The wall becomes a calm centred grid: no dots, no motion. */
+  .zh2-wall__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-items: center;
+    row-gap: 6px;
+    column-gap: 12px;
+    font-size: 17px;
+  }
+  .zh2-wall__item {
+    height: 46px;
+  }
+  .zh2-wall__item::after,
+  .zh2-wall__break {
+    display: none;
+  }
+
+  .zh2-rail {
+    --zh2-inset: 20px;
+    margin-top: 32px;
+    gap: 12px;
+  }
+  .zh2-card {
+    flex-basis: calc(100% - 28px);
+    max-width: 340px;
+    height: 440px;
+    border-radius: 24px;
+  }
+  .zh2-card__text {
+    padding: 24px 24px 0;
+  }
+  .zh2-card__h {
+    font-size: 25px;
+  }
+  .zh2-card__vis {
+    padding: 16px;
+  }
+  .zh2-card:has(.zh2-card__link) .zh2-card__vis {
+    padding-bottom: 70px;
+  }
+  .zh2-rail__nav {
+    display: none;
+  }
+
+  .zh2-win {
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: 20px;
+  }
+  /* On a phone the people list becomes a row of faces above the conversation. */
+  .zh2-win__people {
+    flex-direction: row;
+    gap: 6px;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--zh2-hair);
+  }
+  .zh2-person {
+    padding: 4px;
+  }
+  .zh2-person.is-on {
+    box-shadow: 0 0 0 2px var(--zh2-orange);
+    border-radius: 50%;
+  }
+  .zh2-person__t {
+    display: none;
+  }
+  .zh2-win__head {
+    padding: 12px 14px;
+  }
+  .zh2-win__body {
+    padding: 16px 14px;
+  }
+  .zh2-bub {
+    max-width: 86%;
+  }
+
+  .zh2-rulerow__t b {
+    font-size: 16px;
+  }
+  .zh2-seg__opt {
+    flex: 1 1 auto;
+    font-size: 13.5px;
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+  .zh2-pc {
+    border-radius: 20px;
+  }
+  .zh2-out,
+  .zh2-pc__head,
+  .zh2-pc__sum {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .zh2-mid {
+    margin-top: 48px;
+  }
+  .zh2-mid .zs-btn {
+    width: 100%;
+  }
+
+  .zh2-team__vis {
+    padding: 32px 16px;
+    border-radius: 24px;
+  }
+
+  .zh2-head--center {
+    align-items: flex-start;
+    text-align: left;
+    margin: 0;
+  }
+  .zh2-center {
+    text-align: left;
+  }
+  .zh2-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin: 32px 0 16px;
+  }
+  .zh2-steps li {
+    flex-direction: row;
+    text-align: left;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid var(--zh2-hair);
+  }
+  .zh2-steps li:last-child {
+    border-bottom: 1px solid var(--zh2-hair);
+  }
+  .zh2-steps li + li::before {
+    display: none;
+  }
+  .zh2-steps b {
+    font-size: 16px;
+  }
+
+  .zh2-cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    margin-top: 36px;
+  }
+  .zh2-col {
+    border-top-color: #d4d4d4;
+  }
+  .zh2-wm--wide {
+    letter-spacing: 0.22em;
+    margin-right: -0.22em;
+  }
+  .zh2-nevers {
+    gap: 8px 16px;
+    font-size: 14.5px;
+  }
+  .zh2-nevers__l {
+    flex-basis: 100%;
+  }
+  .zh2-quote blockquote {
+    font-size: 22px;
+  }
+}
+
+/* The site's wrap narrows to 16 px gutters here (site-v3.css); the rail keeps its first card on that line. */
+@media (max-width: 380px) {
+  .zh2-rail {
+    --zh2-inset: 16px;
+  }
+}
+@media (max-width: 370px) {
+  .zh2-wall__list {
+    font-size: 15.5px;
+  }
+  .zh2-h {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zh2-card__more,
+  .zh2-seg__opt {
+    transition: none;
+  }
+  .zh2-rail {
+    scroll-behavior: auto;
+  }
+}

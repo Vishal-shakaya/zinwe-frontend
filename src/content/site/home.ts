@@ -24,26 +24,53 @@ export const TILES_INTRO = {
   lead: "Talk to your team, hand out work, see the hours and keep data safe. Each part is one click from the others.",
 } as const;
 
-export const TASK_ROWS: ReadonlyArray<{ ini: string; title: string; status: string; pill: string; tone: string }> = [
-  { ini: "SR", title: "Export the brand screens for review", status: "Needs help", pill: "tone-amber", tone: "tone-green" },
-  { ini: "OM", title: "Smoke test the 2.4 release", status: "Done", pill: "tone-solid-green", tone: "tone-grey" },
+/**
+ * v1.3.2 (owner, 31 Oct): the features as an Apple-style card rail with faces from the team avatar library (FR-44).
+ * Only shipped features (rule 4); facts as on the Product page (content/site/product.ts). `face` = avatars.json key.
+ */
+export type FeatureKey = "chat" | "tasks" | "reports" | "protection" | "hours" | "alerts" | "pictures";
+export interface Feature {
+  key: FeatureKey;
+  kick: string;
+  title: string;
+  body: string;
+  /** Product page anchor and its link text; null = no deeper page yet. */
+  href: string | null;
+  link: string;
+}
+export const FEATURES: readonly Feature[] = [
+  { key: "chat", kick: "Chat", title: "Talk at their desk, not on WhatsApp.", body: "Messages pop up on their PC in seconds, with Seen ticks.", href: "/product#chat", link: "How chat works" },
+  { key: "tasks", kick: "Tasks", title: "Send a task. Watch it move.", body: "Steps, a due date and a stage bar. Approve the work when it's done.", href: "/product#tasks", link: "How tasks work" },
+  { key: "reports", kick: "Reports", title: "See the week in ten seconds.", body: "Hours, tasks done, apps and websites, per person.", href: "/product#reports", link: "What reports show" },
+  { key: "protection", kick: "Data protection", title: "Pen drives, apps and websites. Your rules.", body: "Pick an answer once. Every PC follows it within about a minute.", href: "/product#protection", link: "All six protections" },
+  { key: "hours", kick: "Work hours", title: "Attendance that runs itself.", body: "Start day, Take a break, End day. Long breaks ask for your OK.", href: "/product#hours", link: "How work hours work" },
+  { key: "alerts", kick: "Alerts", title: "Plain English, not logs.", body: "What happened, how big, and one button for what to do next.", href: "/product#alerts", link: "How alerts work" },
+  { key: "pictures", kick: "Team pictures", title: "A face for everyone.", body: "Pick one of 16 drawn pictures or upload a photo. Each person can choose their own.", href: null, link: "" },
 ];
 
-/** Day strips, 9 AM (0) to 7 PM (600 min): w = working, b = break. */
-export type Seg = readonly [number, number, "w" | "b"];
-export const HOUR_STRIPS: ReadonlyArray<{ name: string; segs: readonly Seg[] }> = [
-  { name: "Arjun", segs: [[32, 210, "w"], [210, 250, "b"], [250, 330, "w"]] },
-  { name: "Priya", segs: [[51, 200, "w"], [200, 235, "b"], [235, 330, "w"]] },
-  { name: "Emily", segs: [[20, 250, "w"], [250, 330, "b"]] },
-];
+/** Sample people (the demo company, Kitecrest Digital) and the library picture each one wears on Home. */
+export const FACES = {
+  you: "a12",
+  priya: "a05",
+  arjun: "a01",
+  emily: "a10",
+  sneha: "a04",
+  karan: "a09",
+  ravi: "a06",
+  meera: "a07",
+} as const;
 
-export const REPORT_HOURS: readonly number[] = [58, 61, 12, 0, 63, 66, 41];
-/** Hours worked this week, per person (the Reports tile). Bars are drawn against the longest week. */
-export const REPORT_PEOPLE: ReadonlyArray<{ name: string; hours: string; mins: number }> = [
-  { name: "Arjun", hours: "34 h", mins: 2050 },
-  { name: "Priya", hours: "33 h", mins: 1965 },
-  { name: "Sneha", hours: "27 h", mins: 1625 },
-];
+export const CHAT_SPOT = {
+  kick: "Chat",
+  title: "Message anyone, right at their PC.",
+  lead: "Keep work talk out of WhatsApp groups. Your message pops up in the Zinwe window on their screen within seconds.",
+  points: [
+    "One chat per person, with Sent, Delivered and Seen ticks",
+    "Reply with a quote, so nothing gets mixed up",
+    "Turn any message into a task in one click",
+  ],
+  link: "How chat works",
+} as const;
 
 export type RuleKey = "usb" | "app" | "web";
 export type OutcomeTone = "ok" | "block" | "note";

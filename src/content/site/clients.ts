@@ -34,3 +34,6 @@ export const WALL_COPY = {
   title: "Small businesses that trust Zinwe.",
   body: "Interior studios, salons, audio shops, carpet makers and more: owners who wanted a calmer office without hiring IT.",
 } as const;
+
+/** Home (v1.3.2): the one quiet line above the Notion-style wall of wordmarks. */
+export const HOME_WALL_LEAD = "Small businesses already run their office on Zinwe.";
