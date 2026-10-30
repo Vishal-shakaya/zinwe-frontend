@@ -44,12 +44,13 @@
   height: 8px;
   border-radius: 50%;
 }
-.zf-dot--blue { background: var(--zs-blue); }
-.zf-dot--orange { background: var(--zs-orange); }
-.zf-dot--amber { background: var(--zs-amber-mid); }
-.zf-dot--green { background: var(--zs-green); }
-.zf-dot--red { background: var(--zs-red); }
-.zf-dot--ink { background: var(--zs-ink); }
+/* Colour rule 31 Oct: the jump dots are one quiet grey (they were a hue per feature); the jump label carries it. */
+.zf-dot--blue,
+.zf-dot--orange,
+.zf-dot--amber,
+.zf-dot--green,
+.zf-dot--red,
+.zf-dot--ink { background: var(--zs-faint); }
 
 .zf-feat {
   scroll-margin-top: 16px;
@@ -123,7 +124,7 @@
 .zf-chat {
   display: flex;
   overflow: hidden;
-  box-shadow: 0 30px 70px -40px rgba(40, 28, 10, 0.35);
+  box-shadow: 0 30px 70px -40px rgba(20, 18, 16, 0.35);
   font-size: 13.5px;
   border-radius: 18px;
 }
@@ -256,7 +257,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 24px 50px -34px rgba(40, 28, 10, 0.35);
+  box-shadow: 0 24px 50px -34px rgba(20, 18, 16, 0.35);
   border-radius: 18px;
 }
 .zf-task__top {
@@ -299,7 +300,7 @@
   margin-bottom: 5px;
   background: var(--zs-line);
 }
-.zf-stage.is-past .zf-stage__bar { background: var(--zs-green); }
+.zf-stage.is-past .zf-stage__bar { background: var(--zs-ink-3); }
 .zf-stage.is-now .zf-stage__bar { background: var(--zs-orange); }
 .zf-steps {
   list-style: none;
@@ -329,8 +330,8 @@
   border: 2px solid var(--zs-field);
 }
 .zf-box.is-done {
-  background: var(--zs-green);
-  border-color: var(--zs-green);
+  background: var(--zs-ink);
+  border-color: var(--zs-ink);
   color: #fff;
 }
 .zf-struck {
@@ -368,8 +369,8 @@
   font-weight: 700;
 }
 .zf-mini--ok {
-  background: var(--zs-green);
-  border-color: var(--zs-green);
+  background: var(--zs-ink);
+  border-color: var(--zs-ink);
   color: #fff;
 }
 
@@ -379,7 +380,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 30px 70px -40px rgba(40, 28, 10, 0.35);
+  box-shadow: 0 30px 70px -40px rgba(20, 18, 16, 0.35);
   border-radius: 18px;
 }
 .zf-hours__top {
@@ -407,10 +408,10 @@
   width: 10px;
   height: 10px;
   border-radius: 3px;
-  background: var(--zs-green);
+  background: var(--zs-accent);
 }
 .zf-key.is-break {
-  background: var(--zs-amber-bar);
+  background: var(--zs-faint);
 }
 .zf-strip {
   display: flex;
@@ -435,10 +436,10 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  background: var(--zs-green);
+  background: var(--zs-accent);
 }
 .zf-seg.is-break {
-  background: var(--zs-amber-bar);
+  background: var(--zs-faint);
 }
 .zf-strip__total {
   width: 60px;
@@ -539,10 +540,10 @@
   display: block;
   height: 100%;
   border-radius: 9px;
-  background: var(--zs-green);
+  background: var(--zs-ink-3);
 }
 .zf-perf__fill.is-low {
-  background: var(--zs-amber-mid);
+  background: var(--zs-accent);
 }
 .zf-perf__n {
   width: 26px;
@@ -626,14 +627,14 @@
 .zf-down {
   display: flex;
   justify-content: center;
-  color: #a79e90;
+  color: #9a9a9a;
 }
 .zf-said {
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: 0 24px 50px -34px rgba(40, 28, 10, 0.35);
+  box-shadow: 0 24px 50px -34px rgba(20, 18, 16, 0.35);
   border-radius: 18px;
 }
 .zf-said__top {
@@ -742,7 +743,7 @@
   background: #fff;
   border: 1px solid var(--zs-line);
   border-radius: 22px;
-  box-shadow: 0 30px 70px -40px rgba(40, 28, 10, 0.4);
+  box-shadow: 0 30px 70px -40px rgba(20, 18, 16, 0.4);
   overflow: hidden;
 }
 .zf-consent__head {
@@ -780,8 +781,8 @@
   font-weight: 700;
   letter-spacing: 0.06em;
 }
-.zf-consent__k.is-green { color: var(--zs-green); }
-.zf-consent__k.is-red { color: var(--zs-red); }
+.zf-consent__k.is-green,
+.zf-consent__k.is-red { color: var(--zs-ink); }
 .zf-consent__row {
   display: flex;
   gap: 8px;
@@ -791,7 +792,7 @@
   margin-top: 2px;
 }
 .zf-x {
-  color: var(--zs-red);
+  color: var(--zs-muted);
   flex: none;
 }
 .zf-consent__acts {

@@ -30,7 +30,7 @@
   min-height: 50px;
   padding: 0 14px;
   background: #fff;
-  border: 1px solid var(--zs-field);
+  border: 1px solid var(--zs-field-line);
   border-radius: 12px;
   flex: 0 1 340px;
   min-width: 240px;
@@ -116,7 +116,7 @@
 .zb-post:hover {
   color: var(--zs-ink);
   transform: translateY(-3px);
-  box-shadow: 0 26px 50px -32px rgba(40, 28, 10, 0.4);
+  box-shadow: 0 26px 50px -32px rgba(20, 18, 16, 0.4);
 }
 .zb-post:hover h3,
 .zb-post:hover .zb-lead__h {
@@ -480,9 +480,9 @@
   padding: 18px;
   background: var(--zs-dark);
 }
-.zb-gc--1 { background: #1b2430; }
-.zb-gc--2 { background: #2b1a0c; }
-.zb-gc--3 { background: #17302a; }
+.zb-gc--1 { background: #1c1c1c; }
+.zb-gc--2 { background: var(--zs-ink-2); }
+.zb-gc--3 { background: #262626; }
 .zb-gc__k {
   font-size: 10.5px;
   font-weight: 700;
@@ -530,10 +530,10 @@
   text-decoration: none;
   border-radius: 20px;
   padding: 24px;
-  background: #1a1714;
+  background: var(--zs-dark);
 }
-.zb-show--1 { background: #141b24; }
-.zb-show--2 { background: #18202e; }
+.zb-show--1 { background: #1c1c1c; }
+.zb-show--2 { background: #262626; }
 .zb-show__k {
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -611,7 +611,7 @@
   flex: 1 1 220px;
   min-height: 50px;
   padding: 0 14px;
-  border: 1px solid var(--zs-field);
+  border: 1px solid var(--zs-field-line);
   border-radius: 12px;
   font: inherit;
   background: #fff;
@@ -648,7 +648,7 @@
 }
 .zb-sub__done {
   font-weight: 600;
-  color: var(--zs-green);
+  color: var(--zs-ink);
 }
 .zb-side {
   background: #fff;
@@ -895,7 +895,7 @@
   border-radius: 2px;
 }
 .za-pick__book--series {
-  background: #1a1714;
+  background: var(--zs-dark);
 }
 .za-pick__t {
   display: flex;

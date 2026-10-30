@@ -54,7 +54,7 @@
 .zp2-step__b {
   width: 44px;
   height: 44px;
-  border: 1px solid var(--zs-field);
+  border: 1px solid var(--zs-field-line);
   background: #fff;
   border-radius: 10px;
   font: inherit;
@@ -67,7 +67,7 @@
 .zp2-step input {
   width: 68px;
   height: 44px;
-  border: 1px solid var(--zs-field);
+  border: 1px solid var(--zs-field-line);
   border-radius: 10px;
   text-align: center;
   font: inherit;
@@ -92,7 +92,7 @@
   -webkit-appearance: none;
   min-height: 44px;
   padding: 0 40px 0 12px;
-  border: 1px solid var(--zs-field);
+  border: 1px solid var(--zs-field-line);
   border-radius: 10px;
   background: #fff;
   font: inherit;
@@ -225,12 +225,12 @@
   font-size: 14px;
 }
 .zp2-was {
-  color: #6b6358;
+  color: var(--zs-muted);
   font-size: 15px;
 }
 .zp2-perpc {
   font-size: 13.5px;
-  color: var(--zs-green);
+  color: var(--zs-ink);
   font-weight: 600;
   min-height: 20px;
 }
@@ -316,8 +316,8 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: var(--zs-t-green);
-  color: var(--zs-green);
+  background: var(--zs-surface-2);
+  color: var(--zs-ink);
   align-items: center;
   justify-content: center;
 }
@@ -444,7 +444,7 @@
   padding-bottom: 10px;
 }
 .zp2-no {
-  color: var(--zs-faint);
+  color: var(--zs-muted);
 }
 .zp2-txt {
   color: var(--zs-ink-2);

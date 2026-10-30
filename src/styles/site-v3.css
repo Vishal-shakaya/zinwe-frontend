@@ -6,58 +6,80 @@
    Orange is a FILL with dark text (#F26A0A + ink); orange TEXT is --zs-orange-text (#A84505). */
 
 .zs {
-  /* Ground, ink and body text */
-  --zs-ground: #f7f6f2;
+  /* Colour rule (owner, 31 Oct 2026): white, black, orange only. Pure white ground, black ink #141210 with
+     NEUTRAL greys (r = g = b, no warm beige), orange #F26A0A as the one accent, used sparingly. Small orange
+     text on white uses --zs-accent-text (#A84505, 6.0:1). Red and green only where colour carries meaning
+     (errors, "online"), always with text or an icon. Exempt: the FR-44 faces, photos, covers, video captures.
+     The older --zs-* names below are kept as aliases so every site stylesheet reads the same set. */
+  --zs-white: #ffffff;
+  --zs-ground: #ffffff;
+  --zs-surface: #ffffff;
+  --zs-surface-2: #f5f5f5;
+  --zs-surface-3: #ededed;
   --zs-ink: #141210;
-  --zs-ink-2: #2b2723;
-  --zs-ink-3: #3a352e;
-  --zs-body: #4a443c;
-  --zs-muted: #6b6459;
-  --zs-faint: #b9b0a2;
-  --zs-card: #ffffff;
-  --zs-card-2: #fbfaf7;
-  --zs-line: #e7e3da;
-  --zs-line-2: #efece5;
-  --zs-line-3: #f0ede6;
-  --zs-field: #dcd6cb;
-  --zs-sand: #f2efe8;
-  --zs-sand-2: #ede9e1;
-  /* Orange */
-  --zs-orange: #f26a0a;
-  --zs-orange-hover: #e05e04;
-  --zs-orange-soft: #ffd3b0;
-  --zs-orange-text: #a84505;
-  --zs-orange-text-hover: #7a3203;
-  --zs-orange-ink: #8a3a04;
-  --zs-orange-on-dark: #ff9a55;
-  /* Tints (fill) and the text that sits on each */
-  --zs-t-orange: #fdebdc;
-  --zs-t-green: #e3f4ea;
-  --zs-t-blue: #e6eefb;
-  --zs-t-amber: #fbf0d9;
-  --zs-t-red: #fce8e4;
-  --zs-t-purple: #f4ecfb;
-  --zs-green: #17663f;
-  --zs-blue: #1b4fb0;
-  --zs-amber: #8a5300;
-  --zs-amber-bar: #e8b04a;
-  --zs-amber-mid: #d99a2b;
-  --zs-red: #c0331c;
+  --zs-ink-2: #2b2b2b;
+  --zs-ink-3: #3d3d3d;
+  --zs-body: #4a4a4a;
+  --zs-muted: #666666;
+  --zs-faint: #b3b3b3;
+  --zs-card: var(--zs-surface);
+  --zs-card-2: #fafafa;
+  --zs-line: #e5e5e5;
+  --zs-line-2: #ededed;
+  --zs-line-3: #f0f0f0;
+  --zs-field: #d4d4d4;
+  /* Form-field outlines: 3.4:1 on white (WCAG 1.4.11); --zs-field stays for quiet button / card lines. */
+  --zs-field-line: #8c8c8c;
+  --zs-sand: var(--zs-surface-2);
+  --zs-sand-2: var(--zs-surface-3);
+  /* Orange: the only accent */
+  --zs-accent: #f26a0a;
+  --zs-accent-hover: #e05e04;
+  --zs-accent-soft: #ffd3b0;
+  --zs-accent-text: #a84505;
+  --zs-accent-text-hover: #7a3203;
+  --zs-accent-ink: #8a3a04;
+  --zs-accent-tint: #fdebdc;
+  --zs-accent-on-dark: #ff9a55;
+  --zs-orange: var(--zs-accent);
+  --zs-orange-hover: var(--zs-accent-hover);
+  --zs-orange-soft: var(--zs-accent-soft);
+  --zs-orange-text: var(--zs-accent-text);
+  --zs-orange-text-hover: var(--zs-accent-text-hover);
+  --zs-orange-ink: var(--zs-accent-ink);
+  --zs-orange-on-dark: var(--zs-accent-on-dark);
+  /* Functional status only (with text or an icon): green = online / done, red = error / critical */
+  --zs-status-ok: #17663f;
+  --zs-status-bad: #c0331c;
+  --zs-green: var(--zs-status-ok);
+  --zs-red: var(--zs-status-bad);
   --zs-red-on-dark: #ff8a70;
   --zs-error: #b02a15;
-  --zs-purple: #6a2e9a;
-  /* Dark surfaces */
+  /* The old decorative hues collapse into the palette: soft fills become neutral (or the orange tint for the
+     old amber), their text becomes ink grey (or orange text). */
+  --zs-t-orange: var(--zs-accent-tint);
+  --zs-t-green: var(--zs-surface-2);
+  --zs-t-blue: var(--zs-surface-2);
+  --zs-t-amber: var(--zs-accent-tint);
+  --zs-t-red: var(--zs-surface-2);
+  --zs-t-purple: var(--zs-surface-2);
+  --zs-blue: var(--zs-ink-3);
+  --zs-purple: var(--zs-ink-3);
+  --zs-amber: var(--zs-accent-text);
+  --zs-amber-bar: var(--zs-accent-soft);
+  --zs-amber-mid: var(--zs-accent);
+  /* Dark surfaces (footer, close band, Newsletter): black-based neutrals + white text + orange */
   --zs-dark: #141210;
-  --zs-dark-2: #1c1915;
-  --zs-dark-line: #2e2a25;
-  --zs-dark-3: #2b2723;
-  --zs-on-dark: #ede8de;
-  --zs-on-dark-2: #c9c1b3;
-  --zs-on-dark-3: #9c9385;
+  --zs-dark-2: #1c1c1c;
+  --zs-dark-line: #2e2e2e;
+  --zs-dark-3: #2b2b2b;
+  --zs-on-dark: #ededed;
+  --zs-on-dark-2: #c4c4c4;
+  --zs-on-dark-3: #9a9a9a;
   --zs-code: #f3d9c4;
   --zs-font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --zs-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --zs-shadow-lg: 0 40px 90px -40px rgba(40, 28, 10, 0.38), 0 2px 6px rgba(40, 28, 10, 0.04);
+  --zs-shadow-lg: 0 40px 90px -40px rgba(20, 18, 16, 0.32), 0 2px 6px rgba(20, 18, 16, 0.04);
 
   /* The older marketing pages read these: same palette, so they match v3. */
   --paper: var(--zs-ground);
@@ -71,6 +93,8 @@
   --orange-text: var(--zs-orange-text);
   --orange-tint: var(--zs-t-orange);
   --orange-ink: var(--zs-orange-ink);
+  --orange-strong: var(--zs-accent-hover);
+  --white: var(--zs-white);
   --font-mono: var(--zs-mono);
   --radius: 18px;
   --radius-btn: 12px;
@@ -81,6 +105,37 @@
   font-family: var(--zs-font);
   font-size: 16px;
   line-height: 1.55;
+}
+
+/* Shared global parts, recoloured only inside the website (.zs) — the dashboard keeps its own (Track C1):
+   the drifting smoke was warm taupe; the form error box was pink. Errors stay red TEXT with words. */
+.zs .zin-smoke--light {
+  --zin-smoke: 112, 112, 112;
+}
+.zs .zin-smoke--dark {
+  --zin-smoke: 245, 245, 245;
+}
+.zs .field input,
+.zs .field select,
+.zs .field textarea,
+.zs .gd-gate__row input {
+  border-color: var(--zs-field-line);
+}
+.zs .field input:focus,
+.zs .field select:focus,
+.zs .field textarea:focus,
+.zs .gd-gate__row input:focus {
+  border-color: var(--zs-accent-hover);
+}
+.zs .field.is-invalid input,
+.zs .field.is-invalid textarea {
+  border-color: var(--zs-error);
+}
+.zs .form__err {
+  color: var(--zs-error);
+  background: var(--zs-surface-2);
+  border-color: var(--zs-line);
+  border-left: 3px solid var(--zs-error);
 }
 
 .zs :focus-visible {
@@ -277,15 +332,17 @@
 }
 
 /* Tone helpers: tint fill + the text colour that sits on it. */
-.tone-green { background: var(--zs-t-green); color: var(--zs-green); }
-.tone-blue { background: var(--zs-t-blue); color: var(--zs-blue); }
-.tone-amber { background: var(--zs-t-amber); color: var(--zs-amber); }
-.tone-red { background: var(--zs-t-red); color: var(--zs-red); }
-.tone-orange { background: var(--zs-t-orange); color: var(--zs-orange-ink); }
-.tone-purple { background: var(--zs-t-purple); color: var(--zs-purple); }
-.tone-grey { background: var(--zs-sand); color: var(--zs-ink-3); }
-.tone-stone { background: var(--zs-line-2); color: #5e574d; }
-.tone-solid-green { background: var(--zs-green); color: #fff; }
+/* Colour rule 31 Oct: the old hue tones are neutral now; amber became orange; red stays only as red TEXT
+   (errors / critical, always with words). */
+.tone-green { background: var(--zs-surface-2); color: var(--zs-ink-3); }
+.tone-blue { background: var(--zs-surface-2); color: var(--zs-ink-3); }
+.tone-amber { background: var(--zs-accent-tint); color: var(--zs-accent-ink); }
+.tone-red { background: var(--zs-surface-2); color: var(--zs-red); }
+.tone-orange { background: var(--zs-accent-tint); color: var(--zs-accent-ink); }
+.tone-purple { background: var(--zs-surface-2); color: var(--zs-ink-3); }
+.tone-grey { background: var(--zs-surface-2); color: var(--zs-ink-3); }
+.tone-stone { background: var(--zs-line-2); color: #525252; }
+.tone-solid-green { background: var(--zs-ink); color: #fff; }
 .tone-ink { background: var(--zs-dark); color: #fff; }
 
 .zs-ticks {
@@ -526,7 +583,7 @@
   background: #fff;
   border: 1px solid var(--zs-line-2);
   border-radius: 14px;
-  box-shadow: 0 18px 40px -24px rgba(40, 28, 10, 0.28);
+  box-shadow: 0 18px 40px -24px rgba(20, 18, 16, 0.28);
 }
 .zpl2-res__panel[hidden] {
   display: none;
@@ -740,7 +797,7 @@
   background: #fff;
   border: 1px solid var(--zs-line);
   border-radius: calc(var(--mark) * 0.28);
-  box-shadow: 0 1px 2px rgba(40, 28, 10, 0.06);
+  box-shadow: 0 1px 2px rgba(20, 18, 16, 0.06);
 }
 .zs-foot__tag .zs-foot__mark {
   margin-right: 2px;
@@ -866,7 +923,7 @@
 }
 .zs-close__copy p {
   margin: 0;
-  color: #2b1a0c;
+  color: var(--zs-ink-2);
   font-size: 17px;
 }
 .zs-close__acts {
@@ -957,7 +1014,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--zs-green);
+  color: var(--zs-ink-3);
 }
 .zs-clients__dot {
   width: 8px;
@@ -1054,7 +1111,7 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--zs-green);
+  color: var(--zs-muted);
 }
 .zs-wall__active::before {
   content: "";
@@ -1341,7 +1398,7 @@
   border: 1px solid var(--zs-line);
   border-radius: 22px;
   padding: 26px;
-  box-shadow: 0 30px 70px -44px rgba(40, 28, 10, 0.35);
+  box-shadow: 0 30px 70px -44px rgba(20, 18, 16, 0.35);
 }
 .zc-form {
   display: flex;
@@ -1394,7 +1451,7 @@
   width: 100%;
   min-height: 48px;
   padding: 10px 12px;
-  border: 1px solid var(--zs-field);
+  border: 1px solid var(--zs-field-line);
   border-radius: 10px;
   background: #fff;
   font: inherit;
@@ -1454,8 +1511,8 @@
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: var(--zs-t-green);
-  color: var(--zs-green);
+  background: var(--zs-accent-tint);
+  color: var(--zs-accent-ink);
   align-items: center;
   justify-content: center;
 }
@@ -1550,7 +1607,7 @@
     padding: 8px 12px 18px;
     max-height: calc(100dvh - 62px);
     overflow-y: auto;
-    box-shadow: 0 24px 40px -24px rgba(40, 28, 10, 0.35);
+    box-shadow: 0 24px 40px -24px rgba(20, 18, 16, 0.35);
   }
   .zs-drop__link {
     min-height: 52px;

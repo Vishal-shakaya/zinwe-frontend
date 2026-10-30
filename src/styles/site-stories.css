@@ -17,7 +17,7 @@
   --zst-ink: #0a0a0a;
   --zst-body: #262626;
   --zst-mute: #5c5c5c;
-  --zst-faint: #8a8a8a;
+  --zst-faint: #737373;
   --zst-line: #e5e5e5;
   --zst-soft: #f4f4f4;
   --zst-orange: #f26a0a;
@@ -134,7 +134,7 @@
   gap: 10px;
   min-height: 46px;
   padding: 0 14px;
-  border: 1px solid var(--zst-line);
+  border: 1px solid var(--zs-field-line, #8c8c8c);
   border-radius: 10px;
   background: #fff;
   color: var(--zst-mute);
@@ -530,7 +530,8 @@
   .zst-btn--glass { backdrop-filter: blur(8px); }
 }
 .zst-btn--glass:hover { background: rgba(255, 255, 255, 0.2); }
-.zst-tv a.zst-btn--orange, .zst-btn--orange { background: var(--zst-orange); color: #fff; }
+/* Orange fills carry ink text (6.3:1); white on #F26A0A is 3.0:1 and fails at this size. */
+.zst-tv a.zst-btn--orange, .zst-btn--orange { background: var(--zst-orange); color: #141210; }
 .zst-btn--orange:hover { background: var(--zst-orange-hover); }
 .zst-btn--ghost { border-color: rgba(255, 255, 255, 0.22); background: transparent; color: inherit; }
 
@@ -743,7 +744,7 @@
 .zst-tv .sx-gate__lede, .zst-tv .sx-inside { color: #cfcfcf; }
 .zst-tv .sx-inside li::before { color: var(--tv-orange); }
 .zst-tv .sx-gate__form input:focus { outline-color: var(--tv-orange); }
-.zst-tv .sx-btn--red { color: #fff; }
+.zst-tv .sx-btn--red { color: #141210; }
 .zst-tv .sx-btn:focus-visible { outline-color: var(--tv-orange); }
 .zst-tv .sx-reader { border-color: var(--tv-line); color: #c4c4c4; }
 .zst-tv .sx-reader__dot { background: var(--zst-orange); }

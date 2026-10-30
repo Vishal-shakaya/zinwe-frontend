@@ -37,7 +37,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 40px 80px -46px rgba(40, 28, 10, 0.45);
+  box-shadow: 0 40px 80px -46px rgba(20, 18, 16, 0.45);
 }
 .zd-get__head {
   display: flex;
@@ -285,7 +285,7 @@
   align-self: flex-start;
 }
 .zd-mbtn--green {
-  background: var(--zs-green);
+  background: var(--zs-ink);
   color: #fff;
 }
 .zd-file {
@@ -312,10 +312,10 @@
   font-size: 11px;
 }
 .zd-yes {
-  color: var(--zs-green);
+  color: var(--zs-ink);
 }
 .zd-no {
-  color: var(--zs-red);
+  color: var(--zs-body);
 }
 .zd-row {
   display: flex;
@@ -385,7 +385,7 @@
   flex: 1;
 }
 .zd-online > span:last-child {
-  color: var(--zs-green);
+  color: var(--zs-muted);
   font-weight: 600;
   font-size: 11px;
 }
@@ -454,7 +454,7 @@
 }
 .zd-dlg {
   background: #fff;
-  border: 1px solid #d9dee6;
+  border: 1px solid var(--zs-field);
   border-radius: 10px;
   padding: 12px;
   display: flex;
@@ -462,13 +462,13 @@
   gap: 8px;
   font-family: "Segoe UI", system-ui, sans-serif;
   font-size: 12.5px;
-  color: #1f2937;
+  color: var(--zs-ink);
 }
 .zd-dlg b {
   font-size: 13.5px;
 }
 .zd-dlg__txt {
-  color: #4b5563;
+  color: var(--zs-body);
 }
 .zd-dlg__acts {
   display: flex;
@@ -478,14 +478,14 @@
 .zd-dlg__ok {
   padding: 5px 14px;
   border-radius: 4px;
-  background: #0f6cbd;
+  background: var(--zs-ink);
   color: #fff;
   font-weight: 600;
   box-shadow: 0 0 0 3px var(--zs-orange-soft);
 }
 .zd-dlg__no {
   padding: 5px 14px;
-  border: 1px solid #c5cbd3;
+  border: 1px solid var(--zs-field);
   border-radius: 4px;
   background: #fff;
 }
@@ -609,7 +609,7 @@
 }
 .zd-close__copy p {
   margin: 0;
-  color: #2b1a0c;
+  color: var(--zs-ink-2);
 }
 
 @media (max-width: 760px) {

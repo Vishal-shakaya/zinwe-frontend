@@ -1,5 +1,24 @@
 /* Legal texts, agree dialogs, the terms checkbox and the cookie sheet (site-wide; site.css tokens). */
 
+/* Colour rule (owner, 31 Oct 2026): white, black, orange only. The cookie sheet (every page, rendered outside the
+   website's .zs root) and the agree dialog read the shared site.css :root tokens, whose greys are slightly warm and
+   whose orange is the logo orange; pin the palette here so only these two parts change, not the dashboard. */
+.cookie-sheet,
+.legal-dialog {
+  --paper: #ffffff;
+  --ink: #141210;
+  --ink-2: #3d3d3d;
+  --mute: #666666;
+  --line: #e5e5e5;
+  --line-strong: #d4d4d4;
+  --orange: #f26a0a;
+  --orange-deep: #e05e04;
+  --orange-strong: #e05e04;
+  --orange-text: #a84505;
+  --orange-tint: #fdebdc;
+  --orange-ink: #8a3a04;
+}
+
 .legal-text {
   display: flex;
   flex-direction: column;

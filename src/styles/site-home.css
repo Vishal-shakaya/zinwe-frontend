@@ -2,8 +2,8 @@
    Everything below the demo caption is v1.3.2 and lives in site-home2.css (.zh2-*); the old tiles, protection,
    how-it-works, consent and quote rules were removed with their markup. */
 
-.zs-tick { color: var(--zs-green); flex: none; }
-.zs-cross { color: var(--zs-red-on-dark); flex: none; }
+.zs-tick { color: var(--zs-ink); flex: none; }
+.zs-cross { color: var(--zs-on-dark-3); flex: none; }
 .zs-boot {
   min-height: 60vh;
   padding-top: 96px;
@@ -82,7 +82,7 @@
   background: var(--zs-ground);
   border: 1px solid var(--zs-line);
   border-radius: 22px;
-  box-shadow: 0 34px 64px -30px rgba(120, 50, 0, 0.45);
+  box-shadow: 0 34px 64px -30px rgba(20, 18, 16, 0.3);
   overflow: hidden;
   font-size: 13.5px;
 }
@@ -113,7 +113,7 @@
 }
 .zh-tray__who span {
   font-size: 12px;
-  color: var(--zs-green);
+  color: var(--zs-muted);
 }
 .zh-tray__body {
   padding: 14px;

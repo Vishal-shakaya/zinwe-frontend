@@ -14,7 +14,7 @@
 .gd-hero__book { display: flex; justify-content: center; }
 .gd-hero__book img {
   width: min(100%, 380px); height: auto; border-radius: 4px 10px 10px 4px;
-  box-shadow: -10px 0 0 -4px #e7e5df, 0 30px 60px -24px rgba(13, 13, 14, 0.45), 0 8px 18px -10px rgba(13, 13, 14, 0.3);
+  box-shadow: -10px 0 0 -4px #e5e5e5, 0 30px 60px -24px rgba(13, 13, 14, 0.45), 0 8px 18px -10px rgba(13, 13, 14, 0.3);
   transform: perspective(1200px) rotateY(-8deg);
 }
 .gd-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; padding: 0; list-style: none; }
@@ -33,7 +33,7 @@
 .gd-gate__err { margin: 0; font-size: 14px; color: #b42318; }
 .gd-gate__fine { font-size: 12px; line-height: 1.5; color: var(--mute); }
 .gd-gate__fine a { color: inherit; }
-.gd-gate--done { gap: 4px; background: #ecfdf3; border-color: #abefc6; font-size: 15px; line-height: 1.55; }
+.gd-gate--done { gap: 4px; background: #fdebdc; border-color: #ffd3b0; font-size: 15px; line-height: 1.55; }
 .gd-gate--compact { padding: 14px; }
 .gd-download { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .gd-download small { font-size: 13px; color: var(--mute); }
@@ -69,7 +69,7 @@
 /* The placeholder has a card's shape: a book-sized box and room for the text below it (CLS). */
 .gd-card.is-skeleton::before { content: ""; display: block; aspect-ratio: 1 / 1.414; border-radius: 3px 8px 8px 3px; background: var(--line); }
 .gd-card.is-skeleton::after { content: ""; display: block; height: 104px; }
-.gd-card__book { display: block; aspect-ratio: 1 / 1.414; overflow: hidden; border-radius: 3px 8px 8px 3px; background: #0f1013; box-shadow: 0 16px 30px -18px rgba(13, 13, 14, 0.5); }
+.gd-card__book { display: block; aspect-ratio: 1 / 1.414; overflow: hidden; border-radius: 3px 8px 8px 3px; background: #0f0f0f; box-shadow: 0 16px 30px -18px rgba(13, 13, 14, 0.5); }
 .gd-card__book img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gd-card__book > span { display: flex; height: 100%; align-items: flex-end; padding: 16px; color: #fff; font-weight: 700; }
 .gd-card__body { display: flex; flex-direction: column; gap: 6px; }
@@ -88,7 +88,7 @@
 .gd-pick em { font-style: normal; font-size: 13px; font-weight: 600; }
 .gd-pick:hover em { text-decoration: underline; }
 .gd-pick:focus-visible { outline: 2px solid var(--orange-strong); outline-offset: 2px; }
-.gd-pick--dark { border-color: rgba(255, 255, 255, 0.14); background: #17181d; color: #f4f3ef; }
+.gd-pick--dark { border-color: rgba(255, 255, 255, 0.14); background: #171717; color: #f5f5f5; }
 .gd-pick--dark small { color: #ffb37a; }
 
 @media (max-width: 860px) {
@@ -101,7 +101,7 @@
 }
 
 .sx-guide-pick { margin-top: 40px; }
-.sx-guide-pick p { margin: 0 0 10px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #a9a8a3; }
+.sx-guide-pick p { margin: 0 0 10px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #a6a6a6; }
 .sx-guide-pick .gd-pick { max-width: 520px; }
 
 .blog-guides { margin: 0 0 32px; }

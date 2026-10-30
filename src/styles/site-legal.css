@@ -19,7 +19,7 @@
 }
 .zl-updated {
   font-size: 13px;
-  color: #6b6358;
+  color: var(--zs-muted);
 }
 .zl-body {
   padding-top: 16px;
@@ -46,7 +46,7 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #6b6358;
+  color: var(--zs-muted);
   padding: 4px 12px 8px;
 }
 .zl-toc a {
@@ -121,7 +121,7 @@
 .zl-meta {
   margin: 0;
   font-size: 13px;
-  color: #6b6358;
+  color: var(--zs-muted);
 }
 .zl-fulllink {
   font-size: 14.5px;

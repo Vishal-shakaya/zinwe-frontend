@@ -102,9 +102,9 @@
   background: var(--zs-dark-3);
 }
 .zp .zp-b--done {
-  background: var(--zs-t-green);
-  border-color: var(--zs-t-green);
-  color: var(--zs-green);
+  background: var(--zs-surface-2);
+  border-color: var(--zs-surface-2);
+  color: var(--zs-ink-3);
   cursor: default;
 }
 .zp .zp-b--tour {
@@ -223,8 +223,10 @@
   background: var(--zs-dark);
   color: #fff;
 }
+/* Colour rule 31 Oct: the alert count is the orange accent with ink text (6.3:1), not red. */
 .zp .zp-badge--red {
-  background: var(--zs-red);
+  background: var(--zs-accent);
+  color: var(--zs-ink);
 }
 .zp .zp-badge--soft {
   background: var(--zs-line-2);
@@ -325,10 +327,10 @@
   color: var(--zs-ink);
 }
 .zp .zp-tile__v.is-green {
-  color: var(--zs-green);
+  color: var(--zs-ink);
 }
 .zp .zp-tile__v.is-amber {
-  color: var(--zs-amber);
+  color: var(--zs-accent-text);
 }
 .zp .zp-tile__v.is-red {
   color: var(--zs-red);
@@ -524,7 +526,7 @@
 }
 .zp .zp-thread__who > span {
   font-size: 11.5px;
-  color: var(--zs-green);
+  color: var(--zs-muted);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -591,7 +593,7 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
-  box-shadow: 0 6px 18px -10px rgba(40, 28, 10, 0.25);
+  box-shadow: 0 6px 18px -10px rgba(20, 18, 16, 0.25);
 }
 .zp .zp-taskmsg__k {
   display: inline-flex;
@@ -629,7 +631,7 @@
   background: var(--zs-line);
 }
 .zp .zp-stage.is-past .zp-stage__bar {
-  background: var(--zs-green);
+  background: var(--zs-ink-3);
 }
 .zp .zp-stage.is-now .zp-stage__bar {
   background: var(--zs-orange);
@@ -811,10 +813,10 @@
   display: block;
   height: 100%;
   border-radius: 99px;
-  background: var(--zs-green);
+  background: var(--zs-ink-3);
 }
 .zp .zp-meter__fill.is-low {
-  background: var(--zs-amber-mid);
+  background: var(--zs-accent);
 }
 .zp .zp-next {
   margin-top: 4px;
@@ -822,7 +824,7 @@
   border-radius: 10px;
   padding: 9px 11px;
   font-size: 12px;
-  color: #5c3a00;
+  color: var(--zs-accent-ink);
   line-height: 1.4;
 }
 
