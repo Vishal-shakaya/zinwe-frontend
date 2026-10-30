@@ -1,18 +1,22 @@
-import { useCallback, useEffect, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { Link, useParams } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
 import { SiteSubscribe } from "../components/site/SiteSubscribe";
+import { ReadingProgress } from "../components/stories/ReadingProgress";
 import { trackEvent } from "../lib/analytics";
 import { ApiError, errorMessage } from "../lib/api";
-import { blogAsset, getArticle, withAssetBase, type Article } from "../lib/api/blog";
+import { blogAsset, getArticle, withAssetBase, type Article, type ArticleType } from "../lib/api/blog";
 import { formatDate } from "../lib/format";
 import { clipText, pageTitle } from "../lib/pageTitle";
 import { OG_IMAGE } from "../content/seo";
 import { SiteMark } from "../components/site/SiteMark";
 import "../styles/site-blog.css";
+import "../styles/site-stories.css";
 
 const SITE = "https://zinwe.io";
+/** The blog's topic names (the same as its filters). */
+const TOPIC: Partial<Record<ArticleType, string>> = { informative: "Data safety", tutorial: "How-to guides" };
 
 /** Set (and on leave, remove) the article-only head tags search engines and link previews read. */
 function useArticleHead(article: Article | undefined): void {
@@ -74,9 +78,10 @@ function useArticleHead(article: Article | undefined): void {
 }
 
 /**
- * Public /blog/:slug, v3 (board SiteArticle): the article on a white sheet (breadcrumb, title, summary, byline, cover,
- * body from the API), a dark "send it as a task" call to action, and a side column with Share, the closest free guide
- * (or series episode) and the newsletter; then "Keep reading". Loading, not-found and error states as before.
+ * Public /blog/:slug (v1.3.2, "story"): one calm reading column (~66 characters, a book serif for the body), the
+ * headline, dek and byline, the cover, a reading-progress hint at the top of the window, pull quotes when the article
+ * has them (<blockquote>), then Share, the "send it as a task" line, "Up next" (one story, big), Keep reading and
+ * Go deeper (the closest free guide or series episode), and the newsletter. Head tags and structured data as before.
  */
 export default function ArticlePage(): ReactElement {
   const { slug = "" } = useParams();
@@ -84,6 +89,7 @@ export default function ArticlePage(): ReactElement {
   const res = useResource(load, { resetKey: slug });
   const article = res.data;
   const [copied, setCopied] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   usePageMeta({
     // The API's page_title (backend rule: "<title> | Zinwe", brand dropped past 60 characters), else the same rule here.
@@ -95,11 +101,11 @@ export default function ArticlePage(): ReactElement {
   if (res.error && !article) {
     const missing = res.error instanceof ApiError && res.error.kind === "not_found";
     return (
-      <div className="zs-wrap za-wrap">
-        <div className="zs-state">
+      <div className="zst-wrap zst-art__head">
+        <div className="zst-state zst-state--light">
           <b>{missing ? "This article isn't here" : "The article didn't load"}</b>
           <span>{missing ? "It may have moved or been unpublished." : errorMessage(res.error)}</span>
-          <span className="za-state__acts">
+          <span className="zst-state__acts">
             {missing ? null : (
               <button type="button" className="zs-btn zs-btn--sm" onClick={res.reload}>
                 Try again
@@ -115,8 +121,11 @@ export default function ArticlePage(): ReactElement {
   }
   if (!article) {
     return (
-      <div className="zs-wrap za-wrap" aria-busy="true">
-        <div className="zs-skel za-skel" />
+      // The same outer box as the loaded article, so the page doesn't shift when it arrives (CLS).
+      <div className="zst-art-page" aria-busy="true">
+        <div className="zst-wrap zst-art__head">
+          <div className="zst-skel zst-skel--art" />
+        </div>
       </div>
     );
   }
@@ -133,109 +142,135 @@ export default function ArticlePage(): ReactElement {
   };
   const guide = article.guide_pick;
   const pick = article.series_pick;
+  const [next, ...others] = article.related;
 
   return (
-    <>
-      <article className="zs-wrap za-wrap">
-        <div className="za-paper">
-          <nav aria-label="Breadcrumb" className="za-crumbs">
-            <Link className="zs-link" to="/blog">
-              Blog
-            </Link>
+    <div className="zst-art-page">
+      <ReadingProgress target={bodyRef} />
+      <article className="zst-art">
+        <header className="zst-wrap zst-art__head">
+          <nav aria-label="Breadcrumb" className="zst-art__crumbs">
+            <Link to="/blog">Blog</Link>
             <span aria-hidden="true">/</span>
-            <Link to={`/blog?type=${article.type}`}>{article.type_label}</Link>
+            <Link to={`/blog?type=${article.type}`}>{TOPIC[article.type] ?? article.type_label}</Link>
           </nav>
-          <h1 className="za-h1">{article.title}</h1>
-          {article.summary ? <p className="za-sum">{article.summary}</p> : null}
-          <div className="za-by">
-            <SiteMark size={28} tile className="za-by__z" />
-            {article.author_name || "Zinwe team"} · <time dateTime={article.published_at}>{formatDate(article.published_at)}</time> · {article.reading_minutes} min read
-          </div>
-          {/* Covers are 1200×630: the attributes reserve the space before the image arrives (CLS). */}
-          {article.cover ? (
-            <img className="za-cover" src={blogAsset(article.cover.url)} alt={article.cover_alt} width={1200} height={630} fetchPriority="high" />
-          ) : null}
-          <div className="zs-prose za-prose" dangerouslySetInnerHTML={{ __html: withAssetBase(article.body_html) }} />
-          <div className="za-cta">
+          <h1 className="zst-art__h1">{article.title}</h1>
+          {article.summary ? <p className="zst-art__dek">{article.summary}</p> : null}
+          <div className="zst-art__by">
+            <SiteMark size={28} tile className="zst-art__z" />
             <span>
-              <b>Send this week's change as a task.</b> Chat, tasks and data safety, free for up to 3 PCs.
+              <b>{article.author_name || "Zinwe team"}</b>
+              <span>
+                <time dateTime={article.published_at}>{formatDate(article.published_at)}</time> · {article.reading_minutes} min read
+              </span>
             </span>
-            <Link className="zs-btn zs-btn--pri zs-btn--flat" to="/signup?plan=free">
-              Start free
-            </Link>
           </div>
-        </div>
-
-        <aside className="za-aside">
-          <div className="zb-side">
-            <span className="za-k">SHARE</span>
-            <div className="za-share">
-              <a className="za-sh" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share)}`} target="_blank" rel="noreferrer">
+        </header>
+        {/* Covers are 1200×630: the attributes reserve the space before the image arrives (CLS). */}
+        {article.cover ? (
+          <div className="zst-wrap zst-art__cover">
+            <img src={blogAsset(article.cover.url)} alt={article.cover_alt} width={1200} height={630} fetchPriority="high" />
+          </div>
+        ) : null}
+        <div className="zst-wrap">
+          <div ref={bodyRef} className="zst-prose" dangerouslySetInnerHTML={{ __html: withAssetBase(article.body_html) }} />
+          <div className="zst-art__end">
+            <div className="zst-art__share">
+              <span>Share</span>
+              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share)}`} target="_blank" rel="noreferrer">
                 LinkedIn
               </a>
-              <a className="za-sh" href={`https://wa.me/?text=${encodeURIComponent(`${article.title} ${share}`)}`} target="_blank" rel="noreferrer">
+              <a href={`https://wa.me/?text=${encodeURIComponent(`${article.title} ${share}`)}`} target="_blank" rel="noreferrer">
                 WhatsApp
               </a>
-              <button type="button" className="za-sh" onClick={() => void copy()}>
+              <button type="button" onClick={() => void copy()}>
                 {copied ? "Link copied" : "Copy link"}
               </button>
             </div>
+            <div className="zst-art__cta">
+              <span>
+                <b>Send this week's change as a task.</b> Chat, tasks and data safety, free for up to 3 PCs.
+              </span>
+              <Link className="zs-btn zs-btn--pri zs-btn--flat" to="/signup?plan=free">
+                Start free
+              </Link>
+            </div>
           </div>
-          {guide ? (
-            <Link
-              className="za-pick"
-              to={`/blog/guides/${guide.slug}`}
-              onClick={() => trackEvent("select_promotion", { promotion_name: "guide_pick", item_id: guide.slug })}
-            >
-              {guide.cover ? (
-                <img className="za-pick__img" src={blogAsset(guide.cover.url)} alt="" loading="lazy" />
-              ) : (
-                <span className="za-pick__book" aria-hidden="true">
-                  <span />
-                </span>
-              )}
-              <span className="za-pick__t">
-                <span className="zs-mono za-pick__k">FREE GUIDE · {guide.page_count} PAGES</span>
-                <b>{guide.title}</b>
-              </span>
-            </Link>
-          ) : null}
-          {pick ? (
-            <Link
-              className="za-pick"
-              to={`/blog/series/${pick.series_slug}/${pick.slug}`}
-              onClick={() => trackEvent("select_promotion", { promotion_name: "tlf_article_pick", item_id: pick.slug })}
-            >
-              <span className="za-pick__book za-pick__book--series" aria-hidden="true">
-                <span />
-              </span>
-              <span className="za-pick__t">
-                <span className="zs-mono za-pick__k">{pick.series_title.toUpperCase()} · {pick.label.toUpperCase()}</span>
-                <b>{pick.title}</b>
-              </span>
-            </Link>
-          ) : null}
-          <SiteSubscribe variant="side" />
-        </aside>
+        </div>
       </article>
 
-      {article.related.length ? (
-        <section className="zs-wrap za-more" aria-labelledby="za-more-h">
-          <h2 id="za-more-h">Keep reading</h2>
-          <div className="za-more__grid">
-            {article.related.map((a) => (
-              <Link key={a.slug} to={`/blog/${a.slug}`} className="za-more__a">
-                <span>
-                  {a.type_label} · {a.reading_minutes} min
-                </span>
-                <b>{a.title}</b>
-              </Link>
-            ))}
-          </div>
+      {/* Up next: one story, big, so the next read is an easy yes; then the rest, quietly. */}
+      {next ? (
+        <section className="zst-wrap zst-next" aria-labelledby="zst-next-h">
+          <h2 id="zst-next-h" className="zst-next__k">
+            Up next
+          </h2>
+          <Link to={`/blog/${next.slug}`} className="zst-next__link">
+            <span className="zst-next__art">
+              {next.cover ? <img src={blogAsset(next.cover.url)} alt="" width={1200} height={630} loading="lazy" decoding="async" /> : null}
+            </span>
+            <span className="zst-next__body">
+              <span className="zst-kick">
+                {TOPIC[next.type] ?? next.type_label} · {next.reading_minutes} min read
+              </span>
+              <span className="zst-next__t">{next.title}</span>
+              {next.summary ? <span className="zst-next__dek">{next.summary}</span> : null}
+              <span className="zst-next__go">Read it →</span>
+            </span>
+          </Link>
         </section>
-      ) : (
-        <div className="za-more za-more--empty" />
-      )}
-    </>
+      ) : null}
+
+      {others.length || guide || pick ? (
+        <section className="zst-wrap zst-more" aria-label="Keep reading">
+          {others.length ? (
+            <div className="zst-more__list">
+              <h2 className="zst-more__t">Keep reading</h2>
+              <ul>
+                {others.map((a) => (
+                  <li key={a.slug}>
+                    <Link to={`/blog/${a.slug}`}>
+                      <span className="zst-kick">
+                        {TOPIC[a.type] ?? a.type_label} · {a.reading_minutes} min read
+                      </span>
+                      <b>{a.title}</b>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {guide || pick ? (
+            <div className="zst-more__picks">
+              <h2 className="zst-more__t">Go deeper</h2>
+              {guide ? (
+                <Link
+                  className="zst-pick"
+                  to={`/blog/guides/${guide.slug}`}
+                  onClick={() => trackEvent("select_promotion", { promotion_name: "guide_pick", item_id: guide.slug })}
+                >
+                  <span className="zst-kick">Free guide · {guide.page_count} pages</span>
+                  <b>{guide.title}</b>
+                </Link>
+              ) : null}
+              {pick ? (
+                <Link
+                  className="zst-pick zst-pick--dark"
+                  to={`/blog/series/${pick.series_slug}/${pick.slug}`}
+                  onClick={() => trackEvent("select_promotion", { promotion_name: "tlf_article_pick", item_id: pick.slug })}
+                >
+                  <span className="zst-kick">
+                    {pick.label}
+                  </span>
+                  <b>{pick.title}</b>
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      <SiteSubscribe variant="band" />
+    </div>
   );
 }
