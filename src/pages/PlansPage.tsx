@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from "react";
+import { Fragment, useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { hasSettledPlan } from "../auth/steps";
@@ -8,6 +8,7 @@ import { ICONS } from "../components/site/icons";
 import { PathIcon, Tick } from "../components/site/SiteIcon";
 import {
   COMPARE_ROWS,
+  INCLUDED,
   PLANS_CLOSE,
   PLANS_FAQ,
   PLANS_HERO,
@@ -21,6 +22,7 @@ import { seoFor } from "../content/seo";
 import { useHashTarget } from "../hooks/useHashTarget";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage, type BillingCycle, type Plan } from "../lib/api";
+import type { PlanModule } from "../lib/api/types";
 import { cx } from "../lib/cx";
 import { GST_RATE, money, paidPlans, planAmount, type SiteCurrency } from "../lib/sitePrices";
 import { pcsForTeamSize, planChargesGst, planForPcs } from "../portal/plan";
@@ -62,6 +64,12 @@ function fromHash(hash: string): { currency?: SiteCurrency; cycle?: BillingCycle
     currency: r === "in" ? "INR" : r === "us" ? "USD" : undefined,
     cycle: b === "month" ? "monthly" : b === "year" ? "yearly" : undefined,
   };
+}
+
+/** Does this plan include `module`? No module = on every plan; a catalogue without `modules` falls back to `cells`. */
+function planHas(plan: Plan | undefined, module: PlanModule | undefined, fallback: string): string {
+  if (!module || !plan?.modules) return fallback;
+  return plan.modules.includes(module) ? "y" : "n";
 }
 
 /** Per-PC price a month, before tax. */
@@ -208,6 +216,36 @@ export default function PlansPage(): ReactElement {
             </li>
           ))}
         </ul>
+        {/* What's in it, grouped (v1.3.2): only what this plan's modules switch on. */}
+        <dl className="zpl2-inc" aria-label={`What's in ${plan.name}`}>
+          {INCLUDED.map((g) => {
+            const items = g.items.filter((it) => planHas(plan, it.module, "y") === "y");
+            return items.length ? (
+              <div key={g.group} className="zpl2-inc__g">
+                <dt>{g.group}</dt>
+                <dd>
+                  {items.map((it, i) => (
+                    <Fragment key={it.label}>
+                      {/* The dot stays at the end of its line: label + no-break space + dot never split. */}
+                      <span className="zpl2-inc__it">
+                        {it.label}
+                        {i < items.length - 1 ? (
+                          <>
+                            {" "}
+                            <span className="zpl2-inc__sep" aria-hidden="true">
+                              ·
+                            </span>
+                          </>
+                        ) : null}
+                      </span>
+                      {i < items.length - 1 ? " " : null}
+                    </Fragment>
+                  ))}
+                </dd>
+              </div>
+            ) : null;
+          })}
+        </dl>
       </article>
     );
   };
@@ -409,7 +447,7 @@ export default function PlansPage(): ReactElement {
               </tr>
               {COMPARE_ROWS.map((r) =>
                 "group" in r ? (
-                  <tr key={r.group} className="zp2-grp">
+                  <tr key={r.group} className={cx("zp2-grp", r.group === "PROTECTION" && "zpl2-grp-prot")}>
                     <th scope="row" colSpan={5}>
                       {r.group}
                     </th>
@@ -420,7 +458,7 @@ export default function PlansPage(): ReactElement {
                       {r.f}
                       {r.isNew ? <span className="zp2-new">New</span> : null}
                     </th>
-                    {r.cells.map((c, i) => (
+                    {r.cells.map((fallback, i) => planHas(tablePlans[i], r.module, fallback)).map((c, i) => (
                       <td key={`${r.f}-${i}`}>
                         {c === "y" ? (
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Included" className="zs-tick">

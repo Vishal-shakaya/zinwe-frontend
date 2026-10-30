@@ -4,7 +4,8 @@
  */
 
 export interface NavLink {
-  key: "product" | "plans" | "download" | "blog" | "contact";
+  /** "resources" is the Resources menu (RESOURCE_LINKS), not a link. */
+  key: "product" | "plans" | "download" | "resources" | "contact";
   label: string;
   to: string;
 }
@@ -13,8 +14,25 @@ export const NAV_LINKS: readonly NavLink[] = [
   { key: "product", label: "Product", to: "/product" },
   { key: "plans", label: "Plans", to: "/plans" },
   { key: "download", label: "Download", to: "/download" },
-  { key: "blog", label: "Blog", to: "/blog" },
+  { key: "resources", label: "Resources", to: "/blog" },
   { key: "contact", label: "Talk to us", to: "/contact" },
+];
+
+/**
+ * The four content pages (v1.3.2, owner 31 Oct): the header's Resources menu, the phone menu's Resources section and
+ * the footer's RESOURCES column. Labels exactly as the owner named them.
+ */
+export interface ResourceLink {
+  label: "Blog" | "Newsletter" | "Free resources" | "New release";
+  to: string;
+  sub: string;
+}
+
+export const RESOURCE_LINKS: readonly ResourceLink[] = [
+  { label: "Blog", to: "/blog", sub: "Stories and how-tos for small offices" },
+  { label: "Newsletter", to: "/blog/series", sub: "THE LAST FILE, a story in episodes" },
+  { label: "Free resources", to: "/blog/guides", sub: "Practical guides for owners, free" },
+  { label: "New release", to: "/whats-new", sub: "What's new in Zinwe" },
 ];
 
 /**
@@ -59,13 +77,8 @@ export const FOOTER_COLUMNS: ReadonlyArray<{ label: string; links: readonly Foot
     ],
   },
   {
-    label: "LEARN",
-    links: [
-      { label: "Blog", to: "/blog" },
-      { label: "Free guides", to: "/blog/guides" },
-      { label: "Members' series", to: "/blog/series" },
-      { label: "Release notes", to: "/whats-new" },
-    ],
+    label: "RESOURCES",
+    links: RESOURCE_LINKS.map(({ label, to }) => ({ label, to })),
   },
   {
     label: "COMPANY",

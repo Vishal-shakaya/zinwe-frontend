@@ -8,7 +8,15 @@
  * proposed extras (major alerts by email, performance, one person on two PCs) stay off until their backends
  * ship; tasks (FR-20) are on every plan since 1.3.1: see .claude/dev/docs/06-website-portal.md. Copy is keyed by plan code; an unknown code falls back
  * to the API's own feature list.
+ *
+ * v1.3.2 (owner 31 Oct: "the plan features say nothing about protection"): the cards get a grouped "What's in it"
+ * block (INCLUDED) and the compare table a Protection group. Each line names the backend module that switches it
+ * on (zinwe-backend z_auth/entitlements.py, the plan's `modules` in GET /api/auth/plans/), so a tick is shown only
+ * when that plan's modules really include it; `cells` is the same answer for the static pre-render and while the
+ * catalogue loads. No module = not plan-gated (on every plan).
  */
+import type { PlanModule } from "../../lib/api/types.ts";
+
 
 export interface PlanCopy {
   tag: string;
@@ -20,10 +28,9 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
   free: {
     tag: "Try Zinwe on your own office PCs, free.",
     points: [
-      ["All six protections, with plain-English alerts", true, false],
-      ["Chat and tasks with each person", true, false],
-      ["Work hours with break approvals", true, false],
-      ["Reports on screen, CSV download", true, false],
+      ["Every protection and team feature", true, false],
+      ["Plain-English alerts, no logs to read", true, false],
+      ["Guided setup", true, false],
     ],
   },
   startups: {
@@ -54,6 +61,42 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
     ],
   },
 };
+
+/**
+ * The cards' grouped "What's in it" block: short names, as the dashboard names them. A line shows on a card only
+ * when that plan's `modules` include its module (no module = every plan).
+ */
+export interface IncludedItem {
+  label: string;
+  module?: PlanModule;
+}
+export const INCLUDED: ReadonlyArray<{ group: string; items: readonly IncludedItem[] }> = [
+  {
+    group: "Protection",
+    items: [
+      { label: "USB block or read-only", module: "usb_control" },
+      { label: "App blocking", module: "remote_access" },
+      { label: "Website blocking", module: "web" },
+      { label: "Data transfer alerts", module: "data_transfer" },
+      { label: "Internet data", module: "web" },
+      { label: "Data safety", module: "usb_alerts" },
+    ],
+  },
+  {
+    group: "Team",
+    items: [
+      { label: "Chat", module: "team_chat" },
+      { label: "Tasks", module: "team_chat" },
+      { label: "Work hours", module: "work_time" },
+      { label: "App usage", module: "app_usage" },
+      { label: "Team pictures" },
+    ],
+  },
+  {
+    group: "Reports",
+    items: [{ label: "On screen and CSV" }, { label: "PDF by email", module: "reports_pro" }],
+  },
+];
 
 export const PLANS_HERO = {
   eyebrow: "Plans and pricing",
@@ -92,23 +135,35 @@ export const WHY: ReadonlyArray<{ plan: string; code: string; tone: string; pain
   { plan: "Businesses", code: "businesses", tone: "tone-ink", pain: "Our clients and auditors ask for records.", fix: "A full year of history, ready to show.", how: "Twelve months of alerts and activity, priority support, and we set up your whole team with you." },
 ];
 
-/** y = included, n = not included, anything else = the text shown. The first two rows are built from the API. */
+/**
+ * y = included, n = not included, anything else = the text shown. The first two rows (PCs, history) are built from the
+ * API. A row with a `module` is ticked from each plan's `modules`; `cells` is the same answer, in plan order
+ * (Free forever, Startups, Teams, Businesses), for the static page and while the catalogue loads.
+ */
 export type Cell = "y" | "n" | string;
-export type CompareRow = { group: string } | { f: string; isNew?: boolean; cells: readonly [Cell, Cell, Cell, Cell] };
+export type CompareRow = { group: string } | { f: string; isNew?: boolean; module?: PlanModule; cells: readonly [Cell, Cell, Cell, Cell] };
 
 export const COMPARE_ROWS: readonly CompareRow[] = [
-  { group: "DATA PROTECTION" },
-  { f: "Pen drive, file-copy and upload alerts", cells: ["y", "y", "y", "y"] },
-  { f: "Remote-control apps and new software", cells: ["y", "y", "y", "y"] },
-  { f: "Website blocking", cells: ["y", "y", "y", "y"] },
+  { group: "PROTECTION" },
+  { f: "USB drives: allow, read-only or block", module: "usb_control", cells: ["y", "y", "y", "y"] },
+  { f: "Pen drive and file-copy alerts", module: "usb_alerts", cells: ["y", "y", "y", "y"] },
+  { f: "Data transfer alerts: network folders, Outlook and uploads", module: "data_transfer", cells: ["y", "y", "y", "y"] },
+  { f: "App blocking: AnyDesk, TeamViewer and other remote-access apps", module: "remote_access", cells: ["y", "y", "y", "y"] },
+  { f: "New software alerts", module: "software_installs", cells: ["y", "y", "y", "y"] },
+  { f: "Website blocking, by kind of site or by name", module: "web", cells: ["y", "y", "y", "y"] },
+  { f: "Internet data used, by app and by website", module: "web", cells: ["y", "y", "y", "y"] },
+  { f: "Data safety: what left each PC, and how", module: "usb_alerts", cells: ["y", "y", "y", "y"] },
   { f: "Plain-English alerts in the dashboard", cells: ["y", "y", "y", "y"] },
-  { group: "YOUR TEAM" },
-  { f: "Chat with each person", cells: ["y", "y", "y", "y"] },
-  { f: "Tasks with steps, due dates and approvals", cells: ["y", "y", "y", "y"] },
-  { f: "Work hours and break approvals", cells: ["y", "y", "y", "y"] },
+  { f: "Email an alert to the person it's about", module: "alert_to_employee", cells: ["y", "y", "y", "y"] },
+  { group: "TEAM" },
+  { f: "Chat with each person", module: "team_chat", cells: ["y", "y", "y", "y"] },
+  { f: "Tasks with steps, due dates and approvals", module: "team_chat", cells: ["y", "y", "y", "y"] },
+  { f: "Work hours and break approvals", module: "work_time", cells: ["y", "y", "y", "y"] },
+  { f: "App usage: which apps, and for how long", module: "app_usage", cells: ["y", "y", "y", "y"] },
+  { f: "Team pictures: a face for each person", cells: ["y", "y", "y", "y"] },
   { group: "REPORTS" },
   { f: "Reports on screen and CSV", cells: ["y", "y", "y", "y"] },
-  { f: "PDF reports emailed on a schedule", isNew: true, cells: ["n", "y", "y", "y"] },
+  { f: "PDF reports emailed on a schedule", isNew: true, module: "reports_pro", cells: ["n", "y", "y", "y"] },
   { group: "SUPPORT" },
   { f: "Help", cells: ["Help pages", "Email", "Email", "Priority"] },
   { f: "Guided setup call for your team", cells: ["n", "n", "n", "y"] },
@@ -116,7 +171,7 @@ export const COMPARE_ROWS: readonly CompareRow[] = [
 
 /** {first} = the first paid plan's PC limit, {top} / {topName} = the largest plan's. */
 export const PLANS_FAQ: ReadonlyArray<{ q: string; a: string }> = [
-  { q: "What does every plan include?", a: "All six protections with plain-English alerts, chat, tasks, work hours with break approvals, and reports on screen with a CSV download. Paid plans add more PCs, a longer history and PDF reports emailed to you." },
+  { q: "What does every plan include?", a: "Every protection: USB block or read-only, app blocking for remote-access tools, website blocking, data transfer alerts, internet data and Data safety, with plain-English alerts. Every team feature: chat, tasks, work hours with break approvals, app usage and team pictures. And reports on screen with a CSV download. Paid plans add more PCs, a longer history and PDF reports emailed to you." },
   { q: "Is GST included in the price?", a: "In India the price you see is before 18% GST; the card shows the total with GST too, and every payment gets a GST invoice. Outside India you pay in US dollars with no Indian GST." },
   { q: "Will I be charged automatically?", a: "No. Each payment covers one month or one year. We email you before it ends, and you pay for the next one only if you want to." },
   { q: "Can I change plans later?", a: "Yes, any time from Billing in your dashboard. Moving up starts right away; your rules, chats, tasks and history all stay." },

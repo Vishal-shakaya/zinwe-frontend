@@ -618,3 +618,51 @@
     font-size: 13px;
   }
 }
+
+/* ---------- v1.3.2 (Track P): each card's grouped "What's in it" (Protection · Team · Reports) and the compare
+   table's Protection group. Calm: a hairline, quiet small caps, plain text joined by dots; no boxes, no shadows. ---------- */
+.zpl2-inc {
+  margin: auto 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--zs-line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.zpl2-inc__g {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.zpl2-inc dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--zs-muted);
+}
+.zpl2-inc dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--zs-ink-2);
+}
+.zpl2-inc__it {
+  white-space: nowrap;
+}
+.zpl2-inc__sep {
+  color: var(--zs-faint);
+}
+.zp2-table .zpl2-grp-prot th {
+  color: var(--zs-orange-ink);
+}
+@media (max-width: 760px) {
+  .zpl2-inc dd {
+    font-size: 14.5px;
+  }
+}
+/* 360 px phones: "Businesses" fits its picker button instead of being clipped (seen in the v1.3.2 shots). */
+@media (max-width: 380px) {
+  .zp2 .zp2-cmp-pick__b {
+    padding: 4px 2px;
+    font-size: 13px;
+  }
+}
