@@ -66,7 +66,16 @@ function renderBody(body: string): ReactNode[] {
 }
 
 /** Every published release note, newest first (FR-21). Used by the website's /whats-new and the dashboard. */
-export function ReleaseNotes({ headingLevel = 2 }: { headingLevel?: 2 | 3 }): ReactElement {
+export function ReleaseNotes({
+  headingLevel = 2,
+  skip,
+  emptyText = "The first release notes are on their way.",
+}: {
+  headingLevel?: 2 | 3;
+  /** Notes to leave out (the website's /whats-new shows the latest release from src/content instead). */
+  skip?: (note: ReleaseNote) => boolean;
+  emptyText?: string;
+}): ReactElement {
   const load = useCallback((signal: AbortSignal) => getReleaseNotes(signal), []);
   const notes = useResource(load);
   const newest = notes.data?.[0]?.id;
@@ -86,13 +95,14 @@ export function ReleaseNotes({ headingLevel = 2 }: { headingLevel?: 2 | 3 }): Re
       <p className="rn-empty">Loading…</p>
     );
   }
-  if (notes.data.length === 0) {
-    return <p className="rn-empty">The first release notes are on their way.</p>;
+  const shown = skip ? notes.data.filter((n) => !skip(n)) : notes.data;
+  if (shown.length === 0) {
+    return <p className="rn-empty">{emptyText}</p>;
   }
   const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <ol className="rn-list">
-      {notes.data.map((n: ReleaseNote) => (
+      {shown.map((n: ReleaseNote) => (
         <li key={n.id} className="rn-note">
           <header className="rn-note__head">
             <span className="rn-note__version">Zinwe {n.version}</span>
