@@ -23,6 +23,8 @@ import { CLOSE, FAIR, HERO, MEMBER_QUOTE, PROTECTION as HOME_PROTECTION, RULES, 
 import { LEGAL_SUMMARY_UPDATED, POLICY_SUMMARIES } from "../src/content/site/legalSummary.ts";
 import { COMPARE_ROWS, PLAN_COPY, PLANS_CLOSE, PLANS_FAQ, PROMISES, WHY, fill } from "../src/content/site/plans.ts";
 import { ALERTS, CHAT, HOURS, PLAN_TAG, PRIVACY, PRODUCT_CLOSE, PRODUCT_HERO, PROTECTION, REPORTS, TASKS } from "../src/content/site/product.ts";
+import { LATEST_RELEASE, LOOPS_CAPTION } from "../src/content/site/releases.ts";
+import { FREE_HONESTY, FREE_LABEL, FREE_STEPS, FREE_TITLE, GUIDE_AUTHOR, GUIDE_NOTE, GUIDE_PROMISES } from "../src/content/site/resources.ts";
 import { FOOTER_ABOUT, FOOTER_COLUMNS } from "../src/content/site/shell.ts";
 
 // ---- HTML helpers ---------------------------------------------------------------------------------------------
@@ -297,7 +299,27 @@ function contact(): string {
 }
 
 function whatsNew(): string {
-  return `<p>${a("/download", "Download for Windows")} · ${a("/blog", fromPage("pages/WhatsNewPage.tsx", "Zinwe blog"))}</p>`;
+  const r = LATEST_RELEASE;
+  return [
+    section(
+      p(`New release · Zinwe ${r.version} · ${r.dateLabel}`) +
+        h(2, r.title) +
+        p(r.summary) +
+        r.items.map((it) => h(3, `${it.title} (${it.tag})`) + p(it.text)).join("") +
+        p(LOOPS_CAPTION),
+    ),
+    `<p>${a("/download", "Download for Windows")} · ${a("/blog", fromPage("pages/WhatsNewPage.tsx", "Zinwe blog"))}</p>`,
+  ].join("");
+}
+
+function guides(): string {
+  return [
+    p(`${FREE_LABEL} · ${GUIDE_AUTHOR}`),
+    section(GUIDE_PROMISES.map((g) => h(2, g.title) + p(g.text)).join("")),
+    section(h(2, FREE_TITLE) + ol(FREE_STEPS.map((st) => `${st.title}. ${st.text}`)) + p(FREE_HONESTY)),
+    p(GUIDE_NOTE),
+    `<p>${a("/blog", "Blog")}</p>`,
+  ].join("");
 }
 
 function blog(): string {
@@ -341,6 +363,7 @@ const BODIES: Record<string, () => string> = {
   "/early-access": earlyAccess,
   "/contact": contact,
   "/whats-new": whatsNew,
+  "/blog/guides": guides,
   "/blog": blog,
   "/legal": legalIndex,
 };
