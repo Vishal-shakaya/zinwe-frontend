@@ -18,8 +18,8 @@ import { join } from "node:path";
 import { AGENT_MSI_URL, AGENT_RELEASE, DOWNLOAD_CLOSE, DOWNLOAD_FAQ, DOWNLOAD_HERO, NEVERS, PATHS, PATH_NOTE, REQUIREMENTS, SILENT_INSTALL, WARNS, WARN_INTRO } from "../src/content/download.ts";
 import { LEGAL_CONTACT, LEGAL_DOCS, LEGAL_UPDATED, type LegalDoc } from "../src/content/legal.ts";
 import { BRAND_LINE, HOME_FAQ, type SeoPage } from "../src/content/seo.ts";
-import { ACTIVE_MEMBERS, WALL_COPY } from "../src/content/site/clients.ts";
-import { CLOSE, FAIR, HERO, MEMBER_QUOTE, PROTECTION as HOME_PROTECTION, RULES, STEPS, TEAM_SIDE, TILES_INTRO } from "../src/content/site/home.ts";
+import { ACTIVE_MEMBERS, HOME_WALL_LEAD, WALL_COPY } from "../src/content/site/clients.ts";
+import { CHAT_SPOT, CLOSE, FAIR, FEATURES, HERO, MEMBER_QUOTE, PROTECTION as HOME_PROTECTION, RULES, STEPS, TEAM_SIDE, TILES_INTRO } from "../src/content/site/home.ts";
 import { LEGAL_SUMMARY_UPDATED, POLICY_SUMMARIES } from "../src/content/site/legalSummary.ts";
 import { COMPARE_ROWS, PLAN_COPY, PLANS_CLOSE, PLANS_FAQ, PROMISES, WHY, fill } from "../src/content/site/plans.ts";
 import { ALERTS, CHAT, HOURS, PLAN_TAG, PRIVACY, PRODUCT_CLOSE, PRODUCT_HERO, PROTECTION, REPORTS, TASKS } from "../src/content/site/product.ts";
@@ -123,25 +123,17 @@ export function linkedPaths(html: string): Set<string> {
 const START_FREE = (): string => a("/signup?plan=free", fromPage("pages/HomePage.tsx", "Start free, up to 3 PCs"));
 
 function home(): string {
-  const tiles: Array<[href: string, title: string, body: string, link: string]> = [
-    ["/product#chat", "Message anyone, right at their PC.", "Keep work talk out of WhatsApp groups. Messages arrive in seconds, with Seen ticks, and any one can become a task.", "How chat works"],
-    ["/product#tasks", "Send a task. Watch it move.", "Due dates, steps and a stage bar. Approve the work when it's done.", "How tasks work"],
-    ["/product#reports", "See the week in ten seconds.", "Hours, tasks done, apps and websites, per person. On paid plans, a PDF can land in your inbox every Monday.", "What reports show"],
-    ["/product#hours", "Attendance that runs itself.", "Start day, Take a break, End day: one tap on each PC. Long breaks ask for your OK.", "How work hours work"],
-    ["/product#alerts", "Plain English, not logs.", "What happened, what it means, and one button for what to do next.", "How alerts work"],
-  ];
   return [
     p(`${HERO.badge} ${HERO.badgeText}`),
     ul(HERO.ticks),
     `<p>${START_FREE()} · ${a("/download", "Download for Windows")}</p>`,
-    section(h(2, fromPage("components/site/SiteClients.tsx", "Small businesses that run their office on Zinwe")) + ul(ACTIVE_MEMBERS)),
+    section(h(2, HOME_WALL_LEAD) + ul(ACTIVE_MEMBERS)),
     section(
       h(2, TILES_INTRO.title) +
         p(TILES_INTRO.lead) +
-        tiles
-          .map(([href, title, body, link]) => h(3, fromPage("pages/HomePage.tsx", title)) + p(fromPage("pages/HomePage.tsx", body)) + `<p>${a(href, fromPage("pages/HomePage.tsx", link))}</p>`)
-          .join(""),
+        FEATURES.map((f) => h(3, f.title) + p(f.body) + (f.href ? `<p>${a(f.href, f.link)}</p>` : "")).join(""),
     ),
+    section(h(2, CHAT_SPOT.title) + p(CHAT_SPOT.lead) + ul(CHAT_SPOT.points) + `<p>${a("/product#chat", CHAT_SPOT.link)}</p>`),
     section(
       h(2, HOME_PROTECTION.title) +
         p(HOME_PROTECTION.lead) +
