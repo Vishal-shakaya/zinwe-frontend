@@ -6,14 +6,14 @@
  * Rule "only shipped features": no Performance in Reports and no "major alerts by email" until those backends ship.
  * Tasks came back in 1.3.1 (FR-20). See .claude/dev/docs/06-website-portal.md.
  */
-import { ICONS } from "../../components/site/icons";
+import { ICONS } from "../../components/site/icons.ts";
 
 export const PRODUCT_SECTIONS = ["chat", "tasks", "hours", "reports", "alerts", "protection", "privacy"] as const;
 
 export const PRODUCT_HERO = {
   eyebrow: "Product",
-  title: "One app for a safe, well-run office.",
-  lead: "The six things owners of small teams ask for, in one place. Each one is simple on its own, and better together.",
+  title: "One app to run a small office and keep its data safe.",
+  lead: "Chat, tasks, work hours, reports, plain-English alerts and data protection for small teams on Windows. Each one is simple on its own, and better together.",
   jumps: [
     { label: "Chat", href: "#chat", dot: "blue" },
     { label: "Tasks", href: "#tasks", dot: "orange" },
@@ -152,8 +152,8 @@ export type DemoKey = keyof typeof ALERTS.demos;
 
 export const PROTECTION = {
   pill: "Data protection · all plans",
-  title: "The six ways data leaves a small office.",
-  lead: "For each one, pick how strict to be. Every PC follows your answer within about a minute.",
+  title: "Data protection in six simple choices.",
+  lead: "Data leaves a small office on pen drives, shared folders, email and uploads, and trouble gets in through remote-control apps, new software and risky sites. For each one, pick how strict to be. Every PC follows your answer within about a minute.",
   doors: [
     { title: "Pen drives", body: "See every copy to a USB drive with its size. Keyboards and mice are never affected.", icon: ICONS.usb, modes: ["Allow", "Open files only", "Block"] },
     { title: "Files leaving the office", body: "Big copies to shared folders and email attachments, with a size limit you set.", icon: ICONS.mail, modes: ["Watch", "Set a limit"] },
@@ -178,6 +178,6 @@ export const PRIVACY = {
 } as const;
 
 export const PRODUCT_CLOSE = {
-  title: "Try every part free, on 3 PCs.",
-  body: "Chat, tasks, work hours, reports and protection. No card, no time limit.",
+  title: "Try it free, on 3 PCs.",
+  body: "Chat, tasks, work hours, reports, alerts and data protection. No card, no time limit.",
 } as const;

@@ -42,7 +42,7 @@ export type LegalSlug = "terms" | "privacy" | "refund" | "delivery" | "cookies" 
 const TERMS: LegalDoc = {
   slug: "terms",
   title: "Terms and Conditions",
-  summary: "The agreement for using Zinwe: who it's for, your responsibilities, billing and liability.",
+  summary: "The agreement for using Zinwe: who it's for, lawful use on company PCs, your responsibilities, plans priced per PC, billing with no auto-charge and liability.",
   sections: [
     {
       heading: "Acceptance & What Zinwe Is",
@@ -111,7 +111,7 @@ const TERMS: LegalDoc = {
 const PRIVACY: LegalDoc = {
   slug: "privacy",
   title: "Privacy Policy",
-  summary: "What we collect, how we use and share it, how long we keep it, and your rights.",
+  summary: "What Zinwe collects about your business and your team, how we use and share it, how long we keep it, how we protect it, and your rights in India and the US.",
   // v1.1: names website time and internet data used (the PC's consent notice asks members again).
   // 2026-10-23: names the payment partners (Razorpay, Skydo).
   updated: "23 October 2026",
@@ -167,7 +167,7 @@ const PRIVACY: LegalDoc = {
 const REFUND: LegalDoc = {
   slug: "refund",
   title: "Return and Refund Policy",
-  summary: "Fees are non-refundable except for billing errors or where the law requires. Cancel any time.",
+  summary: "Zinwe fees are non-refundable except for billing errors or where the law requires. Nothing is charged automatically, so you can stop at the end of any period.",
   sections: [
     {
       heading: "Policy Summary",
@@ -197,7 +197,7 @@ const REFUND: LegalDoc = {
 const DELIVERY: LegalDoc = {
   slug: "delivery",
   title: "Shipping and Delivery Policy",
-  summary: "Zinwe is delivered online: nothing is shipped, and paid plans switch on as soon as payment is confirmed.",
+  summary: "Zinwe is software delivered online, so nothing is shipped. Online payments start your plan in about a minute; bank transfers usually in one working day.",
   sections: [
     {
       heading: "Nothing Is Shipped",
@@ -230,7 +230,7 @@ const DELIVERY: LegalDoc = {
 const DISCLAIMER: LegalDoc = {
   slug: "disclaimer",
   title: "Disclaimer",
-  summary: "Zinwe is provided as is, can't catch every incident, and isn't legal advice.",
+  summary: "Zinwe is provided as is. It helps you spot data leaks but can't catch every incident, and its alerts and consent screens aren't legal or professional advice.",
   sections: [
     {
       heading: '"As Is" Service, No Guarantee of Detection',
@@ -257,7 +257,7 @@ const DISCLAIMER: LegalDoc = {
 const COOKIES: LegalDoc = {
   slug: "cookies",
   title: "Cookie Policy",
-  summary: "Essential cookies keep you signed in; optional analytics cookies help us improve the site.",
+  summary: "Essential cookies keep you signed in to Zinwe. Analytics cookies (Google Analytics, PostHog, Clarity) run only if you allow them. Change your choice any time.",
   updated: "17 October 2026",
   sections: [
     {
@@ -295,7 +295,7 @@ const COOKIES: LegalDoc = {
 const ACCEPTABLE_USE: LegalDoc = {
   slug: "acceptable-use",
   title: "Acceptable Use Policy",
-  summary: "Zinwe is for monitoring your own business devices, openly. What's allowed and what's not.",
+  summary: "Zinwe is for protecting your own business PCs, openly and with each person's knowledge. What's allowed, what's not, and how to report misuse to us directly.",
   sections: [
     {
       heading: "Purpose & Who Zinwe Is For",

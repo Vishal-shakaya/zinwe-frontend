@@ -24,8 +24,8 @@ export const AGENT_RELEASE: { version: string; sha256: string | null } = {
 
 export const DOWNLOAD_HERO = {
   eyebrow: "Download",
-  title: "Zinwe for Windows.",
-  lead: "One small app by the clock on each PC. It keeps company data safe, brings your team's chat and tasks, and tracks work hours with one tap.",
+  title: "Download Zinwe for Windows.",
+  lead: "One small app for each Windows 10 or 11 PC. It sits by the clock, protects company data, brings your team's chat and tasks, and records work hours with one tap.",
   facts: ["Free to download", "Installs in about a minute", "Each person agrees first", "No kernel driver"],
 } as const;
 

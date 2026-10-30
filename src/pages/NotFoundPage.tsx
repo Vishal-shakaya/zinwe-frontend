@@ -15,7 +15,7 @@ const POPULAR: ReadonlyArray<{ label: string; to: string; icon: string }> = [
 /** 404 (board SiteNotFound). The server sends 404.html with status 404 for unknown addresses; noindex is a second guard. */
 export default function NotFoundPage(): ReactElement {
   usePageMeta({
-    title: "Page not found — Zinwe",
+    title: "Page not found | Zinwe",
     description: "This page doesn't exist. Head back to the Zinwe home page or get in touch.",
     noindex: true,
   });

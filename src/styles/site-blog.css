@@ -140,6 +140,8 @@
 .zb-cover {
   display: block;
   width: 100%;
+  /* height:auto so the img's width/height attributes don't fix its height; the box keeps this ratio. */
+  height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 13px;
@@ -311,8 +313,33 @@
   gap: 18px;
 }
 .zb-skel {
-  min-height: 340px;
+  min-height: 420px;
   border-radius: 20px;
+}
+/* Loading placeholders shaped like what replaces them (CLS): the release line, the featured article, LATEST. */
+.zb-release--skel {
+  display: block;
+  width: min(420px, 100%);
+  height: 36px;
+  border: 0;
+  padding: 0;
+}
+.zb-skel--lead {
+  flex: 1.6 1 520px;
+  min-width: 0;
+  min-height: 560px;
+  border-radius: 20px;
+}
+.zb-skel--latest {
+  flex: 1 1 320px;
+  min-width: 0;
+  min-height: 300px;
+  border-radius: 20px;
+}
+@media (max-width: 760px) {
+  .zb-skel--lead {
+    min-height: 440px;
+  }
 }
 .zb-tip {
   display: flex;

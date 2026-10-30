@@ -35,7 +35,7 @@ export interface FooterLink {
 }
 
 export const FOOTER_ABOUT =
-  "Data safety, chat, tasks, work hours and reports for small teams on Windows. Made by SKYTECHNO in New Delhi.";
+  "Data protection, chat, tasks, work hours and reports for small teams on Windows. Made by SKYTECHNO in New Delhi.";
 
 export const FOOTER_COLUMNS: ReadonlyArray<{ label: string; links: readonly FooterLink[]; note?: string }> = [
   {

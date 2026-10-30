@@ -131,7 +131,7 @@ export default function HomePage(): ReactElement {
           <Link to="/product#chat" className={cx("zh-tile zh-tile--full", off(0))} data-i="0">
             <span className="zh-tile__kick is-blue">Chat</span>
             <h3 className="zh-tile__h">Message anyone, right at their PC.</h3>
-            <p className="zh-tile__p">No WhatsApp groups for work. Messages arrive in seconds, with Seen ticks.</p>
+            <p className="zh-tile__p">Keep work talk out of WhatsApp groups. Messages arrive in seconds, with Seen ticks, and any one can become a task.</p>
             <span className="zh-tile__link">How chat works ›</span>
             <div className="zh-vis">
               <div className="zh-shot zh-shot--chat">
@@ -268,7 +268,7 @@ export default function HomePage(): ReactElement {
           <Link to="/product#reports" className={cx("zh-tile zh-tile--full", off(2))} data-i="2">
             <span className="zh-tile__kick is-green">Reports</span>
             <h3 className="zh-tile__h">See the week in ten seconds.</h3>
-            <p className="zh-tile__p">Hours, tasks done, apps and websites, per person. Emailed as a PDF every Monday if you like.</p>
+            <p className="zh-tile__p">Hours, tasks done, apps and websites, per person. On paid plans, a PDF can land in your inbox every Monday.</p>
             <span className="zh-tile__link">What reports show ›</span>
             <div className="zh-vis">
               <div className="zh-shot zh-shot--pad">

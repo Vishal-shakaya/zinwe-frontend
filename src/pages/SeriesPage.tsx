@@ -4,6 +4,7 @@ import { GrowCard } from "../components/series/GrowCard";
 import { noteSeriesVisit } from "../lib/attribution";
 import { seriesVoice } from "../lib/seriesVoice";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageTitle } from "../lib/pageTitle";
 import { useResource } from "../dashboard/useResource";
 import { LockIcon, MemberGate } from "../components/series/MemberGate";
 import { ReaderPill } from "../components/series/ReaderPill";
@@ -28,7 +29,8 @@ export default function SeriesPage(): ReactElement {
   }, [show?.slug]);
 
   usePageMeta({
-    title: show ? `${show.title} — a Zinwe series` : "Series — Zinwe",
+    // The same title the backend pre-render gives this page (z_blog/prerender.py).
+    title: show ? pageTitle(`${show.title}: a members-only series`) : pageTitle("Series"),
     description: show?.tagline || show?.description.slice(0, 160) || "A members-only series from Zinwe.",
   });
 

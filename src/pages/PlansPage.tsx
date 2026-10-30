@@ -445,7 +445,7 @@ export default function PlansPage(): ReactElement {
 
       <section className="zs-wrap zs-wrap--wide zs-qa zp2-faq">
         <div className="zs-qa__intro">
-          <span className="zs-eyebrow">Billing questions</span>
+          <span className="zs-eyebrow">Plan and billing questions</span>
           <h2 className="zp2-faq__h">Clear money, no surprises.</h2>
           <p>
             Still unsure which plan?{" "}

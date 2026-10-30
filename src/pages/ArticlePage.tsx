@@ -7,6 +7,8 @@ import { trackEvent } from "../lib/analytics";
 import { ApiError, errorMessage } from "../lib/api";
 import { blogAsset, getArticle, withAssetBase, type Article } from "../lib/api/blog";
 import { formatDate } from "../lib/format";
+import { clipText, pageTitle } from "../lib/pageTitle";
+import { OG_IMAGE } from "../content/seo";
 import { SiteMark } from "../components/site/SiteMark";
 import "../styles/site-blog.css";
 
@@ -17,7 +19,7 @@ function useArticleHead(article: Article | undefined): void {
   useEffect(() => {
     if (!article) return;
     const url = `${SITE}/blog/${article.slug}`;
-    const image = article.cover ? new URL(blogAsset(article.cover.url), window.location.origin).href : undefined;
+    const cover = article.cover ? new URL(blogAsset(article.cover.url), window.location.origin).href : undefined;
     const added: Element[] = [];
     const saved: [HTMLMetaElement, string][] = [];
 
@@ -36,8 +38,8 @@ function useArticleHead(article: Article | undefined): void {
     meta("property", "og:url", url);
     meta("property", "article:published_time", article.published_at);
     meta("property", "article:section", article.type_label);
-    if (image) {
-      meta("property", "og:image", image);
+    if (cover) {
+      meta("property", "og:image", cover);
       meta("property", "og:image:alt", article.cover_alt || article.title);
     }
 
@@ -49,14 +51,14 @@ function useArticleHead(article: Article | undefined): void {
     ld.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": article.type === "press_release" ? "NewsArticle" : "BlogPosting",
-      headline: article.seo_title || article.title,
+      headline: clipText(article.seo_title || article.title, 110), // schema.org: at most 110 characters
       description: article.meta_description,
       datePublished: article.published_at,
       dateModified: article.updated_at,
       author: { "@type": "Organization", name: article.author_name || "Zinwe" },
       publisher: { "@type": "Organization", name: "Zinwe", logo: { "@type": "ImageObject", url: `${SITE}/brand/zinwe-logo-96.png` } },
-      mainEntityOfPage: url,
-      ...(image ? { image } : {}),
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      image: cover ?? OG_IMAGE, // the article's cover, else the site's share image
       keywords: article.tags.join(", "),
     });
     document.head.appendChild(ld);
@@ -84,7 +86,8 @@ export default function ArticlePage(): ReactElement {
   const [copied, setCopied] = useState(false);
 
   usePageMeta({
-    title: article ? `${article.seo_title} — Zinwe` : "Blog — Zinwe",
+    // The API's page_title (backend rule: "<title> | Zinwe", brand dropped past 60 characters), else the same rule here.
+    title: article ? article.page_title || pageTitle(article.seo_title || article.title) : pageTitle("Blog"),
     description: article?.meta_description || "Guides, releases and news from Zinwe.",
   });
   useArticleHead(article);
@@ -148,7 +151,10 @@ export default function ArticlePage(): ReactElement {
             <SiteMark size={28} tile className="za-by__z" />
             {article.author_name || "Zinwe team"} · <time dateTime={article.published_at}>{formatDate(article.published_at)}</time> · {article.reading_minutes} min read
           </div>
-          {article.cover ? <img className="za-cover" src={blogAsset(article.cover.url)} alt={article.cover_alt} fetchPriority="high" /> : null}
+          {/* Covers are 1200×630: the attributes reserve the space before the image arrives (CLS). */}
+          {article.cover ? (
+            <img className="za-cover" src={blogAsset(article.cover.url)} alt={article.cover_alt} width={1200} height={630} fetchPriority="high" />
+          ) : null}
           <div className="zs-prose za-prose" dangerouslySetInnerHTML={{ __html: withAssetBase(article.body_html) }} />
           <div className="za-cta">
             <span>

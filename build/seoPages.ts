@@ -27,7 +27,6 @@ import { dirname, join } from "node:path";
 import type { Plugin } from "vite";
 import {
   FAQ_LD,
-  HOME_FAQ,
   legalSeo,
   NOINDEX_FILES,
   isNoindex,
@@ -40,9 +39,7 @@ import {
   type SeoPage,
 } from "../src/content/seo.ts";
 import { LEGAL_DOCS } from "../src/content/legal.ts";
-
-const escapeHtml = (text: string): string =>
-  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+import { checkPageLiterals, escapeHtml, linkedPaths, PAGE_H1, REQUIRED_LINKS, staticBody } from "./staticPages.ts";
 
 const jsonLd = (data: unknown): string =>
   `<script type="application/ld+json" data-prerender>${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
@@ -54,31 +51,6 @@ function setMeta(html: string, attr: "name" | "property", key: string, content: 
   const pattern = new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`);
   if (!pattern.test(html)) throw new Error(`index.html is missing <meta ${attr}="${key}">`);
   return html.replace(pattern, `$1${escapeHtml(content)}$2`);
-}
-
-/** Links every static page carries, so a crawler can walk the site without JavaScript. */
-const NAV_LINKS: ReadonlyArray<[string, string]> = [
-  ["/", "Home"],
-  ["/product", "Product"],
-  ["/plans", "Plans and pricing"],
-  ["/download", "Download for Windows"],
-  ["/blog", "Blog"],
-  ["/early-access", "Book a free setup call"],
-  ["/contact", "Contact"],
-  ["/legal", "Legal"],
-  ["/signup?plan=free", "Start free"],
-];
-
-function staticBody(page: SeoPage): string {
-  const paragraphs = page.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join("");
-  const faq =
-    page.path === "/"
-      ? `<h2>Questions owners ask</h2>${HOME_FAQ.map(
-          ({ q, a }) => `<h3>${escapeHtml(q)}</h3><p>${escapeHtml(a)}</p>`,
-        ).join("")}`
-      : "";
-  const nav = NAV_LINKS.map(([href, label]) => `<a href="${href}">${escapeHtml(label)}</a>`).join(" · ");
-  return `<main class="wrap seo-static"><h1>${escapeHtml(page.h1)}</h1>${paragraphs}${faq}<nav aria-label="Zinwe">${nav}</nav></main>`;
 }
 
 /** The page's HTML file from the built index.html. */
@@ -101,9 +73,9 @@ export function renderPage(template: string, page: SeoPage): string {
     html = html.replace(/<link rel="canonical" href="[^"]*"[^>]*>/, `<link rel="canonical" href="${url}" data-prerender />`);
   }
 
-  // The product on the pages that show it (home: with its FAQ; download: the installer).
+  // The product on the pages that show it (home: with its FAQ; product: what it does; download: the installer).
   const pageLd =
-    page.path === "/" ? jsonLd(SOFTWARE_LD) + jsonLd(FAQ_LD) : page.path === "/download" ? jsonLd(SOFTWARE_LD) : "";
+    page.path === "/" ? jsonLd(SOFTWARE_LD) + jsonLd(FAQ_LD) : page.path === "/product" || page.path === "/download" ? jsonLd(SOFTWARE_LD) : "";
   html = html.replace("</head>", `${pageLd}</head>`);
 
   // Same path with or without a trailing slash; anything else is an app route served this file.
@@ -159,6 +131,42 @@ export function checkRouteCoverage(routesSource: string, pages: readonly SeoPage
   return [...paths];
 }
 
+/** Search-result lengths every indexable page must meet (house rule: 40–60 / 140–160; the build allows a margin). */
+export const TITLE_RANGE = [30, 65] as const;
+export const DESCRIPTION_RANGE = [110, 165] as const;
+
+/**
+ * Fails the build on SEO regressions: an indexable page whose title or meta description is outside the ranges above,
+ * a static body without exactly one <h1> or missing a link to any public page (REQUIRED_LINKS), an SEO h1 that no
+ * longer matches the page's own heading (PAGE_H1), or a string the static copy takes from a page component that the
+ * page no longer has (checkPageLiterals). Returns the number of pages checked.
+ */
+export function checkSeoPages(pages: readonly SeoPage[], root: string): number {
+  const problems: string[] = [];
+  const within = (n: number, [lo, hi]: readonly [number, number]) => n >= lo && n <= hi;
+  for (const page of pages) {
+    const body = staticBody(page);
+    const h1s = body.match(/<h1[\s>]/g)?.length ?? 0;
+    if (h1s !== 1) problems.push(`${page.path}: the static body has ${h1s} <h1> (needs exactly 1)`);
+    const linked = linkedPaths(body);
+    const missing = REQUIRED_LINKS.filter((l) => !linked.has(l));
+    if (missing.length) problems.push(`${page.path}: the static body doesn't link ${missing.join(", ")}`);
+    if (PAGE_H1[page.path] !== undefined && PAGE_H1[page.path] !== page.h1) {
+      problems.push(`${page.path}: seo.ts h1 "${page.h1}" differs from the page's heading "${PAGE_H1[page.path]}"`);
+    }
+    if (page.noindex || !page.sitemap) continue;
+    if (!within(page.title.length, TITLE_RANGE)) {
+      problems.push(`${page.path}: title is ${page.title.length} characters (${TITLE_RANGE.join("–")}): "${page.title}"`);
+    }
+    if (!within(page.description.length, DESCRIPTION_RANGE)) {
+      problems.push(`${page.path}: description is ${page.description.length} characters (${DESCRIPTION_RANGE.join("–")})`);
+    }
+  }
+  problems.push(...checkPageLiterals(root).map((m) => `static copy: ${m} (update build/staticPages.ts)`));
+  if (problems.length) throw new Error(`seoPages: ${problems.length} problem(s):\n  - ${problems.join("\n  - ")}`);
+  return pages.length;
+}
+
 /** Vite plugin: runs once after the client build has written dist/. */
 export function seoPages(): Plugin {
   let outDir = "dist";
@@ -197,6 +205,7 @@ export function seoPages(): Plugin {
       if (!template.includes(OG_IMAGE)) throw new Error("index.html og:image changed: update OG_IMAGE in seo.ts");
       const pages = [...SEO_PAGES, ...LEGAL_DOCS.map(legalSeo)];
       checkRouteCoverage(readFileSync(join(root, "src", "routes.tsx"), "utf8"), pages);
+      checkSeoPages(pages, root);
       for (const page of pages) {
         const file = page.path === "/" ? indexPath : join(outDir, `${page.path.slice(1)}.html`);
         mkdirSync(dirname(file), { recursive: true });

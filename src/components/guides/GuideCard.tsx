@@ -5,7 +5,7 @@ import { guidePath, type GuideCard as Guide } from "../../lib/api/guides";
 import { trackEvent } from "../../lib/analytics";
 
 /** A guide as a book: cover, title, one line, pages. Used in the library, on the home page and under a guide. */
-export function GuideCard({ guide, from }: { guide: Guide; from: string }): ReactElement {
+export function GuideCard({ guide, from, priority = false }: { guide: Guide; from: string; priority?: boolean }): ReactElement {
   return (
     <Link
       to={guidePath(guide.slug)}
@@ -13,7 +13,20 @@ export function GuideCard({ guide, from }: { guide: Guide; from: string }): Reac
       onClick={() => trackEvent("select_promotion", { promotion_name: `guide_card_${from}`, item_id: guide.slug })}
     >
       <span className="gd-card__book">
-        {guide.cover ? <img src={blogAsset(guide.cover.url)} alt={guide.cover_alt} loading="lazy" decoding="async" /> : <span>{guide.title}</span>}
+        {/* The book box keeps the A-series ratio (guides.css); `priority` = the first cover on screen (LCP): no lazy load. */}
+        {guide.cover ? (
+          <img
+            src={blogAsset(guide.cover.url)}
+            alt={guide.cover_alt}
+            width={600}
+            height={849}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
+            decoding="async"
+          />
+        ) : (
+          <span>{guide.title}</span>
+        )}
       </span>
       <span className="gd-card__body">
         <small>Free guide{guide.page_count ? ` · ${guide.page_count} pages` : ""}</small>

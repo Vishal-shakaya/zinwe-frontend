@@ -7,7 +7,10 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "module": "nodenext",
+    /* vite.config.ts and build/ are bundled by Vite (which resolves the src/content imports they share with the app),
+       so they resolve like the app does. */
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",

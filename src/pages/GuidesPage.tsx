@@ -22,10 +22,10 @@ export default function GuidesPage(): ReactElement {
           <Link to="/blog">Blog</Link>
         </nav>
         <p className="eyebrow">Free guides</p>
-        <h1 className="h-display blog-hero__title">Practical guides for small businesses</h1>
+        <h1 className="h-display blog-hero__title">Free, practical guides for small businesses</h1>
         <p className="lede">
           Plain-English e-guides with workbooks and 30-day plans you can actually finish. No jargon, no scare statistics, no IT
-          department needed. Free for members.
+          department needed. Free for members, and membership is free.
         </p>
       </header>
       <div className="wrap">
@@ -50,8 +50,8 @@ export default function GuidesPage(): ReactElement {
           </div>
         ) : (
           <div className="gd-grid">
-            {rows.map((g) => (
-              <GuideCard key={g.slug} guide={g} from="library" />
+            {rows.map((g, i) => (
+              <GuideCard key={g.slug} guide={g} from="library" priority={i === 0} />
             ))}
           </div>
         )}

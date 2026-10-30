@@ -21,7 +21,8 @@
   /* Single family, Tesla-style restraint: medium weights, tight tracking */
   --font-display: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Geist Mono, like the v3 site and the dashboard (IBM Plex Mono is no longer loaded, 30 Oct 2026). */
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
 
   --max: 1160px;
   --gutter: 24px;

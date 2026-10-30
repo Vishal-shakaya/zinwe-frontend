@@ -21,7 +21,7 @@ const SIZES: ReadonlyArray<readonly [string, string]> = [
   ["26-50", "26–50"],
   ["50+", "More than 50"],
 ];
-const TOPICS = ["Chat and tasks", "Work hours", "Reports", "USB and file copies", "Remote-control apps", "DPDP and consent"];
+const TOPICS = ["Chat and tasks", "Work hours", "Reports", "USB and file copies", "Remote-control apps", "Privacy and consent"];
 const SUBJECTS = ["Is Zinwe right for us?", "Plans and billing", "Partnership", "Something else"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -117,9 +117,9 @@ export default function ContactPage(): ReactElement {
     <div className="zc">
       <section className="zs-wrap zc-main">
         <div className="zc-left">
-          <span className="zs-eyebrow">Talk to us</span>
+          <span className="zs-eyebrow">Contact Zinwe</span>
           <h1 className="zs-h1 zc-h1">A person, not a ticket.</h1>
-          <p className="zs-lead">Book a free 20-minute call and we set up Zinwe with you: your rules, your first PCs, your first tasks. Or just send a message.</p>
+          <p className="zs-lead">Questions about setup, pricing, consent or whether Zinwe fits your office? Book a free 20-minute call and we set up Zinwe with you: your rules, your first PCs, your first tasks. Or send a message, and the founder replies within one working day.</p>
           <div className="zc-oncall">
             <b>On the call we</b>
             {ON_CALL.map((o) => (

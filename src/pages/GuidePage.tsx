@@ -1,6 +1,7 @@
 import { useCallback, useEffect, type ReactElement } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageTitle } from "../lib/pageTitle";
 import { useResource } from "../dashboard/useResource";
 import { GuideCard } from "../components/guides/GuideCard";
 import { GuideGate } from "../components/guides/GuideGate";
@@ -22,7 +23,8 @@ export default function GuidePage(): ReactElement {
   const g = res.data;
 
   usePageMeta({
-    title: g ? `${g.title} (free guide) — Zinwe` : "Free guides — Zinwe",
+    // The same title the backend pre-render gives this page (z_blog/prerender.py).
+    title: g ? pageTitle(`${g.title} (free guide)`) : pageTitle("Free guides"),
     description: g?.summary || g?.subtitle || "Free plain-English guides for small businesses.",
   });
 

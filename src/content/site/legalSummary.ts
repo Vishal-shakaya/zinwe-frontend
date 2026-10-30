@@ -3,7 +3,7 @@
  * content/legal.ts (/legal/<slug>) are what count. Footer links land here on #terms, #privacy, #refunds, #cookies, #aup.
  * Legal wording changes go through the owner (.claude/marketing/context.md §3 rule 5).
  */
-import type { LegalSlug } from "../legal";
+import type { LegalSlug } from "../legal.ts";
 
 export interface PolicySummary {
   id: string;

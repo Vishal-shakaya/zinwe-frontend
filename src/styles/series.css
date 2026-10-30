@@ -374,6 +374,8 @@ a.sx-next:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   margin-bottom: 36px;
 }
 .sx-feature.is-skeleton { background: var(--paper); }
+/* The hub shows the posters one under another: hold room for one while the list loads (CLS). */
+.sx-hub > .sx-feature.is-skeleton { min-height: 420px; }
 .sx-feature__art { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
 .sx-feature:hover .sx-feature__art { transform: scale(1.03); }
 .sx-feature__shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(15, 16, 19, 0.95) 0%, rgba(15, 16, 19, 0.75) 45%, rgba(15, 16, 19, 0.15) 100%); }

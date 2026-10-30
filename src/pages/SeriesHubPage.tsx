@@ -46,7 +46,7 @@ export default function SeriesHubPage(): ReactElement {
             <span>Check back soon.</span>
           </div>
         ) : (
-          rows.map((s) => <SeriesFeature key={s.slug} show={s} />)
+          rows.map((s, i) => <SeriesFeature key={s.slug} show={s} priority={i === 0} />)
         )}
       </div>
     </div>

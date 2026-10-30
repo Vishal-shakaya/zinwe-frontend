@@ -1093,6 +1093,20 @@
 
 /* ---------- Loading / error placeholders ---------- */
 
+/* Layout shift (CLS): while a page's code or data loads, <main> still fills a whole screen, so the footer
+   starts below the fold and never jumps into view when the page arrives. (100vh, not minus the header: the
+   header's height varies by width and with the announcement bar; a short page just shows the footer on scroll.) */
+.zs > main {
+  min-height: 100vh;
+}
+.zs-boot {
+  display: grid;
+  place-items: center;
+  min-height: 40vh;
+  font-size: 0.9rem;
+  color: var(--zs-muted);
+}
+
 .zs-skel {
   background: linear-gradient(90deg, var(--zs-sand) 0%, var(--zs-line-2) 50%, var(--zs-sand) 100%);
   background-size: 200% 100%;

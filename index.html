@@ -40,7 +40,9 @@
     <meta name="twitter:image:alt" content="The Zinwe logo: an orange Z and the word inwe in charcoal." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Fonts: Geist 400–800 (site and app) and Geist Mono 400–600 (numbers, codes). The SAME address the dashboard
+         and sign-up load (dashboard/AppLayout.tsx, portal/v13/authFonts.ts), so it is fetched once and cached. -->
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>

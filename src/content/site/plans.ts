@@ -18,7 +18,7 @@ export interface PlanCopy {
 
 export const PLAN_COPY: Record<string, PlanCopy> = {
   free: {
-    tag: "Try everything on your own office PCs.",
+    tag: "Try Zinwe on your own office PCs, free.",
     points: [
       ["All six protections, with plain-English alerts", true, false],
       ["Chat and tasks with each person", true, false],
@@ -36,7 +36,7 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
     ],
   },
   teams: {
-    tag: "For offices of 11 to 25 that need more PCs and a longer history.",
+    tag: "For growing offices that need more PCs and a longer history.",
     points: [
       ["Everything in Startups", false, false],
       ["Up to {pcs} PCs for a mid-sized team", true, false],
@@ -45,7 +45,7 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
     ],
   },
   businesses: {
-    tag: "For growing companies up to 50 PCs that need records.",
+    tag: "For larger offices that need records to show clients and auditors.",
     points: [
       ["Everything in Teams, on {pcs} PCs", false, false],
       ["A full year of history for audits and reviews", true, false],
@@ -56,10 +56,10 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
 };
 
 export const PLANS_HERO = {
-  eyebrow: "Plans",
+  eyebrow: "Plans and pricing",
   /** {cap} = less than the highest per-PC monthly price of any paid plan, from the catalogue. */
   title: "Protect every PC and run your team, from less than {cap} per PC a month.",
-  lead: "Start free on 3 PCs. Move up when you want reports in your inbox, more PCs or a longer history. No card, no auto-charge.",
+  lead: "Priced per PC, not per person. Start free on 3 PCs and move up when you want reports in your inbox, more PCs or a longer history. No card, no auto-charge.",
 } as const;
 
 export const PROMISES: ReadonlyArray<{ t: string; b: string; icon: string }> = [
@@ -116,6 +116,7 @@ export const COMPARE_ROWS: readonly CompareRow[] = [
 
 /** {first} = the first paid plan's PC limit, {top} / {topName} = the largest plan's. */
 export const PLANS_FAQ: ReadonlyArray<{ q: string; a: string }> = [
+  { q: "What does every plan include?", a: "All six protections with plain-English alerts, chat, tasks, work hours with break approvals, and reports on screen with a CSV download. Paid plans add more PCs, a longer history and PDF reports emailed to you." },
   { q: "Is GST included in the price?", a: "In India the price you see is before 18% GST; the card shows the total with GST too, and every payment gets a GST invoice. Outside India you pay in US dollars with no Indian GST." },
   { q: "Will I be charged automatically?", a: "No. Each payment covers one month or one year. We email you before it ends, and you pay for the next one only if you want to." },
   { q: "Can I change plans later?", a: "Yes, any time from Billing in your dashboard. Moving up starts right away; your rules, chats, tasks and history all stay." },

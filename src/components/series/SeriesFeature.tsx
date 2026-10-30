@@ -5,12 +5,33 @@ import type { SeriesCard } from "../../lib/api/series";
 import { LockIcon } from "./MemberGate";
 
 /** A series as a wide poster: on the blog (above the articles) and on the series hub. */
-export function SeriesFeature({ show, headingLevel = 2 }: { show: SeriesCard; headingLevel?: 2 | 3 }): ReactElement {
+export function SeriesFeature({
+  show,
+  headingLevel = 2,
+  priority = false,
+}: {
+  show: SeriesCard;
+  headingLevel?: 2 | 3;
+  /** The first poster on screen (LCP): loaded at once, never lazily. */
+  priority?: boolean;
+}): ReactElement {
   const Heading = `h${headingLevel}` as const;
   const out = show.released ?? 0;
   return (
     <Link to={`/blog/series/${show.slug}`} className="sx-feature">
-      {show.cover ? <img className="sx-feature__art" src={blogAsset(show.cover.url)} alt={show.cover_alt} loading="lazy" decoding="async" /> : null}
+      {/* The art fills the poster (position absolute), so it never shifts the layout; 1200×630 like every cover. */}
+      {show.cover ? (
+        <img
+          className="sx-feature__art"
+          src={blogAsset(show.cover.url)}
+          alt={show.cover_alt}
+          width={1200}
+          height={630}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
+          decoding="async"
+        />
+      ) : null}
       <div className="sx-feature__shade" aria-hidden="true" />
       <div className="sx-feature__body">
         <p className="sx-eyebrow">A Zinwe original · members' series</p>

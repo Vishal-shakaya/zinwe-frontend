@@ -401,7 +401,7 @@ export default function DownloadPage(): ReactElement {
       <section className="zs-wrap zs-qa zd-faq">
         <div className="zs-qa__intro">
           <span className="zs-eyebrow">Before you install</span>
-          <h2 className="zd-h2 zd-h2--32">Common questions.</h2>
+          <h2 className="zd-h2 zd-h2--32">Installing Zinwe: common questions.</h2>
           <p>
             Stuck?{" "}
             <Link className="zs-link" to="/contact">

@@ -94,6 +94,8 @@ export interface Episode extends EpisodeCard {
   planned_episodes: number;
   season_info: Season | null;
   seo_title: string;
+  /** The browser/search title, by the backend's rule ("<title> | Zinwe", brand dropped past 60 characters). */
+  page_title?: string;
   meta_description: string;
   updated_at: string;
   teaser_html: string;

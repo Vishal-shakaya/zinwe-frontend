@@ -45,6 +45,8 @@ export interface Article extends ArticleCard {
   guide_pick?: GuideCard | null;
   body_html: string;
   seo_title: string;
+  /** The browser/search title, by the backend's rule ("<title> | Zinwe", brand dropped past 60 characters). */
+  page_title?: string;
   meta_description: string;
   updated_at: string;
   related: ArticleCard[];

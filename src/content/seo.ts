@@ -45,12 +45,12 @@ export interface SeoPage {
  * isn't a page (zinwe-server nginx_spa_block). The app then draws the right screen as usual.
  */
 export const NOINDEX_FILES: ReadonlyArray<{ file: string; page: SeoPage }> = [
-  { file: "signup.html", page: { path: "/signup", title: "Create your account — Zinwe", description: "Create a Zinwe account to protect your team's PCs. Start free forever for up to 3 PCs.", h1: "Create your Zinwe account", intro: ["Start free forever for up to 3 PCs. No card needed."], sitemap: false, noindex: true } },
-  { file: "login.html", page: { path: "/login", title: "Log in — Zinwe", description: "Log in to see your PCs, set USB rules and check recent activity.", h1: "Log in to Zinwe", intro: ["See your PCs, set USB rules and check what happened today."], sitemap: false, noindex: true } },
-  { file: "forgot-password.html", page: { path: "/forgot-password", title: "Reset your password — Zinwe", description: "Reset your Zinwe password with a code sent to your email.", h1: "Reset your password", intro: ["We'll email you a code to set a new password."], sitemap: false, noindex: true } },
-  { file: "newsletter.html", page: { path: "/newsletter", title: "Newsletter — Zinwe", description: "Manage your Zinwe blog subscription.", h1: "Your Zinwe newsletter", intro: ["Confirm or manage your subscription to the Zinwe blog."], sitemap: false, noindex: true } },
+  { file: "signup.html", page: { path: "/signup", title: "Create your account | Zinwe", description: "Create a Zinwe account to protect your team's PCs. Start free forever for up to 3 PCs.", h1: "Create your Zinwe account", intro: ["Start free forever for up to 3 PCs. No card needed."], sitemap: false, noindex: true } },
+  { file: "login.html", page: { path: "/login", title: "Log in | Zinwe", description: "Log in to see your PCs, set USB rules and check recent activity.", h1: "Log in to Zinwe", intro: ["See your PCs, set USB rules and check what happened today."], sitemap: false, noindex: true } },
+  { file: "forgot-password.html", page: { path: "/forgot-password", title: "Reset your password | Zinwe", description: "Reset your Zinwe password with a code sent to your email.", h1: "Reset your password", intro: ["We'll email you a code to set a new password."], sitemap: false, noindex: true } },
+  { file: "newsletter.html", page: { path: "/newsletter", title: "Newsletter | Zinwe", description: "Manage your Zinwe blog subscription.", h1: "Your Zinwe newsletter", intro: ["Confirm or manage your subscription to the Zinwe blog."], sitemap: false, noindex: true } },
   { file: "app.html", page: { path: "/app", title: "Zinwe dashboard", description: "The Zinwe dashboard for signed-in owners.", h1: "Zinwe dashboard", intro: ["Log in to see your dashboard."], sitemap: false, noindex: true } },
-  { file: "404.html", page: { path: "/404", title: "Page not found — Zinwe", description: "This page doesn't exist. Head back to the Zinwe home page or get in touch.", h1: "Page not found", intro: ["The link may be old, or the address mistyped."], sitemap: false, noindex: true } },
+  { file: "404.html", page: { path: "/404", title: "Page not found | Zinwe", description: "This page doesn't exist. Head back to the Zinwe home page or get in touch.", h1: "Page not found", intro: ["The link may be old, or the address mistyped."], sitemap: false, noindex: true } },
 ];
 
 /**
@@ -62,27 +62,31 @@ export const HOME_PRICE_Q = "How much does it cost?";
 export const HOME_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   {
     q: "Is Zinwe spyware?",
-    a: "No. Each person sees exactly what Zinwe records and agrees on their own PC first. Zinwe never records keystrokes, screens, the camera, file contents or full web addresses.",
+    a: "No. Zinwe protects company data with your team's knowledge. Each person sees exactly what it records and agrees on their own PC first. It never records keystrokes, screens, the camera, file contents or full web addresses.",
   },
   {
     q: "Do I need an IT person to set it up?",
-    a: "No. Add a person in your dashboard, they install Zinwe and type their email and Member ID. Most offices finish in an afternoon.",
+    a: "No. Create your free account and add each person with their work email. They install Zinwe on their Windows PC and connect it with their email and Member ID. There are no servers to run or policies to write. Most offices finish in an afternoon.",
   },
   {
     q: "Can I use Zinwe just for chat and tasks?",
-    a: "Yes. Switch on only what you need. Many owners start with chat, tasks and work hours, and turn on data protection later.",
+    a: "Yes. Switch on only what you need. You can start with chat, tasks and work hours, and turn on data protection later.",
   },
   {
     q: "What does my team see?",
-    a: "A small Zinwe window by the clock: their tasks, your messages, their work time and the list of what Zinwe records on their PC.",
+    a: "A small Zinwe window by the clock: your messages, their tasks, the Start day, Take a break and End day buttons, and a plain list of what Zinwe records on their PC.",
   },
   {
     q: "What happens when a PC is offline?",
-    a: "The rules keep working on the PC and work times are saved there. Everything syncs when the internet is back.",
+    a: "Your rules keep working on the PC with the last settings, and work times are saved there. Everything syncs when the internet is back.",
+  },
+  {
+    q: "Does Zinwe work on Mac or Linux?",
+    a: "Not yet. Zinwe runs on Windows 10 and 11 PCs today. Mac and Linux are on our roadmap.",
   },
   {
     q: HOME_PRICE_Q,
-    a: "Free forever for up to 3 PCs. Paid plans are priced by the number of PCs, not per person, in rupees in India and US dollars elsewhere.",
+    a: "Free forever for up to 3 PCs. Paid plans are priced per PC, not per person: in rupees plus GST in India and in US dollars elsewhere, paid monthly or yearly. Nothing is charged automatically.",
   },
 ];
 
@@ -92,13 +96,15 @@ const PAGES: readonly SeoPage[] = [
     // Keyword theme: small business data protection / business security without an IT team (ZINWE-SEO-ONPAGE-001).
     title: "Small business data protection in plain English | Zinwe",
     description:
-      "Data protection for small businesses with no IT team: know when files go to a USB drive, a remote-access tool runs or new software appears. Free for 3 PCs.",
+      "Data protection for small businesses with no IT team: see files copied to USB drives, stop remote-control apps and risky sites. Free forever on 3 PCs.",
     ogTitle: "Zinwe — IT Is OK. Data protection for small businesses.",
     ogDescription: "Know what's happening to your company's data. In plain English. No IT department needed.",
     h1: "Run a safe, organised office from one screen.",
     intro: [
-      "Zinwe protects company data on every Windows PC and gives you chat, tasks, work hours and reports in the same place. It flags USB copies, files leaving the office, remote-access tools and new software, and tells you what each one means.",
-      "Free forever for up to 3 PCs. No card needed. For teams of 5–50 in India and the United States, on Windows today.",
+      "Zinwe protects your business data on every Windows PC, with no IT team needed, and gives you chat, tasks, work hours and reports in the same place. Simple enough to set up this afternoon.",
+      "It flags files copied to pen drives, big uploads and email attachments, remote-control apps such as AnyDesk and new software, and tells you in plain English what each one means. You choose how strict each rule is, and every PC follows it within about a minute.",
+      "Your team sees the Zinwe window by the clock and agrees on their own PC before anything is recorded. Zinwe never records keystrokes, screens, the camera, file contents or full web addresses.",
+      "Free forever for up to 3 PCs. No card needed. For offices of 5 to 50 people in India and the United States, on Windows 10 and 11 today.",
     ],
     sitemap: true,
   },
@@ -107,86 +113,96 @@ const PAGES: readonly SeoPage[] = [
     title: "Chat, tasks, work hours and data protection | Zinwe",
     description:
       "One app for a small office on Windows: chat with each person, send tasks, see work hours and reports, and get plain-English alerts when data leaves.",
-    h1: "One app for a safe, well-run office.",
+    h1: "One app to run a small office and keep its data safe.",
     intro: [
-      "The six things owners of small teams ask for, in one place: chat, tasks, work hours, reports, plain-English alerts and data protection. Each one is simple on its own, and better together.",
+      "Chat, tasks, work hours, reports, plain-English alerts and data protection for small teams on Windows. Each one is simple on its own, and better together.",
+      "Chat with each person right at their PC, turn any message into a task, and approve the work when it's done. Each person taps Start day, Take a break and End day, and long breaks ask for your OK. Reports show who worked when, what got done, and which apps and websites were used.",
+      "Data protection covers pen drives, files leaving the office, uploads to the web, remote-control apps, new software and risky websites. For each one, you pick how strict to be.",
       "Nothing starts until each person agrees on their own PC. Free forever for up to 3 PCs.",
     ],
     sitemap: true,
   },
   {
     path: "/plans",
-    title: "Plans and pricing: free for up to 3 PCs | Zinwe",
+    title: "Plans and pricing per PC, free for up to 3 PCs | Zinwe",
     description:
-      "Start free for up to 3 PCs. Paid plans are priced per PC, not per seat, for 10, 25 or 50 PCs. India: rupees, monthly. Elsewhere: US dollars, yearly.",
-    h1: "Protect every PC and run your team.",
+      "Zinwe is priced per PC, not per person. Start free forever on up to 3 PCs, then move to Startups, Teams or Businesses. Monthly or yearly, no auto-charge.",
+    h1: "Protect every PC and run your team, at a small price per PC a month.",
     intro: [
-      "Free forever for up to 3 PCs. Startups covers up to 10 PCs, Teams up to 25 and Businesses up to 50, each with every feature and a longer history. Not sure? Tell the page how many PCs you have and it points to the plan that fits.",
-      "Every plan has plain-English alerts, employee consent on every PC and a setup you can finish in an afternoon.",
+      "Zinwe is priced per PC, not per person. Free forever covers up to 3 PCs. The paid plans, Startups, Teams and Businesses, cover more PCs, keep a longer history and add PDF reports emailed to you on a schedule. Tell the page how many PCs you have and it points to the plan that fits.",
+      "Every plan has all six protections with plain-English alerts, chat, tasks, work hours with break approvals, and consent on every PC.",
+      "Pay monthly or yearly: in rupees plus GST in India, with a GST invoice, or in US dollars elsewhere. Nothing is charged automatically, and you can change plan any time.",
     ],
     sitemap: true,
   },
   {
     path: "/download",
-    title: "Download Zinwe for Windows 10 and 11",
+    title: "Download Zinwe for Windows 10 and 11 PCs | Zinwe",
     description:
       "Download the Zinwe installer for Windows 10 and 11. Install it on each PC, connect it with the person's email and Member ID, and it shows up in your dashboard.",
-    h1: "Zinwe for Windows.",
+    h1: "Download Zinwe for Windows.",
     intro: [
-      "One small app on each Windows 10 or 11 PC. Install it, connect it with the person's work email and Member ID from your dashboard, and the PC shows up within about a minute.",
-      "Every employee sees the Zinwe widget and agrees on their own PC before anything is recorded. Linux and macOS are on our roadmap.",
+      "One small app for each Windows 10 or 11 PC (64-bit). Install it, connect it with the person's work email and Member ID from your dashboard, and the PC shows up within about a minute.",
+      "Windows asks for an administrator's OK once. If it says \"Unknown publisher\", that's expected for a new app: choose Keep, then More info and Run anyway. IT helpers can install on many PCs at once with msiexec.",
+      "Every employee sees the Zinwe window and agrees on their own PC before anything is recorded. Zinwe is a standard Windows service with no kernel driver, and it keeps its last rules when the PC is offline. Mac and Linux are on our roadmap.",
     ],
     sitemap: true,
   },
   {
     path: "/early-access",
-    title: "Book a free setup call | Zinwe",
+    title: "Book a free setup call for your office PCs | Zinwe",
     description:
-      "Book a free 20-minute setup call with the Zinwe founder: we set up your rules and first PCs with you. Zinwe is free forever for up to 3 PCs.",
+      "Book a free 20-minute setup call with the Zinwe founder: we set up your rules and first PCs with you and answer your questions. Free forever on up to 3 PCs.",
     h1: "Book a free setup call.",
     intro: [
-      "Zinwe is live: you can start free right now. Prefer a hand? Book a free 20-minute call and we'll set it up with you, rules and first PCs included.",
+      "Want a hand getting started? Book a free 20-minute call with the founder and we set up Zinwe with you: your rules, your first PCs and your questions. Or start free right now on your own.",
+      "We set USB, websites and work hours the way your office actually works, so your rules are right the first time. Zinwe is free forever for up to 3 PCs, with no card needed.",
     ],
     sitemap: true,
   },
   {
     path: "/contact",
-    title: "Contact Zinwe: talk to a person, not a ticket",
+    title: "Contact us: a real person, not a ticket | Zinwe",
     description:
-      "Questions about setup, pricing or whether Zinwe fits your business? Write to hello@zinwe.io and hear back from the founder within a working day.",
+      "Questions about setup, pricing, consent or whether Zinwe fits your office? Book a free setup call or email hello@zinwe.io. A person replies in a working day.",
     h1: "A person, not a ticket.",
     intro: [
-      "Questions about setup, pricing, or whether Zinwe fits your business. You'll hear back from the founder within a working day.",
-      "Email hello@zinwe.io. SKYTECHNO, New Delhi, India.",
+      "Questions about setup, pricing, consent or whether Zinwe fits your office? Book a free 20-minute call and we set up Zinwe with you: your rules, your first PCs, your first tasks. Or send a message, and the founder replies within one working day.",
+      "On the call we set your first rules together in plain words, connect your first PCs and send a test task, and answer your questions about privacy and consent.",
+      "Email hello@zinwe.io. SKYTECHNO, New Delhi, India. Monday to Saturday, 10:00 to 19:00 IST.",
     ],
     sitemap: true,
   },
   {
     path: "/whats-new",
-    title: "What's new in Zinwe | release notes",
+    title: "Release notes: what's new in each version | Zinwe",
     description:
-      "What changed in each Zinwe release: the fixes and the new things you can do, in plain words.",
+      "Zinwe release notes in plain words: what's new in each version, what we fixed, and how to update the Zinwe app on your team's Windows 10 and 11 PCs.",
     h1: "What's new in Zinwe.",
-    intro: ["What we fixed and what you can do now, release by release."],
+    intro: [
+      "Release notes in plain words: what's new, what we fixed and what you need to do, version by version.",
+      "To update a PC, click Update now in the Zinwe window, or download the installer again from zinwe.io/download. When the notice on the PC changes, each person is asked once to agree again.",
+    ],
     sitemap: true,
   },
   {
     path: "/blog",
-    title: "Data protection guides for small businesses | Zinwe blog",
+    title: "Data protection guides for small businesses | Zinwe",
     description:
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos and Zinwe news, for small businesses in India and the US.",
-    h1: "Short reads for a safer, calmer office.",
+    h1: "Data protection guides for a safer, calmer office.",
     intro: [
-      "Simple guides on protecting customer and company data without an IT team: checklists, how-tos, product releases and news.",
+      "Practical guides on keeping company data safe and running a small team, written for owners without an IT team. Short reads, no jargon.",
+      "Checklists and how-tos on pen drives, passwords, email and sharing files, plus Zinwe release notes, free e-guides and the members' story series.",
     ],
     // Listed even before the first article; the backend's /sitemap.xml adds every published article.
     sitemap: true,
   },
   {
     path: "/blog/series",
-    title: "Zinwe series — members-only stories for business owners",
+    title: "Members' story series for business owners | Zinwe",
     description:
-      "Short story series about company data, people's identities and children growing up online, each episode with a 10-minute fix. Free membership.",
+      "Short story series for business owners about company data, identity and children online. Each episode ends with a 10-minute fix. Free membership.",
     h1: "Stories, not lectures",
     intro: [
       "Members-only series for business owners, their teams and their families: short episodes about company data, people's identities and children growing up online, each with a 10-minute fix. Membership is free.",
@@ -196,12 +212,12 @@ const PAGES: readonly SeoPage[] = [
   },
   {
     path: "/blog/guides",
-    title: "Free guides for small businesses — Zinwe",
+    title: "Free e-guides and workbooks for small businesses | Zinwe",
     description:
-      "Plain-English e-guides with workbooks and 30-day plans: protect your business online, keep data safe, stop scams and communicate better at work.",
-    h1: "Practical guides for small businesses",
+      "Free plain-English e-guides with workbooks and 30-day plans: protect your business online, keep data safe, stop scams and communicate better at work.",
+    h1: "Free, practical guides for small businesses",
     intro: [
-      "Plain-English e-guides with workbooks and 30-day plans you can actually finish. No jargon, no scare statistics, no IT department needed. Free for members.",
+      "Plain-English e-guides with workbooks and 30-day plans you can actually finish. No jargon, no scare statistics, no IT department needed. Free for members, and membership is free.",
     ],
     // The backend's /sitemap.xml adds each live guide.
     sitemap: true,
@@ -209,20 +225,36 @@ const PAGES: readonly SeoPage[] = [
   {
     path: "/legal",
     title: "Legal: terms, privacy and policies | Zinwe",
-    description: "Zinwe's Terms, Privacy, Refund, Shipping and Delivery, Cookie and Acceptable Use policies, and our Disclaimer.",
+    description:
+      "Zinwe's policies in plain words: Terms, Privacy, Refunds, Shipping and Delivery, Cookies, Acceptable Use and the Disclaimer, each with a short summary.",
     h1: "Terms and policies, in plain words.",
-    intro: ["Zinwe's Terms, Privacy, Refund, Shipping and Delivery, Cookie and Acceptable Use policies, and our Disclaimer."],
+    intro: [
+      "Short summaries of the policies that apply when you use Zinwe: the Terms and Conditions, Privacy Policy, Return and Refund Policy, Shipping and Delivery Policy, Cookie Policy, Acceptable Use Policy and Disclaimer.",
+      "Each summary links to the full text, which is what counts. Questions: hello@zinwe.io.",
+    ],
     sitemap: true,
   },
 ];
+
+/** Search titles for the legal pages, so each says what the policy covers (the page heading stays the policy's name). */
+const LEGAL_TITLES: Readonly<Record<string, string>> = {
+  terms: "Terms and Conditions: using Zinwe",
+  privacy: "Privacy Policy: what Zinwe collects",
+  refund: "Return and Refund Policy: stopping and refunds",
+  delivery: "Shipping and Delivery Policy: when plans start",
+  cookies: "Cookie Policy: cookies on zinwe.io",
+  "acceptable-use": "Acceptable Use Policy: how to use Zinwe",
+  disclaimer: "Disclaimer: what Zinwe can and can't promise",
+};
 
 /** One legal page's entry, from its document in content/legal.ts. */
 export function legalSeo(doc: { slug: string; title: string; summary: string }): SeoPage {
   return {
     path: `/legal/${doc.slug}`,
-    title: `${doc.title} | Zinwe`,
+    title: `${LEGAL_TITLES[doc.slug] ?? doc.title} | Zinwe`,
     description: doc.summary,
-    h1: doc.title,
+    // The same heading as the page (LegalPage shows "Zinwe <Policy>").
+    h1: `Zinwe ${doc.title}`,
     intro: [doc.summary],
     sitemap: true,
   };

@@ -8,13 +8,13 @@
  * - (rule "only shipped features") no performance scores until that backend ships: the Reports tile shows hours per
  *   person. Tasks came back in 1.3.1 with FR-20. See .claude/dev/docs/06-website-portal.md.
  */
-import { ICONS } from "../../components/site/icons";
+import { ICONS } from "../../components/site/icons.ts";
 
 export const HERO = {
   badge: "IT Is OK.",
   badgeText: "For offices of 5 to 50 people with no IT department",
   title: "Run a safe, organised office from one screen.",
-  lead: "Zinwe protects company data on every Windows PC and gives you chat, tasks, work hours and reports in the same place. Simple enough to set up this afternoon.",
+  lead: "Zinwe protects your business data on every Windows PC, with no IT team needed, and gives you chat, tasks, work hours and reports in the same place. Simple enough to set up this afternoon.",
   ticks: ["No card needed", "Windows 10 and 11", "Each person agrees on their own PC"],
 } as const;
 
@@ -117,8 +117,8 @@ export const RULE_DEFAULTS: Record<RuleKey, string> = { usb: "readonly", app: "o
 
 export const PROTECTION = {
   eyebrow: "Data protection",
-  title: "Pen drives, apps and websites. Your rules, on every PC.",
-  lead: "Pick an answer and every PC follows it within about a minute. No IT person, no policies to write. Try it.",
+  title: "Protect company data on every PC, no IT team needed.",
+  lead: "Pen drives, remote-control apps and websites: pick an answer and every PC follows it within about a minute. No IT person, no policies to write. Try it.",
 } as const;
 
 export const TEAM_SIDE = {
@@ -156,5 +156,5 @@ export const MEMBER_QUOTE: { quote: string; name: string; role: string; business
 
 export const CLOSE = {
   title: "IT Is OK. Start free today.",
-  body: "Three PCs, every feature you need to start, for as long as you like. Upgrade when you grow.",
+  body: "Data protection, chat, tasks, work hours and reports for your office, free forever on up to 3 PCs. Upgrade when you grow.",
 } as const;

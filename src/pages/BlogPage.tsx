@@ -38,7 +38,20 @@ function Meta({ a }: { a: ArticleCard }): ReactElement {
 
 function Cover({ a, big = false }: { a: ArticleCard; big?: boolean }): ReactElement {
   if (a.cover) {
-    return <img className={cx("zb-cover", big && "zb-cover--big")} src={blogAsset(a.cover.url)} alt={a.cover_alt} loading={big ? "eager" : "lazy"} decoding="async" />;
+    // Covers are 1200×630; the box's aspect-ratio (site-blog.css) holds the space. The featured cover is the
+    // page's largest image (LCP): loaded first, never lazily.
+    return (
+      <img
+        className={cx("zb-cover", big && "zb-cover--big")}
+        src={blogAsset(a.cover.url)}
+        alt={a.cover_alt}
+        width={1200}
+        height={630}
+        loading={big ? "eager" : "lazy"}
+        fetchPriority={big ? "high" : undefined}
+        decoding={big ? "sync" : "async"}
+      />
+    );
   }
   const look = KIND_LOOK[a.type] ?? KIND_LOOK.informative;
   return (
@@ -69,7 +82,8 @@ export default function BlogPage(): ReactElement {
   const data = list.data;
   const guides = useResource(getGuides).data?.results ?? [];
   const series = useResource(getSeriesList).data?.results ?? [];
-  const release = useResource(getReleaseNotes).data?.[0];
+  const notes = useResource(getReleaseNotes);
+  const release = notes.data?.[0];
 
   const go = (next: { type?: ArticleType | ""; page?: number }) => {
     const t = next.type ?? type;
@@ -97,8 +111,8 @@ export default function BlogPage(): ReactElement {
         <div className="zb-hero__row">
           <div className="zb-hero__copy">
             <span className="zs-eyebrow">The Zinwe blog</span>
-            <h1 className="zs-h1 zb-h1">Short reads for a safer, calmer office.</h1>
-            <p className="zs-lead">Practical guides on data safety and running a small team. Three minutes each, no jargon.</p>
+            <h1 className="zs-h1 zb-h1">Data protection guides for a safer, calmer office.</h1>
+            <p className="zs-lead">Practical guides on keeping company data safe and running a small team, written for owners without an IT team. Short reads, no jargon.</p>
           </div>
           <label className="zb-search">
             <PathIcon d={ICONS.search} size={17} />
@@ -112,6 +126,9 @@ export default function BlogPage(): ReactElement {
             <span>Release notes: {release.title}</span>
             <span className="zb-release__go">Read →</span>
           </Link>
+        ) : notes.data === undefined && !notes.error ? (
+          // Holds the release line's place while it loads, so the articles below don't shift (CLS).
+          <span className="zs-skel zb-release zb-release--skel" aria-hidden="true" />
         ) : null}
       </section>
 
@@ -150,6 +167,12 @@ export default function BlogPage(): ReactElement {
               </a>
             </div>
           ) : null}
+        </section>
+      ) : browsing && !data && !list.error ? (
+        // The featured row's shape while the articles load, so "All articles" doesn't jump down (CLS).
+        <section className="zs-wrap zb-feature" aria-hidden="true">
+          <div className="zs-skel zb-skel--lead" />
+          <div className="zs-skel zb-skel--latest" />
         </section>
       ) : null}
 

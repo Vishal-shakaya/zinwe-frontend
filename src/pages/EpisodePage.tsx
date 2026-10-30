@@ -7,6 +7,7 @@ import "../styles/guides.css";
 import { trackEvent } from "../lib/analytics";
 import { fromEmail, noteSeriesVisit } from "../lib/attribution";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageTitle } from "../lib/pageTitle";
 import { useResource } from "../dashboard/useResource";
 import { LockIcon, MemberGate } from "../components/series/MemberGate";
 import { ReaderPill } from "../components/series/ReaderPill";
@@ -96,7 +97,8 @@ export default function EpisodePage(): ReactElement {
   }, [ep]);
 
   usePageMeta({
-    title: ep ? `${ep.seo_title} — ${ep.series.title}` : "Series — Zinwe",
+    // The API's page_title, else the backend's rule: "<episode> | <series> | Zinwe", shortened past 60 characters.
+    title: ep ? ep.page_title || pageTitle(ep.seo_title || ep.title, ep.series.title) : pageTitle("Series"),
     description: ep?.meta_description || "A members-only episode from a Zinwe series.",
   });
   useEpisodeHead(ep);

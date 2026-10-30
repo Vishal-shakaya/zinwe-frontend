@@ -20,7 +20,7 @@ export default function WhatsNewPage(): ReactElement {
           </p>
           <StaggerTitle text="What's new in Zinwe." />
           <p className="lede fade" style={{ animationDelay: ".4s" }}>
-            What we fixed and what you can do now, release by release.
+            Release notes in plain words: what's new, what we fixed and what you need to do, version by version.
           </p>
         </div>
       </section>

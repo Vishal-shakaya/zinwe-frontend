@@ -24,7 +24,7 @@ export const concernOptions: ChoiceOption<Concern>[] = [
   { id: "c2", value: "remote", label: "Remote access" },
   { id: "c3", value: "installs", label: "Unknown software" },
   { id: "c4", value: "email", label: "Email leaks" },
-  { id: "c5", value: "compliance", label: "DPDP compliance" },
+  { id: "c5", value: "compliance", label: "Privacy and consent" },
 ];
 
 export type ContactTopic = "fit" | "pricing" | "partnership" | "other";
