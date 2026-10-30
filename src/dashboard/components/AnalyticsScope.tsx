@@ -9,6 +9,7 @@ import type { AnalyticsScope } from "../features/analyticsScope";
 import { useChatBubble } from "../features/chatBubble";
 import { useEntitlements } from "../features/entitlements";
 import { consentOf, consentReminder } from "../features/memberStatus";
+import { MemberAvatar } from "../team/Avatar";
 import "../../styles/dash13/protection.css";
 
 function initialsOf(name: string): string {
@@ -61,9 +62,13 @@ export function ScopeBanner({ scope }: { scope: AnalyticsScope }): ReactElement 
   }
   return (
     <div className="zp-banner" role="status">
-      <span className="zp-banner__avatar" aria-hidden="true">
-        {initialsOf(person.name)}
-      </span>
+      <MemberAvatar
+        member={person}
+        size={28}
+        className="zp-banner__avatar"
+        initials={initialsOf(person.name)}
+        style={{ background: "#fdebdc", color: "#8a3a04", fontSize: 11 }}
+      />
       <span className="zp-banner__text">
         Showing <b>{person.name}</b>
         {device?.hostname ? (

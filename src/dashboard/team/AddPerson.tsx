@@ -1,13 +1,24 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactElement } from "react";
-import { createMember, MEMBER_ROLES, setMemberRole, type Member, type MemberField, type MemberRole } from "../../lib/api";
+import { useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
+import {
+  createMember,
+  MEMBER_ROLES,
+  pictureErrorMessage,
+  rememberPicture,
+  setMemberAvatar,
+  setMemberRole,
+  uploadMemberPhoto,
+  type Member,
+  type MemberField,
+  type MemberPicture,
+  type MemberRole,
+} from "../../lib/api";
 import { copyText } from "../../lib/clipboard";
 import { apiFieldErrors, apiFormError } from "../../portal/failure";
 import { CopyDetails } from "../components/CopyDetails";
-import { SAMPLES_ON } from "../fixtures";
-import { savePhoto, type MemberPhoto } from "../fixtures/photos";
 import { downloadPage } from "../features/invite";
-import { PictureArt } from "./Avatar";
-import { frameStyle, shrinkPhoto } from "./photo";
+import { MemberAvatar } from "./Avatar";
+import { shrinkPhoto } from "./photo";
+import { PicturePicker } from "./PicturePicker";
 import { firstName } from "./format";
 
 const FIELDS: readonly MemberField[] = ["name", "email"];
@@ -17,10 +28,16 @@ interface Draft {
   name: string;
   email: string;
   role: MemberRole;
-  photo: Extract<MemberPhoto, { kind: "photo" }> | null;
+  /** A library avatar, or a photo already shrunk in the browser (sent once the person exists). */
+  picture: { kind: "avatar"; key: string; label: string } | { kind: "photo"; blob: Blob; kb: number; preview: string } | null;
 }
 
-const EMPTY: Draft = { name: "", email: "", role: "developer", photo: null };
+const EMPTY: Draft = { name: "", email: "", role: "developer", picture: null };
+
+function previewOf(picture: Draft["picture"]): MemberPicture | null {
+  if (!picture) return null;
+  return picture.kind === "avatar" ? { kind: "avatar", key: picture.key } : { kind: "photo", url: picture.preview, updated_at: null };
+}
 
 /**
  * DashTeam "Add a person": inline under the header on desktop, a full-screen sheet (ends above the tab bar) with
@@ -40,6 +57,10 @@ export function AddPerson({
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [pictureNote, setPictureNote] = useState("");
+  const [pictureError, setPictureError] = useState("");
+  /** Added, but the picture didn't save: say so on the done step (it can be set on their card). */
+  const [pictureFailed, setPictureFailed] = useState("");
   const [added, setAdded] = useState<Member | null>(null);
   const [copied, setCopied] = useState<"" | "all" | "newid" | "fail">("");
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -65,18 +86,40 @@ export function AddPerson({
     setError("");
   };
 
-  const onPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const setPicture = (next: Draft["picture"]) => {
+    setDraft((d) => {
+      if (d.picture?.kind === "photo") URL.revokeObjectURL(d.picture.preview);
+      return { ...d, picture: next };
+    });
+  };
+
+  const onPhoto = async (file: File) => {
     setPhotoBusy(true);
+    setPictureError("");
+    setPictureNote("");
     try {
       const shrunk = await shrinkPhoto(file);
-      set("photo", { kind: "photo", ...shrunk });
+      setPicture({ kind: "photo", ...shrunk, preview: URL.createObjectURL(shrunk.blob) });
+      setPictureNote(`Photo ready (${shrunk.kb} KB). It's saved when you add them.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That picture couldn't be used.");
+      setPictureError(pictureErrorMessage(err));
     } finally {
       setPhotoBusy(false);
+    }
+  };
+
+  /** After the person exists: save the picture picked in the form. Never blocks adding them. */
+  const savePicture = async (member: Member): Promise<Member> => {
+    const picture = draft.picture;
+    if (!picture) return member;
+    try {
+      const saved =
+        picture.kind === "avatar" ? await setMemberAvatar(member.id, picture.key) : await uploadMemberPhoto(member.id, picture.blob);
+      rememberPicture(member.id, saved);
+      return { ...member, picture: saved };
+    } catch (err) {
+      setPictureFailed(`${pictureErrorMessage(err)} You can set their picture on their card.`);
+      return member;
     }
   };
 
@@ -104,7 +147,10 @@ export function AddPerson({
       } catch {
         /* The person is added; the role can be set on their card. */
       }
-      if (draft.photo) savePhoto(member.id, draft.photo);
+      setPictureFailed("");
+      member = await savePicture(member);
+      setPicture(null);
+      setPictureNote("");
       onCreated(member);
       setAdded(member);
       setCopied("");
@@ -145,6 +191,11 @@ export function AddPerson({
                 {added.name} is added
               </h2>
               <span>We emailed {added.email} their Member ID and the download link. Their PC appears here once they connect and agree.</span>
+              {pictureFailed ? (
+                <span role="alert" className="zt-err-note">
+                  {pictureFailed}
+                </span>
+              ) : null}
             </div>
           </div>
           {/* What the new person needs, in order. Copy all puts the three steps on the clipboard to paste anywhere. */}
@@ -255,43 +306,39 @@ export function AddPerson({
               </select>
             </div>
           </div>
-          {/* Pictures are sample data until the member photo API ships: no photo field in production builds. */}
-          {SAMPLES_ON ? (
-          <div className="zt-fld">
-            <span className="zt-lab">
-              Photo <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+          <div className="zt-fld" role="group" aria-labelledby="n-pic-lab">
+            <span className="zt-lab" id="n-pic-lab">
+              Picture <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
             </span>
             <div className="zt-photo-row">
-              {draft.photo ? (
-                <span style={frameStyle(48)}>
-                  <PictureArt photo={draft.photo} size={48} label="Photo for the new person" />
-                </span>
-              ) : (
-                <span className="zt-photo-empty" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-                    <circle cx="12" cy="13" r="3.5" />
-                  </svg>
-                </span>
-              )}
-              <label className="z-btn sm zt-upl">
-                <input type="file" accept="image/*" onChange={(e) => void onPhoto(e)} disabled={photoBusy} />
-                {photoBusy ? "Shrinking…" : draft.photo ? "Upload a different photo" : "Upload photo"}
-              </label>
-              {draft.photo ? (
-                <button type="button" className="z-btn sm" onClick={() => set("photo", null)}>
-                  Remove
-                </button>
-              ) : null}
-              {draft.photo ? (
-                <span role="status" className="zt-ok-note">
-                  Compressed to {draft.photo.kb} KB
-                </span>
-              ) : null}
+              <MemberAvatar
+                member={{ name: draft.name.trim() || "?", role: draft.role, picture: previewOf(draft.picture) }}
+                size={48}
+                label={draft.picture ? "Picture for the new person" : undefined}
+              />
+              <span className="zt-hint">Pick one of the drawn people or upload a photo. Leave it and we show their initials.</span>
             </div>
-            <span className="zt-hint">Any photo works; we shrink it to 256 × 256 px (about 100 KB). Leave it empty and we show their initials.</span>
+            <PicturePicker
+              idPrefix="n-pic"
+              name={draft.name}
+              role={draft.role}
+              value={previewOf(draft.picture)}
+              busy={photoBusy || pending}
+              onAvatar={(key, label) => {
+                setPicture({ kind: "avatar", key, label });
+                setPictureError("");
+                setPictureNote(`${label} picture picked.`);
+              }}
+              onUpload={(file) => void onPhoto(file)}
+              onRemove={() => {
+                setPicture(null);
+                setPictureError("");
+                setPictureNote("Initials it is.");
+              }}
+              note={pictureNote}
+              error={pictureError}
+            />
           </div>
-          ) : null}
           {/* The server always emails the invite today, so this stays on (see the Track D report). */}
           <label className="zt-check">
             <input type="checkbox" checked disabled readOnly />

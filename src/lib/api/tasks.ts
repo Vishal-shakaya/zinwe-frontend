@@ -1,4 +1,5 @@
 import { authedRequest } from "./http";
+import type { MemberPicture } from "./pictures";
 
 /**
  * FR-20 v2: tasks the owner hands a member (contract: .claude/dev/planning/v1.3.1-fix-roadmap.md, sample JSON in
@@ -31,6 +32,8 @@ export interface Task {
   id: number;
   member_id: number;
   member_name: string;
+  /** FR-44: the assignee's picture (null = initials; older backends leave it out). */
+  member_picture?: MemberPicture | null;
   title: string;
   note: string;
   due_at: string | null;

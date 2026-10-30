@@ -8,6 +8,7 @@ import { Sheet, SkRows } from "../ui/States";
 import { TipBody, type TipRow } from "../ui/Tooltip";
 import type { Tip } from "../ui/useTip";
 import { ZIcon } from "../ui/ZIcon";
+import { MemberAvatar } from "../team/Avatar";
 
 type Status = "working" | "break" | "out" | "notin" | "offline" | "nopc";
 type Filter = "all" | "working" | "break" | "out";
@@ -220,15 +221,19 @@ export function TeamToday({
               return (
                 <div key={r.m.id} className="zn-ov-person">
                   <Link className="z-row zn-ov-plink" to={`/app/activity#m=${key}`} aria-label={r.aria} {...tip.anchor(`team-${r.m.id}`, r.tip, { wide: true })}>
-                    <span className="zn-ov-avatar" style={{ background: TINTS[r.m.id % TINTS.length] }} aria-hidden="true">
-                      {r.m.name
+                    <MemberAvatar
+                      member={r.m}
+                      size={28}
+                      className="zn-ov-avatar"
+                      initials={r.m.name
                         .split(/\s+/)
                         .filter(Boolean)
                         .slice(0, 2)
                         .map((w) => w[0])
                         .join("")
                         .toUpperCase()}
-                    </span>
+                      style={{ background: TINTS[r.m.id % TINTS.length], color: "#141210", fontSize: 11 }}
+                    />
                     <b style={{ flex: "none", fontWeight: 600 }}>{r.m.name}</b>
                     <span className="zn-ov-pc">
                       <span className="zn-ov-dot" style={{ background: r.pcOn ? "#17663F" : "#6B6358" }} aria-hidden="true" />

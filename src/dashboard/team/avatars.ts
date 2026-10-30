@@ -1,35 +1,38 @@
 /**
- * DashTeam: role colours (live product, FR-19) and the 7 drawn preset pictures for the avatar popover.
+ * DashTeam: role colours (FR-19) and the drawn avatar library (FR-44).
+ *
+ * The library is `avatars.json` — 16 calm, flat head-and-shoulders people on a 48 × 48 box. It is THE source of
+ * truth: the Windows app embeds a byte-identical copy and the backend knows the keys (z_devices/pictures.py
+ * AVATAR_KEYS). Keys never change; art and labels may. Paths use only M L H V C Q A Z and never overlap
+ * themselves, so SVG (nonzero) and WPF (EvenOdd) draw them the same. `bg` fills the whole box: clip it to a circle.
  * Initials on the role tint stay the fallback when a person has no picture.
  */
 import type { MemberRole } from "../../lib/api";
-
-export type AvatarKey = "kite" | "sun" | "hills" | "wave" | "leaf" | "moon" | "bolt" | "dots";
+import library from "./avatars.json";
 
 export interface AvatarArt {
+  key: string;
   label: string;
   bg: string;
-  /** [path, fill] pairs on a 40×40 box. */
-  p: ReadonlyArray<readonly [string, string]>;
+  /** [path, fill] pairs on the library's 48 × 48 box. */
+  paths: ReadonlyArray<readonly [string, string]>;
 }
 
-export const AVATARS: Record<AvatarKey, AvatarArt> = {
-  kite: { label: "Kite", bg: "#FDEBDC", p: [["M20 6 30 18 20 34 10 18z", "#F26A0A"], ["M19 6h2v28h-2z", "#FDEBDC"]] },
-  sun: { label: "Sun", bg: "#FBF0D9", p: [["M11 20a9 9 0 1 0 18 0a9 9 0 1 0-18 0z", "#E0A526"]] },
-  hills: { label: "Hills", bg: "#E3F4EA", p: [["M2 34 14 18l8 10 5-6 11 12z", "#17663F"]] },
-  wave: { label: "Wave", bg: "#E6EEFB", p: [["M2 24q6-7 12 0t12 0t12 0V40H2z", "#1B4FB0"]] },
-  leaf: { label: "Leaf", bg: "#EEF4E4", p: [["M10 31C10 17 18 10 31 9c0 13-7 22-21 22z", "#3F6B1F"]] },
-  moon: { label: "Moon", bg: "#F4ECFB", p: [["M24 9a11 11 0 1 0 8 18A9 9 0 0 1 24 9z", "#6B3FA0"]] },
-  bolt: { label: "Bolt", bg: "#141210", p: [["M22 6 11 22h8l-2 12 12-17h-8z", "#F26A0A"]] },
-  dots: {
-    label: "Dots",
-    bg: "#EFECE5",
-    p: [["M10 13a3 3 0 1 0 6 0a3 3 0 1 0-6 0zM24 13a3 3 0 1 0 6 0a3 3 0 1 0-6 0zM10 27a3 3 0 1 0 6 0a3 3 0 1 0-6 0zM24 27a3 3 0 1 0 6 0a3 3 0 1 0-6 0z", "#4A443C"]],
-  },
-};
+export const AVATAR_VIEWBOX: string = library.viewBox;
 
-/** The 8 choices in the popover: initials first, then these 7 drawn ones. */
-export const PRESET_KEYS: readonly AvatarKey[] = ["kite", "sun", "hills", "wave", "leaf", "moon", "bolt"];
+export const AVATARS: readonly AvatarArt[] = library.avatars.map((a) => ({
+  key: a.key,
+  label: a.label,
+  bg: a.bg,
+  paths: a.paths.map(([d, fill]) => [d, fill] as const),
+}));
+
+const BY_KEY = new Map(AVATARS.map((a) => [a.key, a]));
+
+/** The library avatar for a key, or undefined (an unknown key reads as initials). */
+export function avatarArt(key: string): AvatarArt | undefined {
+  return BY_KEY.get(key);
+}
 
 /** [top border, avatar tint, avatar ink] per role. */
 export const ROLE_COLORS: Record<MemberRole, readonly [string, string, string]> = {
@@ -45,8 +48,4 @@ export const ROLE_COLORS: Record<MemberRole, readonly [string, string, string]> 
 
 export function roleColors(role: MemberRole | "" | undefined): readonly [string, string, string] {
   return role ? ROLE_COLORS[role] : ROLE_COLORS.other;
-}
-
-export function isAvatarKey(key: string): key is AvatarKey {
-  return key in AVATARS;
 }
