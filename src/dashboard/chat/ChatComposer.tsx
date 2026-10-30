@@ -129,7 +129,7 @@ export function ChatComposer({
           </svg>
           <button type="button" onClick={onJumpReply} className="cv-replying__what">
             <span style={{ fontSize: 12, fontWeight: 600, color: "#A84505" }}>{reply.head}</span>
-            <span className="qt" style={{ fontSize: 13, color: "#3A352E" }}>
+            <span className="qt" style={{ fontSize: 13, color: "#404040" }}>
               {reply.text}
             </span>
           </button>
@@ -157,15 +157,15 @@ export function ChatComposer({
               </span>
               <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", lineHeight: 1.3, textAlign: "left" }}>
                 <b style={{ fontSize: 14 }}>Create a task for {first}</b>
-                <small style={{ fontSize: 12, color: "#6B6358", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <small style={{ fontSize: 12, color: "#6B6B6B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {slashTitle ? `“${slashTitle}”` : `Opens the task form with ${first} filled in`}
                 </small>
               </span>
-              <span className="z-mono" style={{ flex: "none", fontSize: 12, color: "#6B6358" }}>
+              <span className="z-mono" style={{ flex: "none", fontSize: 12, color: "#6B6B6B" }}>
                 /task
               </span>
             </button>
-            <span style={{ fontSize: 11.5, color: "#6B6358", padding: "4px 8px" }}>↑ ↓ to choose · Enter to open · Esc to close</span>
+            <span style={{ fontSize: 11.5, color: "#6B6B6B", padding: "4px 8px" }}>↑ ↓ to choose · Enter to open · Esc to close</span>
           </div>
         ) : null}
         <div className="cbox">

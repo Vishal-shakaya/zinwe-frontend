@@ -8,7 +8,7 @@
 }
 
 .zp-overview a:not(.z-btn):not(.zn-tile):not(.zn-ov-plink):not(.z-chatlink) {
-  color: #a84505;
+  color: var(--z-accent-text);
 }
 
 .zp-overview .zn-ov-h2 {
@@ -24,7 +24,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 20px;
-  border-left: 4px solid #f26a0a;
+  border-left: 4px solid var(--z-accent);
 }
 
 .zp-overview .zn-ov-setup-main {
@@ -38,7 +38,7 @@
 .zp-overview .zn-ov-bar {
   height: 8px;
   border-radius: 999px;
-  background: #efece5;
+  background: var(--z-surface-2);
   overflow: hidden;
 }
 
@@ -46,7 +46,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: #17663f;
+  background: var(--z-accent);
 }
 
 .zp-overview .zn-gp {
@@ -54,7 +54,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 4px solid #f26a0a;
+  border-left: 4px solid var(--z-accent);
 }
 
 .zp-overview .zn-gp-head {
@@ -79,15 +79,15 @@
   gap: 10px;
   align-items: flex-start;
   padding: 10px 12px;
-  border: 1px solid #efece5;
+  border: 1px solid var(--z-line-soft);
   border-radius: 12px;
-  background: #fbfaf7;
+  background: var(--z-surface-3);
   min-width: 0;
 }
 
 .zp-overview .zn-gp-step.is-next {
-  border-color: #f26a0a;
-  background: #fff;
+  border-color: var(--z-accent);
+  background: var(--z-surface);
 }
 
 .zp-overview .zn-gp-num {
@@ -100,18 +100,18 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  background: #efece5;
-  color: #3a352e;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
 }
 
 .zp-overview .zn-gp-step.is-done .zn-gp-num {
-  background: #e3f4ea;
-  color: #17663f;
+  background: var(--z-ok-tint);
+  color: var(--z-ok);
 }
 
 .zp-overview .zn-gp-step.is-next .zn-gp-num {
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
 }
 
 .zp-overview .zn-gp-text {
@@ -124,12 +124,12 @@
 
 .zp-overview .zn-gp-text small {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   line-height: 1.4;
 }
 
 .zp-overview .zn-gp-step.is-done .zn-gp-text b {
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-overview .zn-gp-acts {
@@ -151,25 +151,25 @@
 .zp-overview .zn-tile {
   flex: 1;
   min-width: 0;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   text-decoration: none;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zp-overview .zn-tile:hover {
-  border-color: #dcd6cb;
-  color: #141210;
+  border-color: var(--z-line-2);
+  color: var(--z-ink);
 }
 
 .zp-overview .zn-tile-l {
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
   font-weight: 500;
   display: inline-flex;
   align-items: center;
@@ -185,7 +185,7 @@
 
 .zp-overview .zn-tile-sub {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 /* ---- Two cards ---- */
@@ -218,12 +218,12 @@
   align-items: center;
   gap: 6px 10px;
   padding: 9px 6px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
   border-radius: 8px;
 }
 
 .zp-overview .zn-need:hover {
-  background: #fbfaf7;
+  background: var(--z-surface-3);
 }
 
 .zp-overview .zn-need-ico {
@@ -264,7 +264,7 @@
 .zp-overview .zn-need-meta {
   font-size: 12px;
   line-height: 16px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zp-overview .zn-need-ask {
@@ -296,14 +296,14 @@
   min-height: 32px;
   width: 240px;
   padding: 0 10px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 8px;
   font-size: 13px;
-  background: #fff;
+  background: var(--z-surface);
 }
 
 .zp-overview .zn-ov-clear {
-  border: 1px dashed #dcd6cb;
+  border: 1px dashed var(--z-line-2);
   border-radius: 12px;
   padding: 28px;
   text-align: center;
@@ -318,16 +318,16 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #e3f4ea;
-  color: #17663f;
+  background: var(--z-ok-tint);
+  color: var(--z-ok);
   align-items: center;
   justify-content: center;
 }
 
 .zp-overview .zn-ov-toast {
   flex: none;
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 13px;
@@ -339,7 +339,7 @@
 .zp-overview .zn-ov-toast button {
   background: none;
   border: 0;
-  color: #ff9a55;
+  color: var(--z-accent-on-ink);
   font-weight: 600;
   cursor: pointer;
 }
@@ -348,7 +348,7 @@
   flex: none;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -407,7 +407,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
 }
 
 .zp-overview .zn-ov-plink {
@@ -418,13 +418,13 @@
   gap: 10px;
   padding: 7px 6px;
   text-decoration: none;
-  color: #141210;
+  color: var(--z-ink);
   border-radius: 8px;
   white-space: nowrap;
 }
 
 .zp-overview .zn-ov-plink:hover {
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zp-overview .zn-ov-avatar {
@@ -437,7 +437,7 @@
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zp-overview .zn-ov-pc {
@@ -447,7 +447,7 @@
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zp-overview .zn-ov-dot {
@@ -474,11 +474,11 @@
   text-overflow: ellipsis;
   text-align: right;
   font-size: 12px;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zp-overview .zn-ptime.wait {
-  color: #8a5300;
+  color: var(--z-accent-text);
   font-weight: 600;
 }
 
@@ -488,14 +488,14 @@
   right: 0;
   bottom: 0;
   height: 40px;
-  background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+  background: linear-gradient(rgba(255, 255, 255, 0), var(--z-surface));
   pointer-events: none;
 }
 
 .zp-overview .zn-ov-empty {
   margin: 0;
   padding: 16px 6px;
-  color: #4a443c;
+  color: var(--z-ink-2);
   font-size: 13px;
 }
 

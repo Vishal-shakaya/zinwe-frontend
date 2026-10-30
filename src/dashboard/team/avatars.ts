@@ -34,16 +34,17 @@ export function avatarArt(key: string): AvatarArt | undefined {
   return BY_KEY.get(key);
 }
 
-/** [top border, avatar tint, avatar ink] per role. */
+/** [top border, avatar tint, avatar ink] per role: black, greys and orange only (v1.3.2); the role name carries it.
+ *  The FR-44 faces keep their own colours. */
 export const ROLE_COLORS: Record<MemberRole, readonly [string, string, string]> = {
-  developer: ["#2F6FDF", "#E6EFFD", "#1D4FA8"],
-  designer: ["#D0458F", "#FBE8F2", "#9C2867"],
-  sales: ["#1F9D61", "#E3F6EC", "#136C42"],
-  support: ["#158F96", "#E0F5F6", "#0D666B"],
-  accounts: ["#C98A12", "#FBF1DC", "#8A5D06"],
-  operations: ["#5B6475", "#ECEEF2", "#3C4352"],
-  management: ["#7A4AD8", "#EFE8FC", "#5530A3"],
-  other: ["#8A8A83", "#EFEFEB", "#55554F"],
+  developer: ["#404040", "#F5F5F5", "#404040"],
+  designer: ["#6B6B6B", "#F5F5F5", "#404040"],
+  sales: ["#F26A0A", "#FDEBDC", "#8A3A04"],
+  support: ["#6B6B6B", "#F5F5F5", "#404040"],
+  accounts: ["#F26A0A", "#FDEBDC", "#8A3A04"],
+  operations: ["#6B6B6B", "#F5F5F5", "#404040"],
+  management: ["#141210", "#F5F5F5", "#404040"],
+  other: ["#D4D4D4", "#F5F5F5", "#6B6B6B"],
 };
 
 export function roleColors(role: MemberRole | "" | undefined): readonly [string, string, string] {

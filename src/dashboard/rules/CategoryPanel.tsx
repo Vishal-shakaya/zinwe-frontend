@@ -6,8 +6,8 @@ import { normSite, siteError } from "./sites";
 const PAGE_SIZE = 12;
 const PILL: Record<string, { bg: string; fg: string; bd: string }> = {
   Blocked: { bg: "#141210", fg: "#fff", bd: "#141210" },
-  Allowed: { bg: "#E3F4EA", fg: "#17663F", bd: "#E3F4EA" },
-  "Not blocked": { bg: "#F7F6F2", fg: "#3A352E", bd: "#DCD6CB" },
+  Allowed: { bg: "#FFFFFF", fg: "#141210", bd: "#141210" },
+  "Not blocked": { bg: "#F5F5F5", fg: "#404040", bd: "#D4D4D4" },
 };
 
 /**
@@ -127,7 +127,7 @@ export function CategoryPanel({
         onKeyDown={trap}
         style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 460, maxWidth: "100%", background: "#fff", boxShadow: "-20px 0 44px -18px rgba(20,18,16,.35)", display: "flex", flexDirection: "column" }}
       >
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "18px 20px 14px", borderBottom: "1px solid #E7E3DA" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "18px 20px 14px", borderBottom: "1px solid #E5E5E5" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2 id="zn-cat-t" style={{ margin: 0, fontSize: 19, letterSpacing: "-0.01em" }}>
               {label} · {info.count} sites
@@ -144,12 +144,12 @@ export function CategoryPanel({
         </div>
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
           {!on ? (
-            <p style={{ margin: 0, fontSize: 13, color: "#8A5300", background: "#FBF0D9", borderRadius: 8, padding: "8px 10px" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "#A84505", background: "#FDEBDC", borderRadius: 8, padding: "8px 10px" }}>
               This kind is off, so these sites are not blocked yet. Turn it on under Websites.
             </p>
           ) : null}
           {info.masked ? (
-            <p style={{ margin: 0, fontSize: 13, color: "#3A352E", background: "#F7F6F2", border: "1px solid #E7E3DA", borderRadius: 8, padding: "8px 10px" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "#404040", background: "#F5F5F5", border: "1px solid #E5E5E5", borderRadius: 8, padding: "8px 10px" }}>
               Names are partly hidden. The full list is applied on every PC.
             </p>
           ) : null}
@@ -159,14 +159,14 @@ export function CategoryPanel({
             </label>
             <input id="zn-cat-q" type="search" className="rl-inp rl-mono" placeholder="Search sites" value={q} onChange={(e) => setQ(e.target.value)} />
           </span>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, border: "1px solid #E7E3DA", borderRadius: 12 }}>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, border: "1px solid #E5E5E5", borderRadius: 12 }}>
             {shown.map((name, i) => {
               const status = allow.includes(name) ? "Allowed" : on ? "Blocked" : "Not blocked";
               const p = PILL[status];
               return (
                 <li
                   key={name}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 12px", fontSize: 13.5, borderTop: i ? "1px solid #F0EDE6" : undefined }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 12px", fontSize: 13.5, borderTop: i ? "1px solid #F5F5F5" : undefined }}
                 >
                   <span className="rl-mono" style={{ minWidth: 0, overflowWrap: "anywhere" }}>
                     {name}
@@ -181,7 +181,7 @@ export function CategoryPanel({
             })}
           </ul>
           {query && shown.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 13, color: "#4A443C" }}>No site in the list shown matches “{q}”. You can block it below.</p>
+            <p style={{ margin: 0, fontSize: 13, color: "#404040" }}>No site in the list shown matches “{q}”. You can block it below.</p>
           ) : null}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
             <span className="rl-k" aria-live="polite">
@@ -196,7 +196,7 @@ export function CategoryPanel({
             ) : null}
           </div>
         </div>
-        <div style={{ borderTop: "1px solid #E7E3DA", background: "#FBFAF7", padding: "14px 20px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ borderTop: "1px solid #E5E5E5", background: "#FAFAFA", padding: "14px 20px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
           <div role="status" aria-live="polite" className={toast ? "rl-toast on" : "rl-toast"}>
             {toast}
           </div>

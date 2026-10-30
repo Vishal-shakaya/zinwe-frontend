@@ -77,7 +77,7 @@ export function Bell({ placement = "page" }: { placement?: "page" | "nav" }): Re
             <div ref={panel} id={panelId} role="dialog" aria-labelledby={titleId} tabIndex={-1} className="zn-bell-panel">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "14px 14px 10px" }}>
                 <b id={titleId} style={{ fontSize: 16 }}>
-                  Notifications{unread ? <span style={{ fontWeight: 500, color: "#6B6459" }}> · {unread} new</span> : null}
+                  Notifications{unread ? <span style={{ fontWeight: 500, color: "#6B6B6B" }}> · {unread} new</span> : null}
                 </b>
                 <button
                   type="button"
@@ -92,7 +92,7 @@ export function Bell({ placement = "page" }: { placement?: "page" | "nav" }): Re
                     fontWeight: 600,
                     textDecoration: "underline",
                     cursor: unread ? "pointer" : "default",
-                    color: unread ? "#A84505" : "#6B6358",
+                    color: unread ? "#A84505" : "#6B6B6B",
                   }}
                 >
                   Mark all as read
@@ -126,8 +126,8 @@ export function Bell({ placement = "page" }: { placement?: "page" | "nav" }): Re
                         {!n.read ? <span className="z-sr">Unread: </span> : null}
                         {n.title}
                       </span>
-                      {n.body ? <span style={{ fontSize: 13, color: "#4A443C", overflowWrap: "anywhere" }}>{n.body}</span> : null}
-                      <span style={{ fontSize: 12, color: "#6B6459" }}>
+                      {n.body ? <span style={{ fontSize: 13, color: "#404040", overflowWrap: "anywhere" }}>{n.body}</span> : null}
+                      <span style={{ fontSize: 12, color: "#6B6B6B" }}>
                         <time dateTime={n.at} title={formatDateTime(n.at)}>
                           {formatRelative(n.at, now, "")}
                         </time>{" "}
@@ -140,23 +140,23 @@ export function Bell({ placement = "page" }: { placement?: "page" | "nav" }): Re
                   </Link>
                 ))}
                 {items === undefined ? (
-                  <p role="status" style={{ margin: 0, padding: "28px 14px", textAlign: "center", color: "#4A443C" }}>
+                  <p role="status" style={{ margin: 0, padding: "28px 14px", textAlign: "center", color: "#404040" }}>
                     Loading…
                   </p>
                 ) : failed && list.length === 0 ? (
-                  <p role="alert" style={{ margin: 0, padding: "24px 14px", textAlign: "center", color: "#4A443C" }}>
+                  <p role="alert" style={{ margin: 0, padding: "24px 14px", textAlign: "center", color: "#404040" }}>
                     We couldn't load your notifications.{" "}
                     <button type="button" className="z-btn sm" onClick={reload} style={{ marginTop: 8 }}>
                       Try again
                     </button>
                   </p>
                 ) : shown.length === 0 ? (
-                  <p style={{ margin: 0, padding: "28px 14px", textAlign: "center", color: "#4A443C" }}>
+                  <p style={{ margin: 0, padding: "28px 14px", textAlign: "center", color: "#404040" }}>
                     {filter === "unread" && list.length ? "Nothing unread." : "You're all caught up."}
                   </p>
                 ) : null}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "10px 14px 12px", background: "#FBFAF7", fontSize: 12, color: "#4A443C" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "10px 14px 12px", background: "#FAFAFA", fontSize: 12, color: "#404040" }}>
                 <span>Alerts that need you, unread chats, requests waiting for your OK and news. Read marks are kept on this browser.</span>
                 <Link to="/app/settings/notifications" style={{ color: "#A84505", fontWeight: 600 }} onClick={() => close(false)}>
                   Notification settings

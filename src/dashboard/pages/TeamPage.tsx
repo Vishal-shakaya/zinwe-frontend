@@ -258,7 +258,7 @@ export default function TeamPage(): ReactElement {
         <div className="zt-fbar">
           <span className="zt-cap">{capacity}</span>
           <label className="zt-search">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6459" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
             </svg>
@@ -297,7 +297,7 @@ export default function TeamPage(): ReactElement {
             }}
           >
             <span>{label}</span>
-            <span className="z-num" style={{ color: "#6B6358" }}>
+            <span className="z-num" style={{ color: "#6B6B6B" }}>
               {counts(k)}
             </span>
           </button>
@@ -406,7 +406,7 @@ export default function TeamPage(): ReactElement {
           <ul>
             {unassigned.map((d) => (
               <li key={d.id}>
-                <span className="zt-dot" style={{ background: d.is_online ? "#17663F" : "#6B6358" }} aria-hidden="true" />
+                <span className="zt-dot" style={{ background: d.is_online ? "#17663F" : "#6B6B6B" }} aria-hidden="true" />
                 <b className="z-mono">{d.hostname || "Unnamed PC"}</b>
                 <span className="zt-hint">
                   {[systemFull(d), `last seen ${formatRelative(d.last_seen_at, now, "never")}`].filter(Boolean).join(" · ")}

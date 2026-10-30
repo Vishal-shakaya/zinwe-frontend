@@ -16,7 +16,7 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
-  background: var(--paper);
+  background: var(--z-ground);
   border-right: 1px solid var(--line);
 }
 
@@ -118,7 +118,7 @@
 @media (max-width: 900px) {
   .auth {
     grid-template-columns: minmax(0, 1fr);
-    background: var(--paper);
+    background: var(--z-ground);
   }
   .auth__side {
     display: none;
@@ -222,9 +222,9 @@
   padding: 10px 12px;
   font-size: 0.86rem;
   line-height: 1.45;
-  color: #0f5b37;
+  color: var(--z-ok);
   background: var(--dash-green-tint);
-  border: 1px solid #bfe5cf;
+  border: 1px solid var(--z-ok-line);
   border-radius: var(--radius-sm);
 }
 
@@ -289,7 +289,7 @@
   background: var(--white);
   color: var(--ink);
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(13, 13, 14, 0.08), 0 0 0 1px var(--line);
+  box-shadow: 0 1px 2px rgba(20, 18, 16, 0.08), 0 0 0 1px var(--line);
 }
 
 /* ========== OTP boxes ========== */
@@ -333,11 +333,11 @@
 .otp__box:focus {
   outline: 0;
   border-color: var(--orange-strong);
-  box-shadow: 0 0 0 3px rgba(253, 109, 2, 0.18);
+  box-shadow: 0 0 0 3px rgba(242, 106, 10, 0.18);
 }
 
 .otp.is-invalid .otp__box {
-  border-color: #d12d2d;
+  border-color: var(--z-danger);
 }
 
 .otp:disabled .otp__box {
@@ -519,7 +519,7 @@
 .plan--skel span {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #efefeb 25%, #f7f7f4 50%, #efefeb 75%);
+  background: linear-gradient(90deg, var(--z-surface-2) 25%, var(--z-surface-2) 50%, var(--z-surface-2) 75%);
   background-size: 200% 100%;
   animation: dash-shimmer 1.4s ease-in-out infinite;
 }
@@ -606,7 +606,7 @@
 
 .onb {
   min-height: 100vh;
-  background: var(--paper);
+  background: var(--z-ground);
 }
 
 .onb__top {
@@ -868,7 +868,7 @@
 .sub-left {
   display: block;
   font-size: 0.8rem;
-  color: var(--dash-green);
+  color: var(--z-accent-text);
   font-weight: 600;
 }
 
@@ -976,7 +976,7 @@
 
 .field.is-invalid .co-phone__dial,
 .co-form .field.is-invalid select {
-  border-color: #d12d2d;
+  border-color: var(--z-danger);
 }
 
 .co-form__foot {
@@ -1185,8 +1185,8 @@
 
 .dash-banner--bad {
   background: var(--dash-red-tint);
-  border-color: #f1c9c9;
-  color: #7d1515;
+  border-color: var(--z-danger-line);
+  color: var(--z-danger-ink);
 }
 
 /* ========== Overview ========== */
@@ -1358,7 +1358,7 @@
 }
 
 .quote__minus td {
-  color: var(--dash-green, #16794a);
+  color: var(--z-accent-text);
 }
 
 .quote__sum th,
@@ -1385,7 +1385,7 @@
 
 .pay-way--primary {
   background: var(--orange-tint);
-  border-color: #ffd5bf;
+  border-color: var(--z-accent-line);
 }
 
 .pay-way__lead {
@@ -1630,7 +1630,7 @@
 .ways__tab.is-on {
   background: var(--white);
   color: var(--ink);
-  box-shadow: 0 0 0 1px var(--line), 0 1px 3px rgba(13, 13, 14, 0.08);
+  box-shadow: 0 0 0 1px var(--line), 0 1px 3px rgba(20, 18, 16, 0.08);
 }
 
 .ways__tab:focus-visible,
@@ -1876,7 +1876,7 @@
 }
 
 .field.is-invalid .receipt__drop {
-  border-color: #c4271b;
+  border-color: var(--z-danger);
 }
 
 .receipt__drop-icon {
@@ -1929,7 +1929,7 @@
   flex: none;
   display: grid;
   place-items: center;
-  color: var(--dash-green, #16794a);
+  color: var(--z-ink-2);
 }
 
 .receipt__file-name {
@@ -1979,7 +1979,7 @@
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 1px 2px rgba(13, 13, 14, 0.04), 0 10px 30px -18px rgba(13, 13, 14, 0.25);
+  box-shadow: 0 1px 2px rgba(20, 18, 16, 0.04), 0 10px 30px -18px rgba(20, 18, 16, 0.25);
 }
 
 .slip__top {
@@ -2047,7 +2047,7 @@
 }
 
 .slip__minus dd {
-  color: var(--dash-green, #16794a);
+  color: var(--z-accent-text);
 }
 
 /* The tear line: a dashed rule with a half-circle notch cut into each edge of the slip. */
@@ -2311,7 +2311,7 @@
 }
 
 .checkout::backdrop {
-  background: rgba(13, 13, 14, 0.55);
+  background: rgba(20, 18, 16, 0.55);
   backdrop-filter: blur(2px);
 }
 
@@ -2333,7 +2333,7 @@
   overflow: hidden;
   border-radius: 14px;
   background: var(--white);
-  box-shadow: 0 30px 80px -24px rgba(13, 13, 14, 0.5);
+  box-shadow: 0 30px 80px -24px rgba(20, 18, 16, 0.5);
 }
 
 .checkout__summary {
@@ -2427,7 +2427,7 @@
 }
 
 .checkout__minus dd {
-  color: #7fd9a6;
+  color: var(--z-accent-on-ink);
 }
 
 /* "Tax [GST] 18%": the type as a small chip, then its CGST / SGST parts, indented and quieter. */
@@ -2444,7 +2444,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #fff;
+  color: var(--z-on-ink);
 }
 
 .checkout__lines > .checkout__tax-part {
@@ -2618,7 +2618,7 @@
 
 .checkout__method:hover {
   border-color: var(--ink);
-  box-shadow: 0 1px 3px rgba(13, 13, 14, 0.08);
+  box-shadow: 0 1px 3px rgba(20, 18, 16, 0.08);
 }
 
 .checkout__method > .dash-ico {
@@ -2726,8 +2726,8 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--dash-green-tint, #e7f6ee);
-  color: var(--dash-green, #16794a);
+  background: var(--dash-green-tint, var(--z-ok-tint));
+  color: var(--dash-green, var(--z-ok));
 }
 
 .checkout__done-mark .dash-ico {
@@ -3180,7 +3180,7 @@
   margin: 0;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  background: var(--orange-tint, #fff1e6);
+  background: var(--orange-tint, var(--z-accent-tint));
   color: var(--ink);
 }
 
@@ -3233,7 +3233,7 @@
 .cycle-toggle__opt.is-on {
   background: var(--ink);
   color: var(--white);
-  box-shadow: 0 6px 16px -8px rgba(13, 13, 14, 0.6);
+  box-shadow: 0 6px 16px -8px rgba(20, 18, 16, 0.6);
 }
 
 .cycle-toggle__opt:focus-visible {
@@ -3244,16 +3244,16 @@
 .cycle-toggle__save {
   padding: 2px 8px;
   border-radius: 999px;
-  background: #e3f6ea;
-  color: #136c3a;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
   font-size: 0.74rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .cycle-toggle__opt.is-on .cycle-toggle__save {
-  background: #7fd9a6;
-  color: #0b3d22;
+  background: var(--z-accent);
+  color: var(--z-ink);
 }
 
 /* ---------- The dialog: a little roomier for the two ways to pay ---------- */
@@ -3302,8 +3302,8 @@
   margin: -6px 0 16px;
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(127, 217, 166, 0.16);
-  color: #7fd9a6;
+  background: rgba(242, 106, 10, 0.16);
+  color: var(--z-accent-on-ink);
   font-weight: 600;
 }
 
@@ -3365,7 +3365,7 @@
 .co-option:hover:not(:disabled) {
   transform: translateY(-2px);
   border-color: var(--line-strong);
-  box-shadow: 0 14px 30px -18px rgba(13, 13, 14, 0.35);
+  box-shadow: 0 14px 30px -18px rgba(20, 18, 16, 0.35);
 }
 
 .co-option:focus-visible {
@@ -3466,16 +3466,16 @@
 
 /* Razorpay: the lively one. A warm glow, a live dot, and a shine across the button on hover. */
 .co-option--online {
-  border-color: rgba(253, 109, 2, 0.45);
+  border-color: rgba(242, 106, 10, 0.45);
   background:
-    radial-gradient(120% 140% at 100% 0%, rgba(253, 109, 2, 0.12), transparent 55%),
-    linear-gradient(180deg, #fffaf5, var(--white));
-  box-shadow: 0 10px 28px -20px rgba(253, 109, 2, 0.9);
+    radial-gradient(120% 140% at 100% 0%, rgba(242, 106, 10, 0.12), transparent 55%),
+    linear-gradient(180deg, var(--z-accent-tint-2), var(--white));
+  box-shadow: 0 10px 28px -20px rgba(242, 106, 10, 0.9);
 }
 
 .co-option--online:hover:not(:disabled) {
   border-color: var(--orange);
-  box-shadow: 0 18px 36px -18px rgba(253, 109, 2, 0.75);
+  box-shadow: 0 18px 36px -18px rgba(242, 106, 10, 0.75);
 }
 
 .co-option--online .co-option__icon {
@@ -3511,8 +3511,8 @@
 }
 
 .co-badge--live {
-  background: #e3f6ea;
-  color: #136c3a;
+  background: var(--z-ok-tint);
+  color: var(--z-ok);
 }
 
 .co-badge--live i {
@@ -3520,7 +3520,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #1f9d55;
+  background: var(--z-ok);
 }
 
 .co-badge--live i::after {
@@ -3528,7 +3528,7 @@
   position: absolute;
   inset: -3px;
   border-radius: 50%;
-  border: 2px solid #1f9d55;
+  border: 2px solid var(--z-ok);
   animation: co-pulse 1.6s ease-out infinite;
 }
 
@@ -3559,14 +3559,14 @@
 .co-option--manual {
   border-color: var(--line-strong);
   background:
-    radial-gradient(120% 140% at 100% 0%, rgba(13, 13, 14, 0.05), transparent 55%),
-    linear-gradient(180deg, #fbfbf9, var(--white));
-  box-shadow: 0 10px 28px -20px rgba(13, 13, 14, 0.55);
+    radial-gradient(120% 140% at 100% 0%, rgba(20, 18, 16, 0.05), transparent 55%),
+    linear-gradient(180deg, var(--z-surface-3), var(--white));
+  box-shadow: 0 10px 28px -20px rgba(20, 18, 16, 0.55);
 }
 
 .co-option--manual:hover:not(:disabled) {
   border-color: var(--ink);
-  box-shadow: 0 18px 36px -18px rgba(13, 13, 14, 0.45);
+  box-shadow: 0 18px 36px -18px rgba(20, 18, 16, 0.45);
 }
 
 .co-option--manual .co-option__icon {
@@ -3577,7 +3577,7 @@
 .co-option--manual .co-option__cta {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 6px 16px -10px rgba(13, 13, 14, 0.6);
+  box-shadow: 0 6px 16px -10px rgba(20, 18, 16, 0.6);
   transition: background 0.18s var(--ease), color 0.18s var(--ease), border-color 0.18s var(--ease);
 }
 
@@ -3600,7 +3600,7 @@
 }
 
 .co-option--online .co-option__cta {
-  box-shadow: 0 8px 18px -10px rgba(253, 109, 2, 0.9);
+  box-shadow: 0 8px 18px -10px rgba(242, 106, 10, 0.9);
 }
 
 /* Manual is primary only when online payment is off. */
@@ -3612,7 +3612,7 @@
 .co-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(13, 13, 14, 0.25);
+  border: 2px solid rgba(20, 18, 16, 0.25);
   border-top-color: var(--ink);
   border-radius: 50%;
   animation: co-spin 0.7s linear infinite;
@@ -3730,7 +3730,7 @@
 .co-trust .dash-ico {
   width: 15px;
   height: 15px;
-  color: #1f9d55;
+  color: var(--z-ink-2);
 }
 
 .co-trust__razorpay span {

@@ -40,8 +40,8 @@ const ROUTES: readonly Route[] = ["usb", "net", "web", "email"];
 const R: Record<Route, { label: string; color: string; category: MetricCategory; phrase: string }> = {
   usb: { label: "USB drives", color: "#F26A0A", category: "transfer.usb", phrase: "copy to a pen drive" },
   net: { label: "Shared folders", color: "#141210", category: "transfer.lan", phrase: "copy to a shared folder" },
-  web: { label: "Web uploads", color: "#1B6FB0", category: "net.upload", phrase: "upload" },
-  email: { label: "Email", color: "#8F877A", category: "transfer.email", phrase: "email attachment" },
+  web: { label: "Web uploads", color: "#404040", category: "net.upload", phrase: "upload" },
+  email: { label: "Email", color: "#8A8A8A", category: "transfer.email", phrase: "email attachment" },
 };
 const SPECS: SeriesSpec[] = ROUTES.map((k) => ({ category: R[k].category, field: "bytes", label: k }));
 const TYPES = FEATURE_EVENT_TYPES.data;
@@ -396,7 +396,7 @@ export default function DataPage(): ReactElement {
               role="group"
               aria-label={`Data moved out by ${days === 7 ? "day" : "week"}: ${buckets.map((b) => `${b.full} ${sz(dayTotal(b))}`).join(", ")}`}
               onMouseLeave={leaveDay}
-              style={{ height: 200, borderBottom: "1px solid #E7E3DA" }}
+              style={{ height: 200, borderBottom: "1px solid #E5E5E5" }}
             >
               {buckets.map((b, i) => {
                 const tot = dayTotal(b);
@@ -413,7 +413,7 @@ export default function DataPage(): ReactElement {
                       if (e.key === "Escape") leaveDay();
                     }}
                   >
-                    <span className="z-num" style={{ fontSize: 11, color: "#4A443C" }}>
+                    <span className="z-num" style={{ fontSize: 11, color: "#404040" }}>
                       {sz(tot)}
                     </span>
                     <div data-tip-at="1" className="zp-dstack">
@@ -429,12 +429,12 @@ export default function DataPage(): ReactElement {
             </div>
             <div className="zp-drow" aria-hidden="true">
               {buckets.map((b) => (
-                <span key={b.key} style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: 12, color: "#6B6459" }}>
+                <span key={b.key} style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: 12, color: "#6B6B6B" }}>
                   {b.l}
                 </span>
               ))}
             </div>
-            <p style={{ margin: 0, fontSize: 12, color: "#6B6459" }}>Hover or tab to a {days === 7 ? "day" : "week"} to see each route.</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#6B6B6B" }}>Hover or tab to a {days === 7 ? "day" : "week"} to see each route.</p>
           </>
         )}
       </section>
@@ -502,7 +502,7 @@ export default function DataPage(): ReactElement {
                             <span>
                               {r.who}
                               <br />
-                              <span className={e ? "z-mono" : undefined} style={{ fontSize: 12, color: "#6B6459" }}>
+                              <span className={e ? "z-mono" : undefined} style={{ fontSize: 12, color: "#6B6B6B" }}>
                                 {r.pc}
                               </span>
                             </span>
@@ -513,7 +513,7 @@ export default function DataPage(): ReactElement {
                           <td data-label="Size" className="z-num" style={{ textAlign: "right", fontWeight: 600 }}>
                             {formatBytes(r.bytes)}
                           </td>
-                          <td data-label="When" style={{ color: "#4A443C" }}>
+                          <td data-label="When" style={{ color: "#404040" }}>
                             {r.when}
                           </td>
                           <td data-label="Level">
@@ -537,14 +537,14 @@ export default function DataPage(): ReactElement {
                                 {over ? " · over limit" : ""}
                               </button>
                             ) : (
-                              <span style={{ fontSize: 12, color: "#6B6459" }}>—</span>
+                              <span style={{ fontSize: 12, color: "#6B6B6B" }}>—</span>
                             )}
                           </td>
                           <td data-label="Follow-up" className="fu">
                             {e ? (
                               <span className="zp-fu">
                                 {st === "open" && r.memberId !== undefined ? <AskButton first={first} onAsk={() => askFor(r)} /> : null}
-                                {st === "asked" ? <span className="zp-st" style={{ color: "#1B4FB0" }}>Asked · waiting for reply</span> : null}
+                                {st === "asked" ? <span className="zp-st" style={{ color: "#404040" }}>Asked · waiting for reply</span> : null}
                                 {st === "handled" ? <span className="zp-st" style={{ color: "#17663F" }}>Handled</span> : null}
                                 {dev ? <UsbRestore device={dev} onRestored={devices.reload} /> : null}
                                 <Link to={`/app/alerts#alert=${e.id}`} style={{ fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }} aria-label={`See the alert for ${first}’s ${formatBytes(r.bytes)} transfer`}>
@@ -552,7 +552,7 @@ export default function DataPage(): ReactElement {
                                 </Link>
                               </span>
                             ) : (
-                              <span style={{ fontSize: 12, color: "#6B6459" }}>No alert</span>
+                              <span style={{ fontSize: 12, color: "#6B6B6B" }}>No alert</span>
                             )}
                           </td>
                         </tr>
@@ -601,7 +601,7 @@ export default function DataPage(): ReactElement {
                 ...(dt?.usb_lockdown ? [{ k: "After a USB copy over the limit", v: "USB goes read-only" }] : []),
               ].map((r) => (
                 <div key={r.k} className="zp-rule">
-                  <span style={{ color: "#4A443C" }}>{r.k}</span>
+                  <span style={{ color: "#404040" }}>{r.k}</span>
                   <b style={{ textAlign: "right", whiteSpace: "nowrap" }}>{r.v}</b>
                 </div>
               ))

@@ -111,7 +111,7 @@ export function WhoWorkedWhen({
         </div>
       </div>
       <div className="rp-ph-only">
-        <p className="rp-num" style={{ margin: "0 0 10px", fontSize: 13, color: "#3A352E" }}>
+        <p className="rp-num" style={{ margin: "0 0 10px", fontSize: 13, color: "#404040" }}>
           {summary}
         </p>
         <button
@@ -140,7 +140,7 @@ export function WhoWorkedWhen({
             {GRID.map((g) => (
               <span
                 key={g}
-                style={{ position: "absolute", left: 0, right: 0, bottom: `${g * 25}%`, height: 1, background: g === 0 ? "#DCD6CB" : "#F0EDE6" }}
+                style={{ position: "absolute", left: 0, right: 0, bottom: `${g * 25}%`, height: 1, background: g === 0 ? "#D4D4D4" : "#F5F5F5" }}
               />
             ))}
             <div role="group" aria-label={`Who worked when, by ${hourly ? "hour" : "day"}`} style={{ position: "absolute", inset: 0, display: "flex" }}>
@@ -200,7 +200,7 @@ export function WhoWorkedWhen({
               })}
             </div>
             {empty ? (
-              <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B6459", fontSize: 13 }}>
+              <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B6B6B", fontSize: 13 }}>
                 No work in this period.
               </span>
             ) : null}
@@ -233,7 +233,7 @@ export function WhoWorkedWhen({
               >
                 <span style={{ width: 10, height: 10, borderRadius: 3, flex: "none", background: colorOf(facts.key) }} />
                 {facts.name}
-                <span className="rp-num" style={{ color: "#6B6459", fontWeight: 500 }}>
+                <span className="rp-num" style={{ color: "#6B6B6B", fontWeight: 500 }}>
                   {fmtS(total)}
                 </span>
               </button>

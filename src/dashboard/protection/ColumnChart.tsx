@@ -105,10 +105,10 @@ export function ColumnChart({
           })}
         </div>
       </div>
-      <div className="zp-plot zp-xl" aria-hidden="true" style={{ display: "flex", margin: "0 0 0 44px", borderTop: "1px solid #E7E3DA", paddingTop: 6 }}>
+      <div className="zp-plot zp-xl" aria-hidden="true" style={{ display: "flex", margin: "0 0 0 44px", borderTop: "1px solid #E5E5E5", paddingTop: 6 }}>
         {cols.map((c) => (
           <span key={c.key} style={{ flex: "1 1 0", minWidth: 0, display: "flex", justifyContent: "center" }}>
-            <span style={{ fontSize: 11, color: "#6B6459", whiteSpace: "nowrap" }}>{c.label}</span>
+            <span style={{ fontSize: 11, color: "#6B6B6B", whiteSpace: "nowrap" }}>{c.label}</span>
           </span>
         ))}
       </div>

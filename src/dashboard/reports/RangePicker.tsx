@@ -134,8 +134,8 @@ export function RangePicker({
           );
         })}
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, borderTop: "1px solid #F0EDE6", paddingTop: 10 }}>
-        <span className="rp-num" style={{ fontSize: 12, color: "#4A443C" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, borderTop: "1px solid #F5F5F5", paddingTop: 10 }}>
+        <span className="rp-num" style={{ fontSize: 12, color: "#404040" }}>
           {summary}
         </span>
         <span style={{ display: "flex", gap: 6 }}>

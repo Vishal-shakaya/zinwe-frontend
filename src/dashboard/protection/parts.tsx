@@ -279,7 +279,7 @@ export function AskSheet({ target, onClose, onSent }: { target: AskTarget | null
         Message
         <textarea id="zp-ask-msg" className="zp-ta" value={msg} maxLength={2000} onChange={(e) => setMsg(e.target.value)} />
       </label>
-      <p style={{ margin: 0, fontSize: 12, color: "#6B6358" }}>Goes to {first}’s Zinwe app. Their reply shows here and in Alerts.</p>
+      <p style={{ margin: 0, fontSize: 12, color: "#6B6B6B" }}>Goes to {first}’s Zinwe app. Their reply shows here and in Alerts.</p>
       {error ? (
         <p className="z-err" role="alert" style={{ margin: 0 }}>
           {error}

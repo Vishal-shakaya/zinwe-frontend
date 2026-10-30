@@ -74,7 +74,7 @@ function BankCard({ instructions }: { instructions: PaymentInstructions }): Reac
           </>
         ) : null}
       </div>
-      <span style={{ fontSize: 13, color: "#4A443C" }}>We confirm a transfer within one working day and email the receipt.</span>
+      <span style={{ fontSize: 13, color: "#404040" }}>We confirm a transfer within one working day and email the receipt.</span>
     </section>
   );
 }

@@ -12,8 +12,8 @@
   flex: 1;
   display: flex;
   flex-wrap: wrap;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 16px;
   overflow: hidden;
   min-height: 860px;
@@ -23,7 +23,7 @@
 :where(.zd) .zp-chat .cv-list {
   flex: 1 1 260px;
   min-width: 0;
-  border-right: 1px solid #efece5;
+  border-right: 1px solid var(--z-line-soft);
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -39,13 +39,13 @@
   border-radius: 12px;
   background: transparent;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .conv:hover {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 :where(.zd) .zp-chat .conv.on {
-  background: #fdebdc;
+  background: var(--z-accent-tint);
 }
 :where(.zd) .zp-chat .conv-av {
   position: relative;
@@ -62,15 +62,15 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--z-surface);
 }
 :where(.zd) .zp-chat .conv-unread {
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
@@ -98,7 +98,7 @@
 }
 :where(.zd) .zp-chat .cv-head {
   padding: 14px 18px;
-  border-bottom: 1px solid #efece5;
+  border-bottom: 1px solid var(--z-line-soft);
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -111,7 +111,7 @@
   margin-left: -6px;
   border: 0;
   background: transparent;
-  color: #141210;
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .cv-thread {
   flex: 1;
@@ -119,7 +119,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #fbfaf7;
+  background: var(--z-surface-3);
   overflow-y: auto;
   max-height: 520px;
   min-height: 380px;
@@ -127,8 +127,8 @@
 :where(.zd) .zp-chat .cv-sep {
   padding: 3px 12px;
   border-radius: 999px;
-  background: #efece5;
-  color: #4a443c;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
   font-size: 12px;
   font-weight: 600;
 }
@@ -151,8 +151,8 @@
   align-items: flex-start;
 }
 :where(.zd) .zp-chat .msg.flash {
-  background: #fdebdc;
-  box-shadow: 0 0 0 4px #fdebdc;
+  background: var(--z-accent-tint);
+  box-shadow: 0 0 0 4px var(--z-accent-tint);
 }
 :where(.zd) .zp-chat .mrow {
   display: flex;
@@ -171,20 +171,20 @@
   font-size: 14px;
 }
 :where(.zd) .zp-chat .cv-bubble.out {
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   border-bottom-right-radius: 4px;
 }
 :where(.zd) .zp-chat .cv-bubble.in {
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-bottom-left-radius: 4px;
 }
 :where(.zd) .zp-chat .cv-bubble.out a {
-  color: #fdba8c;
+  color: var(--z-accent-line);
 }
 :where(.zd) .zp-chat .cv-bubble.out .chat-link__copy {
-  color: #f1eee8;
+  color: var(--z-surface-2);
 }
 :where(.zd) .zp-chat .quote {
   display: flex;
@@ -199,19 +199,19 @@
   text-align: left;
   font-size: 12px;
   line-height: 1.35;
-  background: #f2efe8;
-  color: #3a352e;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
 }
 :where(.zd) .zp-chat .cv-bubble.out .quote {
   background: rgba(255, 255, 255, 0.13);
-  color: #f1eee8;
+  color: var(--z-surface-2);
 }
 :where(.zd) .zp-chat .quote-who {
   font-size: 12px;
-  color: #a84505;
+  color: var(--z-accent-text);
 }
 :where(.zd) .zp-chat .cv-bubble.out .quote-who {
-  color: #fdba8c;
+  color: var(--z-accent-line);
 }
 :where(.zd) .zp-chat .qt {
   display: block;
@@ -227,19 +227,19 @@
   gap: 5px;
   min-height: 32px;
   padding: 0 10px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 12px;
   font-weight: 600;
-  color: #4a443c;
+  color: var(--z-ink-2);
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.12s;
 }
 :where(.zd) .zp-chat .rbtn:hover {
-  border-color: #141210;
-  color: #141210;
+  border-color: var(--z-ink);
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .mrow:hover .rbtn,
 :where(.zd) .zp-chat .mrow:focus-within .rbtn {
@@ -256,16 +256,16 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 :where(.zd) .zp-chat .cv-rc {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 :where(.zd) .zp-chat .cv-rc.seen {
-  color: #a84505;
+  color: var(--z-accent-text);
   font-weight: 600;
 }
 
@@ -276,14 +276,14 @@
   max-width: 480px;
   padding: 12px 14px;
   border-radius: 16px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-bottom-right-radius: 4px;
   box-shadow: 0 10px 28px -22px rgba(20, 18, 16, 0.4);
 }
 :where(.zd) .zp-chat .cv-card.mem {
-  background: #fbfaf6;
-  border: 1px dashed #cfc8bb;
+  background: var(--z-surface-3);
+  border: 1px dashed var(--z-line-2);
   border-bottom-right-radius: 16px;
   border-bottom-left-radius: 4px;
   box-shadow: none;
@@ -297,15 +297,15 @@
   border: 0;
   background: transparent;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .cv-card__mark {
   flex: none;
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: #fdebdc;
-  color: #a84505;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -314,7 +314,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 :where(.zd) .zp-chat .cv-chev {
   flex: none;
@@ -324,8 +324,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #4a443c;
-  background: #f2efe8;
+  color: var(--z-ink-2);
+  background: var(--z-surface-2);
   transition: transform 0.15s;
 }
 
@@ -336,32 +336,32 @@
   align-items: center;
   gap: 8px 14px;
   padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .cv-trow:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 /* Composer */
 :where(.zd) .zp-chat .cv-compose {
-  border-top: 1px solid #efece5;
+  border-top: 1px solid var(--z-line-soft);
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #fff;
+  background: var(--z-surface);
 }
 :where(.zd) .zp-chat .cv-replying {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 6px 6px 6px 12px;
-  background: #f7f6f2;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface-2);
+  border: 1px solid var(--z-line);
   border-radius: 10px;
 }
 :where(.zd) .zp-chat .cv-replying__what {
@@ -382,7 +382,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #4a443c;
+  color: var(--z-ink-2);
   font-size: 18px;
 }
 :where(.zd) .zp-chat .cbox {
@@ -390,13 +390,13 @@
   align-items: flex-end;
   gap: 6px;
   padding: 6px;
-  border: 1px solid #d9d3c7;
+  border: 1px solid var(--z-line-2);
   border-radius: 14px;
-  background: #fff;
+  background: var(--z-surface);
 }
 :where(.zd) .zp-chat .cbox:focus-within {
-  border-color: #f26a0a;
-  box-shadow: 0 0 0 3px #fdebdc;
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 3px var(--z-accent-tint);
 }
 :where(.zd) .zp-chat .cv-text {
   flex: 1;
@@ -430,23 +430,23 @@
 }
 :where(.zd) .zp-chat .cicon {
   background: transparent;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 :where(.zd) .zp-chat .cicon:hover {
-  background: #f2efe8;
-  color: #141210;
+  background: var(--z-surface-2);
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .csend {
   border-radius: 50%;
-  background: #f26a0a;
-  color: #141210;
+  background: var(--z-accent);
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .csend:hover {
-  background: #e86402;
+  background: var(--z-accent);
 }
 :where(.zd) .zp-chat .csend:disabled {
-  background: #efece5;
-  color: #8a8276;
+  background: var(--z-surface-2);
+  color: var(--z-ink-4);
   cursor: not-allowed;
 }
 :where(.zd) .zp-chat .cv-slash {
@@ -455,8 +455,8 @@
   right: 0;
   bottom: calc(100% + 8px);
   z-index: 20;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   box-shadow: 0 18px 44px -18px rgba(20, 18, 16, 0.35);
   padding: 6px;
@@ -468,7 +468,7 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: #6b6358;
+  color: var(--z-ink-3);
   padding: 4px 8px 2px;
 }
 :where(.zd) .zp-chat .cv-slash__mark {
@@ -476,8 +476,8 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -491,9 +491,9 @@
   padding: 6px 8px;
   border: 0;
   border-radius: 9px;
-  background: #f7f6f2;
+  background: var(--z-surface-2);
   font: inherit;
-  color: #141210;
+  color: var(--z-ink);
   cursor: pointer;
 }
 :where(.zd) .zp-chat .cv-tools {
@@ -504,20 +504,20 @@
 }
 :where(.zd) .zp-chat .cv-hint {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 :where(.zd) .zp-chat .cv-hint b {
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 :where(.zd) .zp-chat .cv-err {
   margin: 0;
   font-size: 13px;
-  color: #b02a15;
+  color: var(--z-danger);
 }
 :where(.zd) .zp-chat .cv-ok {
   margin: 0;
   font-size: 13px;
-  color: #17663f;
+  color: var(--z-ok);
 }
 
 /* Phone: the conversation list is its own screen; a person's thread opens full screen with a back arrow and
@@ -614,8 +614,8 @@
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -623,7 +623,7 @@
   box-shadow: 0 10px 24px -12px rgba(20, 18, 16, 0.6);
 }
 :where(.zd) .zp-chat .cv-newpill:hover {
-  background: #2b2723;
+  background: var(--z-ink);
 }
 @keyframes cv-msg-in {
   from {
@@ -645,20 +645,20 @@
   width: auto;
   padding: 0 10px;
   gap: 5px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 999px;
   height: 34px;
   align-self: center;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: #3a352e;
+  color: var(--z-ink-2);
   white-space: nowrap;
 }
 :where(.zd) .zp-chat .cicon.ctask:hover {
-  border-color: #f26a0a;
-  color: #8a3a04;
-  background: #fff8f1;
+  border-color: var(--z-accent);
+  color: var(--z-accent-ink);
+  background: var(--z-accent-tint-2);
 }
 :where(.zd) .zp-chat .cv-track {
   list-style: none;

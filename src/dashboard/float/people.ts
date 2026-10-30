@@ -14,23 +14,23 @@ export function firstNameOf(name: string): string {
 
 /** Board TINT: avatar background + ink by what the person does (FR-19 role). */
 const TINT: Record<MemberRole, readonly [string, string]> = {
-  developer: ["#E6EFFD", "#1D4FA8"],
-  designer: ["#FBE8F2", "#9C2867"],
-  sales: ["#E3F6EC", "#136C42"],
-  support: ["#FDEBDC", "#8A3A04"],
-  accounts: ["#FBF1DC", "#8A5D06"],
-  operations: ["#ECEEF2", "#3C4352"],
-  management: ["#EFE8FC", "#5530A3"],
-  other: ["#EFEFEB", "#55554F"],
+  developer: ["#F5F5F5", "#404040"],
+  designer: ["#F5F5F5", "#404040"],
+  sales: ["#FDEBDC", "#8A3A04"],
+  support: ["#F5F5F5", "#404040"],
+  accounts: ["#FDEBDC", "#8A3A04"],
+  operations: ["#F5F5F5", "#404040"],
+  management: ["#F5F5F5", "#404040"],
+  other: ["#F5F5F5", "#6B6B6B"],
 };
 
 /** Board DOT: green working, amber on break, grey otherwise. */
 const DOT: Record<PresenceStatus, string> = {
   working: "#17663F",
-  break: "#8A5300",
-  online: "#8A8A83",
-  offline: "#8A8A83",
-  waiting: "#8A8A83",
+  break: "#A84505",
+  online: "#8A8A8A",
+  offline: "#8A8A8A",
+  waiting: "#8A8A8A",
 };
 
 export function avatarStyle(role: MemberRole | "" | undefined, size: number): CSSProperties {

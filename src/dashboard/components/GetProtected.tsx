@@ -71,7 +71,7 @@ export function GetProtected({
           <h2 id="gp-title" style={{ margin: 0, fontSize: 17 }}>
             Get protected in four steps
           </h2>
-          <span style={{ fontSize: 13, color: "#4A443C" }}>
+          <span style={{ fontSize: 13, color: "#404040" }}>
             About 5 minutes per PC. No IT skills needed. ·{" "}
             <b className="z-num">
               {maxDevices > 0 ? `${connected} of ${maxDevices} PCs connected` : `${connected} ${connected === 1 ? "PC" : "PCs"} connected`}

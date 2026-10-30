@@ -123,7 +123,7 @@ export function PlanCard({
         </span>
         <span className="zp-body">{[price, limit, hist].filter(Boolean).join(" · ")}</span>
         {!free && !isTrial ? (
-          <span style={{ fontSize: 13, color: "#4A443C" }}>
+          <span style={{ fontSize: 13, color: "#404040" }}>
             Billed {current}
             {gst && currency === "INR" ? " · India prices are + 18% GST" : ""}
           </span>
@@ -139,7 +139,7 @@ export function PlanCard({
             {daysLeft ? (
               <>
                 <br />
-                <span style={{ fontSize: 12, color: soon ? "#8A5300" : "#17663F" }}>{daysLeft}</span>
+                <span style={{ fontSize: 12, color: soon ? "#A84505" : "#6B6B6B" }}>{daysLeft}</span>
               </>
             ) : null}
           </div>
@@ -152,7 +152,7 @@ export function PlanCard({
               {money(due.total)} on {formatDate(sub.ends_at)}
             </b>
             <br />
-            <span style={{ fontSize: 12, color: "#6B6459" }}>We remind you a week before</span>
+            <span style={{ fontSize: 12, color: "#6B6B6B" }}>We remind you a week before</span>
           </div>
         ) : null}
         <div style={{ gridColumn: "1 / -1" }}>
@@ -163,7 +163,7 @@ export function PlanCard({
             </span>
             <b className="z-num">{maxDevices > 0 ? `${devicesUsed} of ${maxDevices}` : `${devicesUsed}`}</b>
           </div>
-          <span style={{ fontSize: 12, color: "#6B6459" }}>
+          <span style={{ fontSize: 12, color: "#6B6B6B" }}>
             {[slotsFree !== null ? `${slotsFree} free slot${slotsFree === 1 ? "" : "s"}` : "No PC limit", people !== null ? `${people} ${people === 1 ? "person" : "people"}` : null]
               .filter(Boolean)
               .join(" · ")}
@@ -202,7 +202,7 @@ export function PlanCard({
                 </button>
               ))}
             </div>
-            <span style={{ fontSize: 13, color: "#4A443C" }}>
+            <span style={{ fontSize: 13, color: "#404040" }}>
               {pickCycle === "yearly" ? "Yearly is 12 months paid at once." : "Monthly, cancel or change any time."}
             </span>
           </div>
@@ -239,7 +239,7 @@ export function PlanCard({
                   >
                     <b>{p.name}</b>
                     <br />
-                    <span style={{ fontSize: 13, color: "#4A443C" }}>{p.max_devices > 0 ? `Up to ${p.max_devices} PCs` : "Any number of PCs"}</span>
+                    <span style={{ fontSize: 13, color: "#404040" }}>{p.max_devices > 0 ? `Up to ${p.max_devices} PCs` : "Any number of PCs"}</span>
                     <br />
                     <span className="z-num" style={{ fontSize: 14, fontWeight: 700 }}>
                       {zero ? money(0) : pickCycle === "yearly" ? `${money(amount)} a year${pGst ? " + GST" : ""}` : `${money(amount)}/mo${pGst ? " + GST" : ""}`}
@@ -251,24 +251,24 @@ export function PlanCard({
                       </>
                     ) : null}
                     <br />
-                    <span className="z-num" style={{ fontSize: 12, color: "#4A443C" }}>
+                    <span className="z-num" style={{ fontSize: 12, color: "#404040" }}>
                       {zero ? "Free forever" : pGst ? `${money(Math.round(amount * 1.18))} incl GST` : "No GST added"}
                     </span>
                     <br />
-                    <span style={{ fontSize: 12, color: tooSmall ? "#B02A15" : "#6B6459" }}>{note}</span>
+                    <span style={{ fontSize: 12, color: tooSmall ? "#C0331C" : "#6B6B6B" }}>{note}</span>
                   </button>
                 );
               })}
             </div>
           )}
-          <span style={{ width: "100%", fontSize: 13, color: "#4A443C" }}>
+          <span style={{ width: "100%", fontSize: 13, color: "#404040" }}>
             More than 50 PCs? Custom plans are priced with you.{" "}
             <Link to="/contact" style={{ fontWeight: 600 }}>
               Talk to us
             </Link>
           </span>
           <div className="zp-save" style={{ justifyContent: "space-between" }}>
-            <span style={{ color: "#4A443C" }}>{changeNote}</span>
+            <span style={{ color: "#404040" }}>{changeNote}</span>
             <button
               type="button"
               className="z-btn sm dark"

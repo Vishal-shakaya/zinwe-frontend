@@ -34,7 +34,7 @@ export function SetupCard({ steps }: { steps: SetupStep[] }): ReactElement | nul
           <h2 id="setup-h" style={{ margin: 0, fontSize: 17 }}>
             Finish setting up
           </h2>
-          <span className="z-num" style={{ fontSize: 13, fontWeight: 600, color: "#3A352E" }}>
+          <span className="z-num" style={{ fontSize: 13, fontWeight: 600, color: "#404040" }}>
             {line}
           </span>
         </div>
@@ -49,7 +49,7 @@ export function SetupCard({ steps }: { steps: SetupStep[] }): ReactElement | nul
         >
           <span style={{ width: `${Math.round((done / total) * 100)}%` }} />
         </div>
-        <span style={{ fontSize: 13, color: "#4A443C" }}>{next.length ? `Next: ${next.join(", then ")}.` : ""}</span>
+        <span style={{ fontSize: 13, color: "#404040" }}>{next.length ? `Next: ${next.join(", then ")}.` : ""}</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <Link className="z-btn sm pri" to="/app/help#tab=get-started">

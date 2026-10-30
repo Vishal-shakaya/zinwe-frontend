@@ -12,10 +12,10 @@ export type CardStatus = "working" | "break" | "out" | "notin" | "invited";
 /** [label, pill class, tooltip square colour, what it means]. */
 export const STATUS: Record<CardStatus, { label: string; pill: string; sq: string; means: string }> = {
   working: { label: "Working", pill: "green", sq: "#17663F", means: "Started their day and is at work now." },
-  break: { label: "On break", pill: "amber", sq: "#8A5300", means: "Took a break. Their work day is paused." },
-  out: { label: "Day ended", pill: "", sq: "#6B6358", means: "Ended their day. Time stopped counting." },
-  notin: { label: "Not in", pill: "", sq: "#6B6358", means: "Hasn’t started a day yet today." },
-  invited: { label: "Invite sent", pill: "blue", sq: "#1B4FB0", means: "Waiting for them to install Zinwe and agree." },
+  break: { label: "On break", pill: "amber", sq: "#A84505", means: "Took a break. Their work day is paused." },
+  out: { label: "Day ended", pill: "", sq: "#6B6B6B", means: "Ended their day. Time stopped counting." },
+  notin: { label: "Not in", pill: "", sq: "#6B6B6B", means: "Hasn’t started a day yet today." },
+  invited: { label: "Invite sent", pill: "blue", sq: "#404040", means: "Waiting for them to install Zinwe and agree." },
 };
 
 /**

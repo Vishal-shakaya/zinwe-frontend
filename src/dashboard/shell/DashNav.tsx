@@ -126,12 +126,12 @@ export function DashNav({
           <>
             <button type="button" className="zn-closer" aria-label="Close account menu" onClick={() => setMeOpen(false)} />
             <div ref={menu} id="zn-me-menu" role="menu" aria-label="Account" tabIndex={-1} className="zn-me-menu">
-              <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: "12px 12px 10px", lineHeight: 1.3, borderBottom: "1px solid #F0EDE6" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: "12px 12px 10px", lineHeight: 1.3, borderBottom: "1px solid #F5F5F5" }}>
                 <b style={{ fontSize: 14 }}>{name}</b>
-                <span className="z-ell" style={{ fontSize: 12, color: "#4A443C" }} title={email}>
+                <span className="z-ell" style={{ fontSize: 12, color: "#404040" }} title={email}>
                   {email}
                 </span>
-                <span style={{ fontSize: 12, color: "#6B6459" }}>Owner · {company}</span>
+                <span style={{ fontSize: 12, color: "#6B6B6B" }}>Owner · {company}</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", padding: 6 }}>
                 <Link to="/app/settings" role="menuitem" className={`zn-mi${active === "settings" ? " on" : ""}`} onClick={() => setMeOpen(false)}>
@@ -148,13 +148,13 @@ export function DashNav({
                   <span style={{ flex: 1 }}>Back to site</span>
                 </a>
               </div>
-              <div style={{ padding: 6, borderTop: "1px solid #F0EDE6" }}>
+              <div style={{ padding: 6, borderTop: "1px solid #F5F5F5" }}>
                 <button type="button" role="menuitem" className="zn-mi zn-out" onClick={onLogout} disabled={leaving}>
                   <ZIcon name="logout" size={17} />
                   <span>{leaving ? "Logging out…" : "Log out"}</span>
                 </button>
               </div>
-              <div className="z-mono" style={{ padding: "7px 12px 9px", background: "#FBFAF7", fontSize: 11, color: "#6B6459" }}>
+              <div className="z-mono" style={{ padding: "7px 12px 9px", background: "#FAFAFA", fontSize: 11, color: "#6B6B6B" }}>
                 Zinwe 1.3
               </div>
             </div>
@@ -176,7 +176,7 @@ export function DashNav({
             <b className="z-ell" style={{ fontSize: 13 }}>
               {name}
             </b>
-            <span style={{ fontSize: 12, color: "#6B6459" }}>
+            <span style={{ fontSize: 12, color: "#6B6B6B" }}>
               {inMenu ? (active === "settings" ? "Owner · Settings" : "Owner · Help & support") : "Owner"}
             </span>
           </span>
@@ -184,7 +184,7 @@ export function DashNav({
             name="chevronUp"
             size={16}
             stroke={2}
-            style={{ color: "#6B6459", transition: "transform .15s", transform: `rotate(${meOpen ? 0 : 180}deg)` }}
+            style={{ color: "#6B6B6B", transition: "transform .15s", transform: `rotate(${meOpen ? 0 : 180}deg)` }}
           />
         </button>
       </div>

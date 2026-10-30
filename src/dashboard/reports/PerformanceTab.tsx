@@ -61,13 +61,13 @@ export function PerformanceTab({
           Score and rank first; the table under the chart shows the two things each score is worked out from.
         </span>
       </div>
-      <span className="rp-pill" style={{ background: "#F2EFE8", color: "#4A443C" }}>
+      <span className="rp-pill" style={{ background: "#F5F5F5", color: "#404040" }}>
         Only you see this
       </span>
     </div>
   );
   const staffNote = (
-    <p style={{ margin: 0, fontSize: 13, color: "#141210", background: "#FBFAF7", border: "1px solid #F0EDE6", borderRadius: 10, padding: "8px 12px" }}>
+    <p style={{ margin: 0, fontSize: 13, color: "#141210", background: "#FAFAFA", border: "1px solid #F5F5F5", borderRadius: 10, padding: "8px 12px" }}>
       Staff never see scores or ranks. They see their own hours and tasks.
     </p>
   );
@@ -115,13 +115,13 @@ export function PerformanceTab({
         <>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <h3 style={{ margin: 0, fontSize: 14 }}>Score and rank</h3>
-            <span style={{ display: "flex", gap: 14, fontSize: 12, color: "#4A443C" }}>
+            <span style={{ display: "flex", gap: 14, fontSize: 12, color: "#404040" }}>
               <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F26A0A" }} />
                 Top
               </span>
               <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FBF0D9", boxShadow: "inset 0 0 0 1px #8A5300" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FDEBDC", boxShadow: "inset 0 0 0 1px #A84505" }} />
                 Under 50
               </span>
             </span>
@@ -136,7 +136,7 @@ export function PerformanceTab({
             </div>
             <div style={{ position: "relative", height: 180 }}>
               {GRID.map((g) => (
-                <span key={g} style={{ position: "absolute", left: 0, right: 0, bottom: `${g}%`, height: 1, background: g === 0 ? "#DCD6CB" : "#F0EDE6" }} />
+                <span key={g} style={{ position: "absolute", left: 0, right: 0, bottom: `${g}%`, height: 1, background: g === 0 ? "#D4D4D4" : "#F5F5F5" }} />
               ))}
               <div
                 role="group"
@@ -154,15 +154,15 @@ export function PerformanceTab({
                   const top = k === 0;
                   const low = x.score < 50;
                   const on = x.memberId === selected;
-                  const bg = top ? "#F26A0A" : low ? "#FBF0D9" : "#141210";
-                  const fg = top ? "#141210" : low ? "#8A5300" : "#fff";
+                  const bg = top ? "#F26A0A" : low ? "#FDEBDC" : "#141210";
+                  const fg = top ? "#141210" : low ? "#A84505" : "#fff";
                   const dimmed = hov !== null ? hov !== k : sel !== null && !on;
                   const show = (el: HTMLElement) => {
                     setHover(k);
                     const dot = el.querySelector<HTMLElement>("[data-tip-at]") ?? el;
                     tip.showAt(
                       `perf-${k}`,
-                      <TipBody title={x.name} color={low ? "#8A5300" : bg} sub={period} rows={tipRows(x, k)} hint="Click to see what is behind this score" />,
+                      <TipBody title={x.name} color={low ? "#A84505" : bg} sub={period} rows={tipRows(x, k)} hint="Click to see what is behind this score" />,
                       dot.getBoundingClientRect(),
                     );
                   };
@@ -194,7 +194,7 @@ export function PerformanceTab({
                             width: 2,
                             marginLeft: -1,
                             height: `${x.score}%`,
-                            background: low ? "#8A5300" : bg,
+                            background: low ? "#A84505" : bg,
                             opacity: dimmed ? 0.2 : 0.55,
                           }}
                         />
@@ -208,7 +208,7 @@ export function PerformanceTab({
                             textAlign: "center",
                             fontSize: 12,
                             fontWeight: 700,
-                            color: low ? "#8A5300" : "#141210",
+                            color: low ? "#A84505" : "#141210",
                             opacity: dimmed ? 0.35 : 1,
                           }}
                         >
@@ -231,7 +231,7 @@ export function PerformanceTab({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            boxShadow: `0 0 0 2px #fff${low ? ", inset 0 0 0 1px #8A5300" : ""}`,
+                            boxShadow: `0 0 0 2px #fff${low ? ", inset 0 0 0 1px #A84505" : ""}`,
                             opacity: dimmed ? 0.35 : 1,
                             transition: "opacity .15s",
                           }}
@@ -253,7 +253,7 @@ export function PerformanceTab({
               ))}
             </div>
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#6B6459" }}>Score = tasks done 50% · worked time 50%. Pick a name to see what is behind a score.</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#6B6B6B" }}>Score = tasks done 50% · worked time 50%. Pick a name to see what is behind a score.</p>
 
           <ul className="rp-cards rp-ph-only" aria-label="Score and rank, by person" style={{ padding: 0 }}>
             {rows.map((x, k) => (
@@ -262,7 +262,7 @@ export function PerformanceTab({
                   <button type="button" className="rp-lnk" style={{ fontSize: 15 }} aria-pressed={x.memberId === selected} aria-label={rowAria(x, k)} onClick={() => pick(x)}>
                     {x.name}
                   </button>
-                  <span className="rp-num" style={{ color: "#4A443C", fontSize: 13 }}>
+                  <span className="rp-num" style={{ color: "#404040", fontSize: 13 }}>
                     #{k + 1}
                   </span>
                 </span>
@@ -315,7 +315,7 @@ export function PerformanceTab({
                     <td className="rp-num">
                       <b>{x.score}</b> <span className="rp-k">/ 100</span>
                     </td>
-                    <td className="rp-num" style={{ color: "#4A443C" }}>
+                    <td className="rp-num" style={{ color: "#404040" }}>
                       #{k + 1}
                     </td>
                   </tr>
@@ -333,7 +333,7 @@ export function PerformanceTab({
         </>
       ) : null}
       {staffNote}
-      {rows.length === 0 ? <p style={{ margin: 0, color: "#6B6459", fontSize: 13 }}>No one worked in this period.</p> : null}
+      {rows.length === 0 ? <p style={{ margin: 0, color: "#6B6B6B", fontSize: 13 }}>No one worked in this period.</p> : null}
     </section>
   );
 }
@@ -342,7 +342,7 @@ function SelectedScore({ x, rank, period, onClose }: { x: PerformanceRow; rank: 
   const low = x.score < 60;
   const help = low ? steps(x).slice(0, 2) : [];
   return (
-    <div style={{ border: "1px solid #F0EDE6", borderRadius: 12, padding: 14, display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
+    <div style={{ border: "1px solid #F5F5F5", borderRadius: 12, padding: 14, display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
       <div style={{ minWidth: 150 }}>
         <b>{x.name}</b>
         <br />
@@ -376,7 +376,7 @@ function SelectedScore({ x, rank, period, onClose }: { x: PerformanceRow; rank: 
           </span>
           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
             {help.map((t) => (
-              <li key={t} style={{ background: "#FBFAF7", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}>
+              <li key={t} style={{ background: "#FAFAFA", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}>
                 {t}
               </li>
             ))}

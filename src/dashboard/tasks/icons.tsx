@@ -44,7 +44,7 @@ export function ClockMark(): ReactElement {
 
 export function SearchMark(): ReactElement {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B6459" strokeWidth={2.2} strokeLinecap="round" aria-hidden="true" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth={2.2} strokeLinecap="round" aria-hidden="true" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
     </svg>

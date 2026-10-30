@@ -7,45 +7,45 @@
   min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid #dcd6cb;
-  background: #fff;
+  border: 1px solid var(--z-line-2);
+  background: var(--z-surface);
   font-size: 13px;
   font-weight: 600;
-  color: #3a352e;
+  color: var(--z-ink-2);
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 .zk-chip:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 .zk-chip.on {
-  background: #141210;
-  border-color: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  border-color: var(--z-ink);
+  color: var(--z-on-ink);
 }
 
 .zk-inp {
   width: 100%;
   min-height: 40px;
   padding: 8px 12px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 14px;
 }
 .zk-inp:focus {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: 0;
-  border-color: #f26a0a;
+  border-color: var(--z-accent);
 }
 
 .zk-sel {
   min-height: 38px;
   padding: 0 10px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 13px;
   font-weight: 600;
 }
@@ -53,7 +53,7 @@
 .zk-lab {
   font-size: 13px;
   font-weight: 600;
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 
 .zk-lbl {
@@ -61,7 +61,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zk-pill {
@@ -81,15 +81,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
   padding: 0;
-  color: #3a352e;
+  color: var(--z-ink-2);
   flex: none;
 }
 .zk-ic:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 
 .zk-xbtn {
@@ -98,11 +98,11 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #6b6459;
+  color: var(--z-ink-3);
   font-size: 16px;
 }
 .zk-xbtn:hover {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 
 .zk-box {
@@ -110,7 +110,7 @@
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  border: 1.5px solid #c9c1b3;
+  border: 1.5px solid var(--z-ink-4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -119,17 +119,17 @@
 }
 .zk-box.on {
   border: 0;
-  background: #17663f;
-  color: #fff;
+  background: var(--z-ok);
+  color: var(--z-on-ink);
 }
 
 .z-btn.zk-red {
-  background: #b02a15;
-  border-color: #b02a15;
-  color: #fff !important;
+  background: var(--z-danger);
+  border-color: var(--z-danger);
+  color: var(--z-on-ink) !important;
 }
 .z-btn.zk-red:hover {
-  background: #8f2210;
+  background: var(--z-danger-ink);
 }
 
 .zk-more {
@@ -139,23 +139,23 @@
   width: 100%;
   min-height: 48px;
   padding: 8px 10px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 12px;
-  background: #fff;
+  background: var(--z-surface);
   text-align: left;
   font-weight: 600;
   font-size: 14px;
-  color: #141210;
+  color: var(--z-ink);
 }
 .zk-more:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 .zk-more__chev {
   flex: none;
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: #f2efe8;
+  background: var(--z-surface-2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -172,7 +172,7 @@
 .zk-sw input {
   width: 18px;
   height: 18px;
-  accent-color: #141210;
+  accent-color: var(--z-ink);
 }
 
 .zk-pop {
@@ -182,8 +182,8 @@
   z-index: 5;
   width: 292px;
   max-width: calc(100vw - 48px);
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   box-shadow: 0 14px 36px rgba(20, 18, 16, 0.16);
   padding: 12px;
@@ -198,7 +198,7 @@
 }
 .zk-wk {
   font-size: 11px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   text-align: center;
 }
 .zk-cd {
@@ -211,18 +211,18 @@
   padding: 0;
 }
 .zk-cd:hover:not(:disabled) {
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 .zk-cd:disabled {
-  color: #cfc8bb;
+  color: var(--z-line-2);
   cursor: default;
 }
 .zk-cd.today {
-  box-shadow: inset 0 0 0 1px #141210;
+  box-shadow: inset 0 0 0 1px var(--z-ink);
 }
 .zk-cd.edge {
-  background: #f26a0a;
-  color: #141210;
+  background: var(--z-accent);
+  color: var(--z-ink);
   font-weight: 700;
 }
 .zk-cd.blank {
@@ -231,9 +231,9 @@
 .zk-nav {
   width: 30px;
   height: 30px;
-  border: 1px solid #e7e3da;
+  border: 1px solid var(--z-line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--z-surface);
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -256,10 +256,10 @@
   top: 0;
   right: 0;
   bottom: 0;
-  background: #fff;
+  background: var(--z-surface);
   display: flex;
   flex-direction: column;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zk-link {
@@ -268,7 +268,7 @@
   padding: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #a84505;
+  color: var(--z-accent-text);
   text-decoration: underline;
 }
 
@@ -286,8 +286,8 @@
   align-items: center;
   gap: 14px;
   padding: 10px 10px 10px 16px;
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   border-radius: 12px;
   box-shadow: 0 14px 34px rgba(20, 18, 16, 0.3);
   font-size: 13px;
@@ -295,10 +295,10 @@
 .zk-toast__undo {
   min-height: 30px;
   padding: 0 10px;
-  border: 1px solid #5a544b;
+  border: 1px solid var(--z-ink-3);
   border-radius: 8px;
   background: transparent;
-  color: #fdba8c !important;
+  color: var(--z-accent-line) !important;
   font-weight: 700;
   font-size: 13px;
 }
@@ -308,7 +308,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #cfc8bb !important;
+  color: var(--z-line-2) !important;
   font-size: 16px;
 }
 
@@ -384,18 +384,18 @@
   min-height: 36px;
   padding: 0 14px 0 8px;
   border-radius: 999px;
-  border: 1px solid #e7e3da;
-  background: #fff;
+  border: 1px solid var(--z-line);
+  background: var(--z-surface);
   font-size: 13px;
   font-weight: 600;
-  color: #3a352e;
+  color: var(--z-ink-2);
 }
 .zp-tasks .tk-qc:hover {
-  border-color: #141210;
+  border-color: var(--z-ink);
 }
 .zp-tasks .tk-qc.on {
-  border-color: #141210;
-  box-shadow: inset 0 0 0 1px #141210;
+  border-color: var(--z-ink);
+  box-shadow: inset 0 0 0 1px var(--z-ink);
 }
 .zp-tasks .tk-qn {
   min-width: 22px;
@@ -411,8 +411,8 @@
 }
 
 .zp-tasks .tk-skel {
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -422,8 +422,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   padding: 10px 12px;
 }
@@ -460,8 +460,8 @@
 }
 
 .zp-tasks .tk-nomatch {
-  background: #fff;
-  border: 1px dashed #dcd6cb;
+  background: var(--z-surface);
+  border: 1px dashed var(--z-line-2);
   border-radius: 14px;
   padding: 40px 20px;
   display: flex;
@@ -483,7 +483,7 @@
   align-items: start;
 }
 .zp-tasks .tk-col {
-  background: #efece5;
+  background: var(--z-surface-2);
   border-radius: 14px;
   padding: 10px;
   display: flex;
@@ -506,7 +506,7 @@
   height: 22px;
   padding: 0 7px;
   border-radius: 999px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 12px;
   display: inline-flex;
   align-items: center;
@@ -515,15 +515,15 @@
 .zp-tasks .tk-col-empty {
   margin: 0;
   padding: 14px 8px;
-  border: 1px dashed #d5cfc4;
+  border: 1px dashed var(--z-line-2);
   border-radius: 12px;
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   text-align: center;
 }
 .zp-tasks .tk-card {
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -548,7 +548,7 @@
 }
 .zp-tasks .tk-up {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -559,14 +559,14 @@
   flex: 1;
   height: 5px;
   border-radius: 999px;
-  background: #efece5;
+  background: var(--z-surface-2);
   overflow: hidden;
 }
 
 /* List */
 .zp-tasks .tk-list {
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   overflow-x: auto;
 }
@@ -579,10 +579,10 @@
   padding: 0;
   font-weight: 600;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
 }
 .zp-tasks .tk-lk:hover {
-  color: #a84505;
+  color: var(--z-accent-text);
   text-decoration: underline;
 }
 .zp-tasks .tk-trow {
@@ -592,17 +592,17 @@
   align-items: center;
   gap: 0 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
 }
 .zp-tasks .tk-trow:hover {
-  background: #fbfaf7;
+  background: var(--z-surface-3);
 }
 .zp-tasks .tk-thd {
   font-size: 12px;
   font-weight: 600;
-  color: #6b6459;
-  background: #fbfaf7;
-  border-bottom: 1px solid #e7e3da;
+  color: var(--z-ink-3);
+  background: var(--z-surface-3);
+  border-bottom: 1px solid var(--z-line);
 }
 .zp-tasks .tk-ghd {
   display: flex;
@@ -611,8 +611,8 @@
   padding: 12px 16px 8px;
   font-size: 13px;
   font-weight: 700;
-  border-bottom: 1px solid #f0ede6;
-  background: #fff;
+  border-bottom: 1px solid var(--z-line-soft);
+  background: var(--z-surface);
 }
 .zp-tasks .tk-ta {
   display: flex;
@@ -623,7 +623,7 @@
   display: none;
   font-size: 11px;
   font-weight: 600;
-  color: #6b6358;
+  color: var(--z-ink-3);
 }
 
 .zp-tasks .tk-fab {
@@ -636,8 +636,8 @@
   padding: 0;
   border-radius: 50%;
   border: 0;
-  background: #f26a0a;
-  color: #141210;
+  background: var(--z-accent);
+  color: var(--z-ink);
   box-shadow: 0 10px 24px -8px rgba(20, 18, 16, 0.45);
   align-items: center;
   justify-content: center;
@@ -712,8 +712,8 @@
     gap: 10px 12px;
     margin: 0 0 8px;
     padding: 12px 14px;
-    background: #fff;
-    border: 1px solid #e7e3da;
+    background: var(--z-surface);
+    border: 1px solid var(--z-line);
     border-radius: 12px;
   }
   .zp-tasks .tk-list .tk-trow > :first-child,

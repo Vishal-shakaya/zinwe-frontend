@@ -72,11 +72,11 @@ export function SocialSignIn(): ReactElement {
         onClick={onLinkedIn}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-          <rect width="24" height="24" rx="4" fill="#fff" />
-          <circle cx="7.5" cy="7.2" r="1.5" fill="#0A66C2" />
+          <rect width="24" height="24" rx="4" fill="#0A66C2" />
+          <circle cx="7.5" cy="7.2" r="1.5" fill="#fff" />
           <path
             d="M7.5 10.5V17M11.5 17v-6.5M11.5 13.6c0-1.9 1.2-3.1 2.8-3.1s2.7 1.1 2.7 3.1V17"
-            stroke="#0A66C2"
+            stroke="#fff"
             strokeWidth="2.2"
             strokeLinecap="round"
             fill="none"

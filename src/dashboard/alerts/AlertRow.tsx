@@ -91,13 +91,13 @@ export function AlertRow({
           {a.limit ? (
             <span className={`z-num zn-al-limit${a.limit.over ? " over" : ""}`}>{a.limit.text}</span>
           ) : null}
-          <span style={{ color: "#3A352E" }}>{a.body}</span>
+          <span style={{ color: "#404040" }}>{a.body}</span>
           <span className="zn-al-meta">
             {a.person ? a.person.name : "No one linked"} · {a.pc} · {a.time}
           </span>
           {a.ask?.reply ? (
             <div className="zn-reply">
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#1B4FB0" }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#404040" }}>
                 {a.first} replied at {a.ask.reply.at}
               </span>
               <span>“{a.ask.reply.text}”</span>

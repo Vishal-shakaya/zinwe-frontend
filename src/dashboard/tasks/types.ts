@@ -80,14 +80,14 @@ export interface TaskView {
 
 /** Stage labels and colours (shared by Tasks, Chat and Overview): [label, text colour, background]. */
 export const TASK_STATUS: Record<TaskStatus, readonly [string, string, string]> = {
-  sent: ["Sent", "#5E574D", "#EFECE5"],
-  seen: ["Seen", "#5E574D", "#EFECE5"],
-  accepted: ["Confirmed", "#1B4FB0", "#E6EEFB"],
+  sent: ["Sent", "#6B6B6B", "#F5F5F5"],
+  seen: ["Seen", "#6B6B6B", "#F5F5F5"],
+  accepted: ["Confirmed", "#404040", "#F5F5F5"],
   progress: ["In progress", "#8A3A04", "#FDEBDC"],
-  help: ["Needs help", "#8A5300", "#FBF0D9"],
+  help: ["Needs help", "#141210", "#F26A0A"],
   review: ["Done · waiting for your OK", "#17663F", "#E3F4EA"],
   approved: ["Approved", "#FFFFFF", "#17663F"],
-  cancelled: ["Cancelled", "#5E574D", "#EFECE5"],
+  cancelled: ["Cancelled", "#6B6B6B", "#F5F5F5"],
 };
 
 export const TASK_SHORT: Record<TaskStatus, string> = {
@@ -103,10 +103,10 @@ export const TASK_SHORT: Record<TaskStatus, string> = {
 
 /** Board columns (DashTasks COLS). */
 export const TASK_COLUMNS = [
-  { id: "todo", label: "To do", dot: "#6B6358", has: ["sent", "seen"], empty: "Nothing new. Tasks you send land here." },
-  { id: "confirmed", label: "Confirmed", dot: "#1B4FB0", has: ["accepted"], empty: "No one is waiting to start." },
+  { id: "todo", label: "To do", dot: "#6B6B6B", has: ["sent", "seen"], empty: "Nothing new. Tasks you send land here." },
+  { id: "confirmed", label: "Confirmed", dot: "#404040", has: ["accepted"], empty: "No one is waiting to start." },
   { id: "progress", label: "In progress", dot: "#F26A0A", has: ["help", "progress"], empty: "Nobody is on a task right now." },
-  { id: "review", label: "Waiting for your OK", dot: "#2E9E62", has: ["review"], empty: "Nothing to approve." },
+  { id: "review", label: "Waiting for your OK", dot: "#17663F", has: ["review"], empty: "Nothing to approve." },
   { id: "done", label: "Done", dot: "#17663F", has: ["approved", "cancelled"], empty: "Nothing finished yet." },
 ] as const satisfies ReadonlyArray<{ id: string; label: string; dot: string; has: readonly TaskStatus[]; empty: string }>;
 

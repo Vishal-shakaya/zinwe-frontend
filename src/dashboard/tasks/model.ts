@@ -27,11 +27,11 @@ export const STAGE_OF: Record<TaskStatus, string> = {
 /** The API allows a nudge while they still have to finish it (once an hour). */
 export const NUDGEABLE: readonly TaskStatus[] = ["sent", "seen", "accepted", "progress", "help"];
 
-export const RED = { background: "#FCE8E4", color: "#B02A15" } as const;
-export const AMBER = { background: "#FFF1E6", color: "#8A3A04" } as const;
-export const NEUTRAL = { background: "#F2EFE8", color: "#3A352E" } as const;
+export const RED = { background: "#FCE8E4", color: "#C0331C" } as const;
+export const AMBER = { background: "#FDEBDC", color: "#8A3A04" } as const;
+export const NEUTRAL = { background: "#F5F5F5", color: "#404040" } as const;
 
-export const TINTS = ["#FDEBDC", "#E6EEFB", "#E3F4EA", "#F4ECFB", "#FBF0D9", "#F2EFE8", "#E6EEFB", "#E3F4EA", "#FDEBDC", "#F4ECFB"] as const;
+export const TINTS = ["#FDEBDC", "#F5F5F5", "#FFF6EF", "#EEEEEE", "#FDEBDC", "#F5F5F5", "#FFF6EF", "#EEEEEE", "#FDEBDC", "#F5F5F5"] as const;
 
 export const isFinished = (t: TaskView) => FINISHED.includes(t.status);
 export const isClosed = (t: TaskView) => CLOSED.includes(t.status);
@@ -238,15 +238,15 @@ export function logText(e: TaskLogEntry, f: string): string {
 }
 
 export const LOGDOT: Partial<Record<TaskLogEntry["k"], string>> = {
-  help: "#8A5300",
+  help: "#A84505",
   done: "#17663F",
   approved: "#17663F",
-  reopened: "#B02A15",
-  cancelled: "#B02A15",
+  reopened: "#C0331C",
+  cancelled: "#C0331C",
   nudged: "#F26A0A",
-  note: "#1B4FB0",
-  edited: "#6B6358",
-  due: "#6B6358",
+  note: "#404040",
+  edited: "#6B6B6B",
+  due: "#6B6B6B",
 };
 
 export function lastLine(t: TaskView, f: string, pcOn: boolean): string {

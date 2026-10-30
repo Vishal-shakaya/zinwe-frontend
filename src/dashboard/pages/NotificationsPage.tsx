@@ -157,13 +157,13 @@ export default function NotificationsPage(): ReactElement {
           </span>
         </span>
         <span>
-          <i aria-hidden="true" style={{ background: "#8A5300" }} />
+          <i aria-hidden="true" style={{ background: "#A84505" }} />
           <span>
             <b>Worth a look</b> — small copies, new software, and blocked sites.
           </span>
         </span>
         <span>
-          <i aria-hidden="true" style={{ background: "#1B4FB0" }} />
+          <i aria-hidden="true" style={{ background: "#404040" }} />
           <span>
             <b>Info</b> — normal activity, nothing to do.
           </span>

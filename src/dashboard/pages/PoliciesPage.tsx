@@ -39,7 +39,7 @@ export default function PoliciesPage(): ReactElement {
           <ul className="zh-rec" style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {COMMITMENTS.map((point) => (
               <li key={point.title} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{ color: "#17663F", paddingTop: 2 }} aria-hidden="true">
+                <span style={{ color: "#141210", paddingTop: 2 }} aria-hidden="true">
                   <ZIcon name="check" size={16} stroke={2.4} />
                 </span>
                 <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>

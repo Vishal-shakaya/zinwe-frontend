@@ -1,0 +1,66 @@
+/* Zinwe palette v1.3.2 (owner rule, 31 Oct): white, black, orange only.
+   The single source of colour for the dashboard, the auth/onboarding pages and the portal bits (plans, quote,
+   checkout). Imported at the top of dashboard.css and dash13.css; every colour in those files is one of these.
+
+   ground      #FFFFFF  page ground (pure white, no cream)
+   surface     #FFFFFF  cards, sheets, inputs
+   surface-2   #F5F5F5  soft neutral fill: hover, table head, wells, chips
+   surface-3   #FAFAFA  the faintest fill: zebra rows, quiet hover
+   line        #E5E5E5  hairlines and card borders
+   line-soft   #EEEEEE  inner dividers
+   line-2      #D4D4D4  control borders (buttons, inputs)
+   ink         #141210  text, primary icons, dark fills                    17.9:1 on white
+   ink-2       #404040  body text                                         10.4:1
+   ink-3       #6B6B6B  muted text, captions                               5.3:1
+   ink-4       #8A8A8A  decoration and UI only (switch off, placeholders)  3.5:1, never body text
+   on-ink      #FFFFFF  text on ink fills
+   accent      #F26A0A  orange: primary button fill, active state, key highlight (text on it is ink, 6.0:1)
+   accent-hover #E05E04
+   accent-text #A84505  orange text on white                               6.0:1
+   accent-ink  #8A3A04  orange text on the orange tints                    6.8:1 on accent-tint
+   accent-tint #FDEBDC  soft orange fill (selected, notices, offers)
+   accent-tint-2 #FFF6EF the lightest orange wash
+   accent-line #F6C9A6  border on the orange tints
+   accent-on-ink #FF9A55 orange text on ink fills                          8.4:1 on #141210
+   danger      #C0331C  errors and critical only, always with text or icon 5.5:1
+   danger-ink  #8A1F0E  text on danger-tint
+   danger-tint #FCE8E4
+   danger-line #F1C9C9
+   ok          #17663F  "online" / "done" / "paid" only, always with text   7.0:1
+   ok-tint     #E3F4EA
+   ok-line     #BFE5CF
+   ok-on-ink   #7FD9A6  green on ink fills
+
+   Not on the palette by design: the FR-44 avatar faces (team/avatars.json), third-party sign-in logos
+   (Google, LinkedIn) and the official Zinwe logo files in public/brand/. */
+
+:root {
+  --z-ground: #ffffff;
+  --z-surface: #ffffff;
+  --z-surface-2: #f5f5f5;
+  --z-surface-3: #fafafa;
+  --z-line: #e5e5e5;
+  --z-line-soft: #eeeeee;
+  --z-line-2: #d4d4d4;
+  --z-ink: #141210;
+  --z-ink-2: #404040;
+  --z-ink-3: #6b6b6b;
+  --z-ink-4: #8a8a8a;
+  --z-on-ink: #ffffff;
+  --z-accent: #f26a0a;
+  --z-accent-hover: #e05e04;
+  --z-accent-text: #a84505;
+  --z-accent-ink: #8a3a04;
+  --z-accent-tint: #fdebdc;
+  --z-accent-tint-2: #fff6ef;
+  --z-accent-line: #f6c9a6;
+  --z-accent-on-ink: #ff9a55;
+  --z-danger: #c0331c;
+  --z-danger-ink: #8a1f0e;
+  --z-danger-tint: #fce8e4;
+  --z-danger-line: #f1c9c9;
+  --z-ok: #17663f;
+  --z-ok-tint: #e3f4ea;
+  --z-ok-line: #bfe5cf;
+  --z-ok-on-ink: #7fd9a6;
+}

@@ -14,7 +14,7 @@
   gap: 4px;
   width: 100%;
   overflow-x: auto;
-  border-bottom: 1px solid #e7e3da;
+  border-bottom: 1px solid var(--z-line);
   scrollbar-width: none;
 }
 
@@ -32,12 +32,12 @@
   font-size: 14px;
   white-space: nowrap;
   text-decoration: none;
-  color: #4a443c !important;
+  color: var(--z-ink-2) !important;
 }
 
 .zp-subtab.on {
-  color: #141210 !important;
-  border-bottom-color: #f26a0a;
+  color: var(--z-ink) !important;
+  border-bottom-color: var(--z-accent);
 }
 
 /* ---------- Header filters ---------- */
@@ -51,11 +51,11 @@
 .zp-sel {
   min-height: 36px;
   padding: 0 10px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
   font-size: 14px;
-  color: #141210;
+  color: var(--z-ink);
   max-width: 220px;
 }
 
@@ -71,18 +71,18 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-ta {
   width: 100%;
   min-height: 112px;
   padding: 10px 12px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
   font: inherit;
   font-weight: 400;
-  color: #141210;
+  color: var(--z-ink);
   line-height: 1.5;
   resize: vertical;
 }
@@ -106,26 +106,26 @@
   align-items: center;
   gap: 10px;
   padding: 8px 8px 8px 12px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 12px;
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-banner.warn {
-  background: #fbf0d9;
-  border-color: #f0dcae;
-  color: #5c3a00;
+  background: var(--z-accent-tint);
+  border-color: var(--z-accent-line);
+  color: var(--z-accent-ink);
 }
 
 .zp-banner b {
-  color: #141210;
+  color: var(--z-ink);
   font-weight: 600;
 }
 
 .zp-banner.warn b {
-  color: #5c3a00;
+  color: var(--z-accent-ink);
 }
 
 .zp-banner__avatar {
@@ -136,8 +136,8 @@
   border-radius: 50%;
   align-items: center;
   justify-content: center;
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
   font-size: 11px;
   font-weight: 700;
 }
@@ -177,7 +177,7 @@
 
 .zp-tile__lbl {
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-tile__val {
@@ -195,7 +195,7 @@
 
 .zp-tile__sub {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   font-variant-numeric: tabular-nums;
 }
 
@@ -217,7 +217,7 @@
 
 .zp-tile__lbl.zp-def {
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-def.z-pill {
@@ -235,13 +235,13 @@
 
 .zp-note {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zp-empty-line {
   margin: 0;
   font-size: 13px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zp-chart-head {
@@ -257,9 +257,9 @@
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
 }
 
 .zp-seg button {
@@ -270,7 +270,7 @@
   background: transparent;
   font-weight: 600;
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-seg.sm button {
@@ -278,8 +278,8 @@
 }
 
 .zp-seg button[aria-pressed="true"] {
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
 }
 
 /* ---------- Online: chart ---------- */
@@ -303,7 +303,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px solid #efece5;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zp-ax {
@@ -312,7 +312,7 @@
   right: calc(100% + 8px);
   font-size: 11px;
   line-height: 16px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -330,7 +330,7 @@
   left: 50%;
   top: 0;
   bottom: 0;
-  border-left: 1px dashed #d9d4ca;
+  border-left: 1px dashed var(--z-line-2);
   opacity: 0;
   pointer-events: none;
 }
@@ -361,7 +361,7 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(180deg, #f26a0a 0%, #f58a3c 100%);
+  background: linear-gradient(180deg, var(--z-accent) 0%, var(--z-accent) 100%);
   border-radius: 6px 6px 2px 2px;
   transition:
     background 0.15s,
@@ -370,16 +370,16 @@
 
 .zp-prot .zp-col:hover .zp-stk,
 .zp-hit:focus-visible .zp-stk {
-  background: #c85407;
+  background: var(--z-accent-hover);
 }
 
 .zp-stk.t {
-  background: #141210;
+  background: var(--z-ink);
 }
 
 .zp-prot .zp-col:hover .zp-stk.t,
 .zp-hit:focus-visible .zp-stk.t {
-  background: #3a352e;
+  background: var(--z-ink-2);
 }
 
 .zp-stk.dim {
@@ -419,7 +419,7 @@
   flex-direction: column;
   gap: 5px;
   padding: 9px 0;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zp-tag {
@@ -429,27 +429,27 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 18px;
-  background: #efece5;
-  color: #141210;
+  background: var(--z-surface-2);
+  color: var(--z-ink);
 }
 
 .zp-tag.site {
-  background: #fdebdd;
-  color: #a84505;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
 }
 
 .zp-prot .zp-bar {
   display: block;
   height: 4px;
   border-radius: 2px;
-  background: #f2efe8;
+  background: var(--z-surface-2);
 }
 
 .zp-prot .zp-bar > span {
   display: block;
   height: 4px;
   border-radius: 2px;
-  background: #f26a0a;
+  background: var(--z-accent);
 }
 
 .zp-prot .zp-bar.t5bar {
@@ -463,17 +463,17 @@
   gap: 12px;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   border-radius: 14px;
   padding: 12px 16px;
   text-decoration: none;
-  color: #141210 !important;
+  color: var(--z-ink) !important;
 }
 
 .zp-rulebar:hover {
-  border-color: #dcd6cb;
-  background: #fbfaf7;
+  border-color: var(--z-line-2);
+  background: var(--z-surface-3);
 }
 
 /* ---------- Tables (Websites, Biggest transfers) ---------- */
@@ -513,13 +513,13 @@
   gap: 8px;
   min-height: 36px;
   padding: 0 10px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
 }
 
 .zp-search:focus-within {
-  border-color: #f26a0a;
-  box-shadow: 0 0 0 3px #fdebdc;
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 3px var(--z-accent-tint);
 }
 
 .zp-search input {
@@ -544,15 +544,15 @@
   text-align: left;
   font-size: 12px;
   font-weight: 600;
-  color: #6b6459;
+  color: var(--z-ink-3);
   padding: 10px 14px;
-  border-bottom: 1px solid #e7e3da;
+  border-bottom: 1px solid var(--z-line);
   white-space: nowrap;
 }
 
 .zp-prot .zp-tbl td {
   padding: 10px 14px;
-  border-bottom: 1px solid #f0ede6;
+  border-bottom: 1px solid var(--z-line-soft);
   vertical-align: middle;
 }
 
@@ -560,8 +560,8 @@
   margin: 0;
   padding: 12px 16px;
   font-size: 12px;
-  color: #6b6459;
-  border-top: 1px solid #f0ede6;
+  color: var(--z-ink-3);
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zp-blocked,
@@ -576,7 +576,7 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
   padding-top: 10px;
 }
 
@@ -584,7 +584,7 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
   padding-top: 10px;
 }
 
@@ -603,8 +603,8 @@
   min-height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid #dcd6cb;
-  background: #fff;
+  border: 1px solid var(--z-line-2);
+  background: var(--z-surface);
   font-size: 13px;
   font-weight: 500;
 }
@@ -682,10 +682,10 @@
   align-items: flex-start;
   padding: 10px 14px;
   border-radius: 12px;
-  background: #fff;
-  border: 1px solid #e7e3da;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-top5card {
@@ -702,7 +702,7 @@
   gap: 12px;
   align-items: center;
   padding: 10px 0;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zp-t5.head {
@@ -710,7 +710,7 @@
   border-top: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 :where(.zd) .zp-badge {
@@ -723,7 +723,7 @@
   justify-content: center;
   font-size: 10px;
   font-weight: 700;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zp-duo {
@@ -748,7 +748,7 @@
   flex-wrap: wrap;
   align-items: center;
   font-size: 12px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-lg {
@@ -794,7 +794,7 @@
 }
 
 .zp-lp-col[aria-pressed="true"] .zp-lp-lab b {
-  color: #a84505;
+  color: var(--z-accent-text);
 }
 
 .zp-lp-plot {
@@ -830,7 +830,7 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-ev {
@@ -840,12 +840,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
 }
 
 .zp-ev .m {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 /* ---------- StatTiles (shared, restyled to the board tile) ---------- */
@@ -875,8 +875,8 @@
 }
 
 .zst__tile.is-link:hover {
-  border-color: #dcd6cb;
-  background: #fbfaf7;
+  border-color: var(--z-line-2);
+  background: var(--z-surface-3);
 }
 
 .zst__link {
@@ -886,7 +886,7 @@
   padding: 14px 16px;
   border-radius: 16px;
   text-decoration: none;
-  color: #141210 !important;
+  color: var(--z-ink) !important;
 }
 
 .zst__lbl {
@@ -894,7 +894,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zst__lbl svg {
@@ -909,19 +909,19 @@
   letter-spacing: -0.02em;
   line-height: 1.25;
   overflow-wrap: anywhere;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zst__tile.is-good .zst__val {
-  color: #17663f;
+  color: var(--z-ink);
 }
 
 .zst__tile.is-warn .zst__val {
-  color: #8a5300;
+  color: var(--z-accent-text);
 }
 
 .zst__tile.is-bad .zst__val {
-  color: #c0331c;
+  color: var(--z-danger);
 }
 
 /* ---------- PlanLock (shared) ---------- */
@@ -946,8 +946,8 @@
   border-radius: 12px;
   align-items: center;
   justify-content: center;
-  background: #fdebdc;
-  color: #8a3a04;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-ink);
   align-self: flex-start;
 }
 
@@ -975,7 +975,7 @@
 .zlock__body {
   margin-top: 2px;
   font-size: 14px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zlock--compact .zlock__body {
@@ -985,11 +985,11 @@
 .zlock__plan {
   margin: 6px 0 0;
   font-size: 13px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zlock__plan b {
-  color: #141210;
+  color: var(--z-ink);
 }
 
 /* ---------- MetricsDisclosure (shared) ---------- */
@@ -1011,7 +1011,7 @@
 }
 
 .zdisc__sum:hover {
-  background: #fbfaf7;
+  background: var(--z-surface-3);
 }
 
 .zdisc__mark {
@@ -1022,8 +1022,8 @@
   border-radius: 10px;
   align-items: center;
   justify-content: center;
-  background: #e3f4ea;
-  color: #17663f;
+  background: var(--z-surface-2);
+  color: var(--z-ink);
 }
 
 .zdisc__title {
@@ -1035,13 +1035,13 @@
 .zdisc__sub {
   display: block;
   font-size: 12.5px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zdisc__chev {
   display: inline-flex;
   flex: none;
-  color: #4a443c;
+  color: var(--z-ink-2);
   transition: transform 0.15s;
 }
 
@@ -1066,11 +1066,11 @@
 }
 
 .zdisc__h.ok {
-  color: #17663f;
+  color: var(--z-ink);
 }
 
 .zdisc__h.no {
-  color: #c0331c;
+  color: var(--z-ink);
 }
 
 .zdisc__list {
@@ -1084,14 +1084,14 @@
   flex-direction: column;
   gap: 1px;
   padding: 8px 0;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
   font-size: 13px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zdisc__list b {
   font-weight: 600;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 /* ---------- Phone (board rules, max-width 760px) ---------- */
@@ -1160,7 +1160,7 @@
   .zp-prot .zp-tbl tr {
     margin: 0 12px 10px;
     padding: 6px 12px;
-    border: 1px solid #e7e3da;
+    border: 1px solid var(--z-line);
     border-radius: 12px;
   }
 
@@ -1175,13 +1175,13 @@
   }
 
   .zp-prot .zp-tbl td + td {
-    border-top: 1px solid #f0ede6;
+    border-top: 1px solid var(--z-line-soft);
   }
 
   .zp-prot .zp-tbl td::before {
     content: attr(data-label);
     flex: none;
-    color: #6b6459;
+    color: var(--z-ink-3);
     font-size: 12px;
     font-weight: 600;
     text-align: left;

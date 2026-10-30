@@ -221,7 +221,7 @@ export function SchedulesTab({
             <SkRows label="Loading schedules…" rows={3} avatar={false} />
           )
         ) : list.length === 0 ? (
-          <p style={{ margin: 0, padding: "12px 16px 16px", borderTop: "1px solid #F0EDE6", color: "#6B6459", fontSize: 13 }}>
+          <p style={{ margin: 0, padding: "12px 16px 16px", borderTop: "1px solid #F5F5F5", color: "#6B6B6B", fontSize: 13 }}>
             No schedules yet. Add one below.
           </p>
         ) : (
@@ -249,7 +249,7 @@ export function SchedulesTab({
                     </>
                   ) : null}
                 </div>
-                <span className="rp-num" style={{ fontSize: 13, ...(lit ? { color: "#141210", fontWeight: 600 } : { color: "#6B6459" }) }}>
+                <span className="rp-num" style={{ fontSize: 13, ...(lit ? { color: "#141210", fontWeight: 600 } : { color: "#6B6B6B" }) }}>
                   {nextLine}
                 </span>
                 {pro ? (
@@ -292,7 +292,7 @@ export function SchedulesTab({
                 <button
                   type="button"
                   className="rp-icbtn"
-                  style={{ width: 32, height: 32, borderColor: "transparent", color: "#6B6459" }}
+                  style={{ width: 32, height: 32, borderColor: "transparent", color: "#6B6B6B" }}
                   aria-label={`Remove ${name}`}
                   disabled={busy === s.id}
                   onClick={() => {
@@ -425,13 +425,13 @@ export function SchedulesTab({
               <span>to</span>
               <div className="rp-emails">
                 {draft.to.map((m) => (
-                  <span key={m} className="rp-pill" style={{ background: "#F2EFE8", color: "#141210", padding: "2px 2px 2px 9px" }}>
+                  <span key={m} className="rp-pill" style={{ background: "#F5F5F5", color: "#141210", padding: "2px 2px 2px 9px" }}>
                     {m}
                     <button
                       type="button"
                       aria-label={`Remove ${m}`}
                       onClick={() => set({ to: draft.to.filter((y) => y !== m) })}
-                      style={{ border: 0, background: "none", padding: "0 6px", lineHeight: 1, fontSize: 13, color: "#6B6459" }}
+                      style={{ border: 0, background: "none", padding: "0 6px", lineHeight: 1, fontSize: 13, color: "#6B6B6B" }}
                     >
                       ✕
                     </button>
@@ -450,7 +450,7 @@ export function SchedulesTab({
                 />
               </div>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px", alignItems: "center", borderTop: "1px solid #F0EDE6", paddingTop: 12 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px", alignItems: "center", borderTop: "1px solid #F5F5F5", paddingTop: 12 }}>
               <span className="rp-num" style={{ fontSize: 13 }}>
                 {preview}
               </span>

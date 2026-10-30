@@ -354,7 +354,7 @@ export function CompanyCard({
           </div>
           <div className="zp-f">
             <label className="zp-lab" htmlFor="web">
-              Website <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+              Website <span style={{ fontWeight: 400, color: "#6B6B6B" }}>(optional)</span>
             </label>
             <input
               ref={reg("website")}
@@ -373,7 +373,7 @@ export function CompanyCard({
           {isIndia ? (
             <div className="zp-f">
               <label className="zp-lab" htmlFor="gst">
-                GSTIN <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+                GSTIN <span style={{ fontWeight: 400, color: "#6B6B6B" }}>(optional)</span>
               </label>
               <input
                 ref={reg("gstin")}
@@ -388,7 +388,7 @@ export function CompanyCard({
                 aria-invalid={gstMsg ? true : undefined}
                 aria-describedby="gst-hint"
               />
-              <span className="zp-k" id="gst-hint" style={{ color: gstMsg ? "#B02A15" : "#6B6459" }}>
+              <span className="zp-k" id="gst-hint" style={{ color: gstMsg ? "#C0331C" : "#6B6B6B" }}>
                 {gstMsg ?? "Add it to claim GST input credit. It must match the state above."}
               </span>
             </div>

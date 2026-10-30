@@ -322,7 +322,7 @@ function InternetPageContent(): ReactElement {
                 axis={(v) => (isData ? formatAxisBytes(v) : friendlyDuration(v))}
                 label={`${isData ? "Data used" : "Time online"}, ${periodWord}: ${cols.map((c) => `${c.aria.split(":")[0]} ${fmtV(c.value)}`).join("; ")}`}
               />
-              <p className="z-num" style={{ margin: "2px 0 0", fontSize: 13, color: "#4A443C" }}>
+              <p className="z-num" style={{ margin: "2px 0 0", fontSize: 13, color: "#404040" }}>
                 <b style={{ color: "#141210" }}>
                   {whoWord} total, {periodWord}: {fmtV(total)}
                 </b>
@@ -362,7 +362,7 @@ function InternetPageContent(): ReactElement {
                       {m.name}
                     </b>
                     <span className={`zp-tag${m.kind === "Site" ? " site" : ""}`}>{m.kind}</span>
-                    <span className="z-num" style={{ fontSize: 13, color: "#4A443C", whiteSpace: "nowrap" }}>
+                    <span className="z-num" style={{ fontSize: 13, color: "#404040", whiteSpace: "nowrap" }}>
                       {friendlyDuration(m.seconds)}
                     </span>
                   </span>
@@ -382,7 +382,7 @@ function InternetPageContent(): ReactElement {
             Rule
           </span>
           <b>{rule.name}</b>
-          <span style={{ color: "#4A443C" }}>{rule.text}</span>
+          <span style={{ color: "#404040" }}>{rule.text}</span>
         </span>
         <span style={{ fontWeight: 600, color: "#A84505" }}>Change in Rules →</span>
       </Link>
@@ -396,7 +396,7 @@ function InternetPageContent(): ReactElement {
               Websites
             </h2>
             <label className="zp-search">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6459" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
                 <path d="m20 20-3.5-3.5" />
               </svg>
@@ -445,7 +445,7 @@ function InternetPageContent(): ReactElement {
                             {x.name !== x.domain ? (
                               <>
                                 <br />
-                                <span className="z-mono" style={{ fontSize: 12, color: "#6B6459" }}>
+                                <span className="z-mono" style={{ fontSize: 12, color: "#6B6B6B" }}>
                                   {x.domain}
                                 </span>
                               </>
@@ -453,7 +453,7 @@ function InternetPageContent(): ReactElement {
                           </span>
                         </td>
                         <td data-label="Category">
-                          <span className="z-pill" style={{ background: "#F2EFE8", color: "#4A443C" }}>
+                          <span className="z-pill" style={{ background: "#F5F5F5", color: "#404040" }}>
                             {siteCategory(x.name, x.domain)}
                           </span>
                         </td>
@@ -464,7 +464,7 @@ function InternetPageContent(): ReactElement {
                           {x.tried || x.bytes <= 0 ? "—" : formatBytes(x.bytes)}
                         </td>
                         <td data-label="Rule">
-                          <span className="z-pill" style={x.blocked ? { background: "#141210", color: "#fff" } : { background: "#E7F2EA", color: "#1E6B3A" }}>
+                          <span className="z-pill" style={x.blocked ? { background: "#141210", color: "#fff" } : { background: "#F5F5F5", color: "#404040" }}>
                             {x.blocked ? (x.tried ? "Tried, blocked" : "Blocked") : "Allowed"}
                           </span>
                         </td>
@@ -473,7 +473,7 @@ function InternetPageContent(): ReactElement {
                   </tbody>
                 </table>
               </div>
-              {matched.length === 0 ? <p style={{ margin: 0, padding: "20px 16px", color: "#6B6459" }}>No site matches &ldquo;{q.trim()}&rdquo;.</p> : null}
+              {matched.length === 0 ? <p style={{ margin: 0, padding: "20px 16px", color: "#6B6B6B" }}>No site matches &ldquo;{q.trim()}&rdquo;.</p> : null}
               {!query && matched.length > SITES_SHOWN ? (
                 <div style={{ padding: "0 16px 12px" }}>
                   <button type="button" className="z-btn sm" onClick={() => setAllSites((v) => !v)}>
@@ -498,7 +498,7 @@ function InternetPageContent(): ReactElement {
             ) : events.data === undefined ? (
               <SkRows label="Loading blocked attempts" rows={3} avatar={false} />
             ) : blocked.length === 0 ? (
-              <p className="zp-empty-line" style={{ borderTop: "1px solid #F0EDE6", paddingTop: 10 }}>
+              <p className="zp-empty-line" style={{ borderTop: "1px solid #F5F5F5", paddingTop: 10 }}>
                 Nothing blocked in this period.
               </p>
             ) : (
@@ -510,7 +510,7 @@ function InternetPageContent(): ReactElement {
                       {b.site}
                     </b>
                     <br />
-                    <span style={{ fontSize: 12, color: "#6B6459" }}>
+                    <span style={{ fontSize: 12, color: "#6B6B6B" }}>
                       {b.who} · {whenText(b.last, now)}
                       {b.n > 1 ? ` · ${b.n} times` : ""}
                     </span>

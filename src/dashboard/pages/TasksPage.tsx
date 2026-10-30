@@ -37,10 +37,10 @@ type Quick = "ok" | "help" | "overdue" | "today" | "open";
 
 const QUICK_DEFS: ReadonlyArray<[Quick, string, string, string]> = [
   ["ok", "Waiting for your OK", "#17663F", "#E3F4EA"],
-  ["help", "Needs help", "#8A5300", "#FBF0D9"],
-  ["overdue", "Overdue", "#B02A15", "#FCE8E4"],
-  ["today", "Due today", "#8A3A04", "#FFF1E6"],
-  ["open", "All open", "#3A352E", "#EFECE5"],
+  ["help", "Needs help", "#A84505", "#FDEBDC"],
+  ["overdue", "Overdue", "#C0331C", "#FCE8E4"],
+  ["today", "Due today", "#8A3A04", "#FDEBDC"],
+  ["open", "All open", "#404040", "#F5F5F5"],
 ];
 const QUICK: Record<Quick, (t: TaskView) => boolean> = {
   ok: (t) => t.status === "review",
@@ -53,9 +53,9 @@ const QUICK: Record<Quick, (t: TaskView) => boolean> = {
 /** List view groups: each task sits in the first group it fits. */
 const LIST: ReadonlyArray<{ id: string; label: string; hint: string; dot: string; has: (t: TaskView) => boolean }> = [
   { id: "needs", label: "Needs you", hint: "Waiting for your OK, or asking for help", dot: "#C0331C", has: (t) => t.status === "review" || t.status === "help" },
-  { id: "overdue", label: "Overdue", hint: "Past the due time", dot: "#8A5300", has: (t) => isOverdue(t) },
+  { id: "overdue", label: "Overdue", hint: "Past the due time", dot: "#A84505", has: (t) => isOverdue(t) },
   { id: "today", label: "Today", hint: "Due later today", dot: "#F26A0A", has: (t) => t.due === todayIso() && !isFinished(t) },
-  { id: "later", label: "Later", hint: "Due tomorrow or after", dot: "#6B6358", has: (t) => !isFinished(t) },
+  { id: "later", label: "Later", hint: "Due tomorrow or after", dot: "#6B6B6B", has: (t) => !isFinished(t) },
   { id: "done", label: "Done", hint: "", dot: "#17663F", has: () => true },
 ];
 
@@ -240,7 +240,7 @@ function TasksContent(): ReactElement {
         <span className="tk-bar">
           <span style={{ display: "block", height: "100%", borderRadius: 999, width: `${Math.round((doneN / n) * 100)}%`, background: doneN === n ? "#17663F" : "#F26A0A" }} />
         </span>
-        <span className="z-num z-mono" style={{ fontSize: 11, color: "#4A443C" }}>
+        <span className="z-num z-mono" style={{ fontSize: 11, color: "#404040" }}>
           {doneN}/{n}
         </span>
       </span>
@@ -324,7 +324,7 @@ function TasksContent(): ReactElement {
               const on = quick === id;
               return (
                 <button key={id} type="button" className={on ? "tk-qc on" : "tk-qc"} aria-pressed={on} onClick={() => setQuick(on ? null : id)}>
-                  <span className="tk-qn" style={{ background: n ? bg : "#F2EFE8", color: n ? fg : "#6B6358" }}>
+                  <span className="tk-qn" style={{ background: n ? bg : "#F5F5F5", color: n ? fg : "#6B6B6B" }}>
                     {n}
                   </span>
                   {label}
@@ -338,7 +338,7 @@ function TasksContent(): ReactElement {
               <ZIcon d="M4 6h16M7 12h10M10 18h4" size={15} stroke={2.2} />
               Filters{filterCount ? ` · ${filterCount}` : ""}
             </button>
-            <span className="z-num" style={{ fontSize: 12, color: "#6B6459" }}>
+            <span className="z-num" style={{ fontSize: 12, color: "#6B6B6B" }}>
               {shownLabel}
             </span>
           </div>
@@ -374,7 +374,7 @@ function TasksContent(): ReactElement {
               </button>
             ) : null}
             <span className="tk-fend">
-              <span className="z-num" style={{ fontSize: 12, color: "#6B6459" }}>
+              <span className="z-num" style={{ fontSize: 12, color: "#6B6B6B" }}>
                 {shownLabel}
               </span>
               <div role="group" aria-label="View" className="z-segs" style={{ flexWrap: "nowrap" }}>
@@ -433,19 +433,19 @@ function TasksContent(): ReactElement {
                             opacity: t.status === "cancelled" ? 0.62 : undefined,
                             borderColor: flashOn ? "#F26A0A" : undefined,
                             boxShadow: flashOn ? "0 0 0 3px #FDEBDC" : undefined,
-                            borderLeft: c.isHelp ? "4px solid #8A5300" : undefined,
+                            borderLeft: c.isHelp ? "4px solid #A84505" : undefined,
                           }}
                         >
                           <button type="button" id={`open-${t.id}`} className="tk-cb" onClick={() => openTask(t.id)}>
                             {hasTags ? (
                               <span style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                                 {SUB[t.status] ? (
-                                  <span className="zk-pill" style={{ background: "#EFECE5", color: "#4A443C" }}>
+                                  <span className="zk-pill" style={{ background: "#F5F5F5", color: "#404040" }}>
                                     {SUB[t.status]}
                                   </span>
                                 ) : null}
                                 {c.isHelp ? (
-                                  <span className="zk-pill" style={{ background: "#FBF0D9", color: "#8A5300" }}>
+                                  <span className="zk-pill" style={{ background: "#FDEBDC", color: "#A84505" }}>
                                     Needs help
                                   </span>
                                 ) : null}
@@ -455,12 +455,12 @@ function TasksContent(): ReactElement {
                                   </span>
                                 ) : null}
                                 {t.status === "cancelled" ? (
-                                  <span className="zk-pill" style={{ background: "#EFECE5", color: "#5E574D" }}>
+                                  <span className="zk-pill" style={{ background: "#F5F5F5", color: "#6B6B6B" }}>
                                     Cancelled
                                   </span>
                                 ) : null}
                                 {t.high ? (
-                                  <span className="zk-pill" style={{ background: "#FCE8E4", color: "#B02A15" }}>
+                                  <span className="zk-pill" style={{ background: "#FCE8E4", color: "#C0331C" }}>
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                       <path d="M5 21V4h11l-1.5 4L16 12H7v9z" />
                                     </svg>
@@ -468,7 +468,7 @@ function TasksContent(): ReactElement {
                                   </span>
                                 ) : null}
                                 {t.byMember ? (
-                                  <span className="zk-pill" style={{ background: "#F2EFE8", color: "#6B6459" }}>
+                                  <span className="zk-pill" style={{ background: "#F5F5F5", color: "#6B6B6B" }}>
                                     Added by {c.p.first}
                                   </span>
                                 ) : null}
@@ -476,7 +476,7 @@ function TasksContent(): ReactElement {
                             ) : null}
                             <span className="tk-tt">{t.title}</span>
                             <span style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#3A352E" }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#404040" }}>
                                 <Avatar person={c.p} size={22} />
                                 {c.p.first}
                               </span>
@@ -509,7 +509,7 @@ function TasksContent(): ReactElement {
                   <span role="columnheader">Person</span>
                   <span role="columnheader">Stage</span>
                   <span role="columnheader" aria-sort={sortDir === "asc" ? "ascending" : "descending"}>
-                    <button type="button" className="tk-lk" style={{ fontSize: 12, color: "#3A352E", display: "inline-flex", gap: 4, alignItems: "center" }} onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}>
+                    <button type="button" className="tk-lk" style={{ fontSize: 12, color: "#404040", display: "inline-flex", gap: 4, alignItems: "center" }} onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}>
                       Due <span aria-hidden="true">{sortDir === "asc" ? "↑" : "↓"}</span>
                       <span className="z-sr">{sortDir === "asc" ? ", soonest first. Select to show latest first" : ", latest first. Select to show soonest first"}</span>
                     </button>
@@ -526,10 +526,10 @@ function TasksContent(): ReactElement {
                       <span role="rowheader" style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: "4px 8px" }}>
                         <span aria-hidden="true" style={{ flex: "none", width: 9, height: 9, borderRadius: "50%", background: g.dot }} />
                         {g.label}{" "}
-                        <span className="z-num" style={{ color: "#6B6459", fontWeight: 600 }}>
+                        <span className="z-num" style={{ color: "#6B6B6B", fontWeight: 600 }}>
                           {g.list.length}
                         </span>
-                        <span style={{ fontSize: 12, fontWeight: 400, color: "#6B6358" }}>{g.hint}</span>
+                        <span style={{ fontSize: 12, fontWeight: 400, color: "#6B6B6B" }}>{g.hint}</span>
                       </span>
                     </div>
                     {g.rows.map((t) => {
@@ -539,7 +539,7 @@ function TasksContent(): ReactElement {
                           role="row"
                           key={t.id}
                           className="tk-trow"
-                          style={c.isHelp ? { boxShadow: "inset 4px 0 0 #8A5300" } : flash === t.id ? { background: "#FFF8F1" } : undefined}
+                          style={c.isHelp ? { boxShadow: "inset 4px 0 0 #A84505" } : flash === t.id ? { background: "#FFF6EF" } : undefined}
                         >
                           <span role="cell" style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
                             <button type="button" id={`open-${t.id}`} className="tk-lk" onClick={() => openTask(t.id)}>
@@ -548,12 +548,12 @@ function TasksContent(): ReactElement {
                             {t.high || t.byMember ? (
                               <span style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                                 {t.high ? (
-                                  <span className="zk-pill" style={{ background: "#FCE8E4", color: "#B02A15" }}>
+                                  <span className="zk-pill" style={{ background: "#FCE8E4", color: "#C0331C" }}>
                                     High
                                   </span>
                                 ) : null}
                                 {t.byMember ? (
-                                  <span className="zk-pill" style={{ background: "#F2EFE8", color: "#6B6459" }}>
+                                  <span className="zk-pill" style={{ background: "#F5F5F5", color: "#6B6B6B" }}>
                                     Added by {c.p.first}
                                   </span>
                                 ) : null}
@@ -578,7 +578,7 @@ function TasksContent(): ReactElement {
                           </span>
                           <span role="cell" className="tk-tc">
                             <span className="tk-mlab">Progress</span>
-                            {c.steps ?? <span style={{ color: "#6B6358" }}>—</span>}
+                            {c.steps ?? <span style={{ color: "#6B6B6B" }}>—</span>}
                           </span>
                           <span role="cell" className="tk-tc tk-tw">
                             <span className="tk-mlab">Updated</span>
@@ -591,7 +591,7 @@ function TasksContent(): ReactElement {
                       );
                     })}
                     {g.capped ? (
-                      <div role="row" style={{ padding: "8px 16px", borderBottom: "1px solid #F0EDE6" }}>
+                      <div role="row" style={{ padding: "8px 16px", borderBottom: "1px solid #F5F5F5" }}>
                         <span role="cell">
                           <button type="button" className="z-btn xs" style={{ background: "transparent" }} aria-expanded={doneAll} onClick={() => setDoneAll(!doneAll)}>
                             {doneAll ? "Show less" : `Show ${g.list.length - 5} more`}

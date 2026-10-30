@@ -15,14 +15,14 @@ type Filter = "all" | "working" | "break" | "out";
 
 const ST: Record<Status, readonly [string, string, string]> = {
   working: ["Working", "#E3F4EA", "#17663F"],
-  break: ["On break", "#FBF0D9", "#8A5300"],
-  out: ["Day ended", "#EFECE5", "#5E574D"],
-  notin: ["Not in", "#EFECE5", "#5E574D"],
-  offline: ["Offline", "#EFECE5", "#5E574D"],
-  nopc: ["No PC yet", "#EFECE5", "#5E574D"],
+  break: ["On break", "#FDEBDC", "#A84505"],
+  out: ["Day ended", "#F5F5F5", "#6B6B6B"],
+  notin: ["Not in", "#F5F5F5", "#6B6B6B"],
+  offline: ["Offline", "#F5F5F5", "#6B6B6B"],
+  nopc: ["No PC yet", "#F5F5F5", "#6B6B6B"],
 };
 
-const TINTS = ["#FDEBDC", "#E6EEFB", "#E3F4EA", "#F4ECFB", "#FBF0D9"];
+const TINTS = ["#FDEBDC", "#F5F5F5", "#FFF6EF", "#EEEEEE", "#FDEBDC"];
 
 interface Row {
   m: Member;
@@ -87,7 +87,7 @@ function rowOf(m: Member, log: WorkLogEntry[] | undefined, now: number): Row {
     tip = (
       <TipBody
         title="Waiting for your OK"
-        color="#8A5300"
+        color="#A84505"
         sub={m.name}
         rows={
           isBreak
@@ -184,7 +184,7 @@ export function TeamToday({
           <h2 id="team-h" className="zn-ov-h2">
             Team today
           </h2>
-          <span style={{ fontSize: 13, color: "#6B6459" }}>Live from each person's Start day, Take a break and End day buttons.</span>
+          <span style={{ fontSize: 13, color: "#6B6B6B" }}>Live from each person's Start day, Take a break and End day buttons.</span>
         </div>
         <div role="group" aria-label="Filter team" className="z-segs zn-desk-only" style={{ flexWrap: "nowrap" }}>
           {FILTERS.map(([k, label]) => (
@@ -236,7 +236,7 @@ export function TeamToday({
                     />
                     <b style={{ flex: "none", fontWeight: 600 }}>{r.m.name}</b>
                     <span className="zn-ov-pc">
-                      <span className="zn-ov-dot" style={{ background: r.pcOn ? "#17663F" : "#6B6358" }} aria-hidden="true" />
+                      <span className="zn-ov-dot" style={{ background: r.pcOn ? "#17663F" : "#6B6B6B" }} aria-hidden="true" />
                       <span className="z-mono" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
                         {r.pc}
                       </span>
@@ -259,7 +259,7 @@ export function TeamToday({
         {!atEnd && visible.length > 6 ? <div className="zn-fade" aria-hidden="true" /> : null}
       </div>
       <div className="zn-ov-foot">
-        <span className="z-num" style={{ color: "#6B6459" }}>
+        <span className="z-num" style={{ color: "#6B6B6B" }}>
           {members === undefined ? "" : `${inCount} of ${rows.length} in · ${online} of ${pcs} PCs online`}
         </span>
         <Link to="/app/team" style={{ fontWeight: 600 }}>
@@ -280,7 +280,7 @@ export function TeamToday({
               }}
             >
               <span>{label}</span>
-              <span className="z-num" style={{ color: "#6B6358" }}>
+              <span className="z-num" style={{ color: "#6B6B6B" }}>
                 {count(k)}
               </span>
             </button>

@@ -308,7 +308,7 @@ export function AddPerson({
           </div>
           <div className="zt-fld" role="group" aria-labelledby="n-pic-lab">
             <span className="zt-lab" id="n-pic-lab">
-              Picture <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+              Picture <span style={{ fontWeight: 400, color: "#6B6B6B" }}>(optional)</span>
             </span>
             <div className="zt-photo-row">
               <MemberAvatar

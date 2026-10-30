@@ -22,7 +22,7 @@ function boxOf(selector: string): Box | null {
 
 /**
  * A spotlight tour: dims the page, rings one element, and shows a small card in the v1.3 dialog look
- * (`.zn-dialog`: white, radius 16, border #E7E3DA) beside it with Back / Next / Skip. Esc or Skip ends it; finishing (or
+ * (`.zn-dialog`: white, radius 16, border #E5E5E5) beside it with Back / Next / Skip. Esc or Skip ends it; finishing (or
  * skipping) is remembered on the account. The last step's button can lead
  * somewhere (`cta`): `onClose` gets that path.
  */

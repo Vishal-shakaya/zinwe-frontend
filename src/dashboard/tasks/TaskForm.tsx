@@ -161,7 +161,7 @@ export function TaskForm({
     <div>
       <button type="button" className="zk-sheet-bg" aria-label="Close" tabIndex={-1} onClick={onClose} style={{ zIndex: 93, background: "rgba(20,18,16,.36)" }} />
       <aside ref={panel} role="dialog" aria-modal="true" aria-labelledby="cm-h" className="zk-sheet" style={{ zIndex: 94, width: "min(520px, 100%)", boxShadow: "-14px 0 36px rgba(20,18,16,.18)" }}>
-        <div style={{ padding: "16px 22px", borderBottom: "1px solid #EFECE5", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+        <div style={{ padding: "16px 22px", borderBottom: "1px solid #F5F5F5", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <h2 id="cm-h" style={{ margin: 0, fontSize: 19 }}>
             {isEditing ? "Edit task" : "New task"}
           </h2>
@@ -176,7 +176,7 @@ export function TaskForm({
             </label>
             {people.length === 0 && !isEditing ? (
               // A new owner with nobody on Team yet: an empty "Assign to" list was a dead end.
-              <p id="cm-who" style={{ margin: 0, padding: "12px 14px", borderRadius: 12, background: "#FBF0D9", color: "#5C3A00", fontSize: 14, lineHeight: 1.45 }}>
+              <p id="cm-who" style={{ margin: 0, padding: "12px 14px", borderRadius: 12, background: "#FDEBDC", color: "#8A3A04", fontSize: 14, lineHeight: 1.45 }}>
                 A task goes to one person's Zinwe app, and nobody is on your team yet.{" "}
                 <Link to="/app/team#add=1" onClick={onClose} style={{ fontWeight: 600, color: "#8A3A04" }}>
                   Add your first person
@@ -276,7 +276,7 @@ export function TaskForm({
                 ) : null}
               </div>
             </div>
-            {dateBad ? <span style={{ fontSize: 12, color: "#B02A15" }}>Pick a date from today on.</span> : null}
+            {dateBad ? <span style={{ fontSize: 12, color: "#C0331C" }}>Pick a date from today on.</span> : null}
           </div>
           <button type="button" className="zk-more" aria-expanded={f.more} onClick={() => set({ more: !f.more })}>
             <span className="zk-more__chev" aria-hidden="true" style={{ transform: `rotate(${f.more ? 180 : 0}deg)` }}>
@@ -284,16 +284,16 @@ export function TaskForm({
             </span>
             <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
               <span>More options</span>
-              <span style={{ fontSize: 12, fontWeight: 400, color: "#6B6358" }}>
+              <span style={{ fontSize: 12, fontWeight: 400, color: "#6B6B6B" }}>
                 {moreSummary({ details: f.details, time: f.time, high: f.high, steps: f.steps })}
               </span>
             </span>
           </button>
           {f.more ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: 14, background: "#FBFAF7", border: "1px solid #EFECE5", borderRadius: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: 14, background: "#FAFAFA", border: "1px solid #F5F5F5", borderRadius: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label className="zk-lab" htmlFor="cm-det">
-                  Details <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+                  Details <span style={{ fontWeight: 400, color: "#6B6B6B" }}>(optional)</span>
                 </label>
                 <textarea id="cm-det" rows={2} className="zk-inp" value={f.details} maxLength={1000} onChange={(e) => set({ details: e.target.value })} placeholder="Anything they need to know" style={{ resize: "vertical" }} />
               </div>
@@ -323,11 +323,11 @@ export function TaskForm({
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <span className="zk-lab">
-                  Checklist <span style={{ fontWeight: 400, color: "#6B6459" }}>(optional)</span>
+                  Checklist <span style={{ fontWeight: 400, color: "#6B6B6B" }}>(optional)</span>
                 </span>
                 {f.steps.map((label, i) => (
-                  <div key={`${i}-${label}`} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 6px 4px 12px", background: "#fff", border: "1px solid #EFECE5", borderRadius: 8 }}>
-                    <span className="z-mono" style={{ fontSize: 12, color: "#6B6358" }}>
+                  <div key={`${i}-${label}`} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 6px 4px 12px", background: "#fff", border: "1px solid #F5F5F5", borderRadius: 8 }}>
+                    <span className="z-mono" style={{ fontSize: 12, color: "#6B6B6B" }}>
                       {i + 1}
                     </span>
                     <span style={{ flex: 1, minWidth: 0 }}>{label}</span>
@@ -361,13 +361,13 @@ export function TaskForm({
             </div>
           ) : null}
         </div>
-        <div className="zk-sheet-foot" style={{ padding: "14px 22px", borderTop: "1px solid #EFECE5", background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div className="zk-sheet-foot" style={{ padding: "14px 22px", borderTop: "1px solid #F5F5F5", background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {error ? (
-            <p role="alert" style={{ margin: 0, flexBasis: "100%", fontSize: 13, color: "#B02A15" }}>
+            <p role="alert" style={{ margin: 0, flexBasis: "100%", fontSize: 13, color: "#C0331C" }}>
               {error}
             </p>
           ) : null}
-          <span style={{ fontSize: 12, color: "#6B6459" }}>
+          <span style={{ fontSize: 12, color: "#6B6B6B" }}>
             {!person ? "Add a person on Team first." : isEditing ? `${person.first} sees an “Edited” tag. Ticked steps stay ticked.` : `Lands in ${person.first}’s chat and Zinwe app. They mark it done, you give the OK.`}
           </span>
           <span style={{ display: "flex", gap: 8 }}>

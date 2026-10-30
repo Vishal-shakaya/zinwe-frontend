@@ -46,7 +46,7 @@ export function AskBlock({
   if (decision) {
     return (
       <div role="status" className="za-ask za-ask--done">
-        <b style={{ fontSize: 13, color: decision.val === "approved" ? "#17663F" : "#5E574D" }}>
+        <b style={{ fontSize: 13, color: decision.val === "approved" ? "#17663F" : "#6B6B6B" }}>
           {decision.val === "approved" ? "Approved" : `Not approved${decision.note ? ` · “${decision.note}”` : ""}`}
         </b>
         {decision.phase === "undo" ? (

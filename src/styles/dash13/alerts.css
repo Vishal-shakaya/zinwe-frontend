@@ -13,7 +13,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #e7e3da;
+  border-bottom: 1px solid var(--z-line);
 }
 
 .zp-alerts .zn-tabs {
@@ -29,7 +29,7 @@
   border-bottom: 2px solid transparent;
   background: transparent;
   font-weight: 600;
-  color: #4a443c;
+  color: var(--z-ink-2);
   display: inline-flex;
   gap: 8px;
   align-items: center;
@@ -37,8 +37,8 @@
 }
 
 .zp-alerts .zn-tab-btn.on {
-  color: #141210;
-  border-bottom-color: #f26a0a;
+  color: var(--z-ink);
+  border-bottom-color: var(--z-accent);
 }
 
 /* Tab focus ring only after the keyboard was used (never on load or on click). */
@@ -47,7 +47,7 @@
 }
 
 .zp-alerts.zn-kbd .zn-tabs .zn-tab-btn:focus-visible {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: -2px;
   border-radius: 6px 6px 0 0;
 }
@@ -61,18 +61,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #efece5;
-  color: #4a443c;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
 }
 
 .zp-alerts .zn-count.red {
-  background: #c0331c;
-  color: #fff;
+  background: var(--z-danger);
+  color: var(--z-on-ink);
 }
 
 .zp-alerts .zn-count.ink {
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
 }
 
 .zp-alerts .zn-al-filters {
@@ -91,9 +91,9 @@
 .zn-dialog .zn-sel {
   min-height: 38px;
   padding: 0 10px;
-  border: 1px solid #dcd6cb;
+  border: 1px solid var(--z-line-2);
   border-radius: 10px;
-  background: #fff;
+  background: var(--z-surface);
   max-width: 260px;
 }
 
@@ -104,8 +104,8 @@
 }
 
 .zp-alerts .zn-al-toast {
-  background: #141210;
-  color: #fff;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 13px;
@@ -122,8 +122,8 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border-bottom: 1px solid #efece5;
-  background: #fbfaf7;
+  border-bottom: 1px solid var(--z-line-soft);
+  background: var(--z-surface-3);
 }
 
 .zp-alerts .zn-al-selbar label {
@@ -138,7 +138,7 @@
 .zp-alerts .zn-al-check {
   width: 18px;
   height: 18px;
-  accent-color: #141210;
+  accent-color: var(--z-ink);
   flex: none;
 }
 
@@ -152,16 +152,16 @@
 
 .zp-alerts .zn-al-row {
   padding: 14px 16px;
-  border-top: 1px solid #f0ede6;
-  border-left: 4px solid #b9b0a2;
+  border-top: 1px solid var(--z-line-soft);
+  border-left: 4px solid var(--z-ink-4);
 }
 
 .zp-alerts .zn-al-row.open {
-  background: #fffcf8;
+  background: var(--z-surface-3);
 }
 
 .zp-alerts .zn-al-row.flash {
-  outline: 2px solid #f26a0a;
+  outline: 2px solid var(--z-accent);
   outline-offset: -2px;
   transition: outline-color 0.4s;
 }
@@ -204,7 +204,7 @@
   font-weight: 700;
   font-size: 15px;
   text-align: left;
-  color: #141210;
+  color: var(--z-ink);
   cursor: pointer;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -213,16 +213,16 @@
 .zp-alerts .zn-al-limit {
   font-weight: 700;
   font-size: 14px;
-  color: #4a443c;
+  color: var(--z-ink-2);
 }
 
 .zp-alerts .zn-al-limit.over {
-  color: #c0331c;
+  color: var(--z-danger);
 }
 
 .zp-alerts .zn-al-meta {
   font-size: 12px;
-  color: #6b6459;
+  color: var(--z-ink-3);
   overflow-wrap: anywhere;
 }
 
@@ -233,10 +233,10 @@
   margin-top: 4px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #f2f6fd;
-  border-left: 3px solid #1b4fb0;
+  background: var(--z-surface-2);
+  border-left: 3px solid var(--z-ink-2);
   font-size: 13.5px;
-  color: #141210;
+  color: var(--z-ink);
 }
 
 .zp-alerts .zn-al-usb {
@@ -251,7 +251,7 @@
 }
 
 .zp-alerts .zn-al-box {
-  background: #f7f6f2;
+  background: var(--z-surface-2);
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
@@ -292,13 +292,13 @@
   display: flex;
   justify-content: center;
   padding: 12px 16px;
-  border-top: 1px solid #f0ede6;
+  border-top: 1px solid var(--z-line-soft);
   margin: 0;
 }
 
 .zp-alerts .zn-al-note {
   font-size: 12.5px;
-  color: #6b6459;
+  color: var(--z-ink-3);
 }
 
 .zp-alerts .zn-sticky {
@@ -356,8 +356,8 @@
     bottom: calc(64px + env(safe-area-inset-bottom));
     z-index: 5;
     padding: 10px 12px;
-    background: #fff;
-    border-top: 1px solid #e7e3da;
+    background: var(--z-surface);
+    border-top: 1px solid var(--z-line);
     box-shadow: 0 -8px 20px -14px rgba(20, 18, 16, 0.35);
   }
 

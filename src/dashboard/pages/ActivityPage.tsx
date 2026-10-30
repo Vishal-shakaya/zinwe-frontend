@@ -300,17 +300,17 @@ function ActivityPageContent(): ReactElement {
     {
       label: "Working now",
       value: isToday ? String(count("working")) : "—",
-      color: "#17663F",
+      color: "#141210",
     },
     {
       label: "On a break now",
       value: isToday ? String(count("break")) : "—",
-      color: "#8A5300",
+      color: "#A84505",
     },
     {
       label: "Waiting for your OK",
       value: String(pendCount),
-      color: pendCount ? "#8A5300" : "#141210",
+      color: pendCount ? "#A84505" : "#141210",
     },
     { label: "Ended day", value: String(count("out")), color: "#141210" },
   ];
@@ -586,11 +586,11 @@ function ActivityPageContent(): ReactElement {
                       : 0;
                   const workedS = p ? (live > 0 ? live : p.workedSeconds) : 0;
                   const border = pending
-                    ? "#8A5300"
+                    ? "#A84505"
                     : fresh
                       ? freshVal === "approved"
-                        ? "#2E9E62"
-                        : "#6B6358"
+                        ? "#17663F"
+                        : "#6B6B6B"
                       : linked
                         ? "#F26A0A"
                         : "transparent";
@@ -603,14 +603,14 @@ function ActivityPageContent(): ReactElement {
                       style={{
                         borderLeftColor: border,
                         background: pending
-                          ? "#FFFCF5"
+                          ? "#FAFAFA"
                           : isSel
-                            ? "#FFF8F2"
+                            ? "#FFF6EF"
                             : "#FFFFFF",
                         boxShadow: linked
                           ? "inset 0 0 0 2px #F26A0A"
                           : isSel && pending
-                            ? "inset 0 0 0 1px #F3D9B0"
+                            ? "inset 0 0 0 1px #F6C9A6"
                             : undefined,
                       }}
                     >
