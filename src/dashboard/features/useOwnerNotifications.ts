@@ -1,19 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getOwnerFeed } from "../../lib/api";
-import { browserNotifyOn, browserNotifySwitchedOff, NOTIFY_SWITCH_EVENT, showNotification } from "./browserNotify";
+import { browserNotifyOn, browserNotifySwitchedOff, NOTIFY_SWITCH_EVENT, showNotification, startBrowserNotify } from "./browserNotify";
 
 const POLL_MS = 30_000;
 
 /**
  * FR-15: while the dashboard is open (even in a background tab), ask every 30 s what's new — member replies,
  * alerts, requests waiting for the owner's OK — and show each as a browser notification. Clicking one opens the
- * right page. Does nothing until notifications are switched on in Profile → Notifications.
+ * right page. Shows nothing until notifications are switched on (the banner, or Settings → Notifications).
+ *
+ * It also starts the service worker and keeps this browser subscribed to web push, which brings the same items the
+ * moment they happen, with the dashboard closed. Each has the feed item's id as its tag, so the poll replaces a push
+ * rather than adding a second one; sw.js tells this tab the id too, so one swiped away doesn't come back.
  */
 export function useOwnerNotifications(enabled: boolean): void {
   const navigate = useNavigate();
   const since = useRef<string | null>(null);
   const shown = useRef(new Set<string>());
+
+  useEffect(() => {
+    if (enabled) void startBrowserNotify();
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled || !("serviceWorker" in navigator)) return;
+    const fromWorker = (event: MessageEvent<{ type?: string; id?: string; link?: string }>) => {
+      const { type, id, link } = event.data ?? {};
+      if (type === "zinwe-push" && id) shown.current.add(id);
+      if (type === "zinwe-open" && link) navigate(link); // a click on a notification (sw.js focused this tab)
+    };
+    navigator.serviceWorker.addEventListener("message", fromWorker);
+    return () => navigator.serviceWorker.removeEventListener("message", fromWorker);
+  }, [enabled, navigate]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -28,7 +47,7 @@ export function useOwnerNotifications(enabled: boolean): void {
         // Oldest first, so they stack in the order they happened; at most 5 at once (then one summary).
         const fresh = feed.items.filter((i) => !shown.current.has(i.id)).reverse();
         fresh.forEach((i) => shown.current.add(i.id));
-        fresh.slice(0, 5).forEach((i) => showNotification(i.title, i.body, i.id, () => navigate(i.link)));
+        fresh.slice(0, 5).forEach((i) => showNotification(i.title, i.body, i.id, i.link, () => navigate(i.link)));
         if (fresh.length > 5) {
           showNotification(`${fresh.length - 5} more updates in Zinwe`, "Open Zinwe to see them all.", "zinwe-more");
         }

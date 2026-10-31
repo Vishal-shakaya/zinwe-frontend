@@ -667,6 +667,33 @@ export function saveNotificationPrefs(prefs: Partial<NotificationPrefs>): Promis
   return authedRequest<NotificationPrefs>("/api/devices/notifications/settings/", { method: "PATCH", body: prefs });
 }
 
+/** Web push (FR-15): off until the server has its keys. `public_key` is what a browser subscribes with. */
+export interface PushStatus {
+  enabled: boolean;
+  public_key: string;
+}
+
+export function getPushStatus(signal?: AbortSignal): Promise<PushStatus> {
+  return authedRequest<PushStatus>("/api/devices/notifications/push/", { signal });
+}
+
+/** POST notifications/push/subscribe/ — this browser, as PushSubscription.toJSON() gives it. Safe to repeat. */
+export function savePushSubscription(subscription: PushSubscriptionJSON): Promise<{ subscribed: boolean }> {
+  const { endpoint, keys } = subscription;
+  return authedRequest<{ subscribed: boolean }>("/api/devices/notifications/push/subscribe/", {
+    method: "POST",
+    body: { endpoint, keys },
+  });
+}
+
+export function removePushSubscription(endpoint: string, signal?: AbortSignal): Promise<{ subscribed: boolean }> {
+  return authedRequest<{ subscribed: boolean }>("/api/devices/notifications/push/unsubscribe/", {
+    method: "POST",
+    body: { endpoint },
+    signal,
+  });
+}
+
 /** One person's row in a report (FR-17, FR-22). Seconds are whole seconds. */
 export interface ReportPerson {
   member_id: number | null;

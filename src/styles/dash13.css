@@ -1187,6 +1187,11 @@
   .zn-banner > span {
     flex-basis: 180px;
   }
+
+  /* The notifications question: the words take the row (beside the bell), both buttons together under them. */
+  .zn-banner.ask > span {
+    flex-basis: calc(100% - 38px);
+  }
 }
 
 /* Bell (DashTopBar) */
