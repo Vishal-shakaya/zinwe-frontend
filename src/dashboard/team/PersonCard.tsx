@@ -10,6 +10,7 @@ import {
   type Member,
   type MemberRole,
   type MemberTag,
+  type MemberTodo,
 } from "../../lib/api";
 import { copyText } from "../../lib/clipboard";
 import { MemberData } from "../components/MemberData";
@@ -18,6 +19,7 @@ import { UsbRestore } from "../components/UsbRestore";
 import { useChatBubble } from "../features/chatBubble";
 import { consentOf, consentReminder } from "../features/memberStatus";
 import type { SecondPc } from "../fixtures/pcs";
+import { TheirTodos } from "../tasks/TheirTodos";
 import { TipBody } from "../ui/Tooltip";
 import type { Tip } from "../ui/useTip";
 import { MemberAvatar } from "./Avatar";
@@ -39,6 +41,9 @@ export interface PersonCardProps {
   now: number;
   second: SecondPc | undefined;
   chatOn: boolean;
+  /** Their own to-dos from the Zinwe app; undefined while loading. */
+  todos: MemberTodo[] | undefined;
+  todosFailed: boolean;
   tip: Tip;
   /** Opened from a #m=<first> link: outline the card. */
   linked: boolean;
@@ -77,7 +82,7 @@ function offlineSince(iso: string | null | undefined, now: number): string {
 /**
  * One person on Team & PCs (DashTeam card): picture, name (→ chat), status, "⋮" menu, role, playful tag, PC,
  * consent, Member ID (click copies), the two-PC block (sample, FR-36), last 7 days of active time and internet
- * data, and the typed-confirm Remove.
+ * data, their own to-dos (read-only), and the typed-confirm Remove.
  */
 export function PersonCard(props: PersonCardProps): ReactElement {
   const { member, device, status, statusRows, tag, week, weekFailed, today, now, second, chatOn, tip, linked } = props;
@@ -632,6 +637,7 @@ export function PersonCard(props: PersonCardProps): ReactElement {
 
       <MemberUsage memberId={member.id} name={member.name} week={week} failed={weekFailed} today={today} tip={tip} />
       <MemberData memberId={member.id} connected={!invited} bytes={week?.dataBytes} tip={tip} />
+      {chatOn ? <TheirTodos todos={props.todos} failed={props.todosFailed} first={first} /> : null}
 
       {panel === "rotate" ? (
         <div role="group" aria-label={`Get a new Member ID for ${first}`} className="zt-confirm zt-confirm--amber">
