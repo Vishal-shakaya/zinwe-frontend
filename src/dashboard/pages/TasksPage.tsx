@@ -29,6 +29,8 @@ import {
 } from "../tasks/model";
 import { TaskDrawer } from "../tasks/TaskDrawer";
 import { TaskForm, type TaskFormValues } from "../tasks/TaskForm";
+import { TheirTodos } from "../tasks/TheirTodos";
+import { useMemberTodos } from "../tasks/useMemberTodos";
 import { taskActions, useTasks } from "../tasks/useTasks";
 import { TASK_COLUMNS, TASK_SHORT, todayIso, type TaskView } from "../tasks/types";
 import "../../styles/dash13/tasks.css";
@@ -68,7 +70,8 @@ const chatHrefOf = (p: TaskPerson | null) => (p && p.memberId !== null ? `/app/c
 /**
  * /app/tasks (board DashTasks): every task the owner sent, what needs you first. List (grouped) or Board (stages),
  * quick filters, person + search filters, the task drawer (#task=<id> or ?task=<id>, the notification link) and New
- * task (#new=1). FR-20 v2 tasks API; plan module team_chat (like Chat).
+ * task (#new=1). Under them, read-only, the to-dos people added for themselves (everyone's, or the filtered person's).
+ * FR-20 v2 tasks API; plan module team_chat (like Chat).
  */
 export default function TasksPage(): ReactElement {
   usePageMeta({ title: "Tasks — Zinwe", description: "Every task you sent your team, and what needs you." });
@@ -91,6 +94,7 @@ function TasksContent(): ReactElement {
   const people = useMemo(() => peopleOf(members.data), [members.data]);
   const tasks = useTasks();
   const all = useMemo(() => tasks.data ?? [], [tasks.data]);
+  const todos = useMemberTodos();
 
   const { hash, pathname } = useLocation();
   const [search] = useSearchParams();
@@ -604,6 +608,12 @@ function TasksContent(): ReactElement {
               </div>
             </div>
           )}
+          <TheirTodos
+            className="ztd--page"
+            todos={whoPerson ? todos.data?.filter((t) => t.member_id === whoPerson.memberId) : todos.data}
+            failed={Boolean(todos.error)}
+            first={whoPerson?.first ?? null}
+          />
           <span className="z-sr" aria-live="polite">
             {openCount} open tasks
           </span>

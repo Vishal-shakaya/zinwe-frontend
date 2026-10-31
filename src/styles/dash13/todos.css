@@ -1,0 +1,106 @@
+/* "Their own to-dos": a person's read-only list, on the Team card and the Tasks page. */
+.ztd {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ztd__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ztd__k {
+  margin: 0;
+}
+
+.ztd__n {
+  font-size: 12px;
+  color: var(--z-ink-3);
+}
+
+.ztd__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ztd__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ztd__mark {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border: 1.5px solid var(--z-line-2);
+  border-radius: 4px;
+}
+
+.ztd__mark.on {
+  background: var(--z-ink);
+  border-color: var(--z-ink);
+}
+
+.ztd__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ztd__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--z-ink);
+  overflow-wrap: anywhere;
+}
+
+.ztd__title.done {
+  font-weight: 400;
+  color: var(--z-ink-3);
+  text-decoration: line-through;
+}
+
+.ztd__meta,
+.ztd__note {
+  font-size: 12px;
+  color: var(--z-ink-3);
+}
+
+.ztd__late {
+  font-weight: 600;
+  color: var(--z-danger);
+}
+
+.ztd__more {
+  align-self: flex-start;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--z-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* The Tasks page: its own card under the list. */
+.ztd--page {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--z-surface);
+  border: 1px solid var(--z-line);
+  border-radius: 14px;
+}

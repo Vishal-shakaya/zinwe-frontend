@@ -22,6 +22,7 @@ import { useShell } from "../shell/shellContext";
 import { AddPerson } from "../team/AddPerson";
 import { FilterSheet } from "../team/FilterSheet";
 import { firstName } from "../team/format";
+import { useMemberTodos } from "../tasks/useMemberTodos";
 import { PersonCard } from "../team/PersonCard";
 import { bestTagKey, cardStatus, FILTERS, inFilter, statusRows, systemFull, weekOf, type TeamFilter } from "../team/teamData";
 import { formatRelative, useNow } from "../time";
@@ -165,6 +166,8 @@ export default function TeamPage(): ReactElement {
     const key = bestTagKey(mine, tagCounts);
     return mine.find((t) => t.key === key) ?? null;
   };
+
+  const todos = useMemberTodos({ enabled: has("team_chat") });
 
   // pcsTick: Keep both / Remove on the sample second PC (FR-36).
   const seconds = useMemo(() => (pcsTick >= 0 ? secondPcsNow(members.data) : []), [members.data, pcsTick]);
@@ -376,6 +379,8 @@ export default function TeamPage(): ReactElement {
                   now={now}
                   second={seconds.find((s) => s.memberId === member.id)}
                   chatOn={has("team_chat")}
+                  todos={todos.data?.filter((t) => t.member_id === member.id)}
+                  todosFailed={Boolean(todos.error)}
                   tip={tip}
                   linked={linkedFirst !== "" && firstName(member.name).toLowerCase() === linkedFirst}
                   onUpdated={onUpdated}
