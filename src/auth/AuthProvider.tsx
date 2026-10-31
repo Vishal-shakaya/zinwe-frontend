@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { ApiError, getMe, isAbortError, logout, type AuthResponse, type Me } from "../lib/api";
 import { clearToken, getToken, setToken, subscribeToken } from "../lib/session";
+import { unsubscribeThisBrowser } from "../lib/webPush";
 import { AuthContext, type Account, type AccountPatch, type AuthValue } from "./authContext";
 
 function accountFromMe(me: Me): Account {
@@ -92,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactElemen
   const signOut = useCallback(async () => {
     manualSignOut.current = true;
     if (getToken()) {
+      await unsubscribeThisBrowser(); // needs the sign-in, so before logging out; bounded and never throws
       try {
         await logout(AbortSignal.timeout(5000));
       } catch {

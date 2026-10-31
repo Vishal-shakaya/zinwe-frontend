@@ -1,12 +1,15 @@
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { errorMessage, getNotificationPrefs, saveNotificationPrefs, type AlertNotifyLevel, type NotificationPrefs } from "../../lib/api";
+import { pushAvailable } from "../../lib/webPush";
 import {
-  askNotifyPermission,
   browserNotifyOn,
+  needsHomeScreen,
+  NOTIFY_SWITCH_EVENT,
   notifyPermission,
-  setBrowserNotify,
   showNotification,
+  turnOffHere,
+  turnOnHere,
   type NotifyPermission,
 } from "../features/browserNotify";
 import { useEntitlements } from "../features/entitlements";
@@ -54,7 +57,8 @@ function Toggle({
 /**
  * Settings → Notifications (board DashSettings #tab=notifications, FR-15): browser notifications in this browser,
  * and what they're for. Replies, Break and End day requests and the alert level are saved on the account (they
- * follow the owner to every browser); the on/off in this browser is per browser. Daily email: SAMPLE (fixtures/settings).
+ * follow the owner to every browser); the on/off in this browser is per browser, and turning it off here also stops
+ * web push here. Daily email: SAMPLE (fixtures/settings).
  */
 export default function NotificationsPage(): ReactElement {
   usePageMeta({ title: "Notifications — Settings", description: "What Zinwe notifies you about." });
@@ -67,6 +71,25 @@ export default function NotificationsPage(): ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<NotifyPermission>(notifyPermission);
   const [here, setHere] = useState(browserNotifyOn);
+  const [whenClosed, setWhenClosed] = useState(false);
+
+  // The banner can turn them on while this page is open.
+  useEffect(() => {
+    const sync = () => {
+      setPermission(notifyPermission());
+      setHere(browserNotifyOn());
+    };
+    window.addEventListener(NOTIFY_SWITCH_EVENT, sync);
+    return () => window.removeEventListener(NOTIFY_SWITCH_EVENT, sync);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void pushAvailable(controller.signal).then((yes) => {
+      if (!controller.signal.aborted) setWhenClosed(yes);
+    });
+    return () => controller.abort();
+  }, []);
 
   const current = saved ?? prefs.data;
 
@@ -89,25 +112,25 @@ export default function NotificationsPage(): ReactElement {
   };
 
   const turnOn = async () => {
-    if (permission === "granted") {
-      setBrowserNotify(true);
-      setHere(true);
-      return;
-    }
-    const result = await askNotifyPermission();
-    setPermission(result);
+    setPermission(await turnOnHere());
     setHere(browserNotifyOn());
   };
 
   const on = permission === "granted" && here;
   const browserNote =
     permission === "unsupported"
-      ? "This browser can't show notifications. Try Chrome, Edge or Firefox on a computer."
+      ? needsHomeScreen()
+        ? "On iPhone and iPad, notifications only work from the Home Screen. In Safari tap Share, then Add to Home Screen, then open Zinwe from there and sign in."
+        : "This browser can't show notifications. Try Chrome, Edge or Firefox."
       : permission === "denied"
-        ? "Blocked for Zinwe in this browser. Click the lock icon next to the address, allow Notifications, then reload."
+        ? `Blocked for ${window.location.hostname} in this browser. To allow them, click the icon just left of the address, open the site's settings or permissions, set Notifications to Allow, then reload this page.`
         : on
-          ? "You’ll get a notification even when Zinwe is in a background tab."
-          : "Get a notification while Zinwe is open in a background tab.";
+          ? whenClosed
+            ? "You’ll get a notification even when Zinwe is closed."
+            : "You’ll get a notification even when Zinwe is in a background tab."
+          : whenClosed
+            ? "Get a notification even when Zinwe is closed."
+            : "Get a notification while Zinwe is open in a background tab.";
 
   return (
     <section className="z-card zp-card mid" aria-label="Notifications">
@@ -132,7 +155,7 @@ export default function NotificationsPage(): ReactElement {
                   type="button"
                   className="zp-linkbtn"
                   onClick={() => {
-                    setBrowserNotify(false);
+                    turnOffHere();
                     setHere(false);
                   }}
                 >

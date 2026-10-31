@@ -7,6 +7,7 @@ import { formatDate, formatMoney } from "../lib/format";
 import { FeedbackForm } from "./components/FeedbackForm";
 import { Modal } from "./components/Modal";
 import { NotificationBar } from "./components/NotificationBar";
+import { NotifyPrompt } from "./components/NotifyPrompt";
 import { SupportWidget } from "./components/SupportWidget";
 import { ChatBubble } from "./components/ChatBubble";
 import { ChatLauncher } from "./components/ChatLauncher";
@@ -213,7 +214,7 @@ export default function AppLayout(): ReactElement {
   const showPlanActive = planActiveShown !== null && !planActiveClosed && subscription?.status === "active";
   const upgrade = useMemo(() => ({ open: () => navigate("/onboarding/plan"), canUpgrade }), [canUpgrade, navigate]);
 
-  // FR-15: browser notifications for replies, alerts and requests (once switched on in Settings → Notifications).
+  // FR-15: browser notifications for replies, alerts and requests (once switched on: the banner, or Settings → Notifications).
   useOwnerNotifications(true);
 
   // Unread member replies, for the Chat badge (non-critical: failures just hide it).
@@ -343,6 +344,7 @@ export default function AppLayout(): ReactElement {
         </div>
 
         <main className="zn-main" id="dash-main" tabIndex={-1}>
+          <NotifyPrompt chat={entitlements.has("team_chat")} />
           <NotificationBar items={bars} />
           {showPlanActive && subscription ? (
             <div className="zn-banner ok" role="status">
