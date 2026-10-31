@@ -242,6 +242,10 @@ export interface WorkLogEntry {
   approval?: "" | "pending" | "approved" | "denied";
   decided_at?: string | null;
   decision_note?: string;
+  /** The day moved here from this PC: the line reads "Moved to <hostname>". "" on every other change. */
+  moved_from?: string;
+  /** The old PC had gone quiet before the move: when it was last heard from (its time stops there). */
+  left_off_at?: string | null;
 }
 
 /**

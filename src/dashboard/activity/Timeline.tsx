@@ -48,6 +48,9 @@ function linesOf(p: PersonDay, isToday: boolean, decisions: Record<number, Local
       started = true;
     } else if (item.kind === "back") {
       lines.push({ at, t: hm(item.at), what: "Back from break", note: "", color: WORK });
+    } else if (item.kind === "moved") {
+      const left = item.leftOff ? `; ${item.from} was last on at ${hm(item.leftOff)}` : "";
+      lines.push({ at, t: hm(item.at), what: `Moved to ${item.to}`, note: `From ${item.from}${left}`, color: WORK });
     } else if (item.kind === "break") {
       const b = p.breaks.find((x) => x.start === item.at);
       const parts = [
