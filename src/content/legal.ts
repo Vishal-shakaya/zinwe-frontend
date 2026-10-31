@@ -114,7 +114,7 @@ const PRIVACY: LegalDoc = {
   summary: "What Zinwe collects about your business and your team, how we use and share it, how long we keep it, how we protect it, and your rights in India and the US.",
   // v1.1: names website time and internet data used (the PC's consent notice asks members again).
   // 2026-10-23: names the payment partners (Razorpay, Skydo).
-  updated: "23 October 2026",
+  updated: "31 October 2026",
   sections: [
     {
       heading: "What We Collect",
@@ -126,6 +126,7 @@ const PRIVACY: LegalDoc = {
             "Monitored User Data — activity data about your employees, collected through monitoring features you configure: file transfer events, application usage, website names and time spent on them, how much internet data each app and website uses, work hours and breaks, email metadata, and LAN activity, limited to what you've enabled, plus timestamped consent records. Here, you (the Customer) are the controller/fiduciary; we're the data processor providing the technical infrastructure. If an employee wants to exercise a data right, direct them to you, their employer — not us.",
           ],
         },
+        "Personal to-dos: a person using the Zinwe app can keep their own to-do list there. The to-dos they add or edit (title, due date, steps and whether each is done) are stored by Zinwe so they follow that person to a new PC, and the business's admins can read them. The app says so where they're written. Deleting a to-do erases its text.",
         "From our website, we also collect standard technical data (IP address, browser type, pages visited) via cookies — see our Cookie Policy.",
       ],
     },
@@ -133,7 +134,8 @@ const PRIVACY: LegalDoc = {
       heading: "How We Use & Share Information",
       blocks: [
         "We use data to provide, operate, bill for, and improve the Service, to give support, to meet legal obligations, and — in aggregate, anonymized form — to understand product usage. We do not sell personal data or Monitored User Data, and we don't share it with anyone for marketing or advertising.",
-        "We share data only with: cloud hosting providers (to run the Service), payment partners (for billing), and law enforcement or regulators where legally required.",
+        "We share data only with: cloud hosting providers (to run the Service), payment partners (for billing), browser push services (below), and law enforcement or regulators where legally required.",
+        "Browser notifications: if an admin turns them on, we send them through the push service of that admin's browser (Google, Mozilla, Microsoft or Apple). The text is encrypted for that browser, so the push service can't read it; it sees only the notification's size, time and destination. Turning notifications off or logging out stops them.",
         "Our payment partners are Razorpay (online payments: UPI, cards, netbanking, wallets) and Skydo (international card and bank transfers). When you pay online, you enter your payment details in Razorpay's secure window, not on Zinwe: Razorpay processes them under its own Privacy Policy (razorpay.com/privacy-policy), and we receive only the payment's status, amount and reference — never your card number, UPI PIN or banking password.",
         "Legal basis: for India-based processing, your Account Data is processed under the DPDP Act's provisions for performing our contract with you; the Service is built to help you establish valid consent for Monitored User Data under the Act (our built-in consent screen). For US customers, our processing of your Account Data rests on performing our contract with you and our legitimate business interest in running the Service; your own legal basis for monitoring your employees (consent, notice, or another basis recognized by your state) is your responsibility, as described in our Terms. Enterprise customers needing a separate Data Processing Agreement can request one from us.",
       ],
