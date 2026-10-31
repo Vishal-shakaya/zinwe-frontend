@@ -35,14 +35,18 @@ export interface LogoutSpan {
 
 export interface TimelineItem {
   at: string;
-  /** "carry" = a stretch from the day before, still running at midnight (shown at 00:00). */
-  kind: "carry" | "start" | "break" | "back" | "end";
+  /** "carry" = a stretch from the day before, still running at midnight (shown at 00:00). "moved" = the day went to another PC. */
+  kind: "carry" | "start" | "break" | "back" | "end" | "moved";
   reason: string;
   /** Log out: the message the member added in the widget (breaks keep theirs on the BreakSpan). */
   note?: string;
   /** "carry" only: when that stretch began yesterday, and what they were doing. */
   since?: string;
   state?: WorkLogEntry["state"];
+  /** "moved" only: the PC it went to and the PC it left, and when that PC was last heard from if it had gone quiet. */
+  to?: string;
+  from?: string;
+  leftOff?: string | null;
 }
 
 /** Yesterday's stretch that was still running at this day's midnight. */
@@ -56,7 +60,10 @@ export interface PersonDay {
   key: string;
   memberId: number | null;
   name: string;
+  /** The PC the day began on. */
   hostname: string;
+  /** The PC the day is on now (its day may have moved between PCs). */
+  lastHostname: string;
   /** The first log-in this day; null when the day began with last night's shift still running (see carriedIn). */
   startedAt: string | null;
   endedAt: string | null;
@@ -134,6 +141,7 @@ export function summarizeDay(log: DaySource, isToday: boolean, now: number): Per
       memberId: sample.member_id,
       name: sample.member_name || sample.hostname || "Unknown PC",
       hostname: sample.hostname,
+      lastHostname: list[list.length - 1]?.hostname ?? sample.hostname,
       startedAt: null,
       endedAt: null,
       breaks: [],
@@ -171,7 +179,12 @@ export function summarizeDay(log: DaySource, isToday: boolean, now: number): Per
       }
 
       if (entry.state === "working") {
-        day.timeline.push({ at: entry.at, kind: entry.previous_state === "on_break" ? "back" : "start", reason: "" });
+        // A move is not a new start: the day carries on, on another PC.
+        if (entry.moved_from) {
+          day.timeline.push({ at: entry.at, kind: "moved", reason: "", to: entry.hostname, from: entry.moved_from, leftOff: entry.left_off_at });
+        } else {
+          day.timeline.push({ at: entry.at, kind: entry.previous_state === "on_break" ? "back" : "start", reason: "" });
+        }
         if (until !== null) day.workedSeconds += seconds(entry.at, until);
       } else if (entry.state === "on_break") {
         const span = until !== null ? seconds(entry.at, until) : 0;

@@ -32,7 +32,7 @@ export function buildRows(people: readonly PersonDay[], members: readonly Member
   const rows: DayRow[] = people.map((p) => {
     const m = p.memberId != null ? byId.get(p.memberId) : undefined;
     const name = m?.name ?? p.name;
-    return { key: p.key, memberId: p.memberId, name, first: firstName(name), pc: p.hostname, person: p };
+    return { key: p.key, memberId: p.memberId, name, first: firstName(name), pc: p.lastHostname, person: p };
   });
   for (const m of members) {
     if (!m.is_active || seen.has(m.id)) continue;
@@ -173,7 +173,8 @@ export function segmentsOf(p: PersonDay | undefined, day: string, isToday: boole
     if (state === "ended") return;
     const from = item.kind === "carry" ? 0 : minutesOf(item.at, day);
     const next = items[i + 1];
-    const to = next ? minutesOf(next.at, day) : isToday ? nowMin : p.continues ? 1440 : null;
+    // A PC that had gone quiet before the day moved on stops where it left off (the server counts it that way too).
+    const to = next ? minutesOf(next.leftOff ?? next.at, day) : isToday ? nowMin : p.continues ? 1440 : null;
     if (to === null || to < from) return;
     const brk = state === "on_break" ? p.breaks.find((b) => b.start === item.at) : undefined;
     segs.push({
