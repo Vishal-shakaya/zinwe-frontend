@@ -22,16 +22,19 @@ export const NAV_LINKS: readonly NavLink[] = [
  * The four content pages (v1.3.2, owner 31 Oct): the header's Resources menu, the phone menu's Resources section and
  * the footer's RESOURCES column. Labels exactly as the owner named them.
  */
+export type ResourceArtKey = "blog" | "newsletter" | "guides";
 export interface ResourceLink {
   label: "Blog" | "Newsletter" | "Free resources" | "New release";
   to: string;
   sub: string;
+  /** The drawing on its card in the header menu; no art = the strip along the bottom of the menu. */
+  art?: ResourceArtKey;
 }
 
 export const RESOURCE_LINKS: readonly ResourceLink[] = [
-  { label: "Blog", to: "/blog", sub: "Stories and how-tos for small offices" },
-  { label: "Newsletter", to: "/blog/series", sub: "THE LAST FILE, a story in episodes" },
-  { label: "Free resources", to: "/blog/guides", sub: "Practical guides for owners, free" },
+  { label: "Blog", to: "/blog", sub: "Stories and how-tos for small offices", art: "blog" },
+  { label: "Newsletter", to: "/blog/series", sub: "THE LAST FILE, a story in episodes", art: "newsletter" },
+  { label: "Free resources", to: "/blog/guides", sub: "Practical guides for owners, free", art: "guides" },
   { label: "New release", to: "/whats-new", sub: "What's new in Zinwe" },
 ];
 
@@ -98,3 +101,11 @@ export const FOOTER_LEGAL: readonly FooterLink[] = [
   { label: "Cookies", to: "/legal#cookies" },
   { label: "Acceptable use", to: "/legal#aup" },
 ];
+
+/**
+ * The small note above the legal row, on every page: what Zinwe is for, and that its product screens are sample data
+ * (replaces the "Sample data" labels on the pages, owner, 31 Oct). The client wall lists real clients, so it says
+ * "product screens and examples". No law named, no promise made (rule 5).
+ */
+export const FOOTER_NOTE =
+  "Zinwe is built to help owners protect their business and give every team member a calmer, clearer workday. The names, photos, companies and figures in our product screens and examples are sample data, shown only to explain how Zinwe works. They are not real customers, and your results may differ. Use of Zinwe is covered by our";

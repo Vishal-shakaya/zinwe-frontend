@@ -9,8 +9,8 @@
  * ship; tasks (FR-20) are on every plan since 1.3.1: see .claude/dev/docs/06-website-portal.md. Copy is keyed by plan code; an unknown code falls back
  * to the API's own feature list.
  *
- * v1.3.2 (owner 31 Oct: "the plan features say nothing about protection"): the cards get a grouped "What's in it"
- * block (INCLUDED) and the compare table a Protection group. Each line names the backend module that switches it
+ * v1.3.2 (owner 31 Oct): the cards stay short and the compare table holds every feature, with a Protection group.
+ * Each line names the backend module that switches it
  * on (zinwe-backend z_auth/entitlements.py, the plan's `modules` in GET /api/auth/plans/), so a tick is shown only
  * when that plan's modules really include it; `cells` is the same answer for the static pre-render and while the
  * catalogue loads. No module = not plan-gated (on every plan).
@@ -29,6 +29,8 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
     tag: "Try Zinwe on your own office PCs, free.",
     points: [
       ["Every protection and team feature", true, false],
+      ["USB, app and website rules", true, false],
+      ["Chat, tasks and work hours", true, false],
       ["Plain-English alerts, no logs to read", true, false],
       ["Guided setup", true, false],
     ],
@@ -36,67 +38,34 @@ export const PLAN_COPY: Record<string, PlanCopy> = {
   startups: {
     tag: "For small teams who want Zinwe to report to them.",
     points: [
-      ["Everything in Free, on {pcs} PCs", false, false],
+      ["Everything in Free", false, false],
       ["A PDF report in your inbox, daily, weekly or monthly", true, true],
-      ["{history} of history", true, false],
       ["Email support", true, false],
+      ["Your rules and history move with you", true, false],
+      ["Pay monthly or yearly, no auto-charge", true, false],
     ],
   },
   teams: {
     tag: "For growing offices that need more PCs and a longer history.",
     points: [
       ["Everything in Startups", false, false],
-      ["Up to {pcs} PCs for a mid-sized team", true, false],
-      ["{history} of history", true, false],
+      ["Room for a growing team", true, false],
+      ["Reports per person: hours, tasks and apps", true, false],
+      ["Email an alert to the person it's about", true, false],
       ["Email support", true, false],
     ],
   },
   businesses: {
     tag: "For larger offices that need records to show clients and auditors.",
     points: [
-      ["Everything in Teams, on {pcs} PCs", false, false],
-      ["A full year of history for audits and reviews", true, false],
+      ["Everything in Teams", false, false],
       ["Priority support: we answer you first", true, false],
       ["A guided setup call for your whole team", true, false],
+      ["A full year of records to look back on", true, false],
+      ["Work hours and break approvals for everyone", true, false],
     ],
   },
 };
-
-/**
- * The cards' grouped "What's in it" block: short names, as the dashboard names them. A line shows on a card only
- * when that plan's `modules` include its module (no module = every plan).
- */
-export interface IncludedItem {
-  label: string;
-  module?: PlanModule;
-}
-export const INCLUDED: ReadonlyArray<{ group: string; items: readonly IncludedItem[] }> = [
-  {
-    group: "Protection",
-    items: [
-      { label: "USB block or read-only", module: "usb_control" },
-      { label: "App blocking", module: "remote_access" },
-      { label: "Website blocking", module: "web" },
-      { label: "Data transfer alerts", module: "data_transfer" },
-      { label: "Internet data", module: "web" },
-      { label: "Data safety", module: "usb_alerts" },
-    ],
-  },
-  {
-    group: "Team",
-    items: [
-      { label: "Chat", module: "team_chat" },
-      { label: "Tasks", module: "team_chat" },
-      { label: "Work hours", module: "work_time" },
-      { label: "App usage", module: "app_usage" },
-      { label: "Team pictures" },
-    ],
-  },
-  {
-    group: "Reports",
-    items: [{ label: "On screen and CSV" }, { label: "PDF by email", module: "reports_pro" }],
-  },
-];
 
 export const PLANS_HERO = {
   eyebrow: "Plans and pricing",
@@ -109,7 +78,6 @@ export const PROMISES: ReadonlyArray<{ t: string; b: string; icon: string }> = [
   { t: "Free forever on 3 PCs", b: "Not a trial. No card.", icon: "M20 6 9 17l-5-5" },
   { t: "Nothing charged automatically", b: "You pay each period yourself.", icon: "M3 10h18M5 6h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" },
   { t: "Change or stop any time", b: "Your data stays with you.", icon: "M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4" },
-  { t: "A proper invoice", b: "GST invoice in India.", icon: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6" },
   {
     t: "Free setup call",
     b: "20 minutes with us.",

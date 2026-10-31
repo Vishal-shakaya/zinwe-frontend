@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ICONS } from "../components/site/icons";
+import { PhoneFold } from "../components/site/PhoneFold";
 import { SiteFaq } from "../components/site/SiteFaq";
 import { PathIcon, Tick } from "../components/site/SiteIcon";
 import { JsonLd } from "../components/ui/JsonLd";
@@ -338,7 +339,8 @@ export default function DownloadPage(): ReactElement {
             <h2 className="zd-h2 zd-h2--32">{WARN_INTRO.title}</h2>
             <p>{WARN_INTRO.body}</p>
           </div>
-          <div className="zd-warns">
+          <PhoneFold label="Show me the three clicks">
+            <div className="zd-warns">
             {WARNS.map((w, i) => (
               <div key={w.t} className="zd-w">
                 <span className="zd-w__t">
@@ -357,6 +359,7 @@ export default function DownloadPage(): ReactElement {
               </div>
             ))}
           </div>
+          </PhoneFold>
         </div>
       </section>
 
@@ -374,8 +377,15 @@ export default function DownloadPage(): ReactElement {
           </dl>
         </div>
         <div className="zd-box zd-box--dark">
-          <span className="zs-eyebrow zd-on-dark">For IT helpers</span>
-          <b className="zd-box__h">Install on many PCs at once.</b>
+                    <PhoneFold
+            label="For IT helpers: install on many PCs"
+            wide={
+              <>
+                <span className="zs-eyebrow zd-on-dark">For IT helpers</span>
+                <b className="zd-box__h">Install on many PCs at once.</b>
+              </>
+            }
+          >
           <span className="zd-box__p">Push the same installer with your usual tools. The PC connects by itself; the person still agrees on their own PC.</span>
           <div className="zd-it">
             <code className="zs-mono">{SILENT_INSTALL}</code>
@@ -383,6 +393,7 @@ export default function DownloadPage(): ReactElement {
               {cmdCopied ? "Copied" : "Copy command"}
             </button>
           </div>
+          </PhoneFold>
         </div>
         <div className="zs-card zd-box">
           <span className="zs-eyebrow">Safe to install</span>

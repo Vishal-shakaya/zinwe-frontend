@@ -220,7 +220,9 @@
   letter-spacing: -0.04em;
   line-height: 1;
 }
+/* Always on its own line, so every card's button and chips line up. */
 .zp2-price__row > span {
+  flex-basis: 100%;
   color: var(--zs-muted);
   font-size: 14px;
 }
@@ -241,8 +243,13 @@
 }
 .zp2-chips {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+}
+.zp2-chips .zs-pill {
+  padding: 3px 9px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 .zp2-points {
   list-style: none;

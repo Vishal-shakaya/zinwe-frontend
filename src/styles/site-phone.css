@@ -1,0 +1,299 @@
+/*
+ * The website on a phone (owner, 31 Oct; design width 390 px): one idea per screen, detail behind a tap, always one
+ * next step. Every rule lives here and only under the phone breakpoint, so desktop never changes. `body` wins over the
+ * page CSS, which loads later. The tap-to-open rows are components/site/PhoneFold.tsx.
+ */
+.zs-fold summary {
+  list-style: none;
+}
+.zs-fold summary::-webkit-details-marker {
+  display: none;
+}
+.zh2-wall__more {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  /* ---------- Tap-to-open rows ---------- */
+  body .zs-fold {
+    width: 100%;
+  }
+  body .zs-fold summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    font-size: 15.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  body .zs-fold__sign {
+    flex: none;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1;
+    transition: transform 0.15s ease;
+  }
+  body .zs-fold[open] .zs-fold__sign {
+    transform: rotate(45deg);
+  }
+  body .zs-fold__body {
+    padding-bottom: 12px;
+  }
+
+  /* ---------- Footer: logo, one button, four closed rows, the note and the legal row ---------- */
+  body .zs-foot__in {
+    padding: 32px 20px 20px;
+    gap: 20px;
+  }
+  body .zs-foot__top {
+    gap: 20px;
+  }
+  body .zs-foot__about p {
+    display: none;
+  }
+  body .zs-foot__cols {
+    display: block;
+    flex: 1 1 100%;
+  }
+  body .zs-foot__col {
+    border-top: 1px solid var(--zs-dark-line);
+  }
+  body .zs-foot__col:last-child {
+    border-bottom: 1px solid var(--zs-dark-line);
+  }
+  body .zs-foot .zs-fold summary {
+    color: var(--zs-on-dark);
+  }
+  body .zs-foot .zs-fold__body {
+    display: flex;
+    flex-direction: column;
+  }
+  body .zs-foot .zs-fold__body > a,
+  body .zs-foot .zs-fold__body > span {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  body .zs-foot__line {
+    padding: 0;
+    border: 0;
+  }
+  body .zs-foot__tag {
+    flex-wrap: nowrap;
+    font-size: 16px;
+  }
+  body .zs-foot__tag .ok + .sep {
+    display: inline;
+  }
+  body .zs-foot__tag > span:last-child {
+    flex-basis: auto;
+  }
+  body .zs-foot a.zs-foot__start {
+    display: none;
+  }
+  body .zs-foot__note {
+    margin: 0;
+    font-size: 12.5px;
+  }
+  body .zs-foot__legal {
+    gap: 4px;
+    padding-top: 14px;
+  }
+
+  /* ---------- Home ---------- */
+  body .zh-hero {
+    padding-top: 20px;
+    gap: 14px;
+  }
+  body .zh-hero__acts .zs-btn:not(.zs-btn--pri) {
+    min-height: 44px;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 15.5px;
+  }
+  body .zh-hero__acts {
+    gap: 2px;
+  }
+  body .zh-hero__ticks {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 14px;
+    font-size: 13.5px;
+  }
+  /* The phone on its own: the laptop is unreadable at this size (DeviceLoops leaves it out). */
+  body .zh-tour {
+    padding-top: 16px;
+  }
+  body .zh-tour .zrs-stage__devices {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  body .zh-tour .zrs-phone {
+    margin-top: 0;
+    width: min(60%, 220px);
+  }
+  body .zh2 {
+    --zh2-sec: 56px;
+  }
+  /* Eight names first; "See all" shows the rest. */
+  body .zh2-wall__list.is-short .zh2-wall__break ~ .zh2-wall__item {
+    display: none;
+  }
+  body .zh2-wall__more {
+    display: block;
+    min-height: 44px;
+    margin: 6px auto 0;
+    padding: 0 14px;
+    border: 0;
+    background: none;
+    color: var(--zs-ink);
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  body .zh2-wall__item {
+    height: 40px;
+  }
+  body .zh-tour + .zh2 .zh2-wall {
+    padding-top: 24px;
+  }
+  body .zh2-jobs {
+    gap: 12px;
+  }
+  body .zh2-job {
+    min-height: 0;
+    padding: 20px 20px 0;
+  }
+  body .zh2-job__scene {
+    padding-top: 16px;
+  }
+  /* The rule and its result, without the diagram around them. */
+  body .zh2-wired .zh2-node,
+  body .zh2-wired .zh2-wire {
+    display: none;
+  }
+  /* The conversation, without the app around it. */
+  body .zh2-win__people,
+  body .zh2-win__compose {
+    display: none;
+  }
+  /* The cards swipe: no arrows, and each card speaks for itself. */
+  body .zh2-feat .zh2-lead,
+  body .zh2-feat .zh2-rail__nav {
+    display: none;
+  }
+  body .zh2-mid {
+    margin-top: 24px;
+  }
+  body .zh2-mid span {
+    display: none;
+  }
+  body .zs-close__z,
+  body .zs-close__copy p {
+    display: none;
+  }
+  body .zs-close {
+    padding: 24px 20px;
+    gap: 14px;
+  }
+
+  /* ---------- Product ---------- */
+  body .zf-jumps {
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    padding: 8px 20px;
+    background: #fff;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  body .zf-jump {
+    flex: none;
+  }
+  body .zf-feat {
+    scroll-margin-top: 64px;
+  }
+  body .zf-txt .zs-fold {
+    margin-top: -6px;
+  }
+  body .zf-txt .zs-fold summary {
+    min-height: 44px;
+    font-size: 15px;
+  }
+  body .zf-doors {
+    gap: 0;
+  }
+  body .zf-door {
+    gap: 6px;
+    padding: 0 0 4px;
+    border: 0;
+    border-bottom: 1px solid var(--zs-line);
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  body .zf-door .zs-fold__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  body .zf-wall {
+    display: none;
+  }
+
+  /* ---------- Plans ---------- */
+  body .zp2-hero__lead,
+  body .zp2-seeall {
+    display: none;
+  }
+  body .zp2-plan {
+    gap: 14px;
+  }
+  body .zp2-plan .zs-fold {
+    margin-top: -6px;
+  }
+  body .zp2-plan .zs-fold__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  body .zp2-why,
+  body .zp2-compare {
+    padding-top: 40px;
+    padding-bottom: 0;
+  }
+
+  /* ---------- Download: a phone can't install, so the way forward is the link to the PC ---------- */
+  body .zd-get__btn,
+  body .zd-get__meta,
+  body .zd-sha,
+  body .zd-roadmap,
+  body .zd-mock {
+    display: none;
+  }
+  body .zd-step {
+    gap: 4px;
+    padding: 16px;
+  }
+  body .zd-list {
+    gap: 10px;
+  }
+  body .zd-box--dark .zs-fold summary {
+    color: #fff;
+  }
+  body .zd-box--dark .zs-fold__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  body .zd-warn .zs-fold {
+    margin-top: 8px;
+  }
+}

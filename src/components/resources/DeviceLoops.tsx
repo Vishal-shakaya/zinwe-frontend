@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { LOOPS_CAPTION, RELEASE_LOOPS } from "../../content/site/releases";
+import { RELEASE_LOOPS } from "../../content/site/releases";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
+import { PauseGlyph, PlayGlyph } from "../site/SiteIcon";
+import { useIsPhone } from "../../hooks/useIsPhone";
 
 type Loop = (typeof RELEASE_LOOPS)[keyof typeof RELEASE_LOOPS];
 
@@ -39,20 +41,30 @@ function LoopScreen({ loop, paused }: { loop: Loop; paused: boolean }): ReactEle
     return <img src={`${loop.base}.webp`} alt={loop.label} width={loop.width} height={loop.height} decoding="async" />;
   }
   return (
-    <video ref={ref} autoPlay muted loop playsInline preload="metadata" width={loop.width} height={loop.height} aria-label={loop.label}>
+    <video ref={ref} autoPlay muted loop playsInline preload="metadata" poster={`${loop.base}.webp`} width={loop.width} height={loop.height} aria-label={loop.label}>
       <source src={`${loop.base}.webm`} type="video/webm" />
       <source src={`${loop.base}.mp4`} type="video/mp4" />
     </video>
   );
 }
 
-/** A laptop and a phone (CSS frames, no images) playing the 1.3 captures. */
-export function DeviceLoops(): ReactElement {
+/**
+ * A laptop and a phone (CSS frames, no images) playing the 1.3 captures. `compact` (Home): no caption, and a small
+ * pause button in the top right corner of the stage.
+ */
+export function DeviceLoops({ compact = false }: { compact?: boolean }): ReactElement {
   const reduce = usePrefersReducedMotion();
+  const phone = useIsPhone();
   const [paused, setPaused] = useState(false);
   return (
     <figure className="zrs-stage">
+      {compact && !reduce ? (
+        <button type="button" className="zrs-stage__pause" aria-label={paused ? "Play the videos" : "Pause the videos"} aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
+          {paused ? <PlayGlyph size={14} /> : <PauseGlyph size={14} />}
+        </button>
+      ) : null}
       <div className="zrs-stage__devices">
+        {compact && phone ? null : (
         <div className="zrs-laptop">
           <div className="zrs-laptop__lid">
             <div className="zrs-laptop__screen">
@@ -61,20 +73,20 @@ export function DeviceLoops(): ReactElement {
           </div>
           <div className="zrs-laptop__base" aria-hidden="true" />
         </div>
+        )}
         <div className="zrs-phone">
           <div className="zrs-phone__screen">
             <LoopScreen loop={RELEASE_LOOPS.phone} paused={paused} />
           </div>
         </div>
       </div>
-      <figcaption className="zrs-stage__caption">
-        <span>{LOOPS_CAPTION}</span>
-        {reduce ? null : (
+      {compact || reduce ? null : (
+        <figcaption className="zrs-stage__caption">
           <button type="button" className="zrs-stage__toggle" aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
             {paused ? "Play the videos" : "Pause the videos"}
           </button>
-        )}
-      </figcaption>
+        </figcaption>
+      )}
     </figure>
   );
 }

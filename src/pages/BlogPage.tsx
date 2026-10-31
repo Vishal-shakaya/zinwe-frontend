@@ -6,7 +6,7 @@ import { SiteSubscribe } from "../components/site/SiteSubscribe";
 import { seoFor } from "../content/seo";
 import { useResource } from "../dashboard/useResource";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { errorMessage, getReleaseNotes } from "../lib/api";
+import { errorMessage } from "../lib/api";
 import { blogAsset, getArticles, type ArticleCard, type ArticleType } from "../lib/api/blog";
 import { getGuides } from "../lib/api/guides";
 import { getSeriesList } from "../lib/api/series";
@@ -21,11 +21,10 @@ const FILTER_LABEL: Partial<Record<ArticleType, string>> = { informative: "Data 
 const topic = (a: ArticleCard): string => FILTER_LABEL[a.type] ?? a.type_label;
 
 /**
- * Public /blog (v1.3.2, "the blog reads like a story"): a quiet masthead with search and the newest release note;
- * the lead story big (image, headline, one-line dek); then "Keep reading" as calm rows with real reading times;
- * topics as quiet text filters (?type=, server side) and search (this page's articles, as typed); one Zinwe tip
- * among the rows; the members' series and the free guides; the newsletter. Same data as before: /api/blog/articles,
- * /api/blog/guides, /api/blog/series and /api/auth/whats-new.
+ * Public /blog (v1.3.2, owner 31 Oct): a playful banner with the mascot and the vision (company doc, Purpose); then a
+ * search bar and topic chips (?type=, server side; search narrows this page, as typed); then every article in a
+ * video-site grid. Below it, the members' series, the free guides and the newsletter. Same data as before:
+ * /api/blog/articles, /api/blog/guides and /api/blog/series.
  */
 export default function BlogPage(): ReactElement {
   usePageMeta(seoFor("/blog"));
@@ -39,8 +38,6 @@ export default function BlogPage(): ReactElement {
   const data = list.data;
   const guides = useResource(getGuides).data?.results ?? [];
   const series = useResource(getSeriesList).data?.results ?? [];
-  const notes = useResource(getReleaseNotes);
-  const release = notes.data?.[0];
 
   const go = (next: { type?: ArticleType | ""; page?: number }) => {
     const t = next.type ?? type;
@@ -53,102 +50,56 @@ export default function BlogPage(): ReactElement {
 
   const needle = q.trim().toLowerCase();
   const all = data?.results ?? [];
-  const browsing = !type && !needle && page === 1;
   const shown = all.filter((a) => !needle || `${a.title} ${a.summary} ${a.tags.join(" ")}`.toLowerCase().includes(needle));
-  const lead = browsing ? all[0] : undefined;
-  const rows = lead ? shown.slice(1) : shown;
   const types = (data?.types ?? []).filter((t) => t.count > 0 || t.key === type);
-  const total = data?.types.reduce((n, t) => n + t.count, 0) ?? 0;
 
   return (
     <div className="zst-blog">
-      {/* 1 · Masthead: title, search, and a slim "what's new" line. */}
-      <section className="zst-wrap zst-mast">
-        <span className="zst-mast__k">The Zinwe blog</span>
-        <div className="zst-mast__row">
-          <div>
-            <h1 className="zst-mast__h1">Data protection guides for a safer, calmer office.</h1>
-            <p className="zst-mast__lede">Practical guides on keeping company data safe and running a small team, written for owners without an IT team. Short reads, no jargon.</p>
+      {/* 1 · The vision, playfully: the mascot and what Zinwe is for. */}
+      <section className="zst-wrap zst-vision-wrap">
+        <div className="zst-vision">
+          <div className="zst-vision__copy">
+            <span className="zst-vision__k">The Zinwe blog</span>
+            <h1 className="zst-vision__h1">
+              Security shouldn't feel like <em>an IT project.</em>
+            </h1>
+            <p className="zst-vision__lede">We're making it a simple part of running a small business, one short read at a time.</p>
           </div>
-          <label className="zst-search">
-            <PathIcon d={ICONS.search} size={16} />
-            <span className="zs-sr">Search articles</span>
-            <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search: passwords, USB, sharing…" />
-          </label>
+          <div className="zst-vision__art" aria-hidden="true">
+            <span className="zst-vision__bubble">IT Is OK!</span>
+            <img className="zst-vision__mascot" src="/brand/zinwe-mascot.webp" width={480} height={720} alt="" fetchPriority="high" decoding="async" />
+          </div>
         </div>
-        {release ? (
-          <Link className="zst-release" to="/whats-new">
-            <span className="zst-release__v">Zinwe {release.version}</span>
-            <span className="zst-release__t">Release notes: {release.title}</span>
-            <span aria-hidden="true">→</span>
-          </Link>
-        ) : notes.data === undefined && !notes.error ? (
-          // Holds the release line's place while it loads, so the stories below don't shift (CLS).
-          <span className="zst-skel zst-release zst-release--skel" aria-hidden="true" />
-        ) : (
-          // No release notes (or they failed): keep the line's room, so the lead story never jumps up (CLS).
-          <span className="zst-release zst-release--none" aria-hidden="true" />
-        )}
       </section>
 
-      {/* 2 · The lead story: big image, a strong headline, one line of dek. Only on the first page, not while searching. */}
-      {lead ? (
-        <section className="zst-wrap zst-lead" aria-label="Latest story">
-          <Link to={`/blog/${lead.slug}`} className="zst-lead__link">
-            <span className="zst-lead__art">
-              {lead.cover ? (
-                // Covers are 1200×630; the box's aspect-ratio holds the space. The lead image is the page's LCP.
-                <img src={blogAsset(lead.cover.url)} alt={lead.cover_alt} width={1200} height={630} loading="eager" fetchPriority="high" decoding="sync" />
-              ) : (
-                <span className="zst-lead__blank" aria-hidden="true">
-                  {lead.title}
-                </span>
-              )}
-            </span>
-            <span className="zst-lead__body">
-              <span className="zst-kick">
-                <span className="zst-kick__t">Latest</span> {topic(lead)} · {lead.reading_minutes} min read
-              </span>
-              <span className="zst-lead__h">{lead.title}</span>
-              {lead.summary ? <span className="zst-lead__dek">{lead.summary}</span> : null}
-              <span className="zst-lead__by">
-                {lead.author_name || "Zinwe team"} · <time dateTime={lead.published_at}>{formatDate(lead.published_at)}</time>
-              </span>
-            </span>
-          </Link>
-        </section>
-      ) : browsing && !data && !list.error ? (
-        // The lead's shape while the stories load, so nothing below jumps (CLS).
-        <section className="zst-wrap zst-lead" aria-hidden="true">
-          <span className="zst-lead__link">
-            <span className="zst-lead__art zst-skel" />
-            <span className="zst-lead__body">
-              <span className="zst-skel zst-skel--line" />
-              <span className="zst-skel zst-skel--h" />
-              <span className="zst-skel zst-skel--line zst-skel--w80" />
-            </span>
-          </span>
-        </section>
-      ) : null}
-
-      {/* 3 · Keep reading: calm rows. Topics are quiet text filters; search narrows this page. */}
-      <section id="all" className="zst-wrap zst-list">
-        <div className="zst-list__head">
-          <h2 className="zst-list__t">{needle ? `${shown.length} ${shown.length === 1 ? "story" : "stories"} found` : browsing ? "Keep reading" : "Stories"}</h2>
-          {types.length ? (
-            <div className="zst-topics" role="group" aria-label="Filter by topic">
-              <button type="button" className={cx("zst-topic", !type && "is-on")} aria-pressed={!type} onClick={() => go({ type: "" })}>
-                All <span className="zst-topic__n">{total}</span>
+      {/* 2 · Search, then topics as a row of chips (?type=, server side). Search narrows this page, as typed. */}
+      <section id="all" className="zst-wrap zst-find">
+        <label className="zst-search zst-search--wide">
+          <PathIcon d={ICONS.search} size={18} />
+          <span className="zs-sr">Search articles</span>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search: passwords, USB, sharing…" />
+        </label>
+        {types.length ? (
+          <div className="zst-chips" role="group" aria-label="Filter by topic">
+            <button type="button" className={cx("zst-chip", !type && "is-on")} aria-pressed={!type} onClick={() => go({ type: "" })}>
+              All
+            </button>
+            {types.map((t) => (
+              <button key={t.key} type="button" className={cx("zst-chip", type === t.key && "is-on")} aria-pressed={type === t.key} onClick={() => go({ type: t.key })}>
+                {FILTER_LABEL[t.key] ?? t.label}
               </button>
-              {types.map((t) => (
-                <button key={t.key} type="button" className={cx("zst-topic", type === t.key && "is-on")} aria-pressed={type === t.key} onClick={() => go({ type: t.key })}>
-                  {FILTER_LABEL[t.key] ?? t.label} <span className="zst-topic__n">{t.count}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
 
+      {/* 3 · The articles, as a video-site grid: picture, title, who, topic and date. */}
+      <section className="zst-wrap zst-feed" aria-label="Articles">
+        {needle ? (
+          <p className="zst-feed__n">
+            {shown.length} {shown.length === 1 ? "story" : "stories"} found
+          </p>
+        ) : null}
         {list.error && !data ? (
           <div className="zst-state zst-state--light">
             <b>The blog didn't load</b>
@@ -158,14 +109,14 @@ export default function BlogPage(): ReactElement {
             </button>
           </div>
         ) : !data ? (
-          <ol className="zst-rows" aria-busy="true">
-            {Array.from({ length: 5 }, (_, i) => (
-              <li key={`sk-${i}`} className="zst-row zst-row--skel">
-                <span className="zst-row__text">
+          <ol className="zst-grid" aria-busy="true">
+            {Array.from({ length: 8 }, (_, i) => (
+              <li key={`sk-${i}`} className="zst-card">
+                <span className="zst-card__art zst-skel" />
+                <span className="zst-card__body">
                   <span className="zst-skel zst-skel--line" />
-                  <span className="zst-skel zst-skel--h" />
+                  <span className="zst-skel zst-skel--line zst-skel--w80" />
                 </span>
-                <span className="zst-row__art zst-skel" />
               </li>
             ))}
           </ol>
@@ -183,13 +134,13 @@ export default function BlogPage(): ReactElement {
               </button>
             </span>
           </div>
-        ) : rows.length ? (
-          <ol className="zst-rows">
-            {rows.map((a, i) => (
-              <Row key={a.slug} a={a} tipBefore={browsing && i === 3 && rows.length > 4} />
+        ) : (
+          <ol className="zst-grid">
+            {shown.map((a, i) => (
+              <Card key={a.slug} a={a} first={i === 0} />
             ))}
           </ol>
-        ) : null}
+        )}
 
         {data && data.pages > 1 && !needle ? (
           <nav className="zst-pages" aria-label="Pages">
@@ -275,38 +226,29 @@ export default function BlogPage(): ReactElement {
   );
 }
 
-function Row({ a, tipBefore }: { a: ArticleCard; tipBefore: boolean }): ReactElement {
+function Card({ a, first }: { a: ArticleCard; first: boolean }): ReactElement {
   return (
-    <>
-      {tipBefore ? (
-        <li className="zst-tip">
-          <Link to="/product#protection" className="zst-tip__link">
-            <span className="zst-kick">
-              <span className="zst-kick__t">Zinwe tip</span>
+    <li className="zst-card">
+      <Link to={`/blog/${a.slug}`} className="zst-card__link">
+        <span className="zst-card__art">
+          {a.cover ? (
+            <img src={blogAsset(a.cover.url)} alt="" width={1200} height={630} loading={first ? "eager" : "lazy"} decoding="async" />
+          ) : (
+            <span className="zst-card__blank">{a.title}</span>
+          )}
+          <span className="zst-card__time">{a.reading_minutes} min</span>
+        </span>
+        <span className="zst-card__body">
+          <img className="zst-card__who" src="/brand/zinwe-mark-128.webp" width={36} height={36} alt="" loading="lazy" />
+          <span className="zst-card__text">
+            <span className="zst-card__t">{a.title}</span>
+            <span className="zst-card__by">{a.author_name || "Zinwe team"}</span>
+            <span className="zst-card__by">
+              {topic(a)} · <time dateTime={a.published_at}>{formatDate(a.published_at)}</time>
             </span>
-            <b>Make every pen drive read-only, in one click.</b>
-            <span>Files still open; nothing copies out. Keyboards and mice are never affected.</span>
-            <span className="zst-tip__go">See how it works →</span>
-          </Link>
-        </li>
-      ) : null}
-      <li className="zst-row">
-        <Link to={`/blog/${a.slug}`} className="zst-row__link">
-          <span className="zst-row__text">
-            <span className="zst-kick">
-              {topic(a)} · {a.reading_minutes} min read
-            </span>
-            <span className="zst-row__t">{a.title}</span>
-            {a.summary ? <span className="zst-row__dek">{a.summary}</span> : null}
-            <time className="zst-row__date" dateTime={a.published_at}>
-              {formatDate(a.published_at)}
-            </time>
           </span>
-          <span className="zst-row__art">
-            {a.cover ? <img src={blogAsset(a.cover.url)} alt="" width={1200} height={630} loading="lazy" decoding="async" /> : null}
-          </span>
-        </Link>
-      </li>
-    </>
+        </span>
+      </Link>
+    </li>
   );
 }

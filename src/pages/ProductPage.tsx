@@ -1,7 +1,8 @@
-import { useState, type ReactElement } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useHeroCtaRef } from "../components/layout/heroCtaContext";
 import { SiteClients } from "../components/site/SiteClients";
+import { PhoneFold } from "../components/site/PhoneFold";
 import { ICONS } from "../components/site/icons";
 import { Cross, PathIcon, Tick } from "../components/site/SiteIcon";
 import { PERSON_TONE } from "../content/site/portalDemo";
@@ -20,21 +21,31 @@ import {
 } from "../content/site/product";
 import { seoFor } from "../content/seo";
 import { useHashTarget } from "../hooks/useHashTarget";
+import { useIsPhone } from "../hooks/useIsPhone";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { cx } from "../lib/cx";
 import { SiteMark } from "../components/site/SiteMark";
 import "../styles/site-product.css";
 
-function Ticks({ items }: { items: readonly string[] }): ReactElement {
-  return (
+/** The points beside a feature. On a phone: the first two, then the rest one tap away. */
+function Ticks({ items }: { items: readonly ReactNode[] }): ReactElement {
+  const phone = useIsPhone();
+  const list = (rows: readonly ReactNode[]): ReactElement => (
     <ul className="zs-ticks">
-      {items.map((t) => (
-        <li key={t}>
+      {rows.map((t, i) => (
+        <li key={i}>
           <Tick />
           <span>{t}</span>
         </li>
       ))}
     </ul>
+  );
+  if (!phone || items.length <= 3) return list(items);
+  return (
+    <>
+      {list(items.slice(0, 2))}
+      <PhoneFold label="More details">{list(items.slice(2))}</PhoneFold>
+    </>
   );
 }
 
@@ -57,6 +68,17 @@ export default function ProductPage(): ReactElement {
   useHashTarget();
   const [demo, setDemo] = useState<DemoKey>("usb");
   const d = ALERTS.demos[demo];
+  const phone = useIsPhone();
+  const jumps = (
+    <nav className="zf-jumps" aria-label="On this page" ref={heroCta}>
+      {PRODUCT_HERO.jumps.map((j) => (
+        <a key={j.href} className="zf-jump" href={j.href}>
+          <span className={cx("zf-dot", `zf-dot--${j.dot}`)} aria-hidden="true" />
+          {j.label}
+        </a>
+      ))}
+    </nav>
+  );
 
   return (
     <div className="zf-page">
@@ -64,15 +86,9 @@ export default function ProductPage(): ReactElement {
         <span className="zs-eyebrow">{PRODUCT_HERO.eyebrow}</span>
         <h1 className="zs-h1 zf-hero__h">{PRODUCT_HERO.title}</h1>
         <p className="zs-lead zf-hero__lead">{PRODUCT_HERO.lead}</p>
-        <nav className="zf-jumps" aria-label="On this page" ref={heroCta}>
-          {PRODUCT_HERO.jumps.map((j) => (
-            <a key={j.href} className="zf-jump" href={j.href}>
-              <span className={cx("zf-dot", `zf-dot--${j.dot}`)} aria-hidden="true" />
-              {j.label}
-            </a>
-          ))}
-        </nav>
+        {phone ? null : jumps}
       </section>
+      {phone ? jumps : null}
 
       {/* CHAT */}
       <section id="chat" className="zf-feat" aria-labelledby="chat-h">
@@ -357,18 +373,26 @@ export default function ProductPage(): ReactElement {
           <div className="zf-doors">
             {PROTECTION.doors.map((door) => (
               <div key={door.title} className="zf-door">
-                <span className="zf-door__icon" aria-hidden="true">
-                  <PathIcon d={door.icon} size={20} />
-                </span>
-                <b>{door.title}</b>
-                <span className="zf-door__b">{door.body}</span>
-                <span className="zf-door__modes">
-                  {door.modes.map((m) => (
-                    <span key={m} className="zs-pill zf-mode">
-                      {m}
-                    </span>
-                  ))}
-                </span>
+                <PhoneFold
+                  label={door.title}
+                  wide={
+                    <>
+                      <span className="zf-door__icon" aria-hidden="true">
+                        <PathIcon d={door.icon} size={20} />
+                      </span>
+                      <b>{door.title}</b>
+                    </>
+                  }
+                >
+                  <span className="zf-door__b">{door.body}</span>
+                  <span className="zf-door__modes">
+                    {door.modes.map((m) => (
+                      <span key={m} className="zs-pill zf-mode">
+                        {m}
+                      </span>
+                    ))}
+                  </span>
+                </PhoneFold>
               </div>
             ))}
           </div>

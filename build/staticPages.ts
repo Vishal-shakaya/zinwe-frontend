@@ -19,11 +19,11 @@ import { AGENT_MSI_URL, AGENT_RELEASE, DOWNLOAD_CLOSE, DOWNLOAD_FAQ, DOWNLOAD_HE
 import { LEGAL_CONTACT, LEGAL_DOCS, LEGAL_UPDATED, type LegalDoc } from "../src/content/legal.ts";
 import { BRAND_LINE, HOME_FAQ, type SeoPage } from "../src/content/seo.ts";
 import { ACTIVE_MEMBERS, HOME_WALL_LEAD, WALL_COPY } from "../src/content/site/clients.ts";
-import { CHAT_SPOT, CLOSE, FAIR, FEATURES, HERO, MEMBER_QUOTE, PROTECTION as HOME_PROTECTION, RULES, STEPS, TEAM_SIDE, TILES_INTRO } from "../src/content/site/home.ts";
+import { CHAT_SPOT, CLOSE, FEATURES, HERO, HOME_FAQ_SHOWN, PROTECTION as HOME_PROTECTION, REVIEWS, REVIEWS_HEAD, RULES, STEPS, TILES_INTRO, WHAT } from "../src/content/site/home.ts";
 import { LEGAL_SUMMARY_UPDATED, POLICY_SUMMARIES } from "../src/content/site/legalSummary.ts";
 import { COMPARE_ROWS, PLAN_COPY, PLANS_CLOSE, PLANS_FAQ, PROMISES, WHY, fill } from "../src/content/site/plans.ts";
 import { ALERTS, CHAT, HOURS, PLAN_TAG, PRIVACY, PRODUCT_CLOSE, PRODUCT_HERO, PROTECTION, REPORTS, TASKS } from "../src/content/site/product.ts";
-import { LATEST_RELEASE, LOOPS_CAPTION } from "../src/content/site/releases.ts";
+import { LATEST_RELEASE } from "../src/content/site/releases.ts";
 import { FREE_HONESTY, FREE_LABEL, FREE_STEPS, FREE_TITLE, GUIDE_AUTHOR, GUIDE_NOTE, GUIDE_PROMISES } from "../src/content/site/resources.ts";
 import { FOOTER_ABOUT, FOOTER_COLUMNS } from "../src/content/site/shell.ts";
 
@@ -130,34 +130,28 @@ function home(): string {
     ul(HERO.ticks),
     `<p>${START_FREE()} · ${a("/download", "Download for Windows")}</p>`,
     section(h(2, HOME_WALL_LEAD) + ul(ACTIVE_MEMBERS)),
+    section(h(2, WHAT.title) + WHAT.jobs.map((j) => h(3, j.t) + p(j.b)).join("")),
+    section(
+      h(2, HOME_PROTECTION.title) +
+        p(HOME_PROTECTION.lead) +
+        p(HOME_PROTECTION.question) +
+        ul(RULES[0].options.map(([key, label]) => `${label}: ${RULES[0].out[key]?.title ?? ""}`)) +
+        `<p>${a("/product#protection", fromPage("pages/HomePage.tsx", "All six protections"))}</p>`,
+    ),
+    section(h(2, CHAT_SPOT.title) + p(CHAT_SPOT.lead) + `<p>${a("/product#chat", CHAT_SPOT.link)}</p>`),
     section(
       h(2, TILES_INTRO.title) +
         p(TILES_INTRO.lead) +
         FEATURES.map((f) => h(3, f.title) + p(f.body) + (f.href ? `<p>${a(f.href, f.link)}</p>` : "")).join(""),
     ),
-    section(h(2, CHAT_SPOT.title) + p(CHAT_SPOT.lead) + ul(CHAT_SPOT.points) + `<p>${a("/product#chat", CHAT_SPOT.link)}</p>`),
-    section(
-      h(2, HOME_PROTECTION.title) +
-        p(HOME_PROTECTION.lead) +
-        RULES.map((r) => h(3, r.title) + p(r.sub) + ul(r.options.map(([key, label]) => `${label}: ${r.out[key]?.title ?? ""}`))).join("") +
-        `<p>${a("/product#protection", fromPage("pages/HomePage.tsx", "All six protections"))}</p>`,
-    ),
-    section(h(2, TEAM_SIDE.title) + p(TEAM_SIDE.lead) + ul(TEAM_SIDE.points)),
-    section(
-      h(2, fromPage("pages/HomePage.tsx", "Up and running in an afternoon.")) +
-        ol(STEPS) +
-        `<p>${a("/download", fromPage("pages/HomePage.tsx", "See the install steps"))}</p>`,
-    ),
-    section(
-      h(2, FAIR.title) +
-        p(FAIR.lead) +
-        FAIR.cards.map((c) => h(3, c.t) + p(c.b)).join("") +
-        p(`${fromPage("pages/HomePage.tsx", "Never recorded:")} ${FAIR.nevers.join(", ")}.`),
-    ),
-    MEMBER_QUOTE
-      ? `<figure><blockquote>${e(MEMBER_QUOTE.quote)}</blockquote><figcaption>${e(`${MEMBER_QUOTE.name}, ${MEMBER_QUOTE.role}, ${MEMBER_QUOTE.business}`)}</figcaption></figure>`
+    section(h(2, fromPage("pages/HomePage.tsx", "Up and running in an afternoon.")) + ol(STEPS) + `<p>${START_FREE()}</p>`),
+    REVIEWS.length
+      ? section(
+          h(2, REVIEWS_HEAD.title) +
+            REVIEWS.map((r) => `<figure><blockquote>${e(r.quote)}</blockquote><figcaption>${e(`${r.name}, ${r.role}, ${r.business}`)}</figcaption></figure>`).join(""),
+        )
       : "",
-    section(h(2, fromPage("pages/HomePage.tsx", "Straight answers.")) + faq(HOME_FAQ)),
+    section(h(2, fromPage("pages/HomePage.tsx", "Straight answers.")) + faq(HOME_FAQ.filter((f) => HOME_FAQ_SHOWN.includes(f.q)))),
     section(h(2, CLOSE.title) + p(CLOSE.body) + `<p>${START_FREE()}</p>`),
   ].join("");
 }
@@ -297,8 +291,7 @@ function whatsNew(): string {
       p(`New release · Zinwe ${r.version} · ${r.dateLabel}`) +
         h(2, r.title) +
         p(r.summary) +
-        r.items.map((it) => h(3, `${it.title} (${it.tag})`) + p(it.text)).join("") +
-        p(LOOPS_CAPTION),
+        r.items.map((it) => h(3, `${it.title} (${it.tag})`) + p(it.text)).join(""),
     ),
     `<p>${a("/download", "Download for Windows")} · ${a("/blog", fromPage("pages/WhatsNewPage.tsx", "Zinwe blog"))}</p>`,
   ].join("");
@@ -307,7 +300,7 @@ function whatsNew(): string {
 function guides(): string {
   return [
     p(`${FREE_LABEL} · ${GUIDE_AUTHOR}`),
-    section(GUIDE_PROMISES.map((g) => h(2, g.title) + p(g.text)).join("")),
+    section(ul(GUIDE_PROMISES.map((g) => g.title))),
     section(h(2, FREE_TITLE) + ol(FREE_STEPS.map((st) => `${st.title}. ${st.text}`)) + p(FREE_HONESTY)),
     p(GUIDE_NOTE),
     `<p>${a("/blog", "Blog")}</p>`,
@@ -326,7 +319,7 @@ function blog(): string {
         p(fromPage("pages/BlogPage.tsx", "Stories in short episodes, one email at a time. Free with a membership.")) +
         `<p>${a("/blog/series", "Members' series")}</p>`,
     ),
-    `<p>${a("/whats-new", fromPage("pages/BlogPage.tsx", "Release notes"))}</p>`,
+    `<p>${a("/whats-new", "Release notes")}</p>`,
   ].join("");
 }
 

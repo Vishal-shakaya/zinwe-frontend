@@ -7,6 +7,7 @@ import { AnnouncementBar } from "../ui/AnnouncementBar";
 import { HeroCtaContext } from "./heroCtaContext";
 import { StickyCta } from "./StickyCta";
 import "../../styles/site-v3.css";
+import "../../styles/site-phone.css";
 
 /**
  * Page shell shared by every marketing route (website v3, 29 Oct 2026): the admin's announcement bar, the v3 header,

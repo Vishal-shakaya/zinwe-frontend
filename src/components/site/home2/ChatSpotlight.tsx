@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { CHAT_SPOT, FACES } from "../../../content/site/home";
-import { PathIcon, Tick } from "../SiteIcon";
+import { PathIcon } from "../SiteIcon";
 import { Face } from "./Face";
 
 /** The people list on the left of the chat window (the demo company; their last line, as on the Product page). */
@@ -26,14 +26,6 @@ export function ChatSpotlight(): ReactElement {
             {CHAT_SPOT.title}
           </h2>
           <p className="zh2-lead">{CHAT_SPOT.lead}</p>
-          <ul className="zh2-ticks">
-            {CHAT_SPOT.points.map((t) => (
-              <li key={t}>
-                <Tick size={15} stroke={2.6} className="zh2-tick" />
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
           <Link className="zh2-more" to="/product#chat">
             {CHAT_SPOT.link} <span aria-hidden="true">›</span>
           </Link>

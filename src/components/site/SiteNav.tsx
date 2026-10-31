@@ -4,6 +4,7 @@ import { useAuth } from "../../auth/authContext";
 import { NAV_LINKS, RESOURCE_LINKS, WHATS_NEW_BAR } from "../../content/site/shell";
 import { cx } from "../../lib/cx";
 import { Brand } from "../ui/Brand";
+import { ResourceArt } from "./ResourceArt";
 
 /** The active header item for a path (the prototype's `active` prop). */
 function activeKey(pathname: string): string {
@@ -25,8 +26,8 @@ function activeResource(pathname: string): string | null {
  * Website header v3 (board SiteNav): white bar, warm hairline, the five links and Log in / Start free
  * (signed in: Dashboard). The dark "what's new" strip above it is off until 1.3 ships (WHATS_NEW_BAR.on).
  * Under 860 px the links fold into a menu button that opens a full-width list; Escape or a link closes it.
- * v1.3.2: "Resources" is a disclosure menu (Blog · Newsletter · Free resources · New release): a click, Enter or
- * Space opens it, the arrow keys move between its links, Escape closes it and puts focus back on the button, and
+ * v1.3.2: "Resources" is a disclosure menu (Notion style, owner 31 Oct): three drawn cards (Blog · Newsletter · Free
+ * resources) and a New release strip along the bottom. A click, Enter or Space opens it, the arrow keys move between its links, Escape closes it and puts focus back on the button, and
  * clicking outside or tabbing away closes it. On phones the same four links are a Resources section of the list.
  */
 export function SiteNav(): ReactElement {
@@ -92,9 +93,9 @@ export function SiteNav(): ReactElement {
   };
   const onPanelKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const at = resItems().indexOf(document.activeElement as HTMLAnchorElement);
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    if (["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(event.key)) {
       event.preventDefault();
-      focusItem(at + (event.key === "ArrowDown" ? 1 : -1));
+      focusItem(at + (event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1));
     } else if (event.key === "Home" || event.key === "End") {
       event.preventDefault();
       focusItem(event.key === "Home" ? 0 : -1);
@@ -144,10 +145,22 @@ export function SiteNav(): ReactElement {
         </svg>
       </button>
       <div id="zpl2-res-panel" className="zpl2-res__panel" hidden={!resOpen} onKeyDown={onPanelKey}>
-        {RESOURCE_LINKS.map((r) => (
-          <Link key={r.to} className="zpl2-res__link" to={r.to} aria-current={r.to === resActive ? "page" : undefined} onClick={() => setResOpen(false)}>
-            <b>{r.label}</b>
+        <div className="zpl2-res__cards">
+          {RESOURCE_LINKS.filter((r) => r.art).map((r) => (
+            <Link key={r.to} className="zpl2-res__link zpl2-res__card" to={r.to} aria-current={r.to === resActive ? "page" : undefined} onClick={() => setResOpen(false)}>
+              {r.art ? <ResourceArt k={r.art} /> : null}
+              <b>{r.label}</b>
+              <span>{r.sub}</span>
+            </Link>
+          ))}
+        </div>
+        {RESOURCE_LINKS.filter((r) => !r.art).map((r) => (
+          <Link key={r.to} className="zpl2-res__link zpl2-res__new" to={r.to} aria-current={r.to === resActive ? "page" : undefined} onClick={() => setResOpen(false)}>
+            <i>New</i>
             <span>{r.sub}</span>
+            <b>
+              See new releases <span aria-hidden="true">→</span>
+            </b>
           </Link>
         ))}
       </div>

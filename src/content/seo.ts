@@ -190,7 +190,7 @@ const PAGES: readonly SeoPage[] = [
     title: "Data protection guides for small businesses | Zinwe",
     description:
       "Simple guides on protecting customer and company data without an IT team: checklists, how-tos and Zinwe news, for small businesses in India and the US.",
-    h1: "Data protection guides for a safer, calmer office.",
+    h1: "Security shouldn't feel like an IT project.",
     intro: [
       "Practical guides on keeping company data safe and running a small team, written for owners without an IT team. Short reads, no jargon.",
       "Checklists and how-tos on pen drives, passwords, email and sharing files, plus Zinwe release notes, free e-guides and the members' story series.",
@@ -215,9 +215,9 @@ const PAGES: readonly SeoPage[] = [
     title: "Free e-guides and workbooks for small businesses | Zinwe",
     description:
       "Free plain-English e-guides with workbooks and 30-day plans: protect your business online, keep data safe, stop scams and communicate better at work.",
-    h1: "Free, practical guides for small businesses",
+    h1: "Books that fix real office problems.",
     intro: [
-      "Plain-English e-guides with workbooks and 30-day plans you can actually finish. No jargon, no scare statistics, no IT department needed. Free for members, and membership is free.",
+      "Short, plain-English e-books with checklists and step-by-step plans. No jargon and no IT team needed. Free with your email.",
     ],
     // The backend's /sitemap.xml adds each live guide.
     sitemap: true,

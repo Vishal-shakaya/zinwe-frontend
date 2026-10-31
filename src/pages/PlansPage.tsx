@@ -1,14 +1,14 @@
-import { Fragment, useState, type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 import { hasSettledPlan } from "../auth/steps";
-import { SiteClients } from "../components/site/SiteClients";
+import { ClientWall } from "../components/site/home2/ClientWall";
+import { PhoneFold } from "../components/site/PhoneFold";
 import { SiteFaq } from "../components/site/SiteFaq";
 import { ICONS } from "../components/site/icons";
 import { PathIcon, Tick } from "../components/site/SiteIcon";
 import {
   COMPARE_ROWS,
-  INCLUDED,
   PLANS_CLOSE,
   PLANS_FAQ,
   PLANS_HERO,
@@ -20,6 +20,7 @@ import {
 } from "../content/site/plans";
 import { seoFor } from "../content/seo";
 import { useHashTarget } from "../hooks/useHashTarget";
+import { useIsPhone } from "../hooks/useIsPhone";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage, type BillingCycle, type Plan } from "../lib/api";
 import type { PlanModule } from "../lib/api/types";
@@ -28,6 +29,7 @@ import { GST_RATE, money, paidPlans, planAmount, type SiteCurrency } from "../li
 import { pcsForTeamSize, planChargesGst, planForPcs } from "../portal/plan";
 import { usePlans } from "../portal/usePlans";
 import "../styles/site-plans.css";
+import "../styles/site-home2.css";
 
 const CURRENCY_KEY = "zinwe.plans-currency";
 const CYCLE_KEY = "zinwe.plans-cycle";
@@ -98,6 +100,7 @@ export default function PlansPage(): ReactElement {
   const { hash } = useLocation();
   const { token, onboarding, account } = useAuth();
   const plans = usePlans();
+  const phone = useIsPhone();
   const [hashPick] = useState(() => fromHash(hash));
   const billed = (plans.data?.find((p) => p.quote)?.quote?.currency ?? null) as SiteCurrency | null;
   const [chosen, setChosen] = useState<SiteCurrency | null>(() => hashPick.currency ?? stored(CURRENCY_KEY, ["INR", "USD"]));
@@ -179,6 +182,25 @@ export default function PlansPage(): ReactElement {
     }
     // One badge per card at most: the plan that fits the PC count wins; the lowest per-PC price otherwise.
     const badge = fits ? (over ? `Up to ${pcWord(plan.max_devices)}` : `Fits your ${pcWord(pcs)}`) : cheapestPerPc?.code === plan.code ? "Lowest price per PC" : "";
+    const included = (
+      <>
+        <div className="zp2-chips">
+          <span className="zs-pill zs-num tone-grey">Up to {plan.max_devices} PCs</span>
+          <span className="zs-pill tone-grey">{history} of history</span>
+        </div>
+        <ul className="zp2-points">
+          {points.map((pt) => (
+            <li key={pt.text}>
+              <Tick size={16} className={pt.strong ? "zs-tick" : "zp2-tick-dim"} />
+              <span className={pt.strong ? undefined : "zp2-dim"}>
+                {pt.text}
+                {pt.isNew ? <span className="zp2-new">New</span> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </>
+    );
     return (
       <article key={plan.code} className={cx("zp2-plan", fits && "is-fit")} aria-label={plan.name}>
         {badge ? <span className={cx("zp2-badge", fits && "is-fit")}>{badge}</span> : null}
@@ -201,51 +223,7 @@ export default function PlansPage(): ReactElement {
           <span className="zp2-sub zs-num">{sub}</span>
         </div>
         {cta(plan, fits)}
-        <div className="zp2-chips">
-          <span className="zs-pill zs-num tone-grey">Up to {plan.max_devices} PCs</span>
-          <span className="zs-pill tone-grey">{history} of history</span>
-        </div>
-        <ul className="zp2-points">
-          {points.map((pt) => (
-            <li key={pt.text}>
-              <Tick size={16} className={pt.strong ? "zs-tick" : "zp2-tick-dim"} />
-              <span className={pt.strong ? undefined : "zp2-dim"}>
-                {pt.text}
-                {pt.isNew ? <span className="zp2-new">New</span> : null}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {/* What's in it, grouped (v1.3.2): only what this plan's modules switch on. */}
-        <dl className="zpl2-inc" aria-label={`What's in ${plan.name}`}>
-          {INCLUDED.map((g) => {
-            const items = g.items.filter((it) => planHas(plan, it.module, "y") === "y");
-            return items.length ? (
-              <div key={g.group} className="zpl2-inc__g">
-                <dt>{g.group}</dt>
-                <dd>
-                  {items.map((it, i) => (
-                    <Fragment key={it.label}>
-                      {/* The dot stays at the end of its line: label + no-break space + dot never split. */}
-                      <span className="zpl2-inc__it">
-                        {it.label}
-                        {i < items.length - 1 ? (
-                          <>
-                            {" "}
-                            <span className="zpl2-inc__sep" aria-hidden="true">
-                              ·
-                            </span>
-                          </>
-                        ) : null}
-                      </span>
-                      {i < items.length - 1 ? " " : null}
-                    </Fragment>
-                  ))}
-                </dd>
-              </div>
-            ) : null;
-          })}
-        </dl>
+        {fits ? included : <PhoneFold label="What's included">{included}</PhoneFold>}
       </article>
     );
   };
@@ -335,7 +313,7 @@ export default function PlansPage(): ReactElement {
       {/* The four plans. */}
       <section className="zs-wrap zs-wrap--wide zp2-cards" aria-busy={!plans.data && !plans.error}>
         {plans.data ? (
-          list.map(card)
+          (phone && fit ? [fit, ...list.filter((p) => p.code !== fit.code)] : list).map(card)
         ) : plans.error ? (
           <div className="zs-state zp2-state">
             <b>We couldn't load the plans</b>
@@ -349,7 +327,13 @@ export default function PlansPage(): ReactElement {
         )}
       </section>
 
-      {/* Risk taken away: the five things owners worry about before paying. */}
+      <p className="zs-wrap zp2-seeall">
+        <a href="#compare">
+          Compare every feature <span aria-hidden="true">↓</span>
+        </a>
+      </p>
+
+      {/* Risk taken away: the things owners worry about before paying. */}
       <section className="zs-wrap zs-wrap--wide zp2-promises-wrap">
         <div className="zp2-promises">
           {PROMISES.map((pr) => (
@@ -372,7 +356,8 @@ export default function PlansPage(): ReactElement {
           <span className="zs-eyebrow">Why owners move up</span>
           <h2>Each plan takes one more job off your plate.</h2>
         </div>
-        <div className="zp2-why__grid">
+        <PhoneFold label="See what each plan adds">
+          <div className="zp2-why__grid">
           {WHY.map((w) => {
             const p = list.find((x) => x.code === w.code);
             const how = p ? fill(w.how, { pcs: p.max_devices, history: historyLabel(p.history_days) }) : (w.fallback ?? w.how);
@@ -386,14 +371,17 @@ export default function PlansPage(): ReactElement {
             );
           })}
         </div>
+        </PhoneFold>
       </section>
 
-      <div className="zp2-members">
-        <SiteClients variant="strip" />
+      {/* The same client wall as Home, not a scrolling strip. */}
+      <div className="zh2">
+        <ClientWall />
       </div>
 
-      <section className="zs-wrap zs-wrap--wide zp2-compare">
+      <section id="compare" className="zs-wrap zs-wrap--wide zp2-compare">
         <h2>Compare plans</h2>
+        <PhoneFold label="Compare every feature">
         {cmpNames.length ? (
           <div className="zp2-cmp-pick" role="group" aria-label="Plan to compare">
             {cmpNames.map((p) => (
@@ -479,6 +467,7 @@ export default function PlansPage(): ReactElement {
             </tbody>
           </table>
         </div>
+        </PhoneFold>
       </section>
 
       <section className="zs-wrap zs-wrap--wide zs-qa zp2-faq">

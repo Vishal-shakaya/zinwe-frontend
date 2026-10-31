@@ -170,7 +170,7 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
   return (
     <div className="zp" ref={rootRef}>
       <div className={cx("zp-win", (hovered || !onScreen) && "is-held")} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-        {/* Window bar: the address of the page shown, and a plain note that this is sample data. */}
+        {/* Window bar: the address of the page shown. */}
         <div className="zp-bar">
           <span className="zp-brand">
             <Brand variant="static" height={20} />
@@ -196,7 +196,6 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
                 {manual ? "Play tour" : "Pause"}
               </button>
             ) : null}
-            <span className="zp-pill tone-blue">Sample data · try it</span>
           </span>
         </div>
 
@@ -568,11 +567,6 @@ export function SitePortal({ start = "overview", autoplay = true }: { start?: De
           </div>
         </div>
       </div>
-      <p className="zp-caption">
-        {manual
-          ? "Sample data from a demo company. Nothing you click here is sent anywhere."
-          : "Sample data from a demo company. Click the menu to look around."}
-      </p>
     </div>
   );
 }

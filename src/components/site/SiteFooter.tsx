@@ -1,7 +1,8 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { FOOTER_ABOUT, FOOTER_COLUMNS, FOOTER_LEGAL, type FooterLink } from "../../content/site/shell";
+import { FOOTER_ABOUT, FOOTER_COLUMNS, FOOTER_LEGAL, FOOTER_NOTE, type FooterLink } from "../../content/site/shell";
 import { openCookieSettings } from "../../lib/cookieConsent";
+import { PhoneFold } from "./PhoneFold";
 import { Brand } from "../ui/Brand";
 
 const YEAR = new Date().getFullYear();
@@ -19,8 +20,8 @@ function FootLink({ link, className }: { link: FooterLink; className?: string })
 }
 
 /**
- * Website footer v3 (board SiteFooter): about + Start free, four link columns, the brand line in the owner's
- * wording ("Zinwe — IT Is OK | Security, simplified.", 29 Oct 2026) and the legal row. "Cookie settings" stays
+ * Website footer v3 (board SiteFooter): about + Start free, four link columns, the brand line ("IT Is OK | Security,
+ * simplified."; the logo shows once, at the top, owner 31 Oct), the small note and the legal row. "Cookie settings" stays
  * in the legal row: the Cookie Policy promises it on every page.
  */
 export function SiteFooter(): ReactElement {
@@ -38,21 +39,18 @@ export function SiteFooter(): ReactElement {
           <div className="zs-foot__cols">
             {FOOTER_COLUMNS.map((col) => (
               <div key={col.label} className="zs-foot__col">
-                <p className="zs-foot__label">{col.label}</p>
-                {col.links.map((l) => (
-                  <FootLink key={l.label} link={l} />
-                ))}
-                {col.note ? <span>{col.note}</span> : null}
+                <PhoneFold label={col.label} wide={<p className="zs-foot__label">{col.label}</p>}>
+                  {col.links.map((l) => (
+                    <FootLink key={l.label} link={l} />
+                  ))}
+                  {col.note ? <span>{col.note}</span> : null}
+                </PhoneFold>
               </div>
             ))}
           </div>
         </div>
         <div className="zs-foot__line">
           <p className="zs-foot__tag">
-            <Brand variant="static" tone="light" height={24} className="zs-foot__mark" />
-            <span className="sep" aria-hidden="true">
-              —
-            </span>
             <span className="ok">IT Is OK</span>
             <span className="sep" aria-hidden="true">
               |
@@ -63,6 +61,9 @@ export function SiteFooter(): ReactElement {
             Start free →
           </Link>
         </div>
+        <p className="zs-foot__note">
+          {FOOTER_NOTE} <Link to="/legal#terms">Terms</Link> and <Link to="/legal#privacy">Privacy Policy</Link>.
+        </p>
         <div className="zs-foot__legal">
           <span>© {YEAR} SKYTECHNO · zinwe.io</span>
           <span className="zs-foot__legal-links">

@@ -1,11 +1,16 @@
 import type { ReactElement } from "react";
+import { FACE_PHOTOS } from "../../../content/site/home";
 import { AVATAR_VIEWBOX, avatarArt } from "../../../dashboard/team/avatars";
 
 /**
- * One drawn person from the team avatar library (src/dashboard/team/avatars.json, FR-44): the same art the
- * dashboard and the Windows app use, so the site and the product feel like one thing. Decorative unless `label`.
+ * One sample person on the website: a stock portrait when there is one (FACE_PHOTOS), otherwise the drawn avatar
+ * from the team library (src/dashboard/team/avatars.json, FR-44). Decorative unless `label`.
  */
 export function Face({ k, size = 40, label, className }: { k: string; size?: number; label?: string; className?: string }): ReactElement | null {
+  const photo = FACE_PHOTOS[k];
+  if (photo) {
+    return <img className={className ? `zh2-face ${className}` : "zh2-face"} src={`/people/${photo}.jpg`} width={size} height={size} alt={label ?? ""} loading="lazy" decoding="async" />;
+  }
   const art = avatarArt(k);
   if (!art) return null;
   const a11y = label ? { role: "img" as const, "aria-label": label } : { "aria-hidden": true as const };

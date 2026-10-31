@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { Book, FreeLabel } from "../components/resources/Book";
-import { FREE_HONESTY, FREE_STEPS, FREE_TITLE, GUIDE_AUTHOR, GUIDE_NOTE, GUIDE_PROMISES } from "../content/site/resources";
+import { PathIcon } from "../components/site/SiteIcon";
+import { FREE_HONESTY, FREE_STEPS, FREE_TITLE, GUIDE_NOTE, GUIDE_PROMISES } from "../content/site/resources";
 import { seoFor } from "../content/seo";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useResource } from "../dashboard/useResource";
@@ -39,45 +40,48 @@ export default function GuidesPage(): ReactElement {
   const chapters = useChapters(rows);
   const seo = seoFor("/blog/guides");
   usePageMeta(seo);
-  const pages = rows?.reduce((n, g) => n + (g.page_count || 0), 0) ?? 0;
+  const top = rows?.[0];
 
   return (
     <div className="zrs zrs-lib">
-      <header className="wrap zrs-lib__hero">
-        <div className="zrs-lib__copy">
-          <nav className="zrs-crumbs" aria-label="Breadcrumb">
-            <Link to="/blog">Blog</Link>
-            <span aria-hidden="true">/</span>
-            <span>Free resources</span>
-          </nav>
-          <FreeLabel />
-          <h1 className="zrs-lib__title">{seo.h1}</h1>
-          <p className="zrs-lib__lede">{seo.intro[0]}</p>
-          <p className="zrs-lib__meta">
-            {rows ? `${rows.length} guides · ${pages} pages · PDF` : "Guides · PDF"}
-            <span aria-hidden="true"> · </span>
-            {GUIDE_AUTHOR}
-          </p>
-        </div>
-        <div className="zrs-shelf" aria-hidden="true">
-          {(rows ?? Array.from({ length: 4 }, () => null)).slice(0, 4).map((g, i) => (
-            <span key={g?.slug ?? i} className="zrs-shelf__book">
-              <Book src={g?.cover ? blogAsset(g.cover.url) : null} alt="" size="md" priority={i < 2} />
-            </span>
-          ))}
+      {/* 1 · The publisher's front table: one book to start with, the others behind it. */}
+      <header className="wrap zrs-pub">
+        <div className="zrs-pub__banner">
+          <div className="zrs-pub__copy">
+            <span className="zrs-pub__k">The Zinwe Library</span>
+            <h1 className="zrs-pub__title">{seo.h1}</h1>
+            <p className="zrs-pub__lede">{seo.intro[0]}</p>
+            {top ? (
+              <div className="zrs-pub__acts">
+                <Link className="zs-btn zs-btn--lg zs-btn--pri" to={guidePath(top.slug)}>
+                  Get the first book free
+                </Link>
+                <a className="zrs-pub__all" href="#books">
+                  See all {rows?.length} books <span aria-hidden="true">↓</span>
+                </a>
+              </div>
+            ) : null}
+          </div>
+          <div className="zrs-pub__art" aria-hidden="true">
+            {(rows ?? [null, null, null]).slice(0, 3).map((g, i) => (
+              <span key={g?.slug ?? i} className="zrs-pub__book">
+                <Book src={g?.cover ? blogAsset(g.cover.url) : null} alt="" size="lg" priority={i === 0} />
+              </span>
+            ))}
+          </div>
         </div>
       </header>
 
-      <section className="wrap zrs-promises" aria-label="What every guide has">
+      <ul className="wrap zrs-promises" aria-label="What every book has">
         {GUIDE_PROMISES.map((p) => (
-          <div key={p.title}>
-            <h2>{p.title}</h2>
-            <p>{p.text}</p>
-          </div>
+          <li key={p.title}>
+            <PathIcon d={p.icon} size={20} />
+            {p.title}
+          </li>
         ))}
-      </section>
+      </ul>
 
-      <section className="wrap zrs-lib__list" aria-label="The guides">
+      <section id="books" className="wrap zrs-lib__list" aria-label="The guides">
         {res.error && !rows ? (
           <div className="zrs-empty">
             <b>The guides didn't load</b>
@@ -131,7 +135,7 @@ function GuideRow({ guide: g, n, chapters }: { guide: GuideCard; n: number; chap
       </Link>
       <div className="zrs-row__body">
         <p className="zrs-row__meta">
-          <span>Guide {String(n).padStart(2, "0")}</span>
+          <span>Book {String(n).padStart(2, "0")}</span>
           {g.page_count ? <span>{g.page_count} pages</span> : null}
           <span>PDF</span>
           <FreeLabel className="zrs-free-label--quiet" />
@@ -162,7 +166,7 @@ function GuideRow({ guide: g, n, chapters }: { guide: GuideCard; n: number; chap
           <small>{more > 0 ? `+ ${more} more chapter${more === 1 ? "" : "s"}` : " "}</small>
         </div>
         <Link to={to} className="zrs-row__cta" onClick={track}>
-          See inside and get it free <span aria-hidden="true">→</span>
+          Get this book free <span aria-hidden="true">→</span>
         </Link>
       </div>
     </article>

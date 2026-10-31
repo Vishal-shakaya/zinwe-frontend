@@ -78,4 +78,3 @@ export const RELEASE_LOOPS = {
   },
 } as const;
 
-export const LOOPS_CAPTION = "Recorded on the Zinwe dashboard with sample data from a demo company.";

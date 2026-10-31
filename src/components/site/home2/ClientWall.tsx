@@ -1,5 +1,6 @@
-import type { ReactElement, ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { ACTIVE_MEMBERS, HOME_WALL_LEAD } from "../../../content/site/clients";
+import { cx } from "../../../lib/cx";
 
 /**
  * Each client as a typographic wordmark (v1.3.2, owner's Notion reference): varied weights, cases, tracking, serif
@@ -79,20 +80,26 @@ function Row({ names }: { names: readonly string[] }): ReactElement {
   );
 }
 
-/** Home's client wall (Notion style): one quiet line, then two centred rows of grey wordmarks with small dots. */
+/** Home's client wall (Notion style): one quiet line, then two centred rows of grey wordmarks with small dots. A phone starts with the first row. */
 export function ClientWall(): ReactElement {
   const half = Math.ceil(ACTIVE_MEMBERS.length / 2);
+  const [all, setAll] = useState(false);
   return (
     <section id="members" className="zh2-wall" aria-labelledby="zh2-wall-h">
       <div className="zs-wrap">
         <h2 id="zh2-wall-h" className="zh2-wall__lead">
           {HOME_WALL_LEAD}
         </h2>
-        <ul className="zh2-wall__list" aria-label="Our clients">
+        <ul className={cx("zh2-wall__list", !all && "is-short")} aria-label="Our clients">
           <Row names={ACTIVE_MEMBERS.slice(0, half)} />
           <li className="zh2-wall__break" aria-hidden="true" />
           <Row names={ACTIVE_MEMBERS.slice(half)} />
         </ul>
+        {all ? null : (
+          <button type="button" className="zh2-wall__more" onClick={() => setAll(true)}>
+            See all {ACTIVE_MEMBERS.length} clients
+          </button>
+        )}
       </div>
     </section>
   );

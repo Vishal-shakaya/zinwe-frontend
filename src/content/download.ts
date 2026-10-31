@@ -18,7 +18,7 @@ export const AGENT_MSI_NAME = "ZinweAgent.msi";
  * each agent release, or replace this with a public endpoint (backend: Forge).
  */
 export const AGENT_RELEASE: { version: string; sha256: string | null } = {
-  version: "1.2.1",
+  version: "1.3.2",
   sha256: null,
 };
 
@@ -34,7 +34,7 @@ export type InstallPath = "member" | "owner";
 
 export const PATHS: Record<InstallPath, ReadonlyArray<{ mock: StepMock; t: string; b: string }>> = {
   member: [
-    { mock: "download", t: "Download and open the installer", b: "Use the orange button above. Windows asks for an administrator’s OK once; ask whoever looks after your PCs if you don’t have it." },
+    { mock: "download", t: "Download and open the installer", b: "On the PC, open zinwe.io/download and press Download for Windows. Windows asks for an administrator’s OK once; ask whoever looks after your PCs if you don’t have it." },
     { mock: "connect", t: "Type your email and Member ID", b: "Both are in the invite email from your company. Press Connect." },
     { mock: "consent", t: "Read what Zinwe records, then choose", b: "Nothing is recorded until you press I agree. You can read the list again any time." },
     { mock: "tray", t: "You’re in", b: "Zinwe sits by the clock: start your day, take breaks, chat with your manager and tick off tasks." },

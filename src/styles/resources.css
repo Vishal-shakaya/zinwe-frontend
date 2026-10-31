@@ -83,9 +83,9 @@
 .zrs-shelf__book:nth-child(3) { left: 38%; z-index: 3; transform: rotate(1.5deg); }
 .zrs-shelf__book:nth-child(4) { left: 56%; z-index: 4; transform: rotate(5deg) translateY(4%); }
 
-.zrs-promises { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 4vw, 48px); padding-top: clamp(28px, 4vw, 40px); padding-bottom: clamp(28px, 4vw, 40px); border-top: 1px solid var(--zrs-line); border-bottom: 1px solid var(--zrs-line); }
-.zrs-promises h2 { margin: 0 0 6px; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
-.zrs-promises p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--zrs-ink-2); }
+.zrs-promises { list-style: none; margin-top: 0; margin-bottom: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px clamp(24px, 5vw, 56px); padding-top: 20px; padding-bottom: 20px; border-top: 1px solid var(--zrs-line); border-bottom: 1px solid var(--zrs-line); }
+.zrs-promises li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+.zrs-promises svg { color: var(--zs-orange-ink, #b24d01); }
 
 .zrs-lib__list { display: flex; flex-direction: column; }
 .zrs-row {
@@ -195,7 +195,10 @@
 .zrs-new__stage { margin-top: clamp(36px, 6vw, 64px); }
 
 /* The stage: a laptop with a phone leaning on its right. Sizes come from aspect ratios, so nothing moves on load. */
-.zrs-stage { margin: 0; }
+.zrs-stage { position: relative; margin: 0; }
+.zrs-stage__pause { position: absolute; z-index: 3; top: 14px; right: 14px; display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border: 1px solid var(--zrs-line); border-radius: 50%; background: #fff; color: var(--zrs-ink); cursor: pointer; }
+.zrs-stage__pause:hover { border-color: var(--zrs-ink); }
+.zrs-stage__pause:focus-visible { outline: 2px solid var(--orange-strong); outline-offset: 2px; }
 .zrs-stage__devices {
   position: relative; padding: clamp(20px, 4vw, 48px) clamp(0px, 6vw, 72px) clamp(28px, 4vw, 44px);
   border: 1px solid var(--zrs-line); border-radius: 24px; background: #fff;
@@ -255,7 +258,6 @@
 }
 
 @media (max-width: 720px) {
-  .zrs-promises { grid-template-columns: 1fr; gap: 18px; }
   /* Book beside the meta and title, the rest full width below. */
   .zrs-row { grid-template-columns: 96px minmax(0, 1fr); gap: 0 18px; }
   .zrs-row__body { display: contents; }
@@ -289,4 +291,26 @@
   .zrs-shelf__book,
   .zrs-row__book, .zrs-row__cta span { transition: none; }
   .zrs-row:hover .zrs-row__book { transform: none; }
+}
+
+/* ---------- Library v1.3.2: a simple white front table (owner, 31 Oct) ---------- */
+.zrs-pub { padding-top: 56px; padding-bottom: 32px; }
+.zrs-pub__banner { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: 48px; }
+.zrs-pub__k { display: block; font-size: 14px; font-weight: 600; color: var(--zs-muted); }
+.zrs-pub__title { margin: 10px 0 0; font-size: clamp(36px, 4.6vw, 58px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 800; text-wrap: balance; }
+.zrs-pub__lede { margin: 16px 0 0; max-width: 50ch; font-size: 17px; line-height: 1.55; color: var(--zs-body); }
+.zrs-pub__acts { margin-top: 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.zrs-pub__all { color: var(--zs-ink); font-size: 14.5px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.zrs-pub__art { position: relative; height: 380px; }
+.zrs-pub__book { position: absolute; bottom: 8px; display: block; }
+.zrs-pub__book:nth-child(1) { z-index: 3; left: 50%; width: 230px; margin-left: -115px; }
+.zrs-pub__book:nth-child(2) { z-index: 2; left: 8%; width: 160px; transform: rotate(-6deg); transform-origin: bottom right; }
+.zrs-pub__book:nth-child(3) { z-index: 1; right: 8%; width: 160px; transform: rotate(6deg); transform-origin: bottom left; }
+#books { scroll-margin-top: 90px; }
+@media (max-width: 900px) {
+  .zrs-pub { padding-top: 32px; }
+  .zrs-pub__banner { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .zrs-pub__art { height: 270px; }
+  .zrs-pub__book:nth-child(1) { width: 160px; margin-left: -80px; }
+  .zrs-pub__book:nth-child(2), .zrs-pub__book:nth-child(3) { width: 112px; }
 }
