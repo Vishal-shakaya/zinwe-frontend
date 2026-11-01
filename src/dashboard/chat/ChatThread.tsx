@@ -73,12 +73,12 @@ export function ChatThread({
   onReply,
   onEditTask,
   onJump,
-  onLoaded,
 }: {
   person: TaskPerson & { memberId: number };
   /** This person's tasks (fresh from the Tasks list). */
   tasks: readonly TaskView[];
-  reloadKey: number;
+  /** Changes when the thread should fetch again. */
+  reloadKey: string;
   /** Changes when you send something: the thread goes to the bottom. */
   pin: number;
   outbox: readonly Message[];
@@ -88,7 +88,6 @@ export function ChatThread({
   onReply: (target: ReplyTarget) => void;
   onEditTask: (t: TaskView) => void;
   onJump: (key: string) => void;
-  onLoaded: (messages: Message[]) => void;
 }): ReactElement {
   const [thread, setThread] = useState<Message[] | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -98,10 +97,6 @@ export function ChatThread({
   const [fetchedAt, setFetchedAt] = useState(0);
   const lastReplyId = useRef<number | null>(null);
   const box = useRef<HTMLDivElement>(null);
-  const onLoadedRef = useRef(onLoaded);
-  useEffect(() => {
-    onLoadedRef.current = onLoaded;
-  });
   const first = person.first;
 
   useEffect(() => {
@@ -114,7 +109,6 @@ export function ChatThread({
         setThread(msgs);
         setFetchedAt(Date.now());
         setError(null);
-        onLoadedRef.current(msgs);
         const newest = msgs.find((m) => m.sender === "member")?.id ?? null;
         if (newest !== lastReplyId.current) {
           lastReplyId.current = newest;
