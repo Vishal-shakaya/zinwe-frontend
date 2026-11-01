@@ -68,56 +68,18 @@ export function Def({ tip, id, aria, children }: { tip: Tip; id: string; aria: s
   );
 }
 
-/**
- * One card section with its jump-list anchor. On a phone it is an accordion (header button + body); on a desktop
- * the header button is hidden and every body shows.
- */
-export function Section({
-  id,
-  label,
-  title,
-  sub,
-  open,
-  onToggle,
-  children,
-}: {
-  id: string;
-  label: string;
-  /** Heading (may hold a Def button); defaults to the label. */
-  title?: ReactNode;
-  sub: string;
-  open: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}): ReactElement {
+/** One card on a tab: heading, grey line under it, then its settings. */
+export function Card({ id, title, sub, side, children }: { id?: string; title: ReactNode; sub: string; side?: ReactNode; children?: ReactNode }): ReactElement {
   return (
-    <section id={id} className="z-card rl-sec" aria-labelledby={`${id}-t`}>
-      <button type="button" className="rl-acc-h" aria-expanded={open} aria-controls={`${id}-body`} onClick={onToggle}>
-        {label}
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-          style={{ flex: "none", transition: "transform .15s", transform: `rotate(${open ? 180 : 0}deg)` }}
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      <div id={`${id}-body`} className={open ? "rl-acc-body" : "rl-acc-body shut"}>
-        <div>
-          <h2 id={`${id}-t`} className="rl-sec-t" style={{ margin: 0, fontSize: 18, display: "flex", alignItems: "center", gap: 6 }}>
-            {title ?? label}
-          </h2>
+    <section id={id} className="z-card rl-card" aria-label={typeof title === "string" ? title : undefined}>
+      <div className="rl-card-h">
+        <div style={{ minWidth: 0 }}>
+          <h2 className="rl-card-t">{title}</h2>
           <span className="rl-k">{sub}</span>
         </div>
-        {children}
+        {side}
       </div>
+      {children}
     </section>
   );
 }

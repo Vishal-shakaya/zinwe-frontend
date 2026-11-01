@@ -46,6 +46,8 @@ const CATEGORY_LABELS: Record<WebCategory, string> = {
   gambling: "Gambling",
   malware: "Malware",
   phishing: "Phishing & scams",
+  social: "Social media",
+  video: "Video streaming",
 };
 
 // ---------------------------------------------------------------------------

@@ -199,7 +199,11 @@ export function viewOf(group: AlertGroup, ctx: ViewContext): AlertView {
   const bytes = num(d.total_bytes);
   const size = bytes ? bytesLabel(bytes) : null;
   const tool = str(d.tool) ?? subjectOf(e) ?? "a remote-control app";
-  const domain = str(d.domain) ?? str(d.host) ?? subjectOf(e) ?? "a blocked site";
+  // An upload whose site name the PC couldn't see: never show the bare address when it knows what was open.
+  const domain =
+    d.named === false
+      ? (str(d.open_site) ?? "a website")
+      : (str(d.domain) ?? str(d.host) ?? subjectOf(e) ?? "a blocked site");
   const product = str(d.product) ?? subjectOf(e) ?? "new software";
   const files = num(d.file_count) ?? num(d.attachment_count);
 
