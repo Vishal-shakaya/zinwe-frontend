@@ -3,15 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/authContext";
 import { paymentInCheck } from "../../auth/steps";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { errorMessage, getPaymentHistory, type BillingCycle, type PaymentInstructions } from "../../lib/api";
+import { errorMessage, getPaymentHistory, type PaymentInstructions } from "../../lib/api";
 import { formatMoney } from "../../lib/format";
-import { CheckoutModal } from "../../portal/components/CheckoutModal";
 import { PaymentDetails } from "../../portal/components/PaymentDetails";
 import { QuoteShare } from "../../portal/components/QuoteShare";
 import { QuoteSummary } from "../../portal/components/QuoteSummary";
 import { RejectedBanner } from "../../portal/components/RejectedBanner";
 import { planChargesGst } from "../../portal/plan";
-import { usePlans } from "../../portal/usePlans";
 import { useSubscriptionInfo } from "../../portal/useSubscriptionInfo";
 import { useEntitlements } from "../features/entitlements";
 import { InvoiceCard } from "../settings/InvoiceCard";
@@ -81,15 +79,14 @@ function BankCard({ instructions }: { instructions: PaymentInstructions }): Reac
 
 /**
  * Settings → Plan & billing (board DashSettings #tab=billing): the plan with Change plan and Pay next month now,
- * payments with their invoices, and the bank details. Payments themselves run exactly as before: Razorpay first or
- * a manual payment with a receipt, in the shared CheckoutModal; upgrades on /onboarding/plan.
+ * payments with their invoices, and the bank details. Paying happens on the one payment page (/onboarding/pay:
+ * Razorpay first, or a manual payment with a receipt), choosing a plan on the one plan page (/onboarding/plan).
  */
 export default function BillingPage(): ReactElement {
   usePageMeta({ title: "Plan & billing — Settings", description: "Your Zinwe plan and payments." });
-  const { user, account } = useAuth();
+  const { user } = useAuth();
   const ent = useEntitlements();
   const { members } = useShell();
-  const plans = usePlans();
   const info = useSubscriptionInfo();
   const navigate = useNavigate();
   const subscription = info.data?.subscription;
@@ -102,11 +99,9 @@ export default function BillingPage(): ReactElement {
   const canRenew = Boolean(subscription?.can_renew) && !checking;
   const due = subscription?.amount_due ?? null;
   const dueTotal = subscription ? formatMoney(due?.total ?? subscription.amount_inr, due?.currency ?? subscription.currency) : "";
-  const reference = account?.company?.name || undefined;
   const soon = canRenew && subscription?.days_left !== null && subscription?.days_left !== undefined && subscription.days_left <= RENEW_SOON_DAYS;
   const period = subscription?.billing_cycle === "yearly" ? "year" : "month";
-  // The checkout (Razorpay first, or manual): a renewal (optionally on another cycle) or the payment a plan waits for.
-  const [paying, setPaying] = useState<{ kind: "renew" | "due"; cycle?: BillingCycle } | null>(null);
+  const renew = () => navigate("/onboarding/pay?renew=1");
   const [invoiceId, setInvoiceId] = useState<number | null>(null);
   const closeInvoice = useCallback(() => setInvoiceId(null), []);
   const loadHistory = useCallback((signal: AbortSignal) => getPaymentHistory(signal), []);
@@ -160,17 +155,12 @@ export default function BillingPage(): ReactElement {
     <>
       <PlanCard
         sub={subscription}
-        plans={plans.data}
         devicesUsed={ent.devicesUsed}
         maxDevices={ent.maxDevices || subscription.plan.max_devices}
         people={people}
         checking={checking}
         canRenew={canRenew}
-        onPayEarly={() => setPaying({ kind: "renew" })}
-        onChange={(change) => {
-          if (change.kind === "upgrade") navigate(`/onboarding/plan?plan=${encodeURIComponent(change.plan.code)}&cycle=${change.cycle}`);
-          else setPaying({ kind: "renew", cycle: change.cycle });
-        }}
+        onPayEarly={renew}
       >
         {checking && payment ? (
           <div className="zp-plan__full">
@@ -211,7 +201,7 @@ export default function BillingPage(): ReactElement {
                 <b>{subscription.days_left === 0 ? "Your plan ends today." : `Your plan ends in ${subscription.days_left} day${subscription.days_left === 1 ? "" : "s"}.`}</b>{" "}
                 Renew now to keep your PCs protected without a break.
               </span>
-              <button type="button" className="z-btn sm pri" onClick={() => setPaying({ kind: "renew" })}>
+              <button type="button" className="z-btn sm pri" onClick={renew}>
                 Renew now
               </button>
             </div>
@@ -230,9 +220,9 @@ export default function BillingPage(): ReactElement {
             <span className="zp-body" style={{ flex: "1 1 260px" }}>
               Pay with Razorpay and your plan switches on at once, or pay manually. Monthly or yearly: you choose next.
             </span>
-            <button type="button" className="z-btn pri" onClick={() => setPaying({ kind: "due" })}>
+            <Link className="z-btn pri" to="/onboarding/pay">
               Pay {dueTotal}
-            </button>
+            </Link>
           </div>
           <QuoteShare ownerEmail={user?.email ?? "your email"} />
         </section>
@@ -254,25 +244,6 @@ export default function BillingPage(): ReactElement {
         Need your GSTIN on an invoice? Add it in <Link to="/app/settings/company">Company</Link> before you pay. Questions about a
         payment? Email <a href="mailto:hello@zinwe.io">hello@zinwe.io</a>.
       </p>
-
-      {paying ? (
-        <CheckoutModal
-          initialQuote={due ?? undefined}
-          initialCycle={paying.cycle}
-          instructions={info.data.instructions}
-          reference={reference}
-          renewal={paying.kind === "renew"}
-          rejected={paying.kind === "due" && payment?.status === "rejected" ? payment : null}
-          shareQuote={paying.kind === "due"}
-          ownerEmail={user?.email ?? "you"}
-          onClose={() => setPaying(null)}
-          onSubmitted={async (next) => {
-            await info.submitted(subscription, next);
-            history.reload();
-          }}
-          onDone={() => navigate("/app")}
-        />
-      ) : null}
     </>
   );
 }

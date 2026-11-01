@@ -1,0 +1,693 @@
+/* Choosing and paying for a plan (Plans prototype, 1 Nov 2026): the choose view (PlanChooser) and the payment page
+   (Checkout), one for registering, upgrading and renewing. Loaded with the onboarding layout, under .zau. */
+
+.zau .zpf-page {
+  max-width: 1136px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.zau .zpf-title {
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.zau .zpf-title:focus,
+.zau .zpf-done h1:focus {
+  outline: none;
+}
+
+.zau .zpf-head {
+  text-align: center;
+}
+
+.zau .zpf-head .zau-lede {
+  max-width: 760px;
+  margin: 6px auto 0;
+}
+
+.zau .zpf-k {
+  font-size: 13px;
+  color: var(--z-ink-3);
+}
+
+.zau .zpf-back {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--z-accent-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.zau .zpf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--z-surface-2);
+  color: var(--z-ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.zau .zpf-pill.is-accent {
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
+}
+
+.zau .zpf-pill.is-good {
+  background: var(--z-ok-tint);
+  color: var(--z-ok);
+}
+
+.zau .zau-btn.dark {
+  background: var(--z-ink);
+  border-color: var(--z-ink);
+  color: var(--z-on-ink);
+}
+
+.zau .zau-btn.dark:hover:not(:disabled) {
+  background: var(--z-ink-2);
+  border-color: var(--z-ink-2);
+  color: var(--z-on-ink);
+}
+
+/* Monthly / Yearly: the shared CycleToggle drawn as the prototype's pill switch. */
+.zau .zpf-page .cycle-toggle {
+  gap: 0;
+  padding: 3px;
+  border-radius: 999px;
+}
+
+.zau .zpf-page .cycle-toggle__opt {
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.zau .zpf-page .cycle-toggle__opt.is-on {
+  background: var(--z-ink);
+  color: var(--z-on-ink);
+  box-shadow: none;
+}
+
+.zau .zpf-page .cycle-toggle__save,
+.zau .zpf-page .cycle-toggle__opt.is-on .cycle-toggle__save {
+  margin-left: 6px;
+  padding: 1px 7px;
+  background: var(--z-accent);
+  color: var(--z-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---------- Choose ---------- */
+
+.zau .zpf-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.zau .zpf-tool {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 8px 14px;
+  border: 1px solid var(--z-line);
+  border-radius: 16px;
+}
+
+.zau .zpf-tool__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--z-ink-3);
+}
+
+.zau .zpf-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--z-line-2);
+  border-radius: 10px;
+  background: var(--z-surface);
+  color: var(--z-ink);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.zau .zpf-step:hover:not(:disabled) {
+  border-color: var(--z-ink);
+}
+
+.zau .zpf-step:disabled {
+  color: var(--z-line-2);
+  cursor: default;
+}
+
+.zau .zpf-num {
+  width: 64px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--z-line-2);
+  border-radius: 10px;
+  background: var(--z-surface);
+  color: var(--z-ink);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.zau .zpf-num::-webkit-outer-spin-button,
+.zau .zpf-num::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.zau .zpf-fits {
+  min-height: 20px;
+  margin: -8px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--z-ink-2);
+}
+
+.zau .zpf-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  padding-top: 12px;
+}
+
+.zau .zpf-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 26px 22px 22px;
+  border: 1px solid var(--z-line);
+  border-radius: 18px;
+  background: var(--z-surface);
+}
+
+.zau .zpf-plan.is-fit {
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 1px var(--z-accent);
+}
+
+.zau .zpf-plan.is-dim {
+  background: var(--z-surface-3);
+}
+
+.zau .zpf-flag {
+  position: absolute;
+  top: -13px;
+  left: 20px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--z-ink);
+  color: var(--z-on-ink);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.zau .zpf-flag.is-fit {
+  background: var(--z-accent);
+  color: var(--z-ink);
+}
+
+.zau .zpf-plan h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.zau .zpf-plan__tag {
+  min-height: 42px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--z-ink-2);
+}
+
+.zau .zpf-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.zau .zpf-price s {
+  font-size: 14px;
+  color: var(--z-ink-3);
+}
+
+.zau .zpf-price b {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.zau .zpf-per {
+  font-size: 13px;
+  color: var(--z-ink-3);
+}
+
+.zau .zpf-perpc {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zau .zpf-limit {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+.zau .zpf-plan__btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.zau .zpf-plan__btn:disabled {
+  background: var(--z-surface-2);
+  border-color: var(--z-line);
+  color: var(--z-ink-3);
+}
+
+/* Starting a plan: the other cards' buttons wait, without changing colour. */
+.zau .zpf-plan__btn.pri:disabled {
+  background: var(--z-accent);
+  border-color: var(--z-accent);
+  color: var(--z-ink);
+}
+
+.zau .zpf-plan__btn.dark:disabled {
+  background: var(--z-ink);
+  border-color: var(--z-ink);
+  color: var(--z-on-ink);
+  opacity: 0.7;
+}
+
+.zau .zpf-feat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--z-line);
+  list-style: none;
+  font-size: 14px;
+  color: var(--z-ink-2);
+}
+
+.zau .zpf-feat li {
+  display: flex;
+  gap: 8px;
+}
+
+.zau .zpf-feat li.is-lead {
+  font-weight: 600;
+  color: var(--z-ink);
+}
+
+.zau .zpf-feat svg {
+  flex: none;
+  margin-top: 4px;
+}
+
+.zau .zpf-foot {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--z-ink-3);
+}
+
+/* ---------- Pay ---------- */
+
+.zau .zpf-paygrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "main sum"
+    "more sum";
+  gap: 20px;
+  align-items: start;
+}
+
+.zau .zpf-paygrid--manual {
+  grid-template-rows: auto;
+  grid-template-areas: "main sum";
+}
+
+.zau .zpf-paymain,
+.zau .zpf-manual {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.zau .zpf-paymore {
+  grid-area: more;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.zau .zpf-card {
+  border: 1px solid var(--z-line);
+  border-radius: 14px;
+  background: var(--z-surface);
+  padding: 20px;
+}
+
+.zau .zpf-cycle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.zau .zpf-ways {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.zau .zpf-way {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--z-line);
+  border-radius: 14px;
+  background: var(--z-surface);
+  cursor: pointer;
+}
+
+.zau .zpf-way:hover:not(.is-off) {
+  border-color: var(--z-ink);
+}
+
+.zau .zpf-way:has(input:focus-visible) {
+  outline: 2px solid var(--z-accent);
+  outline-offset: 2px;
+}
+
+.zau .zpf-way.is-on {
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 1px var(--z-accent);
+  background: var(--z-accent-tint-2);
+}
+
+.zau .zpf-way.is-off {
+  background: var(--z-surface-3);
+  cursor: not-allowed;
+}
+
+.zau .zpf-way__radio {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border: 1.5px solid var(--z-line-2);
+  border-radius: 50%;
+  background: var(--z-surface);
+}
+
+.zau .zpf-way.is-on .zpf-way__radio {
+  border: 5px solid var(--z-accent);
+}
+
+.zau .zpf-way b {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.zau .zpf-legal {
+  margin: 0;
+}
+
+.zau .zpf-sum {
+  grid-area: sum;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.zau .zpf-sum > .zau-btn,
+.zau .zpf-sum > .zpf-lines,
+.zau .zpf-sum > .zpf-total {
+  width: 100%;
+}
+
+.zau .zpf-sum__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.zau .zpf-sum h2,
+.zau .zpf-receipt h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.zau .zpf-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.zau .zpf-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.zau .zpf-lines dt {
+  color: var(--z-ink-2);
+}
+
+.zau .zpf-lines dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.zau .zpf-lines__part {
+  margin-top: -4px;
+  font-size: 13px;
+}
+
+.zau .zpf-lines__part dt,
+.zau .zpf-lines__part dd {
+  color: var(--z-ink-3);
+}
+
+.zau .zpf-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 12px;
+  border-top: 1px solid var(--z-line);
+  font-weight: 700;
+}
+
+.zau .zpf-total b {
+  font-size: 24px;
+}
+
+.zau .zpf-total.is-loading {
+  opacity: 0.45;
+}
+
+/* Razorpay's brands and trust marks: the shared parts, on white here. */
+.zau .zpf-paymore .co-trust {
+  padding: 0;
+  background: none;
+}
+
+.zau .zpf-paymore .co-accept {
+  padding-top: 0;
+}
+
+/* ---------- Pay manually ---------- */
+
+.zau .zpf-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--z-surface-2);
+}
+
+.zau .zpf-tab {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--z-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zau .zpf-tab.is-on {
+  background: var(--z-ink);
+  color: var(--z-on-ink);
+}
+
+.zau .zpf-details {
+  min-width: 0;
+}
+
+.zau .zpf-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--z-line);
+}
+
+.zau .zpf-receipt .zpf-k {
+  margin: 0;
+}
+
+.zau .zpf-page .btn--primary {
+  background: var(--z-accent);
+  border-color: var(--z-accent);
+  color: var(--z-ink);
+  font-weight: 700;
+}
+
+.zau .zpf-page .btn--primary:hover:not(:disabled) {
+  background: var(--z-accent-hover);
+  border-color: var(--z-accent-hover);
+  color: var(--z-ink);
+}
+
+/* ---------- Done ---------- */
+
+.zau .zpf-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 560px;
+  margin: 32px auto;
+  text-align: center;
+}
+
+.zau .zpf-done__tick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 800px) {
+  .zau .zpf-paygrid,
+  .zau .zpf-paygrid--manual {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: "main" "sum" "more";
+  }
+
+  .zau .zpf-paygrid--manual {
+    grid-template-areas: "main" "sum";
+  }
+}
+
+@media (max-width: 760px) {
+  .zau .zpf-title {
+    font-size: 26px;
+  }
+
+  .zau .zpf-tools,
+  .zau .zpf-tool {
+    width: 100%;
+  }
+
+  .zau .zpf-tool {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .zau .zpf-tool__label {
+    flex: 1 1 100%;
+  }
+
+  .zau .zpf-tool .zpf-num {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .zau .zpf-tool .cycle-toggle {
+    width: 100%;
+  }
+
+  .zau .zpf-tool .cycle-toggle__opt {
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  .zau .zpf-plans {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .zau .zpf-plan__tag {
+    min-height: 0;
+  }
+
+  .zau .zpf-tabs {
+    border-radius: 14px;
+  }
+}

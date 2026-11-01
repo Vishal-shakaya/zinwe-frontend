@@ -1,9 +1,7 @@
 import { useId, type ReactElement } from "react";
-import { Link } from "react-router-dom";
 import type { Plan } from "../../lib/api";
+import { pcCap, pcCapLine } from "../../lib/planCards";
 import { planForPcs } from "../plan";
-
-const MAX_PCS = 9999;
 
 /**
  * "How many PCs?" with − / + and a one-line answer: the smallest plan that covers them. The plan cards
@@ -27,9 +25,9 @@ export function PcPicker({
 }): ReactElement {
   const id = useId();
   const fit = pcs ? planForPcs(plans, pcs) : null;
-  const biggest = plans.reduce((n, p) => Math.max(n, p.max_devices), 0);
+  const cap = pcCap(plans);
   const covered = Boolean(pcs && current && (current.max_devices === 0 || current.max_devices >= pcs));
-  const step = (by: number) => onPcs(Math.min(MAX_PCS, Math.max(1, (pcs ?? 0) + by)));
+  const step = (by: number) => onPcs(Math.min(cap, Math.max(1, (pcs ?? 0) + by)));
 
   return (
     <div className="pc-pick">
@@ -47,16 +45,16 @@ export function PcPicker({
           type="number"
           inputMode="numeric"
           min={1}
-          max={MAX_PCS}
+          max={cap}
           placeholder="0"
           value={pcs ?? ""}
           aria-describedby={`${id}-out`}
           onChange={(e) => {
             const n = Number.parseInt(e.target.value, 10);
-            onPcs(Number.isFinite(n) && n > 0 ? Math.min(MAX_PCS, n) : null);
+            onPcs(Number.isFinite(n) && n > 0 ? Math.min(cap, n) : null);
           }}
         />
-        <button type="button" className="pc-pick__btn" onClick={() => step(1)}>
+        <button type="button" className="pc-pick__btn" onClick={() => step(1)} disabled={pcs !== null && pcs >= cap}>
           <span aria-hidden="true">+</span>
           <span className="dash-sr">One PC more</span>
         </button>
@@ -70,11 +68,8 @@ export function PcPicker({
         ) : fit ? (
           <>
             {pcs} PC{pcs === 1 ? "" : "s"}: <b>{fit.name}</b> fits, with room for up to {fit.max_devices > 0 ? fit.max_devices : "any number of"}{" "}
-            PCs.{fromTeamSize ? " Based on your team size." : ""}
-          </>
-        ) : pcs ? (
-          <>
-            More than {biggest} PCs? <Link to="/contact">Talk to us</Link> and we'll set up a plan that fits.
+            PCs.{pcs !== null && pcs >= cap ? ` ${pcCapLine(cap)}` : ""}
+            {fromTeamSize ? " Based on your team size." : ""}
           </>
         ) : (
           "Type how many PCs you want to protect and we'll point to the plan that fits."

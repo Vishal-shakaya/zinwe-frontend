@@ -1,7 +1,7 @@
-/* AuthFlow board (v1.3): sign up, log in, reset, onboarding (company, plan, checkout, under review).
-   Everything is scoped under .zau (the root also carries .za for the v1.3 tokens), so the shared portal
-   components (PlanCards, CycleToggle, CheckoutModal, CompanyForm, OtpInput…) keep their look on /plans,
-   /quote and inside the dashboard. */
+/* AuthFlow board (v1.3): sign up, log in, reset, onboarding (company, under review; the plan and payment pages are
+   in plans.css). Everything is scoped under .zau (the root also carries .za for the v1.3 tokens), so the shared
+   portal components (PlanCards, CycleToggle, CompanyForm, OtpInput…) keep their look on /plans, /quote and inside
+   the dashboard. */
 
 .zau {
   min-height: 100vh;
@@ -450,8 +450,6 @@
   color: var(--z-on-ink);
 }
 
-
-
 .zau-side__body {
   display: flex;
   flex-direction: column;
@@ -644,9 +642,7 @@
 }
 
 .zau-onb__bar {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 14px 24px;
+  padding: 14px 32px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -659,61 +655,66 @@
   color: var(--z-ink);
 }
 
-
-
 .zau-stepper {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
+  align-items: center;
+  gap: 6px 8px;
   font-size: 14px;
 }
 
 .zau-stepper li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--z-ink-3);
   font-weight: 500;
 }
 
-.zau-stepper li.done {
-  color: var(--z-ink);
+.zau-stepper li + li::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  margin-right: 2px;
+  background: var(--z-line-2);
 }
 
 .zau-stepper li.cur {
   color: var(--z-ink);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .zau-stepper__dot {
   display: inline-flex;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
   background: var(--z-surface-2);
-  color: var(--z-ink-3);
+  color: var(--z-ink-2);
 }
 
 .zau-stepper li.done .zau-stepper__dot {
-  background: var(--z-ink);
-  color: var(--z-on-ink);
+  background: var(--z-accent-tint);
+  color: var(--z-accent-text);
 }
 
 .zau-stepper li.cur .zau-stepper__dot {
-  background: var(--z-accent);
-  color: var(--z-ink);
+  background: var(--z-ink);
+  color: var(--z-on-ink);
 }
 
 .zau .zau-onb__skip {
   font-size: 14px;
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .zau-onb__who {
@@ -943,42 +944,6 @@
   display: none;
 }
 
-/* ---------- Plan step ---------- */
-
-.zau-plan {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.zau-plan__head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-}
-
-.zau-plan__head .zau-head {
-  flex: 1 1 420px;
-  min-width: 0;
-}
-
-.zau-plan__bill {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-}
-
-.zau-plan__note {
-  font-family: var(--z-mono);
-  font-size: 13px;
-  color: var(--z-ink-3);
-}
-
 /* CycleToggle (shared with /plans) drawn as the segmented control, here only. */
 .zau .cycle-toggle {
   gap: 4px;
@@ -1019,90 +984,6 @@
   font-size: 12px;
 }
 
-.zau-plans {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 12px;
-}
-
-.zau .zau-pcard {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 18px;
-  border-radius: 16px;
-  background: var(--z-surface);
-  color: var(--z-ink);
-  border: 1px solid var(--z-line);
-  font: inherit;
-  text-decoration: none;
-}
-
-.zau .zau-pcard:hover:not(:disabled):not(.on) {
-  border-color: var(--z-ink-4);
-}
-
-.zau .zau-pcard.on {
-  border: 2px solid var(--z-accent);
-  padding: 17px;
-  box-shadow: 0 10px 24px rgba(242, 106, 10, 0.14);
-}
-
-.zau .zau-pcard.off {
-  cursor: default;
-  background: var(--z-surface-3);
-}
-
-.zau .zau-pcard.off .zau-pcard__big,
-.zau .zau-pcard.off .zau-pcard__name {
-  color: var(--z-ink-2);
-}
-
-.zau .zau-pcard.custom {
-  border: 1px dashed var(--z-line-2);
-  color: var(--z-ink);
-}
-
-.zau .zau-pcard.custom:hover {
-  border-color: var(--z-ink);
-  color: var(--z-ink);
-}
-
-.zau-pcard__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.zau .zau-pcard__name {
-  font-size: 18px;
-}
-
-.zau-pcard__radio {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--z-ink-4);
-}
-
-.zau-pcard.on .zau-pcard__radio {
-  border: 6px solid var(--z-accent);
-}
-
-.zau-pcard.off .zau-pcard__radio {
-  border-color: var(--z-line);
-  background: var(--z-surface-2);
-}
-
-.zau-pcard__flags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
 .zau-pill {
   display: inline-flex;
   align-items: center;
@@ -1118,54 +999,6 @@
 .zau-pill.green {
   background: var(--z-accent-tint);
   color: var(--z-accent-ink);
-}
-
-.zau-pcard__price {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.zau-pcard__was {
-  font-size: 15px;
-  color: var(--z-ink-3);
-}
-
-.zau .zau-pcard__big {
-  font-size: 30px;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.zau-pcard__per {
-  font-size: 13px;
-  color: var(--z-ink-3);
-}
-
-.zau-pcard__limit {
-  font-size: 14px;
-  color: var(--z-ink-2);
-}
-
-.zau-pcard__line {
-  font-size: 13px;
-  color: var(--z-ink-2);
-}
-
-.zau-pcard__extra {
-  font-size: 13px;
-  color: var(--z-ink-3);
-}
-
-.zau .zau-pcard__talk {
-  font-size: 26px;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.zau-pcard.skel {
-  min-height: 190px;
 }
 
 .zau-sk {
@@ -1189,39 +1022,6 @@
   .zau-sk {
     animation: none;
   }
-}
-
-.zau-sumbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  background: var(--z-surface);
-  border: 1px solid var(--z-line);
-  border-radius: 14px;
-  padding: 14px 18px;
-}
-
-.zau-sumbar > span {
-  flex: 1 1 320px;
-  min-width: 0;
-}
-
-.zau-sumbar__acts {
-  display: flex;
-  gap: 10px;
-}
-
-.zau .zau-plan__skip {
-  margin: 0;
-  text-align: center;
-  font-size: 14px;
-  color: var(--z-ink-2);
-}
-
-.zau .zau-plan__skip a {
-  font-weight: 600;
 }
 
 .zau-offer {
@@ -1313,16 +1113,6 @@
 }
 
 @media (max-width: 760px) {
-  /* Phone: the picked plan + its button stay on screen while the person scrolls the five plan cards
-     (the bar sat ~1,250 px down, so tapping a card seemed to do nothing). */
-  .zau-sumbar {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    padding: 12px 14px;
-    box-shadow: 0 8px 28px rgba(20, 18, 16, 0.16);
-  }
-
   .zau-onb__bar {
     padding: 12px 16px;
     gap: 10px 16px;
@@ -1331,8 +1121,14 @@
   .zau-stepper {
     order: 3;
     width: 100%;
-    gap: 6px 12px;
+    justify-content: space-between;
+    gap: 6px;
     font-size: 13px;
+  }
+
+  /* Four steps fit on one line at 390 px without the rules between them. */
+  .zau-stepper li + li::before {
+    display: none;
   }
 
   .zau-onb__email {
@@ -1352,192 +1148,9 @@
     font-size: 24px;
   }
 
-  .zau-sumbar__acts,
-  .zau-sumbar__acts .zau-btn,
   .zau-review__acts,
   .zau-review__acts .zau-btn {
     width: 100%;
   }
 
-  .zau-plan__bill {
-    width: 100%;
-  }
-}
-
-/* ---------- Checkout (shared CheckoutModal, restyled on the plan step only) ----------
-   The board's pay screen: one white panel, the ways to pay on the left and a white "Order summary" on the
-   right. The Billing page renders the same modal outside .zau and keeps its own look. */
-
-.zau .checkout__panel {
-  grid-template-columns: minmax(0, 1fr) 300px;
-  border-radius: 20px;
-  border: 1px solid var(--z-line);
-  box-shadow: 0 30px 80px -24px rgba(20, 18, 16, 0.45);
-}
-
-.zau .checkout__summary {
-  order: 2;
-  background: var(--z-surface);
-  color: var(--z-ink);
-  border-left: 1px solid var(--z-line-soft);
-  padding: 24px;
-  font-size: 14px;
-}
-
-.zau .checkout__brand {
-  display: none;
-}
-
-.zau .checkout__payee {
-  margin: 0 0 10px;
-  font-family: var(--z-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: var(--z-ink-3);
-}
-
-.zau .checkout__plan {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.zau .checkout__tag {
-  background: var(--z-accent-tint);
-  color: var(--z-accent-ink);
-}
-
-.zau .checkout__meta {
-  color: var(--z-ink-2);
-  font-size: 14px;
-}
-
-.zau .checkout__total {
-  margin: 18px 0 14px;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.zau .checkout__lines {
-  border-top: 1px solid var(--z-line-soft);
-  padding-top: 12px;
-}
-
-.zau .checkout__lines > div {
-  font-size: 14px;
-}
-
-.zau .checkout__lines dt {
-  color: var(--z-ink-2);
-}
-
-.zau .checkout__minus dd,
-.zau .co-carried {
-  color: var(--z-accent-text);
-}
-
-.zau .checkout__tax-type {
-  border-color: var(--z-line-2);
-  color: var(--z-ink);
-}
-
-.zau .checkout__tax-part dt,
-.zau .checkout__tax-part dd {
-  color: var(--z-ink-3);
-}
-
-.zau .co-save {
-  background: var(--z-accent-tint);
-  color: var(--z-accent-ink);
-}
-
-.zau .checkout__price summary {
-  color: var(--z-accent-text);
-}
-
-.zau .co-accept--summary .co-accept__label {
-  color: var(--z-ink-3);
-}
-
-.zau .co-accept--summary .co-accept__logo {
-  border: 1px solid var(--z-line);
-}
-
-.zau .co-accept--summary .co-accept__chip,
-.zau .co-accept--summary .co-accept__chip .dash-ico {
-  border-color: var(--z-line-2);
-  color: var(--z-ink-2);
-}
-
-.zau .checkout__head {
-  border-bottom-color: var(--z-line-soft);
-}
-
-.zau .checkout__title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-/* The heading takes focus on each screen (for screen readers); no ring for that programmatic focus. */
-.zau .checkout__title:focus,
-.zau .checkout__title:focus-visible {
-  outline: none;
-}
-
-.zau .checkout__steps {
-  background: var(--z-surface-2);
-  border-bottom-color: var(--z-line-soft);
-}
-
-.zau .co-option {
-  border-color: var(--z-line);
-  border-radius: 16px;
-}
-
-.zau .co-option--online {
-  border: 2px solid var(--z-accent);
-  background: var(--z-surface);
-  box-shadow: 0 10px 24px rgba(242, 106, 10, 0.14);
-}
-
-.zau .co-option__cta {
-  border-radius: 12px;
-  font-weight: 700;
-}
-
-.zau .checkout .btn--primary {
-  min-height: 48px;
-  border-radius: 12px;
-  background: var(--z-accent);
-  border-color: var(--z-accent);
-  color: var(--z-ink);
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.zau .checkout .btn--primary:hover:not(:disabled) {
-  background: var(--z-accent-hover);
-  border-color: var(--z-accent-hover);
-}
-
-@media (max-width: 720px) {
-  .zau .checkout__panel {
-    grid-template-columns: minmax(0, 1fr);
-    border: 0;
-    border-radius: 0;
-  }
-
-  .zau .checkout__summary {
-    order: 0;
-    border-left: 0;
-    border-bottom: 1px solid var(--z-line-soft);
-    padding: 16px 20px;
-  }
-
-  .zau .checkout__total {
-    margin: 0;
-    font-size: 26px;
-  }
 }

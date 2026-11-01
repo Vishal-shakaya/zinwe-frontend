@@ -53,4 +53,3 @@ export const AUTH_POINTS: ReadonlyArray<{ title: string; detail: string }> = [
 ];
 
 /** Buying a plan, the same three steps for a new owner and for an upgrade (2026-10-16). */
-export const PLAN_STEPS = ["Choose plan", "Payment confirmation", "Activation"] as const;

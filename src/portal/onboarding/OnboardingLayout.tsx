@@ -5,34 +5,35 @@ import { canUseApp } from "../../auth/steps";
 import { AnnouncementBar } from "../../components/ui/AnnouncementBar";
 import { Brand } from "../../components/ui/Brand";
 import { useAuthFonts } from "../v13/authFonts";
+import { PlanFlowContext, type PlanFlow } from "./flow";
 import "../../styles/dashboard.css";
 import "../../styles/portal.css";
 import "../../styles/dash13.css";
 import "../../styles/dash13/auth.css";
+import "../../styles/dash13/plans.css";
 
-const STEPS = ["Account", "Company", "Plan", "Payment"] as const;
+const REGISTER_STEPS = ["Your company", "Choose plan", "Pay", "Done"] as const;
+const UPGRADE_STEPS = ["Choose plan", "Pay", "Done"] as const;
+const STAGE_LABEL: Record<PlanFlow["stage"], (typeof UPGRADE_STEPS)[number]> = { choose: "Choose plan", pay: "Pay", done: "Done" };
 
 /**
- * Onboarding (AuthFlow board, v1.3): a white header with the logo, the Account → Company → Plan → Payment stepper
- * and, once the dashboard is open, "Skip to dashboard" (new owners) or "Back to dashboard" (upgrades). A new owner
- * who can't use the dashboard yet (company step) sees their account with Log out instead: their only way out.
+ * Onboarding (AuthFlow board, v1.3): a white header with the logo, the stepper (Your company, Choose plan, Pay, Done
+ * when registering; Choose plan, Pay, Done on a plan) and, once the dashboard is open, "Skip to dashboard" (new
+ * owners) or "Back to dashboard" (upgrades). A new owner who can't use the dashboard yet (company step) sees their
+ * account with Log out instead: their only way out.
  */
 export default function OnboardingLayout(): ReactElement {
   useAuthFonts();
   const { user, onboarding, signOut } = useAuth();
   const { pathname } = useLocation();
   const [leaving, setLeaving] = useState(false);
+  const [flow, setFlow] = useState<PlanFlow | null>(null);
   const step = onboarding?.step;
   const inApp = Boolean(step && canUseApp(step));
-  // Account is done by the time anyone is here; the company form is step 1, the plan page step 2, a payment
-  // waiting or being checked step 3 (4 = everything done).
-  const stepIdx = pathname.endsWith("/company")
-    ? 1
-    : step === "payment_review"
-      ? 4
-      : step === "payment"
-        ? 3
-        : 2;
+  // The plan pages say where they are (flow.ts); the others go by the address and the account's step.
+  const steps: readonly string[] = (flow?.upgrade ?? step === "complete") ? UPGRADE_STEPS : REGISTER_STEPS;
+  const here = pathname.endsWith("/company") ? "Your company" : STAGE_LABEL[flow?.stage ?? (step === "payment_review" ? "done" : "choose")];
+  const stepIdx = steps.indexOf(here);
 
   // Block body on purpose: an effect must return nothing or a cleanup function. A concise
   // `() => window.scrollTo(0, 0)` returns scrollTo's result, and browser extensions that
@@ -47,8 +48,8 @@ export default function OnboardingLayout(): ReactElement {
       <header className="zau-onb__top">
         <div className="zau-onb__bar">
           <Brand to={inApp ? "/app" : "/"} ariaLabel={inApp ? "Zinwe, back to your dashboard" : "Zinwe home"} height={26} className="zau-brand zau-brand--sm" />
-          <ol className="zau-stepper" aria-label="Setup steps">
-            {STEPS.map((label, i) => {
+          <ol className="zau-stepper" aria-label="Your progress">
+            {steps.map((label, i) => {
               const done = i < stepIdx;
               const cur = i === stepIdx;
               return (
@@ -101,7 +102,9 @@ export default function OnboardingLayout(): ReactElement {
             </div>
           }
         >
-          <Outlet />
+          <PlanFlowContext.Provider value={setFlow}>
+            <Outlet />
+          </PlanFlowContext.Provider>
         </Suspense>
       </main>
     </div>
