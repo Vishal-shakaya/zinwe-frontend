@@ -14,7 +14,7 @@ import { ChatLauncher } from "./components/ChatLauncher";
 import { ChatBubbleContext, type ChatBubbleRequest } from "./features/chatBubble";
 import { Tour } from "./components/Tour";
 import { UpdatedTermsDialog } from "./components/UpdatedTermsDialog";
-import { CHAT_READ_EVENT } from "./features/chatEvents";
+import { CHAT_POLL_MS, CHAT_READ_EVENT } from "./features/chatEvents";
 import { useEntitlements } from "./features/entitlements";
 import { useEventCounts } from "./features/useEventCounts";
 import { DASHBOARD_TOUR, syncTourFlag, tourDone, type TourStep } from "./features/tour";
@@ -217,11 +217,14 @@ export default function AppLayout(): ReactElement {
   // FR-15: browser notifications for replies, alerts and requests (once switched on: the banner, or Settings → Notifications).
   useOwnerNotifications(true);
 
-  // Unread member replies, for the Chat badge (non-critical: failures just hide it).
+  // The team, with unread replies, for the Chat badge (non-critical: failures just hide it) and the Chat page's tiles:
+  // one list, so the two can't disagree. Quicker on the Chat page. The person the owner is reading counts as read.
   const loadMembers = useCallback((signal: AbortSignal) => listMembers(signal), []);
-  const members = useResource(loadMembers, { pollMs: 60_000 });
-  const unread = (members.data ?? []).reduce((sum, m) => sum + (m.is_active ? (m.unread ?? 0) : 0), 0);
-  const hasTeam = (members.data ?? []).some((m) => m.is_active);
+  const members = useResource(loadMembers, { pollMs: onChatPage ? CHAT_POLL_MS : 60_000 });
+  const [openChat, setOpenChat] = useState<number | null>(null);
+  const team = useMemo(() => (openChat === null ? members.data : members.data?.map((m) => (m.id === openChat ? { ...m, unread: 0 } : m))), [members.data, openChat]);
+  const unread = (team ?? []).reduce((sum, m) => sum + (m.is_active ? (m.unread ?? 0) : 0), 0);
+  const hasTeam = (team ?? []).some((m) => m.is_active);
   // Alerts badge: open "Needs attention" alerts, counted on the server.
   const counts = useEventCounts();
   const alertsBadge = counts.data?.critical_unhandled ?? 0;
@@ -231,7 +234,7 @@ export default function AppLayout(): ReactElement {
   // The bell: real items only (alerts that need you, unread chats, requests, tasks, news), see shell/bellFeed.ts.
   const bell = useBellFeed({
     userId: user?.id,
-    members: members.data,
+    members: team,
     announcements,
     chat: entitlements.has("team_chat"),
     work: entitlements.has("work_time"),
@@ -299,14 +302,16 @@ export default function AppLayout(): ReactElement {
       alerts: alertsBadge,
       unread,
       tasksWaiting,
-      members: members.data,
+      members: team,
+      membersError: members.error,
       reloadMembers,
+      setOpenChat,
       bell,
       openFeedback: () => setFeedbackOpen(true),
       refreshAll,
       refreshing,
     }),
-    [alertsBadge, unread, tasksWaiting, members.data, reloadMembers, bell, refreshAll, refreshing],
+    [alertsBadge, unread, tasksWaiting, team, members.error, reloadMembers, bell, refreshAll, refreshing],
   );
 
   const displayName = user ? user.full_name || user.email : "Your account";

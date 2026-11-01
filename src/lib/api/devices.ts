@@ -65,8 +65,17 @@ export interface Member {
   download_url?: string;
   /** Unread replies from this member the admin hasn't opened yet (chat badge). */
   unread?: number;
+  /** The newest line of the chat, for its tile: null with no messages (or no Chat on the plan). Older backends leave it out. */
+  last_message?: MemberLastMessage | null;
   /** FR-44: library avatar or photo; null = initials. Older backends leave it out. */
   picture?: MemberPicture | null;
+}
+
+/** The newest line of a conversation: one short line of text, who wrote it, and when. */
+export interface MemberLastMessage {
+  text: string;
+  sender: "owner" | "member";
+  at: string;
 }
 
 /** The slice of a Device the Team page shows beside a member. */

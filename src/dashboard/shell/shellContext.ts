@@ -10,8 +10,13 @@ export interface ShellState {
   unread: number;
   /** Tasks waiting for your OK or help (sample until FR-20). */
   tasksWaiting: number;
+  /** The one team list the shell keeps: the Chat tab count and the Chat page's tiles both read it. */
   members: Member[] | undefined;
+  /** Why the last load of `members` failed; cleared by the next success. */
+  membersError: unknown;
   reloadMembers: () => void;
+  /** The Chat page says whose conversation is on screen: that person shows no unread count (they're being read). */
+  setOpenChat: (memberId: number | null) => void;
   /** The bell: real items that need the owner + news, with read state on this browser (shell/bellFeed.ts). */
   bell: BellState;
   openFeedback: () => void;
@@ -27,7 +32,9 @@ export const ShellContext = createContext<ShellState>({
   unread: 0,
   tasksWaiting: 0,
   members: undefined,
+  membersError: undefined,
   reloadMembers: noop,
+  setOpenChat: noop,
   bell: EMPTY_BELL,
   openFeedback: noop,
   refreshAll: noop,

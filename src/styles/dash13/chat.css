@@ -21,7 +21,7 @@
 
 /* People */
 :where(.zd) .zp-chat .cv-list {
-  flex: 1 1 260px;
+  flex: 1 1 300px;
   min-width: 0;
   border-right: 1px solid var(--z-line-soft);
   padding: 10px;
@@ -64,18 +64,75 @@
   border-radius: 50%;
   border: 2px solid var(--z-surface);
 }
+:where(.zd) .zp-chat .conv-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+:where(.zd) .zp-chat .conv-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+:where(.zd) .zp-chat .conv-name {
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:where(.zd) .zp-chat .conv-when {
+  flex: none;
+  font-size: 11px;
+  color: var(--z-ink-3);
+}
+:where(.zd) .zp-chat .conv-last {
+  min-width: 0;
+  font-size: 12px;
+  color: var(--z-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 :where(.zd) .zp-chat .conv-unread {
+  flex: none;
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--z-ink);
-  color: var(--z-on-ink);
+  background: var(--z-accent);
+  color: var(--z-ink);
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+/* Unread: the tile says so before you open it. */
+:where(.zd) .zp-chat .conv.un .conv-name {
+  font-weight: 700;
+}
+:where(.zd) .zp-chat .conv.un .conv-when {
+  color: var(--z-accent-text);
+  font-weight: 600;
+}
+:where(.zd) .zp-chat .conv.un .conv-last {
+  color: var(--z-ink);
+  font-weight: 500;
+}
+/* A message just arrived: a short highlight on the tile it moved to the top. */
+@keyframes conv-new {
+  from {
+    background: var(--z-accent-tint);
+  }
+  to {
+    background: transparent;
+  }
+}
+:where(.zd) .zp-chat .conv.new {
+  animation: conv-new 1.4s ease-out;
 }
 
 :where(.zd) .zp-chat .cv-pill {
@@ -95,6 +152,20 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+/* Nothing open yet: messages stay unread until a conversation is opened. */
+:where(.zd) .zp-chat .cv-none {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: var(--z-surface-3);
+  color: var(--z-ink-3);
+}
+:where(.zd) .zp-chat .cv-none b {
+  color: var(--z-ink);
 }
 :where(.zd) .zp-chat .cv-head {
   padding: 14px 18px;
@@ -587,6 +658,9 @@
   :where(.zd) .zp-chat .rbtn,
   :where(.zd) .zp-chat .cv-chev {
     transition: none;
+  }
+  :where(.zd) .zp-chat .conv.new {
+    animation: none;
   }
 }
 
