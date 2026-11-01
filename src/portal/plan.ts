@@ -147,7 +147,7 @@ export function planChargesGst(plan: Plan): boolean {
   return plan.gst_charged === true;
 }
 
-/** Upper end of the company form's team size, as a PC count ("11-25" -> 25). */
+/** Upper end of the company form's team size, as a PC count ("11-25" -> 25). Plans stop at 50 PCs, so "50+" is 50. */
 export function pcsForTeamSize(teamSize: TeamSize | "" | null | undefined): number | null {
   switch (teamSize) {
     case "1-10":
@@ -155,9 +155,8 @@ export function pcsForTeamSize(teamSize: TeamSize | "" | null | undefined): numb
     case "11-25":
       return 25;
     case "26-50":
-      return 50;
     case "50+":
-      return 51;
+      return 50;
     default:
       return null;
   }

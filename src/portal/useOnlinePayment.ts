@@ -19,7 +19,6 @@ export function useOnlinePayment({
   onPaid,
   onPending,
   onUnavailable,
-  onWindow,
 }: {
   upgradePlan?: string;
   offer?: number;
@@ -27,8 +26,6 @@ export function useOnlinePayment({
   onPaid: (payment: Payment | null) => void | Promise<void>;
   onPending: (result: OnlineResult) => void | Promise<void>;
   onUnavailable?: (reason: string) => void;
-  /** Razorpay's window opens (true) / closes (false): a modal <dialog> must step aside meanwhile. */
-  onWindow?: (open: boolean) => void;
 }): { stage: OnlineStage; error: string | null; pay: () => Promise<void>; clearError: () => void } {
   const [stage, setStage] = useState<OnlineStage>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -59,14 +56,11 @@ export function useOnlinePayment({
     setStage("open");
     let outcome;
     try {
-      onWindow?.(true);
       outcome = await openCheckout(order);
     } catch {
       setStage("idle");
       unavailable("The secure payment window couldn't load (a blocker or a slow connection can stop it).");
       return;
-    } finally {
-      onWindow?.(false);
     }
     if (outcome.kind === "dismissed") {
       setStage("idle");

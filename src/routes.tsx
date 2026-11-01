@@ -36,6 +36,7 @@ const ForgotPasswordPage = lazyPage(() => import("./portal/pages/ForgotPasswordP
 const OnboardingLayout = lazyPage(() => import("./portal/onboarding/OnboardingLayout"));
 const CompanyStep = lazyPage(() => import("./portal/onboarding/CompanyStep"));
 const PlanStep = lazyPage(() => import("./portal/onboarding/PlanStep"));
+const PayStep = lazyPage(() => import("./portal/onboarding/PayStep"));
 const SubscribeStep = lazyPage(() => import("./portal/onboarding/SubscribeStep"));
 const AppLayout = lazyPage(() => import("./dashboard/AppLayout"));
 const OverviewPage = lazyPage(() => import("./dashboard/pages/OverviewPage"));
@@ -80,7 +81,7 @@ function ChunkFallback(): ReactElement {
  * - blog: /blog  /blog/:slug  /blog/series (members-only series)  /blog/series/:slug  /blog/series/:slug/:episode
  *   /blog/guides (free e-guides)  /blog/guides/:slug
  * - public auth: /signup  /login  /forgot-password (signed-in owners are routed by step)
- * - onboarding: /onboarding/company  /onboarding/plan  /onboarding/subscribe
+ * - onboarding: /onboarding/company  /onboarding/plan (choose, register or upgrade)  /onboarding/pay (pay, register, upgrade or renew)  /onboarding/subscribe
  * - dashboard: /app (Overview)  /app/alerts (every alert)  /app/activity (work day: start, breaks + reasons, end)  /app/reports (any period, CSV)  /app/internet  /app/data  /app/remote  /app/team (team & devices)  /app/activity
  *   /app/chat (message members; also emails them)  /app/upgrade (choose plan → pay → back to /app)  /app/settings/{company,billing,password,notifications}
  *   /app/help (How to use) · /app/policies · /app/feedback — from the account menu (bottom of the sidebar); /app/feedback is also the email-link target
@@ -134,9 +135,10 @@ export function AppRoutes(): ReactElement {
             <Route element={<StepGate allow={["company"]} />}>
               <Route path="company" element={<CompanyStep />} />
             </Route>
-            {/* The one plan page: choosing, paying (checkout modal) and upgrading (2026-10-16). */}
+            {/* The one plan page and the one payment page, for registering, upgrading and renewing (1 Nov 2026). */}
             <Route element={<StepGate allow={["plan", "payment", "payment_review", "complete"]} />}>
               <Route path="plan" element={<PlanStep />} />
+              <Route path="pay" element={<PayStep />} />
             </Route>
             <Route element={<StepGate allow={["plan", "payment", "payment_review"]} />}>
               <Route path="subscribe" element={<SubscribeStep />} />

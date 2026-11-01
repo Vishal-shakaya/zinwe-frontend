@@ -19,7 +19,6 @@ const SIZES: ReadonlyArray<readonly [string, string]> = [
   ["1-10", "1–10"],
   ["11-25", "11–25"],
   ["26-50", "26–50"],
-  ["50+", "More than 50"],
 ];
 const TOPICS = ["Chat and tasks", "Work hours", "Reports", "USB and file copies", "Remote-control apps", "Privacy and consent"];
 const SUBJECTS = ["Is Zinwe right for us?", "Plans and billing", "Partnership", "Something else"];

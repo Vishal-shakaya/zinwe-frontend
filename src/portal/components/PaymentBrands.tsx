@@ -20,7 +20,7 @@ const INTERNATIONAL: readonly Logo[] = ["visa", "mastercard", "amex"];
 
 /**
  * "We accept": the payment brands Razorpay takes for this currency, plus netbanking and wallets in India.
- * `className` places it: the checkout's dark summary (compact) on wide screens, the pay screen on phones.
+ * Shown on the payment page, under the ways to pay.
  */
 export function AcceptedBrands({ currency, className }: { currency: string; className?: string }): ReactElement {
   const india = currency !== "USD";

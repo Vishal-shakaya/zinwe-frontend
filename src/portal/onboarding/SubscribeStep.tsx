@@ -8,8 +8,8 @@ import { UnderReview } from "./UnderReview";
 /**
  * /onboarding/subscribe
  * - step `payment_review`: "Payment under review"
- * - otherwise a redirect to the plan page, which chooses and pays (checkout modal):
- *   `?plan=<code>` preselects that plan; step `payment` opens the checkout for the plan waiting for payment.
+ * - otherwise a redirect: `?plan=<code>` preselects that plan on the plan page; step `payment` goes to the payment
+ *   page for the plan waiting for payment (through `/onboarding/plan?checkout=1`, the link in older emails).
  */
 export default function SubscribeStep(): ReactElement {
   usePageMeta({ title: "Activate your plan — Zinwe", description: "Activate your Zinwe plan." });
@@ -18,7 +18,7 @@ export default function SubscribeStep(): ReactElement {
   const code = planCodeParam(params.get("plan"));
 
   if (onboarding?.step === "payment_review") return <UnderReview />;
-  // Choosing and paying happen on the plan page (checkout modal) since 2026-10-16; old links land there.
+  // Choosing happens on the plan page, paying on /onboarding/pay; old links land there.
   if (code) return <Navigate to={`/onboarding/plan?plan=${encodeURIComponent(code)}`} replace />;
   if (onboarding?.step === "payment") return <Navigate to="/onboarding/plan?checkout=1" replace />;
   return <Navigate to="/onboarding/plan" replace />;

@@ -7,17 +7,7 @@ import { PhoneFold } from "../components/site/PhoneFold";
 import { SiteFaq } from "../components/site/SiteFaq";
 import { ICONS } from "../components/site/icons";
 import { PathIcon, Tick } from "../components/site/SiteIcon";
-import {
-  COMPARE_ROWS,
-  PLANS_CLOSE,
-  PLANS_FAQ,
-  PLANS_HERO,
-  PLAN_COPY,
-  PROMISES,
-  WHY,
-  fill,
-  historyLabel,
-} from "../content/site/plans";
+import { COMPARE_ROWS, PLANS_CLOSE, PLANS_FAQ, PLANS_HERO, PROMISES, WHY, fill, historyLabel } from "../content/site/plans";
 import { seoFor } from "../content/seo";
 import { useHashTarget } from "../hooks/useHashTarget";
 import { useIsPhone } from "../hooks/useIsPhone";
@@ -25,8 +15,9 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { errorMessage, type BillingCycle, type Plan } from "../lib/api";
 import type { PlanModule } from "../lib/api/types";
 import { cx } from "../lib/cx";
-import { GST_RATE, money, paidPlans, planAmount, type SiteCurrency } from "../lib/sitePrices";
-import { pcsForTeamSize, planChargesGst, planForPcs } from "../portal/plan";
+import { cheapestPerPc, pcCap, pcCapLine, pcWord, perPc, planCardText } from "../lib/planCards";
+import { money, paidPlans, type SiteCurrency } from "../lib/sitePrices";
+import { pcsForTeamSize, planForPcs } from "../portal/plan";
 import { usePlans } from "../portal/usePlans";
 import "../styles/site-plans.css";
 import "../styles/site-home2.css";
@@ -74,11 +65,6 @@ function planHas(plan: Plan | undefined, module: PlanModule | undefined, fallbac
   return plan.modules.includes(module) ? "y" : "n";
 }
 
-/** Per-PC price a month, before tax. */
-function perPc(plan: Plan, currency: SiteCurrency): number {
-  return plan.max_devices > 0 ? planAmount(plan, currency, "monthly").price / plan.max_devices : 0;
-}
-
 /** A round number just above the highest per-PC price: ₹97 → ₹100, $1.20 → $1.25. */
 function perPcCap(plans: readonly Plan[], currency: SiteCurrency): string | null {
   const most = Math.max(0, ...paidPlans(plans).map((p) => perPc(p, currency)));
@@ -106,13 +92,15 @@ export default function PlansPage(): ReactElement {
   const [chosen, setChosen] = useState<SiteCurrency | null>(() => hashPick.currency ?? stored(CURRENCY_KEY, ["INR", "USD"]));
   const currency: SiteCurrency = chosen ?? billed ?? guessCurrency();
   const [cycle, setCycle] = useState<BillingCycle>(() => hashPick.cycle ?? stored(CYCLE_KEY, ["monthly", "yearly"]) ?? "monthly");
-  const [pcs, setPcsState] = useState<number>(() => pcsForTeamSize(account?.company?.team_size) ?? 8);
+  const [pcsChosen, setPcsState] = useState<number>(() => pcsForTeamSize(account?.company?.team_size) ?? 8);
   const [typed, setTyped] = useState<string | null>(null);
   // Phone: the compare table shows one plan beside the features; this picks which (null = the plan that fits).
   const [cmpPick, setCmpPick] = useState<string | null>(null);
 
+  const cap = pcCap(plans.data ?? []);
+  const pcs = Math.min(pcsChosen, cap);
   const setPcs = (n: number) => {
-    setPcsState(Math.max(1, Math.min(200, Math.round(Number(n)) || 1)));
+    setPcsState(Math.max(1, Math.min(cap, Math.round(Number(n)) || 1)));
     setTyped(null);
   };
   const chooseCurrency = (c: SiteCurrency) => {
@@ -127,13 +115,10 @@ export default function PlansPage(): ReactElement {
   const list = plans.data ? [...plans.data].sort((a, b) => a.sort_order - b.sort_order) : [];
   const top = list.length ? list.reduce((a, b) => (b.max_devices > a.max_devices ? b : a)) : null;
   const firstPaid = paidPlans(list)[0];
-  const over = !!top && top.max_devices > 0 && pcs > top.max_devices;
-  const fit = over ? top : list.length ? planForPcs(list, pcs) : null;
-  const cheapestPerPc = paidPlans(list).reduce<Plan | null>((best, p) => (!best || perPc(p, currency) < perPc(best, currency) ? p : best), null);
-  const inr = currency === "INR";
+  const fit = list.length ? planForPcs(list, pcs) : null;
+  const lowest = cheapestPerPc(list, currency);
   const yearly = cycle === "yearly";
-  const cap = list.length ? perPcCap(list, currency) : null;
-  const pcWord = (n: number) => `${n} ${n === 1 ? "PC" : "PCs"}`;
+  const priceCap = list.length ? perPcCap(list, currency) : null;
 
   const cta = (plan: Plan, fits: boolean): ReactElement => {
     const label = plan.requires_payment ? `Choose ${plan.name}` : "Start free";
@@ -155,33 +140,9 @@ export default function PlansPage(): ReactElement {
 
   const card = (plan: Plan): ReactElement => {
     const fits = !!fit && fit.code === plan.code;
-    const copy = PLAN_COPY[plan.code];
-    const history = historyLabel(plan.history_days);
-    const points = copy
-      ? copy.points.map(([text, strong, isNew]) => ({ text: fill(text, { pcs: plan.max_devices, history }), strong, isNew }))
-      : plan.features.map((text) => ({ text, strong: true, isNew: false }));
-    const gst = inr && planChargesGst(plan);
-    let price: string;
-    let per: string;
-    let sub = "";
-    let was = "";
-    let perPcLine = "";
-    if (!plan.requires_payment) {
-      price = money(0, currency);
-      per = "forever";
-      perPcLine = `Free for up to ${pcWord(plan.max_devices)}`;
-      sub = "No card needed.";
-    } else {
-      const { price: amount, list: listPrice } = planAmount(plan, currency, cycle);
-      perPcLine = `About ${money(perPc(plan, currency), currency)} per PC a month`;
-      price = money(amount, currency);
-      per = `${yearly ? "a year" : "a month"}${gst ? " + GST" : ""}`;
-      if (listPrice > amount) was = money(listPrice, currency);
-      if (gst) sub = `${money(amount * (1 + GST_RATE), currency)} ${yearly ? "a year" : "a month"} including GST`;
-      else if (!inr) sub = "No Indian GST.";
-    }
+    const { tag, history, price, was, per, perPcLine, sub, points } = planCardText(plan, currency, cycle);
     // One badge per card at most: the plan that fits the PC count wins; the lowest per-PC price otherwise.
-    const badge = fits ? (over ? `Up to ${pcWord(plan.max_devices)}` : `Fits your ${pcWord(pcs)}`) : cheapestPerPc?.code === plan.code ? "Lowest price per PC" : "";
+    const badge = fits ? `Fits your ${pcWord(pcs)}` : lowest?.code === plan.code ? "Lowest price per PC" : "";
     const included = (
       <>
         <div className="zp2-chips">
@@ -206,7 +167,7 @@ export default function PlansPage(): ReactElement {
         {badge ? <span className={cx("zp2-badge", fits && "is-fit")}>{badge}</span> : null}
         <div className="zp2-plan__head">
           <h2>{plan.name}</h2>
-          <span>{copy?.tag ?? plan.tagline}</span>
+          <span>{tag}</span>
         </div>
         <div className="zp2-price">
           <div className="zp2-price__row">
@@ -242,7 +203,7 @@ export default function PlansPage(): ReactElement {
       <section className="zs-wrap zp2-hero">
         <span className="zs-eyebrow">{PLANS_HERO.eyebrow}</span>
         <h1 className="zs-h1 zp2-hero__h">
-          {cap ? fill(PLANS_HERO.title, { cap }) : "Protect every PC and run your team, at a small price per PC a month."}
+          {priceCap ? fill(PLANS_HERO.title, { cap: priceCap }) : "Protect every PC and run your team, at a small price per PC a month."}
         </h1>
         <p className="zp2-hero__lead">{PLANS_HERO.lead}</p>
       </section>
@@ -262,16 +223,16 @@ export default function PlansPage(): ReactElement {
               type="number"
               inputMode="numeric"
               min={1}
-              max={200}
+              max={cap}
               value={typed ?? String(pcs)}
               onChange={(e) => {
-                setTyped(e.target.value);
                 const n = Number(e.target.value);
-                if (e.target.value !== "" && n >= 1) setPcsState(Math.min(200, Math.round(n)));
+                setTyped(n > cap ? String(cap) : e.target.value);
+                if (e.target.value !== "" && n >= 1) setPcsState(Math.min(cap, Math.round(n)));
               }}
               onBlur={() => setTyped(null)}
             />
-            <button type="button" className="zp2-step__b" aria-label="One more PC" onClick={() => setPcs(pcs + 1)}>
+            <button type="button" className="zp2-step__b" aria-label="One more PC" disabled={pcs >= cap} onClick={() => setPcs(pcs + 1)}>
               +
             </button>
           </div>
@@ -303,9 +264,7 @@ export default function PlansPage(): ReactElement {
         {fit ? (
           <>
             <b>{fit.name}</b>{" "}
-            {over
-              ? `covers up to ${pcWord(fit.max_devices)}. More than that? Write to hello@zinwe.io.`
-              : `fits ${pcWord(pcs)}.${fit.requires_payment ? "" : " Free forever."}`}
+            {`fits ${pcWord(pcs)}.${fit.requires_payment ? "" : " Free forever."}${pcs >= cap ? ` ${pcCapLine(cap)}` : ""}`}
           </>
         ) : null}
       </p>

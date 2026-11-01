@@ -145,7 +145,7 @@ export const PLANS_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   { q: "Can I change plans later?", a: "Yes, any time from Billing in your dashboard. Moving up starts right away; your rules, chats, tasks and history all stay." },
   { q: 'What does "Up to {first} PCs" mean?', a: "The number of Windows PCs with Zinwe connected. People are free: two people sharing one PC count once." },
   { q: "Which currency will I pay in?", a: "Pick it in the Currency menu above. Businesses in India pay in rupees by UPI, card or bank transfer. Everyone else pays in US dollars by card or bank transfer." },
-  { q: "We have more than {top} PCs.", a: "{topName} covers up to {top} PCs. If you are growing past that, write to hello@zinwe.io and we will help you plan it." },
+  { q: "How many PCs can a plan cover?", a: "Up to {top} PCs, on {topName}, our biggest plan." },
 ];
 
 export const PLANS_CLOSE = {
