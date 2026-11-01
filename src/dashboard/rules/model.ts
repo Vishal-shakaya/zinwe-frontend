@@ -2,12 +2,11 @@
  * The Rules page draft: one flat object of every setting on the board, built from the real policy
  * (GET devices/policy/) plus the sample extras (fixtures/rules.ts). Save sends only the policy blocks that
  * changed (PUT devices/policy/, partial) and stores the extras.
- * Production builds (SAMPLES_ON off): the extras are neutral, so the draft is exactly the real policy; the
- * board-only website kinds (Social media, Video streaming) and the made-up list sizes are left out.
+ * Production builds (SAMPLES_ON off): the extras are neutral, so the draft is exactly the real policy.
  */
-import { WEB_CATEGORIES, type Policy, type PolicyUpdate, type UsbMode, type WebCategory } from "../../lib/api";
+import { type Policy, type PolicyUpdate, type UsbMode, type WebCategory } from "../../lib/api";
 import { SAMPLES_ON } from "../fixtures";
-import type { ExtraCategory, RulesExtras } from "../fixtures/rules";
+import type { RulesExtras } from "../fixtures/rules";
 import { normalizeExe } from "../features/policyText";
 import { KNOWN_REMOTE_TOOLS, knownTool } from "../features/remoteTools";
 
@@ -16,26 +15,8 @@ export const GB = 1024 * MB;
 
 export type WebChoice = "off" | "watch" | "block";
 export type ToolMode = "block" | "watch" | "allow";
-export type CategoryKey = WebCategory | ExtraCategory;
-
-/** Website kinds on the board, in its order. The first four are the agent's built-in lists. */
-const ALL_CATEGORIES: ReadonlyArray<{ key: CategoryKey; label: string; desc: string }> = [
-  { key: "adult", label: "Adult content", desc: "Sexual content. 52,318 sites." },
-  { key: "gambling", label: "Gambling", desc: "Betting, casinos and poker. 1,284 sites." },
-  { key: "malware", label: "Malware", desc: "Sites that spread viruses or fake downloads. 9,476 sites." },
-  { key: "phishing", label: "Phishing & scams", desc: "Fake bank, shop and login pages. 6,215 sites." },
-  { key: "social", label: "Social media", desc: "Facebook, Instagram, X and similar." },
-  { key: "video", label: "Video streaming", desc: "YouTube, Netflix and similar." },
-];
-
-/** The kinds the Rules page shows: production only the agent's built-in lists, without the board's list sizes. */
-export const CATEGORIES: ReadonlyArray<{ key: CategoryKey; label: string; desc: string }> = SAMPLES_ON
-  ? ALL_CATEGORIES
-  : ALL_CATEGORIES.filter((c) => isApiCategory(c.key)).map((c) => ({ ...c, desc: c.desc.replace(/ [\d,]+ sites\.$/, "") }));
-
-export function isApiCategory(k: CategoryKey): k is WebCategory {
-  return (WEB_CATEGORIES as readonly string[]).includes(k);
-}
+/** Switched on for the owner the first time they choose blocking, if no list is on yet. */
+export const DEFAULT_LISTS: readonly WebCategory[] = ["adult", "gambling", "malware", "phishing"];
 
 /** Remote-control tools Zinwe knows (board RSEED). `agent` = the name the Zinwe app matches (blocked_tools). */
 export const REMOTE_SEED: ReadonlyArray<{ id: string; name: string; agent: string; what: string }> = [
@@ -75,15 +56,16 @@ export interface RulesDraft {
   breakOk: RulesExtras["breakOk"];
   earlyOk: boolean;
   web: WebChoice;
-  cats: CategoryKey[];
+  cats: WebCategory[];
   sites: string[];
+  /** Site ids (a name, or "h:…" for a hidden name). */
   allow: string[];
   usb: UsbMode;
   names: boolean;
   usbBytes: number;
   lanBytes: number;
   emailBytes: number;
-  upGb: number;
+  upBytes: number;
   usbLock: boolean;
   tools: ToolRow[];
   soft: boolean;
@@ -141,15 +123,15 @@ export function draftFrom(policy: Policy, extras: RulesExtras): RulesDraft {
     breakOk: extras.breakOk,
     earlyOk: extras.earlyOk,
     web: !w.enabled ? "off" : w.mode === "block" ? "block" : "watch",
-    cats: [...CATEGORIES.map((c) => c.key).filter((k) => (isApiCategory(k) ? w.categories.includes(k) : extras.extraCategories.includes(k)))],
+    cats: [...w.categories],
     sites: [...w.custom_domains],
-    allow: [...extras.allowSites],
+    allow: [...(w.allow_domains ?? [])],
     usb: policy.usb.mode,
     names: policy.data_transfer.include_details,
     usbBytes: policy.data_transfer.usb_warn_bytes,
     lanBytes: policy.data_transfer.lan_warn_bytes,
     emailBytes: policy.data_transfer.email_warn_bytes,
-    upGb: extras.uploadLimitGb,
+    upBytes: policy.data_transfer.web_upload_warn_bytes ?? GB,
     usbLock: policy.data_transfer.usb_lockdown,
     tools,
     soft: extras.softwareAlerts,
@@ -166,22 +148,23 @@ export function policyPatch(policy: Policy, saved: RulesDraft, d: RulesDraft): P
   const changed = new Set(changedKeys(saved, d));
   const patch: PolicyUpdate = {};
   if (changed.has("usb")) patch.usb = { mode: d.usb };
-  const apiCats = (x: RulesDraft) => x.cats.filter(isApiCategory);
-  if (changed.has("web") || changed.has("sites") || JSON.stringify(apiCats(saved)) !== JSON.stringify(apiCats(d))) {
+  if (["web", "sites", "cats", "allow"].some((k) => changed.has(k as keyof RulesDraft))) {
     patch.web = {
       enabled: d.web !== "off",
       mode: d.web === "off" ? policy.web.mode : d.web === "block" ? "block" : "monitor",
-      categories: apiCats(d),
+      categories: [...d.cats],
       custom_domains: [...d.sites],
+      allow_domains: [...d.allow],
     };
   }
-  if (["names", "usbBytes", "lanBytes", "emailBytes", "usbLock"].some((k) => changed.has(k as keyof RulesDraft))) {
+  if (["names", "usbBytes", "lanBytes", "emailBytes", "upBytes", "usbLock"].some((k) => changed.has(k as keyof RulesDraft))) {
     patch.data_transfer = {
       ...policy.data_transfer,
       include_details: d.names,
       usb_warn_bytes: d.usbBytes,
       lan_warn_bytes: d.lanBytes,
       email_warn_bytes: d.emailBytes,
+      web_upload_warn_bytes: d.upBytes,
       usb_lockdown: d.usbLock,
     };
   }
@@ -208,9 +191,6 @@ export function extrasFrom(d: RulesDraft): RulesExtras {
     breakOk: d.breakOk,
     earlyOk: d.earlyOk,
     softwareAlerts: d.soft,
-    uploadLimitGb: d.upGb,
-    allowSites: [...d.allow],
-    extraCategories: d.cats.filter((k): k is ExtraCategory => !isApiCategory(k)),
     allowTools: d.tools.filter((t) => t.mode === "allow").map((t) => t.agent),
     customTools: d.tools.filter((t) => t.custom).map((t) => ({ name: t.name, exe: t.exe })),
     removedTools: REMOTE_SEED.filter((s) => !d.tools.some((t) => t.id === s.id)).map((s) => s.id),

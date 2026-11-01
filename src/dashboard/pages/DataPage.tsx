@@ -597,7 +597,7 @@ export default function DataPage(): ReactElement {
                 { k: "Alert on a USB copy over", v: dt?.enabled ? formatBytes(dt.usb_warn_bytes) : "Off" },
                 { k: "Alert on a shared-folder copy over", v: dt?.enabled ? formatBytes(dt.lan_warn_bytes) : "Off" },
                 { k: "Alert on an email attachment over", v: dt?.enabled ? formatBytes(dt.email_warn_bytes) : "Off" },
-                ...(uploadLimit ? [{ k: "Alert on an upload over", v: formatBytes(uploadLimit) }] : []),
+                ...(dt?.enabled && (dt.web_upload_warn_bytes ?? uploadLimit) ? [{ k: "Alert on an upload over", v: formatBytes((dt.web_upload_warn_bytes ?? uploadLimit) as number) }] : []),
                 ...(dt?.usb_lockdown ? [{ k: "After a USB copy over the limit", v: "USB goes read-only" }] : []),
               ].map((r) => (
                 <div key={r.k} className="zp-rule">

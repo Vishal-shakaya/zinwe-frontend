@@ -98,9 +98,9 @@ export type UsbMode = "allow" | "read_only" | "block";
 
 export type WebMode = "monitor" | "block";
 
-/** The built-in category lists the agent recognises. */
-export type WebCategory = "adult" | "gambling" | "malware" | "phishing";
-export const WEB_CATEGORIES: readonly WebCategory[] = ["adult", "gambling", "malware", "phishing"];
+/** The site lists (GET devices/lists/). The first four are switched on when the owner first chooses blocking. */
+export type WebCategory = "adult" | "gambling" | "malware" | "phishing" | "social" | "video";
+export const WEB_CATEGORIES: readonly WebCategory[] = ["adult", "gambling", "malware", "phishing", "social", "video"];
 
 export interface UsbPolicy {
   mode: UsbMode;
@@ -110,10 +110,48 @@ export interface WebPolicy {
   enabled: boolean;
   /** monitor = record usage only; block = also block the chosen categories and domains. */
   mode: WebMode;
-  /** Subset of WEB_CATEGORIES; [] means "all built-in" when blocking. */
+  /** The lists switched on; [] = none, only custom_domains are blocked. */
   categories: WebCategory[];
   /** Extra domains to block, e.g. "example.com". */
   custom_domains: string[];
+  /** Sites that stay open whatever a list says: names, and ids ("h:…") for hidden names. Optional when saving. */
+  allow_domains?: string[];
+  /** The allow list as shown to the owner. Read only; hidden names come masked. */
+  allow_sites?: BlockListSite[];
+}
+
+/** One site of a list. `id` is what goes in allow_domains; `name` is masked on a hidden list. */
+export interface BlockListSite {
+  id: string;
+  name: string;
+  lists: WebCategory[];
+}
+
+export interface BlockList {
+  key: WebCategory;
+  label: string;
+  description: string;
+  /** The true number of sites in the list. */
+  count: number;
+  masked: boolean;
+  default_on: boolean;
+}
+
+export interface BlockLists {
+  version: string;
+  updated_at: string;
+  lists: BlockList[];
+}
+
+export interface BlockListSites {
+  key: WebCategory;
+  /** Sites matching the search, across all pages. */
+  count: number;
+  page: number;
+  page_size: number;
+  has_more: boolean;
+  masked: boolean;
+  sites: BlockListSite[];
 }
 
 export interface DataTransferPolicy {
@@ -121,6 +159,8 @@ export interface DataTransferPolicy {
   usb_warn_bytes: number;
   lan_warn_bytes: number;
   email_warn_bytes: number;
+  /** Website uploads limit: what a browser or mail app sends to one site within an hour. */
+  web_upload_warn_bytes?: number;
   /** OFF by default: filenames/subjects are recorded only when true. */
   include_details: boolean;
   /** When true, a USB copy over the usb limit auto-sets the PC to USB read-only. */
@@ -471,6 +511,28 @@ export async function getPolicy(signal?: AbortSignal): Promise<Policy> {
  */
 export async function updatePolicy(patch: PolicyUpdate): Promise<Policy> {
   return normalizePolicy(await authedRequest<Policy>("/api/devices/policy/", { method: "PUT", body: patch }));
+}
+
+/** GET /api/devices/lists/ — the site lists with their true sizes (403 plan_feature without the web module). */
+export function getBlockLists(signal?: AbortSignal): Promise<BlockLists> {
+  return authedRequest<BlockLists>("/api/devices/lists/", { signal });
+}
+
+/** Largest page of a list; "Tick all" and "Untick all" ask for the whole list in one go. */
+export const BLOCK_LIST_MAX_PAGE = 5000;
+
+/** GET /api/devices/lists/<key>/sites/ — one page of a list, optionally searched. Adult names come masked. */
+export function getBlockListSites(
+  key: WebCategory,
+  params: { q?: string; page?: number; pageSize?: number },
+  signal?: AbortSignal,
+): Promise<BlockListSites> {
+  const query = new URLSearchParams();
+  if (params.q) query.set("q", params.q);
+  if (params.page) query.set("page", String(params.page));
+  if (params.pageSize) query.set("page_size", String(params.pageSize));
+  const qs = query.toString();
+  return authedRequest<BlockListSites>(`/api/devices/lists/${key}/sites/${qs ? `?${qs}` : ""}`, { signal });
 }
 
 export const EVENTS_DEFAULT_LIMIT = 50;
