@@ -179,21 +179,13 @@ export const STEPS: ReadonlyArray<string> = ["Create your free account", "Add yo
 export const HOME_FAQ_SHOWN: ReadonlyArray<string> = ["Is Zinwe spyware?", "Do I need an IT person to set it up?", "Can I use Zinwe just for chat and tasks?", "Does Zinwe work on Mac or Linux?", "How much does it cost?"];
 
 /**
- * The review row: real words from business owners and their team members, shown only with each person's written
- * permission (rules 3 and 7: never invent one, never edit the meaning). Empty = the section is not on the live site.
- * Add one entry the day someone agrees.
+ * The review row: real words from business owners and their team members, written in Admin → Testimonials, each with
+ * that person's permission (rules 3 and 7: never invent one, never edit the meaning). Below REVIEWS_MIN the section
+ * isn't shown, because one or two cards in a three-column row look unfinished.
  */
-export type ReviewKind = "owner" | "member";
-export interface Review {
-  kind: ReviewKind;
-  quote: string;
-  name: string;
-  role: string;
-  business: string;
-}
-export const REVIEW_KINDS: Record<ReviewKind, string> = { owner: "Business owner", member: "Team member" };
+export const REVIEW_KINDS: Record<"owner" | "member", string> = { owner: "Business owner", member: "Team member" };
 export const REVIEWS_HEAD = { eyebrow: "Reviews", title: "From owners and their teams." } as const;
-export const REVIEWS: readonly Review[] = [];
+export const REVIEWS_MIN = 3;
 
 export const CLOSE = {
   title: "IT Is OK. Start free today.",

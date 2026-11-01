@@ -1206,10 +1206,21 @@
   border-radius: 16px;
   background: #fff;
 }
+.zh2-review__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
 .zh2-review__kind {
   font-size: 13px;
   font-weight: 600;
   color: var(--zh2-orange-text);
+}
+.zh2-review__rating {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--zs-ink);
 }
 .zh2-review blockquote {
   margin: 0;

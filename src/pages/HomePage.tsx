@@ -28,7 +28,7 @@ import "../styles/resources.css";
  * three cards → data
  * protection, one question → chat → the feature cards → how it works, with the sign-up →
  * reviews → questions → close. Depth lives on the Product page. Everything below the demo lives in .zh2
- * (site-home2.css), on one spacing scale. The review row shows only once real people have agreed (REVIEWS).
+ * (site-home2.css), on one spacing scale. The review row comes from Admin → Testimonials.
  */
 const USB = RULES[0];
 

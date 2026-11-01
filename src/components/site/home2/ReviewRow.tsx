@@ -1,19 +1,27 @@
-import type { ReactElement } from "react";
-import { REVIEWS, REVIEWS_HEAD, REVIEW_KINDS, type Review } from "../../../content/site/home";
+import { useEffect, useState, type ReactElement } from "react";
+import { REVIEWS_HEAD, REVIEWS_MIN, REVIEW_KINDS } from "../../../content/site/home";
+import { getTestimonials, type Testimonial } from "../../../lib/api";
 
 /** Local preview of the layout only: never built for the live site, never real words (rule 7). */
-const PREVIEW: readonly Review[] = import.meta.env.DEV
+const PREVIEW: readonly Testimonial[] = import.meta.env.DEV
   ? [
-      { kind: "owner", quote: "Layout preview. A real owner's words go here.", name: "Owner's name", role: "Owner", business: "Business name" },
-      { kind: "owner", quote: "Layout preview. A second owner's words go here, a little longer, to show how the row holds two lengths.", name: "Owner's name", role: "Owner", business: "Business name" },
-      { kind: "member", quote: "Layout preview. A team member's words go here.", name: "Member's name", role: "Their role", business: "Business name" },
+      { id: -1, kind: "owner", quote: "Layout preview. A real owner's words go here.", rating: 10, name: "Owner's name", role: "Owner", company: "Business name" },
+      { id: -2, kind: "owner", quote: "Layout preview. A second owner's words go here, a little longer, to show how the row holds two lengths of text.", rating: 9, name: "Owner's name", role: "Owner", company: "Business name" },
+      { id: -3, kind: "member", quote: "Layout preview. A team member's words go here.", rating: 8, name: "Member's name", role: "Their role", company: "Business name" },
     ]
   : [];
 
-/** Home's review row: real words from owners and team members, shown only with written permission. Empty = no section. */
+/** Home's review row: what Admin → Testimonials has published. Nothing on the page until there are enough to show. */
 export function ReviewRow(): ReactElement | null {
-  const preview = REVIEWS.length === 0 && PREVIEW.length > 0;
-  const reviews = preview ? PREVIEW : REVIEWS;
+  const [live, setLive] = useState<readonly Testimonial[]>([]);
+
+  useEffect(() => {
+    const request = new AbortController();
+    getTestimonials(request.signal).then(setLive, () => undefined);
+    return () => request.abort();
+  }, []);
+
+  const reviews = live.length >= REVIEWS_MIN ? live : PREVIEW;
   if (reviews.length === 0) return null;
   return (
     <section className="zh2-sec zh2-reviews" aria-labelledby="zh2-reviews-h">
@@ -25,15 +33,20 @@ export function ReviewRow(): ReactElement | null {
           </h2>
         </div>
         <ul className="zh2-reviews__row">
-          {reviews.map((r, i) => (
-            <li key={i}>
+          {reviews.map((r) => (
+            <li key={r.id}>
               <figure className="zh2-review">
-                <span className="zh2-review__kind">{REVIEW_KINDS[r.kind]}</span>
+                <span className="zh2-review__top">
+                  <span className="zh2-review__kind">{REVIEW_KINDS[r.kind]}</span>
+                  <span className="zh2-review__rating" aria-label={`Rated ${r.rating} out of 10`}>
+                    {r.rating}/10
+                  </span>
+                </span>
                 <blockquote>“{r.quote}”</blockquote>
                 <figcaption>
                   <b>{r.name}</b>
                   <span>
-                    {r.role}, {r.business}
+                    {r.role || REVIEW_KINDS[r.kind]}, {r.company}
                   </span>
                 </figcaption>
               </figure>

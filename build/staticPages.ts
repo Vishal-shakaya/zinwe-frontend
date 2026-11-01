@@ -19,7 +19,7 @@ import { AGENT_MSI_URL, AGENT_RELEASE, DOWNLOAD_CLOSE, DOWNLOAD_FAQ, DOWNLOAD_HE
 import { LEGAL_CONTACT, LEGAL_DOCS, LEGAL_UPDATED, type LegalDoc } from "../src/content/legal.ts";
 import { BRAND_LINE, HOME_FAQ, type SeoPage } from "../src/content/seo.ts";
 import { ACTIVE_MEMBERS, HOME_WALL_LEAD, WALL_COPY } from "../src/content/site/clients.ts";
-import { CHAT_SPOT, CLOSE, FEATURES, HERO, HOME_FAQ_SHOWN, PROTECTION as HOME_PROTECTION, REVIEWS, REVIEWS_HEAD, RULES, STEPS, TILES_INTRO, WHAT } from "../src/content/site/home.ts";
+import { CHAT_SPOT, CLOSE, FEATURES, HERO, HOME_FAQ_SHOWN, PROTECTION as HOME_PROTECTION, RULES, STEPS, TILES_INTRO, WHAT } from "../src/content/site/home.ts";
 import { LEGAL_SUMMARY_UPDATED, POLICY_SUMMARIES } from "../src/content/site/legalSummary.ts";
 import { COMPARE_ROWS, PLAN_COPY, PLANS_CLOSE, PLANS_FAQ, PROMISES, WHY, fill } from "../src/content/site/plans.ts";
 import { ALERTS, CHAT, HOURS, PLAN_TAG, PRIVACY, PRODUCT_CLOSE, PRODUCT_HERO, PROTECTION, REPORTS, TASKS } from "../src/content/site/product.ts";
@@ -145,12 +145,6 @@ function home(): string {
         FEATURES.map((f) => h(3, f.title) + p(f.body) + (f.href ? `<p>${a(f.href, f.link)}</p>` : "")).join(""),
     ),
     section(h(2, fromPage("pages/HomePage.tsx", "Up and running in an afternoon.")) + ol(STEPS) + `<p>${START_FREE()}</p>`),
-    REVIEWS.length
-      ? section(
-          h(2, REVIEWS_HEAD.title) +
-            REVIEWS.map((r) => `<figure><blockquote>${e(r.quote)}</blockquote><figcaption>${e(`${r.name}, ${r.role}, ${r.business}`)}</figcaption></figure>`).join(""),
-        )
-      : "",
     section(h(2, fromPage("pages/HomePage.tsx", "Straight answers.")) + faq(HOME_FAQ.filter((f) => HOME_FAQ_SHOWN.includes(f.q)))),
     section(h(2, CLOSE.title) + p(CLOSE.body) + `<p>${START_FREE()}</p>`),
   ].join("");

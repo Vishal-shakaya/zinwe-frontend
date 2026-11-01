@@ -192,6 +192,21 @@ export interface ReleaseNote {
   published_at: string;
 }
 
+export interface Testimonial {
+  id: number;
+  kind: "owner" | "member";
+  quote: string;
+  rating: number;
+  name: string;
+  role: string;
+  company: string;
+}
+
+/** GET testimonials/ — what Home shows, newest first (no sign-in needed). */
+export function getTestimonials(signal?: AbortSignal): Promise<Testimonial[]> {
+  return authedRequest<Testimonial[]>("/api/auth/testimonials/", { signal, anonymous: true });
+}
+
 /** GET whats-new/ — published release notes, newest first (no sign-in needed). */
 export function getReleaseNotes(signal?: AbortSignal): Promise<ReleaseNote[]> {
   return authedRequest<ReleaseNote[]>("/api/auth/whats-new/", { signal, anonymous: true });
